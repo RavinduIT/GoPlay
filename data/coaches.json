@@ -1,0 +1,15 @@
+{
+    "coaches": [
+        {
+            "id": 1,
+            "name": "",
+            "sport": "",
+            "experience": "",
+            "rating": 0,
+            "hourlyRate": 0,
+            "availability": [],
+            "image": "",
+            "bio": ""
+        }
+    ]
+}

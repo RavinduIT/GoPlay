@@ -1,0 +1,25 @@
+{
+    "sports": [
+        {
+            "id": 1,
+            "name": "Basketball",
+            "description": "",
+            "image": "",
+            "courts": []
+        },
+        {
+            "id": 2,
+            "name": "Tennis",
+            "description": "",
+            "image": "",
+            "courts": []
+        },
+        {
+            "id": 3,
+            "name": "Football",
+            "description": "",
+            "image": "",
+            "courts": []
+        }
+    ]
+}

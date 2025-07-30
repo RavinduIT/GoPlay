@@ -1,0 +1,14 @@
+{
+    "grounds": [
+        {
+            "id": 1,
+            "name": "",
+            "sport": "",
+            "location": "",
+            "hourlyRate": 0,
+            "facilities": [],
+            "images": [],
+            "availability": []
+        }
+    ]
+}
