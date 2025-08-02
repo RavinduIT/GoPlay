@@ -3,24 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SportHub - Home</title>
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/pages.css">
+    <title>SportHub - Your Ultimate Sports Hub</title>
+    <link rel="stylesheet" href="/css/pages/index.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation will be inserted here -->
+    <!-- Include Navbar -->
     <div id="navbar-container"></div>
-    
-    <!-- Main content -->
-    <main id="main-content">
-        <!-- Home page content will be loaded here -->
-    </main>
 
-    <!-- Scripts -->
-    <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/router.js"></script>
-    <script src="js/main.js"></script>
+    <div class="home-page">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-background"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Your Ultimate <span class="text-glow">Sports Hub</span>
+                </h1>
+                <p class="hero-description">
+                    Book grounds, hire coaches, buy equipment, and stay updated with the latest sports news
+                </p>
+                <div class="hero-buttons">
+                    <a href="/book-ground" class="btn btn-hero-primary">
+                        <i data-lucide="calendar"></i>
+                        Book Now
+                    </a>
+                    <a href="/shop" class="btn btn-hero-outline">
+                        Explore Sports
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <div class="section-background"></div>
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        Everything You Need for <span class="text-gradient">Sports</span>
+                    </h2>
+                    <p class="section-description">
+                        From booking world-class facilities to finding expert coaches and premium equipment
+                    </p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card" onclick="window.location.href='/book-ground'">
+                        <div class="feature-image-container">
+                            <img src="" alt="Book Sports Grounds" class="feature-image" data-image="featureBookingImage">
+                            <div class="feature-overlay"></div>
+                            <div class="feature-stats">500+ Venues</div>
+                        </div>
+                        <div class="feature-header">
+                            <div class="feature-icon">
+                                <i data-lucide="calendar"></i>
+                            </div>
+                            <h3 class="feature-title">Book Sports Grounds</h3>
+                        </div>
+                        <div class="feature-content">
+                            <p class="feature-description">
+                                Reserve courts, fields, and complexes for your games
+                            </p>
+                            <button class="btn btn-feature">Get Started</button>
+                        </div>
+                    </div>
+
+                    <div class="feature-card" onclick="window.location.href='/book-coach'">
+                        <div class="feature-image-container">
+                            <img src="" alt="Hire Professional Coaches" class="feature-image" data-image="featureCoachingImage">
+                            <div class="feature-overlay"></div>
+                            <div class="feature-stats">200+ Coaches</div>
+                        </div>
+                        <div class="feature-header">
+                            <div class="feature-icon">
+                                <i data-lucide="user"></i>
+                            </div>
+                            <h3 class="feature-title">Hire Professional Coaches</h3>
+                        </div>
+                        <div class="feature-content">
+                            <p class="feature-description">
+                                Train with certified coaches for all sports
+                            </p>
+                            <button class="btn btn-feature">Get Started</button>
+                        </div>
+                    </div>
+
+                    <div class="feature-card" onclick="window.location.href='/shop'">
+                        <div class="feature-image-container">
+                            <img src="" alt="Sports Equipment Shop" class="feature-image" data-image="featureEquipmentImage">
+                            <div class="feature-overlay"></div>
+                            <div class="feature-stats">1000+ Products</div>
+                        </div>
+                        <div class="feature-header">
+                            <div class="feature-icon">
+                                <i data-lucide="shopping-cart"></i>
+                            </div>
+                            <h3 class="feature-title">Sports Equipment Shop</h3>
+                        </div>
+                        <div class="feature-content">
+                            <p class="feature-description">
+                                Buy quality gear from trusted brands
+                            </p>
+                            <button class="btn btn-feature">Get Started</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- News Section -->
+        <section class="news-section">
+            <div class="news-background"></div>
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        Latest <span class="text-gradient">Sports News</span>
+                    </h2>
+                    <p class="section-description">
+                        Stay updated with the latest happenings in the sports world
+                    </p>
+                </div>
+                <div class="news-container">
+                    <div class="news-carousel" id="newsCarousel">
+                        <!-- News items will be populated by JavaScript -->
+                    </div>
+                    <div class="news-indicators" id="newsIndicators">
+                        <!-- Indicators will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular Venues -->
+        <section class="venues-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        Popular <span class="text-gradient">Venues</span>
+                    </h2>
+                    <p class="section-description">
+                        Book your favorite sports facilities at premium locations
+                    </p>
+                </div>
+
+                <div class="venues-grid">
+                    <div class="venue-card" onclick="window.location.href='/book-ground'">
+                        <div class="venue-image-container">
+                            <img src="" alt="City Sports Complex" class="venue-image" data-image="sportsComplexImage">
+                            <div class="venue-overlay"></div>
+                            <div class="venue-rating">
+                                <i data-lucide="star"></i>
+                                4.9
+                            </div>
+                            <div class="venue-info">
+                                <h3 class="venue-name">City Sports Complex</h3>
+                                <p class="venue-type">Multi-Sport</p>
+                            </div>
+                        </div>
+                        <div class="venue-content">
+                            <div class="venue-details">
+                                <div class="venue-price">
+                                    <i data-lucide="clock"></i>
+                                    <span>$25/hour</span>
+                                </div>
+                                <div class="venue-badge">Available Now</div>
+                            </div>
+                            <button class="btn btn-venue">
+                                <i data-lucide="map-pin"></i>
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="venue-card" onclick="window.location.href='/book-ground'">
+                        <div class="venue-image-container">
+                            <img src="" alt="Tennis Center Pro" class="venue-image" data-image="tennisCourtImage">
+                            <div class="venue-overlay"></div>
+                            <div class="venue-rating">
+                                <i data-lucide="star"></i>
+                                4.8
+                            </div>
+                            <div class="venue-info">
+                                <h3 class="venue-name">Tennis Center Pro</h3>
+                                <p class="venue-type">Tennis Courts</p>
+                            </div>
+                        </div>
+                        <div class="venue-content">
+                            <div class="venue-details">
+                                <div class="venue-price">
+                                    <i data-lucide="clock"></i>
+                                    <span>$30/hour</span>
+                                </div>
+                                <div class="venue-badge">Available Now</div>
+                            </div>
+                            <button class="btn btn-venue">
+                                <i data-lucide="map-pin"></i>
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="venue-card" onclick="window.location.href='/book-ground'">
+                        <div class="venue-image-container">
+                            <img src="" alt="Basketball Arena" class="venue-image" data-image="basketballCourtImage">
+                            <div class="venue-overlay"></div>
+                            <div class="venue-rating">
+                                <i data-lucide="star"></i>
+                                4.7
+                            </div>
+                            <div class="venue-info">
+                                <h3 class="venue-name">Basketball Arena</h3>
+                                <p class="venue-type">Basketball</p>
+                            </div>
+                        </div>
+                        <div class="venue-content">
+                            <div class="venue-details">
+                                <div class="venue-price">
+                                    <i data-lucide="clock"></i>
+                                    <span>$20/hour</span>
+                                </div>
+                                <div class="venue-badge">Available Now</div>
+                            </div>
+                            <button class="btn btn-venue">
+                                <i data-lucide="map-pin"></i>
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <script src="/js/data-utils.js"></script>
+    <script src="/js/components/navbar.js"></script>
+    <script src="/js/pages/index.js"></script>
 </body>
 </html>

@@ -1,0 +1,269 @@
+{
+  "newsItems": [
+    {
+      "id": 1,
+      "title": "World Cup 2024 Preparations Begin",
+      "image": "heroSportsImage",
+      "summary": "Teams gear up for the biggest tournament of the year",
+      "date": "2024-01-15"
+    },
+    {
+      "id": 2,
+      "title": "Tennis Championship Finals",
+      "image": "tennisCourtImage",
+      "summary": "Epic showdown at Wimbledon this weekend",
+      "date": "2024-01-14"
+    },
+    {
+      "id": 3,
+      "title": "Basketball League Season Starts",
+      "image": "basketballCourtImage",
+      "summary": "New season brings exciting matchups and talent",
+      "date": "2024-01-13"
+    },
+    {
+      "id": 4,
+      "title": "Olympic Training Facilities Open",
+      "image": "sportsComplexImage",
+      "summary": "State-of-the-art facilities ready for athletes",
+      "date": "2024-01-12"
+    },
+    {
+      "id": 5,
+      "title": "Youth Sports Programs Launch",
+      "image": "heroSportsImage",
+      "summary": "Inspiring the next generation of athletes",
+      "date": "2024-01-11"
+    },
+    {
+      "id": 6,
+      "title": "Sports Technology Innovation",
+      "image": "sportsComplexImage",
+      "summary": "AI revolutionizes training methods worldwide",
+      "date": "2024-01-10"
+    }
+  ],
+  "popularVenues": [
+    {
+      "id": 1,
+      "name": "City Sports Complex",
+      "type": "Multi-Sport",
+      "rating": 4.9,
+      "price": "$25/hour",
+      "image": "sportsComplexImage",
+      "description": "State-of-the-art multi-sport facility with modern amenities",
+      "amenities": ["Parking", "Changing Rooms", "Equipment Rental", "Cafeteria"],
+      "sports": ["Football", "Basketball", "Tennis", "Volleyball"],
+      "availability": "Available Now"
+    },
+    {
+      "id": 2,
+      "name": "Tennis Center Pro",
+      "type": "Tennis Courts",
+      "rating": 4.8,
+      "price": "$30/hour",
+      "image": "tennisCourtImage",
+      "description": "Professional tennis courts with clay and hard court surfaces",
+      "amenities": ["Pro Shop", "Coaching", "Equipment Rental", "Locker Rooms"],
+      "sports": ["Tennis"],
+      "availability": "Available Now"
+    },
+    {
+      "id": 3,
+      "name": "Basketball Arena",
+      "type": "Basketball",
+      "rating": 4.7,
+      "price": "$20/hour",
+      "image": "basketballCourtImage",
+      "description": "Indoor basketball courts with professional-grade flooring",
+      "amenities": ["Sound System", "Scoreboard", "Seating", "Equipment Storage"],
+      "sports": ["Basketball"],
+      "availability": "Available Now"
+    }
+  ],
+  "featuredCoaches": [
+    {
+      "id": 1,
+      "name": "John Martinez",
+      "sport": "Tennis",
+      "rating": 4.9,
+      "experience": "10 years",
+      "price": "$50/hour",
+      "image": "coach1.jpg",
+      "specialization": ["Beginner Training", "Advanced Techniques", "Competition Prep"],
+      "certifications": ["ITF Certified", "USPTA Professional"],
+      "description": "Former professional player with extensive coaching experience",
+      "availability": "Mon-Fri: 9AM-6PM"
+    },
+    {
+      "id": 2,
+      "name": "Sarah Johnson",
+      "sport": "Basketball",
+      "rating": 4.8,
+      "experience": "8 years",
+      "price": "$45/hour",
+      "image": "coach2.jpg",
+      "specialization": ["Youth Training", "Team Strategy", "Shooting Techniques"],
+      "certifications": ["NBA Coaching Certificate", "Youth Sports Safety"],
+      "description": "Former college player specializing in youth development",
+      "availability": "Mon-Sat: 10AM-8PM"
+    },
+    {
+      "id": 3,
+      "name": "Mike Thompson",
+      "sport": "Football",
+      "rating": 4.7,
+      "experience": "12 years",
+      "price": "$60/hour",
+      "image": "coach3.jpg",
+      "specialization": ["Fitness Training", "Tactical Analysis", "Goal Keeping"],
+      "certifications": ["UEFA B License", "FIFA Coaching Badge"],
+      "description": "Professional coach with international experience",
+      "availability": "Tue-Sun: 8AM-7PM"
+    }
+  ],
+  "featuredProducts": [
+    {
+      "id": 1,
+      "name": "Professional Tennis Racket",
+      "brand": "Wilson",
+      "price": 199.99,
+      "originalPrice": 249.99,
+      "image": "tennis-racket.jpg",
+      "category": "Tennis",
+      "rating": 4.8,
+      "reviews": 156,
+      "description": "High-performance racket for competitive play",
+      "features": ["Carbon Fiber Frame", "Perfect Weight Balance", "Shock Absorption"],
+      "inStock": true,
+      "discount": 20
+    },
+    {
+      "id": 2,
+      "name": "Basketball Shoes Pro",
+      "brand": "Nike",
+      "price": 159.99,
+      "originalPrice": 179.99,
+      "image": "basketball-shoes.jpg",
+      "category": "Basketball",
+      "rating": 4.9,
+      "reviews": 203,
+      "description": "Professional basketball shoes with superior grip",
+      "features": ["Air Cushioning", "Lightweight Design", "Ankle Support"],
+      "inStock": true,
+      "discount": 11
+    },
+    {
+      "id": 3,
+      "name": "Football Training Kit",
+      "brand": "Adidas",
+      "price": 89.99,
+      "originalPrice": 109.99,
+      "image": "football-kit.jpg",
+      "category": "Football",
+      "rating": 4.6,
+      "reviews": 89,
+      "description": "Complete training kit for football players",
+      "features": ["Moisture Wicking", "Durable Material", "Professional Fit"],
+      "inStock": true,
+      "discount": 18
+    },
+    {
+      "id": 4,
+      "name": "Gym Equipment Set",
+      "brand": "Fitness Pro",
+      "price": 299.99,
+      "originalPrice": 399.99,
+      "image": "gym-equipment.jpg",
+      "category": "Fitness",
+      "rating": 4.7,
+      "reviews": 124,
+      "description": "Complete home gym equipment set",
+      "features": ["Adjustable Weights", "Resistance Bands", "Exercise Mat"],
+      "inStock": true,
+      "discount": 25
+    }
+  ],
+  "categories": [
+    { "id": 1, "name": "Tennis", "icon": "racket", "count": 45 },
+    { "id": 2, "name": "Basketball", "icon": "basketball", "count": 32 },
+    { "id": 3, "name": "Football", "icon": "football", "count": 67 },
+    { "id": 4, "name": "Fitness", "icon": "dumbbell", "count": 89 },
+    { "id": 5, "name": "Swimming", "icon": "swimmer", "count": 23 },
+    { "id": 6, "name": "Running", "icon": "runner", "count": 78 }
+  ],
+  "sampleUsers": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "password": "password123",
+      "phone": "+1234567890",
+      "location": "New York, NY",
+      "bio": "Passionate tennis player and sports enthusiast",
+      "role": "Player",
+      "joinDate": "2024-01-01",
+      "sports": ["Tennis", "Basketball"],
+      "avatar": "👤"
+    },
+    {
+      "id": 2,
+      "name": "Admin User",
+      "email": "admin@sporthub.com",
+      "password": "admin123",
+      "phone": "+1234567891",
+      "location": "San Francisco, CA",
+      "bio": "SportHub administrator",
+      "role": "Admin",
+      "joinDate": "2023-12-01",
+      "sports": [],
+      "avatar": "👨‍💼"
+    }
+  ],
+  "groundBookings": [
+    {
+      "id": 1,
+      "userId": 1,
+      "venueId": 1,
+      "venueName": "City Sports Complex",
+      "sport": "Tennis",
+      "date": "2024-02-15",
+      "time": "10:00 AM - 12:00 PM",
+      "duration": 2,
+      "price": 50,
+      "status": "Confirmed",
+      "paymentStatus": "Paid",
+      "bookingDate": "2024-02-01"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "venueId": 2,
+      "venueName": "Tennis Center Pro",
+      "sport": "Tennis",
+      "date": "2024-02-20",
+      "time": "2:00 PM - 4:00 PM",
+      "duration": 2,
+      "price": 60,
+      "status": "Pending",
+      "paymentStatus": "Pending",
+      "bookingDate": "2024-02-02"
+    }
+  ],
+  "coachBookings": [
+    {
+      "id": 1,
+      "userId": 1,
+      "coachId": 1,
+      "coachName": "John Martinez",
+      "sport": "Tennis",
+      "date": "2024-02-18",
+      "time": "3:00 PM - 4:00 PM",
+      "duration": 1,
+      "price": 50,
+      "status": "Confirmed",
+      "paymentStatus": "Paid",
+      "bookingDate": "2024-02-03"
+    }
+  ]
+}
