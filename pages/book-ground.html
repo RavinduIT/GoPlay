@@ -3,21 +3,685 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Ground - SportHub</title>
-    <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="../css/components.css">
-    <link rel="stylesheet" href="../css/pages.css">
+    <title>Book Sports Grounds</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            padding: 30px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .search-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .search-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+
+        .search-input {
+            display: flex;
+            position: relative;
+        }
+
+        .search-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px 0 0 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-input input:focus {
+            border-color: #28a745;
+        }
+
+        .search-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #218838;
+        }
+
+        select {
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: #28a745;
+        }
+
+        /* Results Section */
+        .results-section {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .results-header h2 {
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        .filters-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            border: 2px solid #e9ecef;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #495057;
+            transition: all 0.3s;
+        }
+
+        .filters-btn:hover {
+            border-color: #28a745;
+            color: #28a745;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 24px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .card-location {
+            color: #6c757d;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .star {
+            color: #ffc107;
+            font-size: 1rem;
+        }
+
+        .price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #28a745;
+            text-align: right;
+        }
+
+        .price-unit {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 400;
+        }
+
+        .sports-available {
+            margin: 16px 0;
+        }
+
+        .sports-available h4 {
+            font-size: 0.9rem;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .sports-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .sport-tag {
+            background: #e8f5e8;
+            color: #28a745;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .amenities-section {
+            margin: 16px 0;
+        }
+
+        .amenities-section h4 {
+            font-size: 0.9rem;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .amenities-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .amenity-tag {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .times-section {
+            margin: 16px 0;
+        }
+
+        .times-section h4 {
+            font-size: 0.9rem;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .time-slots {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .time-slot {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #495057;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-outline:hover {
+            border-color: #28a745;
+            color: #28a745;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+            border: 2px solid #28a745;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+            border-color: #218838;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .search-container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .price {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="navbar-container"></div>
-    
-    <main class="booking-container">
-        <!-- Ground booking content -->
+    <!-- Header Section -->
+    <header class="header">
+        <h1>Book Sports Grounds</h1>
+        <p>Find and reserve the perfect sports facility for your game</p>
+    </header>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="search-container">
+            <div class="search-group">
+                <label for="search">Search Grounds</label>
+                <div class="search-input">
+                    <input type="text" id="search" placeholder="Search by ground name...">
+                    <button class="search-btn">🔍</button>
+                </div>
+            </div>
+            <div class="search-group">
+                <label for="location">Select Location</label>
+                <select id="location">
+                    <option>All locations</option>
+                    <option>Downtown Area</option>
+                    <option>Sports District</option>
+                    <option>North Side</option>
+                    <option>Valley Area</option>
+                </select>
+            </div>
+            <div class="search-group">
+                <label for="sport">Sport Type</label>
+                <select id="sport">
+                    <option>All sports</option>
+                    <option>Football</option>
+                    <option>Basketball</option>
+                    <option>Tennis</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <main class="results-section">
+        <div class="results-header">
+            <h2>Available Grounds (4)</h2>
+            <button class="filters-btn">
+                ⚙️ Filters
+            </button>
+        </div>
+
+        <div class="cards-grid">
+            <!-- Card 1: City Sports Complex -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">City Sports Complex</h3>
+                        <p class="card-subtitle">Multi-Sport Facility</p>
+                        <div class="card-location">📍 Downtown Area</div>
+                    </div>
+                    <div>
+                        <div class="rating">
+                            <span class="star">⭐</span>
+                            <span>4.9</span>
+                        </div>
+                        <div class="price">
+                            $25<span class="price-unit">/hour</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sports-available">
+                    <h4>Sports Available:</h4>
+                    <div class="sports-tags">
+                        <span class="sport-tag">Football</span>
+                        <span class="sport-tag">Basketball</span>
+                        <span class="sport-tag">Tennis</span>
+                    </div>
+                </div>
+
+                <div class="amenities-section">
+                    <h4>Amenities:</h4>
+                    <div class="amenities-tags">
+                        <span class="amenity-tag">Parking</span>
+                        <span class="amenity-tag">Changing Rooms</span>
+                        <span class="amenity-tag">Equipment Rental</span>
+                        <span class="amenity-tag">Cafeteria</span>
+                    </div>
+                </div>
+
+                <div class="times-section">
+                    <h4>Available Times Today:</h4>
+                    <div class="time-slots">
+                        <span class="time-slot">08:00</span>
+                        <span class="time-slot">09:00</span>
+                        <span class="time-slot">14:00</span>
+                        <span class="time-slot">15:00</span>
+                        <span class="time-slot">16:00</span>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-outline">📄 View Details</button>
+                    <button class="btn btn-primary">Book Now</button>
+                </div>
+            </div>
+
+            <!-- Card 2: Premier Tennis Courts -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Premier Tennis Courts</h3>
+                        <p class="card-subtitle">Tennis Facility</p>
+                        <div class="card-location">📍 Sports District</div>
+                    </div>
+                    <div>
+                        <div class="rating">
+                            <span class="star">⭐</span>
+                            <span>4.8</span>
+                        </div>
+                        <div class="price">
+                            $30<span class="price-unit">/hour</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sports-available">
+                    <h4>Sports Available:</h4>
+                    <div class="sports-tags">
+                        <span class="sport-tag">Tennis</span>
+                    </div>
+                </div>
+
+                <div class="amenities-section">
+                    <h4>Amenities:</h4>
+                    <div class="amenities-tags">
+                        <span class="amenity-tag">Parking</span>
+                        <span class="amenity-tag">Pro Shop</span>
+                        <span class="amenity-tag">Coaching</span>
+                        <span class="amenity-tag">Ball Machine</span>
+                    </div>
+                </div>
+
+                <div class="times-section">
+                    <h4>Available Times Today:</h4>
+                    <div class="time-slots">
+                        <span class="time-slot">09:00</span>
+                        <span class="time-slot">10:00</span>
+                        <span class="time-slot">11:00</span>
+                        <span class="time-slot">15:00</span>
+                        <span class="time-slot">16:00</span>
+                        <span class="time-slot">17:00</span>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-outline">📄 View Details</button>
+                    <button class="btn btn-primary">Book Now</button>
+                </div>
+            </div>
+
+            <!-- Card 3: Basketball Arena Pro -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Basketball Arena Pro</h3>
+                        <p class="card-subtitle">Basketball Courts</p>
+                        <div class="card-location">📍 North Side</div>
+                    </div>
+                    <div>
+                        <div class="rating">
+                            <span class="star">⭐</span>
+                            <span>4.7</span>
+                        </div>
+                        <div class="price">
+                            $20<span class="price-unit">/hour</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sports-available">
+                    <h4>Sports Available:</h4>
+                    <div class="sports-tags">
+                        <span class="sport-tag">Basketball</span>
+                    </div>
+                </div>
+
+                <div class="amenities-section">
+                    <h4>Amenities:</h4>
+                    <div class="amenities-tags">
+                        <span class="amenity-tag">Parking</span>
+                        <span class="amenity-tag">Changing Rooms</span>
+                        <span class="amenity-tag">Sound System</span>
+                        <span class="amenity-tag">Scoreboard</span>
+                    </div>
+                </div>
+
+                <div class="times-section">
+                    <h4>Available Times Today:</h4>
+                    <div class="time-slots">
+                        <span class="time-slot">08:00</span>
+                        <span class="time-slot">10:00</span>
+                        <span class="time-slot">14:00</span>
+                        <span class="time-slot">16:00</span>
+                        <span class="time-slot">19:00</span>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-outline">📄 View Details</button>
+                    <button class="btn btn-primary">Book Now</button>
+                </div>
+            </div>
+
+            <!-- Card 4: Green Valley Football Ground -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Green Valley Football Ground</h3>
+                        <p class="card-subtitle">Football Field</p>
+                        <div class="card-location">📍 Valley Area</div>
+                    </div>
+                    <div>
+                        <div class="rating">
+                            <span class="star">⭐</span>
+                            <span>4.6</span>
+                        </div>
+                        <div class="price">
+                            $35<span class="price-unit">/hour</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sports-available">
+                    <h4>Sports Available:</h4>
+                    <div class="sports-tags">
+                        <span class="sport-tag">Football</span>
+                    </div>
+                </div>
+
+                <div class="amenities-section">
+                    <h4>Amenities:</h4>
+                    <div class="amenities-tags">
+                        <span class="amenity-tag">Parking</span>
+                        <span class="amenity-tag">Floodlights</span>
+                        <span class="amenity-tag">Changing Rooms</span>
+                        <span class="amenity-tag">Goal Posts</span>
+                    </div>
+                </div>
+
+                <div class="times-section">
+                    <h4>Available Times Today:</h4>
+                    <div class="time-slots">
+                        <span class="time-slot">08:00</span>
+                        <span class="time-slot">09:00</span>
+                        <span class="time-slot">15:00</span>
+                        <span class="time-slot">16:00</span>
+                        <span class="time-slot">17:00</span>
+                        <span class="time-slot">18:00</span>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-outline">📄 View Details</button>
+                    <button class="btn btn-primary">Book Now</button>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <script src="../js/utils.js"></script>
-    <script src="../js/auth.js"></script>
-    <script src="../js/components/google-map.js"></script>
-    <script src="../js/pages/book-ground.js"></script>
+    <script>
+        // Add some basic interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search functionality
+            const searchInput = document.getElementById('search');
+            const locationSelect = document.getElementById('location');
+            const sportSelect = document.getElementById('sport');
+            
+            // Add event listeners for search
+            searchInput.addEventListener('input', function() {
+                console.log('Searching for:', this.value);
+            });
+            
+            locationSelect.addEventListener('change', function() {
+                console.log('Location changed to:', this.value);
+            });
+            
+            sportSelect.addEventListener('change', function() {
+                console.log('Sport changed to:', this.value);
+            });
+            
+            // Book Now button functionality
+            const bookButtons = document.querySelectorAll('.btn-primary');
+            bookButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const card = this.closest('.card');
+                    const title = card.querySelector('.card-title').textContent;
+                    alert(`Booking ${title}...`);
+                });
+            });
+            
+            // View Details button functionality
+            const detailButtons = document.querySelectorAll('.btn-outline');
+            detailButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const card = this.closest('.card');
+                    const title = card.querySelector('.card-title').textContent;
+                    alert(`Viewing details for ${title}...`);
+                });
+            });
+        });
+    </script>
 </body>
 </html>
