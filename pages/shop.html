@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/pages.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
 </head>
 <body>
+    <!-- Navbar Component -->
     <div id="navbar-container"></div>
     
     <main class="shop-container">
@@ -18,5 +20,21 @@
     <script src="../js/utils.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/pages/shop.js"></script>
+    <script src="/js/components/navbar.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('/pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar(); // Initialize navbar behavior
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+    </script>
 </body>
 </html>
