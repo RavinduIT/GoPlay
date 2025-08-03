@@ -19,5 +19,215 @@
     <script src="../js/auth.js"></script>
     <script src="../js/components/rating-feedback.js"></script>
     <script src="../js/pages/book-coach.js"></script>
+
+    <div class="container">
+        <div class="header">
+            <h1>Book Professional Coaches</h1>
+            <p>Train with certified coaches and take your skills to the next level</p>
+        </div>
+
+        <div class="search-section">
+            <div class="search-filters">
+                <div class="filter-group">
+                    <label for="sport">Sport</label>
+                    <select id="sport">
+                        <option>All sports</option>
+                        <option>Cricket</option>
+                        <option>Badminton</option>
+                        <option>Football</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="location">Location</label>
+                    <select id="location">
+                        <option>All locations</option>
+                        <option>Colombo</option>
+                        <option>Matara</option>
+                        <option>Galle</option>
+                        <option>Kandy</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="price">Price Range</label>
+                    <select id="price">
+                        <option>Any price</option>
+                        <option>Rs.1000-Rs.2000</option>
+                        <option>Rs.2000-Rs.3000</option>
+                        <option>Rs.3000+</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button class="search-btn">
+                        🔍 Search
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-header">
+            <h2>Available Coaches (4)</h2>
+            <button class="more-filters">⚙️ More Filters</button>
+        </div>
+
+        <div class="coaches-grid">
+            <!-- John Martinez -->
+            <div class="coach-card">
+                <div class="coach-header">
+                    <div class="coach-avatar">JM</div>
+                    <div class="coach-info">
+                        <h3>R.T RATHNAYAKA</h3>
+                        <div class="coach-title">Football Coach</div>
+                        <div class="coach-meta">
+                            <div class="rating">
+                                <span class="star">⭐</span>
+                                <span>4.9 (156)</span>
+                            </div>
+                            <span>8 years exp</span>
+                            <span class="location-badge">📍Colombo</span>
+                        </div>
+                    </div>
+                    <div class="price">Rs 1500<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
+                </div>
+                <div class="coach-description">
+                    Former professional player with 8 years coaching experience. Specialized in youth development.He is famous for his smart game plans and winning many trophies.
+                </div>
+                <div class="specializations">
+                    <h4>Specializations:</h4>
+                    <div class="tags">
+                        <span class="tag">Youth Training</span>
+                        <span class="tag">Professional Coaching</span>
+                        <span class="tag">Tactical Analysis</span>
+                    </div>
+                </div>
+                <div class="certifications">
+                    <h4>Certifications:</h4>
+                    <div class="tags">
+                        <span class="cert-tag">FIFA B License</span>
+                        <span class="cert-tag">Sports Science Diploma</span>
+                    </div>
+                </div>
+                <button class="book-btn">📞 Book Coach</button>
+            </div>
+
+            <!-- Sarah Thompson -->
+            <div class="coach-card">
+                <div class="coach-header">
+                    <div class="coach-avatar">ST</div>
+                    <div class="coach-info">
+                        <h3>P.B JAYASUNDARA</h3>
+                        <div class="coach-title">Cricket Coach</div>
+                        <div class="coach-meta">
+                            <div class="rating">
+                                <span class="star">⭐</span>
+                                <span>4.8 (203)</span>
+                            </div>
+                            <span>12 years exp</span>
+                            <span class="location-badge">📍Matara</span>
+                        </div>
+                    </div>
+                    <div class="price">Rs.2500<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
+                </div>
+                <div class="coach-description">
+                    Professional cricket coach with tournament experience. Focus on competitive players.He is known for being calm, honest, and good at training young players.
+                </div>
+                <div class="specializations">
+                    <h4>Specializations:</h4>
+                    <div class="tags">
+                        <span class="tag">Tournament Preparation</span>
+                        <span class="tag">Technique Development</span>
+                        <span class="tag">Mental Training</span>
+                    </div>
+                </div>
+                <div class="certifications">
+                    <h4>Certifications:</h4>
+                    <div class="tags">
+                        <span class="cert-tag">PTR Professional</span>
+                        <span class="cert-tag">Sports Psychology</span>
+                    </div>
+                </div>
+                <button class="book-btn">📞 Book Coach</button>
+            </div>
+
+            <!-- Mike Johnson -->
+            <div class="coach-card">
+                <div class="coach-header">
+                    <div class="coach-avatar">MJ</div>
+                    <div class="coach-info">
+                        <h3>CHANDANA WIMALARATHNA</h3>
+                        <div class="coach-title">Badminton Coach</div>
+                        <div class="coach-meta">
+                            <div class="rating">
+                                <span class="star">⭐</span>
+                                <span>4.7 (89)</span>
+                            </div>
+                            <span>6 years exp</span>
+                            <span class="location-badge">📍Kandy</span>
+                        </div>
+                    </div>
+                    <div class="price">Rs.3500<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
+                </div>
+                <div class="coach-description">
+                    Former college player focused on fundamentals and skill development for all levels.He started the Gopichand Academy to train young players.
+He coached stars like PV Sindhu and Saina Nehwal, who won Olympic medals.
+                </div>
+                <div class="specializations">
+                    <h4>Specializations:</h4>
+                    <div class="tags">
+                        <span class="tag">Training Olympic-level players</span>
+                        <span class="tag">Defense Training</span>
+                        <span class="tag">Team Strategy</span>
+                    </div>
+                </div>
+                <div class="certifications">
+                    <h4>Certifications:</h4>
+                    <div class="tags">
+                        <span class="cert-tag">USA Coach Certification</span>
+                        <span class="cert-tag">Badminton Fundamentals</span>
+                    </div>
+                </div>
+                <button class="book-btn">📞 Book Coach</button>
+            </div>
+
+            <!-- Lisa Chen -->
+            <div class="coach-card">
+                <div class="coach-header">
+                    <div class="coach-avatar">LC</div>
+                    <div class="coach-info">
+                        <h3>AMILA SURAWEERA</h3>
+                        <div class="coach-title">Cricket Coach</div>
+                        <div class="coach-meta">
+                            <div class="rating">
+                                <span class="star">⭐</span>
+                                <span>4.9 (134)</span>
+                            </div>
+                            <span>10 years exp</span>
+                            <span class="location-badge">📍Galle</span>
+                        </div>
+                    </div>
+                    <div class="price">Rs.5000<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
+                </div>
+                <div class="coach-description">
+                   Amila suraweera is the head coach of the Indian cricket team.
+                </div>
+                <div class="specializations">
+                    <h4>Specializations:</h4>
+                    <div class="tags">
+                        <span class="tag">Mental training</span>
+                        <span class="tag">Competitive Cricket</span>
+            
+                    </div>
+                </div>
+                <div class="certifications">
+                    <h4>Certifications:</h4>
+                    <div class="tags">
+                        <span class="cert-tag">level 3 Cricket Coaching Certificate</span>
+                        <span class="cert-tag">England and Wales Cricket Board (ECB) Level 3 Coaching Certificate</span>
+                    </div>
+                </div>
+                <button class="book-btn">📞 Book Coach</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
