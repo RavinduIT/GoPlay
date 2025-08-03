@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Sports Complex - Book Ground</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Back Button */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .back-btn:hover {
+            color: #28a745;
+        }
+
+        /* Main Content Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 40px;
+        }
+
+        /* Left Section */
+        .left-section {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        /* Hero Image */
+        .hero-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(45deg, #7cb342, #8bc34a);
+            position: relative;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="white" stroke-width="2" opacity="0.3"/><circle cx="50" cy="50" r="30" fill="none" stroke="white" stroke-width="1" opacity="0.2"/></svg>');
+            background-size: 200px 200px;
+            background-position: center;
+            overflow: hidden;
+        }
+
+        .hero-image::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .hero-image::after {
+            content: '⚽';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+            z-index: 2;
+        }
+
+        .rating-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .star {
+            color: #ffc107;
+        }
+
+        .rating-count {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        /* Content Section */
+        .content-section {
+            padding: 30px;
+        }
+
+        .facility-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .facility-subtitle {
+            color: #6c757d;
+            font-size: 1rem;
+            margin-bottom: 16px;
+        }
+
+        .location {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .description {
+            color: #495057;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        /* Sports Tags */
+        .sports-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .sport-tag {
+            background: #e8f5e8;
+            color: #28a745;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Amenities Grid */
+        .amenities-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .amenity-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .amenity-icon {
+            font-size: 16px;
+            color: #28a745;
+        }
+
+        /* Map Section */
+        .map-section {
+            text-align: center;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .map-icon {
+            font-size: 48px;
+            color: #dc3545;
+            margin-bottom: 16px;
+        }
+
+        .map-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .map-description {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+
+        .map-link {
+            color: #28a745;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .map-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            margin: 16px 0;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .map-input:focus {
+            border-color: #28a745;
+        }
+
+        .load-map-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .load-map-btn:hover {
+            background: #218838;
+        }
+
+        /* Reviews Section */
+        .reviews-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .overall-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .review-item {
+            border-bottom: 1px solid #e9ecef;
+            padding: 20px 0;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .reviewer-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .reviewer-avatar {
+            width: 40px;
+            height: 40px;
+            background: #28a745;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .reviewer-info {
+            flex: 1;
+        }
+
+        .reviewer-name {
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .verified-badge {
+            background: #e8f5e8;
+            color: #28a745;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .review-date {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .review-stars {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 8px;
+        }
+
+        .review-text {
+            color: #495057;
+            font-size: 14px;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .view-all-reviews {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 20px;
+            transition: color 0.3s;
+        }
+
+        .view-all-reviews:hover {
+            color: #28a745;
+        }
+
+        /* Right Section - Booking Panel */
+        .booking-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .booking-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .booking-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 24px;
+        }
+
+        .price-unit {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: 400;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .date-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .date-input:focus {
+            border-color: #28a745;
+        }
+
+        /* Time Slots */
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .time-slot {
+            padding: 10px 8px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .time-slot:hover {
+            border-color: #28a745;
+            color: #28a745;
+        }
+
+        .time-slot.selected {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .time-slot.unavailable {
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        /* Booking Summary */
+        .booking-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .booking-summary h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .summary-label {
+            color: #495057;
+        }
+
+        .summary-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .book-now-btn {
+            width: 100%;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .book-now-btn:hover {
+            background: #218838;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .hero-image {
+                height: 250px;
+            }
+
+            .content-section {
+                padding: 20px;
+            }
+
+            .facility-title {
+                font-size: 1.5rem;
+            }
+
+            .booking-panel {
+                position: static;
+            }
+
+            .amenities-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Back Button -->
+        <a href="#" class="back-btn" onclick="history.back()">
+            ← Back to Grounds
+        </a>
+
+        <div class="main-content">
+            <!-- Left Section -->
+            <div class="left-section">
+                <!-- Hero Image -->
+                <div class="hero-image">
+                    <div class="rating-badge">
+                        <span class="star">⭐</span>
+                        <span>4.9</span>
+                        <span class="rating-count">(156)</span>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="content-section">
+                    <h1 class="facility-title">City Sports Complex</h1>
+                    <p class="facility-subtitle">Multi-Sport Facility</p>
+                    
+                    <div class="location">
+                        📍 123 Sports Avenue, Downtown Area, City
+                    </div>
+
+                    <p class="description">
+                        Premium sports complex with state-of-the-art facilities and professional-grade equipment.
+                    </p>
+
+                    <!-- Sports Available -->
+                    <div class="section">
+                        <h3>Sports Available:</h3>
+                        <div class="sports-tags">
+                            <span class="sport-tag">Football</span>
+                            <span class="sport-tag">Basketball</span>
+                            <span class="sport-tag">Tennis</span>
+                        </div>
+                    </div>
+
+                    <!-- Amenities -->
+                    <div class="section">
+                        <h3>Amenities:</h3>
+                        <div class="amenities-grid">
+                            <div class="amenity-item">
+                                <span class="amenity-icon">🚗</span>
+                                <span>Parking</span>
+                            </div>
+                            <div class="amenity-item">
+                                <span class="amenity-icon">🚿</span>
+                                <span>Changing Rooms</span>
+                            </div>
+                            <div class="amenity-item">
+                                <span class="amenity-icon">🏃</span>
+                                <span>Equipment Rental</span>
+                            </div>
+                            <div class="amenity-item">
+                                <span class="amenity-icon">🍽️</span>
+                                <span>Cafeteria</span>
+                            </div>
+                            <div class="amenity-item">
+                                <span class="amenity-icon">📶</span>
+                                <span>WiFi</span>
+                            </div>
+                            <div class="amenity-item">
+                                <span class="amenity-icon">❄️</span>
+                                <span>AC</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location & Map -->
+                    <div class="section">
+                        <h3>Location & Map:</h3>
+                        <div class="map-section">
+                            <div class="map-icon">📍</div>
+                            <h4 class="map-title">Enter Google Maps API Key</h4>
+                            <p class="map-description">
+                                To view the location map, please enter your Google Maps API key. You can get one from 
+                                <a href="#" class="map-link">Google Cloud Console</a>.
+                            </p>
+                            <input type="text" class="map-input" placeholder="Enter Google Maps API Key">
+                            <button class="load-map-btn">Load Map</button>
+                        </div>
+                    </div>
+
+                    <!-- Reviews -->
+                    <div class="section">
+                        <div class="reviews-header">
+                            <h3>Reviews & Ratings</h3>
+                            <div class="overall-rating">
+                                <span class="star">⭐</span>
+                                <span>4.9</span>
+                                <span class="rating-count">(156 reviews)</span>
+                            </div>
+                        </div>
+
+                        <div class="review-item">
+                            <div class="reviewer-header">
+                                <div class="reviewer-avatar">A</div>
+                                <div class="reviewer-info">
+                                    <div class="reviewer-name">
+                                        Alex Johnson
+                                        <span class="verified-badge">Verified</span>
+                                    </div>
+                                    <div class="review-date">15/01/2024</div>
+                                </div>
+                            </div>
+                            <div class="review-stars">
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                            </div>
+                            <p class="review-text">
+                                "Excellent facilities with top-notch equipment. The staff is very helpful and the booking process is seamless."
+                            </p>
+                        </div>
+
+                        <div class="review-item">
+                            <div class="reviewer-header">
+                                <div class="reviewer-avatar">M</div>
+                                <div class="reviewer-info">
+                                    <div class="reviewer-name">
+                                        Maria Santos
+                                        <span class="verified-badge">Verified</span>
+                                    </div>
+                                    <div class="review-date">12/01/2024</div>
+                                </div>
+                            </div>
+                            <div class="review-stars">
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                            </div>
+                            <p class="review-text">
+                                "Great location and amazing courts. Perfect for our weekly tennis sessions. Highly recommended!"
+                            </p>
+                        </div>
+
+                        <div class="review-item">
+                            <div class="reviewer-header">
+                                <div class="reviewer-avatar">D</div>
+                                <div class="reviewer-info">
+                                    <div class="reviewer-name">David Chen</div>
+                                    <div class="review-date">08/01/2024</div>
+                                </div>
+                            </div>
+                            <div class="review-stars">
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                                <span class="star">⭐</span>
+                            </div>
+                            <p class="review-text">
+                                "Good facilities overall. The only minor issue is parking can get crowded during peak hours."
+                            </p>
+                        </div>
+
+                        <a href="#" class="view-all-reviews">
+                            📄 View All 156 Reviews
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Section - Booking Panel -->
+            <div class="booking-panel">
+                <h2 class="booking-title">Book This Ground</h2>
+                <div class="booking-price">
+                    $25<span class="price-unit">/hour</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Select Date</label>
+                    <input type="date" class="date-input" value="2025-07-29">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Available Times</label>
+                    <div class="time-slots">
+                        <div class="time-slot">08:00</div>
+                        <div class="time-slot selected">09:00</div>
+                        <div class="time-slot">14:00</div>
+                        <div class="time-slot">15:00</div>
+                        <div class="time-slot">16:00</div>
+                        <div class="time-slot">17:00</div>
+                        <div class="time-slot">18:00</div>
+                        <div class="time-slot">19:00</div>
+                    </div>
+                </div>
+
+                <div class="booking-summary">
+                    <h4>Booking Summary</h4>
+                    <div class="summary-row">
+                        <span class="summary-label">Date:</span>
+                        <span class="summary-value">July 29th, 2025</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Time:</span>
+                        <span class="summary-value">09:00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Total:</span>
+                        <span class="summary-value">$25</span>
+                    </div>
+                </div>
+
+                <button class="book-now-btn">
+                    🕐 Book Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Time slot selection
+        const timeSlots = document.querySelectorAll('.time-slot');
+        timeSlots.forEach(slot => {
+            slot.addEventListener('click', function() {
+                if (!this.classList.contains('unavailable')) {
+                    timeSlots.forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    // Update booking summary
+                    const selectedTime = this.textContent;
+                    document.querySelector('.summary-row:nth-child(2) .summary-value').textContent = selectedTime;
+                }
+            });
+        });
+
+        // Date input change
+        const dateInput = document.querySelector('.date-input');
+        dateInput.addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = selectedDate.toLocaleDateString('en-US', options);
+            document.querySelector('.summary-row:nth-child(1) .summary-value').textContent = formattedDate;
+        });
+
+        // Book now button
+        document.querySelector('.book-now-btn').addEventListener('click', function() {
+            const date = document.querySelector('.summary-row:nth-child(1) .summary-value').textContent;
+            const time = document.querySelector('.summary-row:nth-child(2) .summary-value').textContent;
+            const total = document.querySelector('.summary-row:nth-child(3) .summary-value').textContent;
+            
+            alert(`Booking confirmed!\nDate: ${date}\nTime: ${time}\nTotal: ${total}`);
+        });
+
+        // Load map button
+        document.querySelector('.load-map-btn').addEventListener('click', function() {
+            const apiKey = document.querySelector('.map-input').value;
+            if (apiKey.trim()) {
+                alert('Map would load with API key: ' + apiKey);
+            } else {
+                alert('Please enter a valid Google Maps API key');
+            }
+        });
+    </script>
+</body>
+</html>
