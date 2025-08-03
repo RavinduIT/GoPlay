@@ -1,58 +1,175 @@
 // Navbar JavaScript
-class NavbarManager {
+class Navbar {
     constructor() {
-        this.currentUser = null;
+        this.mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        this.mobileMenu = document.getElementById('mobileMenu');
+        this.authButtons = document.getElementById('authButtons');
+        this.userMenu = document.getElementById('userMenu');
+        this.mobileAuth = document.getElementById('mobileAuth');
+        this.mobileUserMenu = document.getElementById('mobileUserMenu');
+        this.userName = document.getElementById('userName');
+        this.userEmail = document.getElementById('userEmail');
+        this.userAvatar = document.getElementById('userAvatar');
+        
         this.init();
     }
 
     init() {
-        // Initialize Lucide icons
-        lucide.createIcons();
-        
-        // Load user data from localStorage
-        this.loadUserData();
-        
-        // Update UI based on authentication status
-        this.updateAuthUI();
-        
-        // Set active nav item based on current path
+        this.setupMobileMenu();
+        this.setupUserMenu();
+        this.checkAuthState();
         this.setActiveNavItem();
-        
-        // Add event listeners
-        this.addEventListeners();
     }
 
-    loadUserData() {
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-            this.currentUser = JSON.parse(storedUser);
+    setupMobileMenu() {
+        if (this.mobileMenuBtn && this.mobileMenu) {
+            this.mobileMenuBtn.addEventListener('click', () => {
+                this.toggleMobileMenu();
+            });
+
+            // Close mobile menu when clicking on nav items
+            const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+            mobileNavItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    this.closeMobileMenu();
+                });
+            });
+
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!this.mobileMenu.contains(e.target) && !this.mobileMenuBtn.contains(e.target)) {
+                    this.closeMobileMenu();
+                }
+            });
         }
     }
 
-    updateAuthUI() {
-        const authButtons = document.getElementById('authButtons');
-        const userMenu = document.getElementById('userMenu');
-        const mobileAuthButtons = document.getElementById('mobileAuthButtons');
-        const mobileUserMenu = document.getElementById('mobileUserMenu');
-        
-        if (this.currentUser) {
-            // User is authenticated
-            if (authButtons) authButtons.style.display = 'none';
-            if (userMenu) userMenu.style.display = 'flex';
-            if (mobileAuthButtons) mobileAuthButtons.style.display = 'none';
-            if (mobileUserMenu) mobileUserMenu.style.display = 'flex';
+    setupUserMenu() {
+        // Setup dropdown hover effects
+        const userMenuElement = document.querySelector('.user-menu');
+        if (userMenuElement) {
+            const dropdown = userMenuElement.querySelector('.user-dropdown');
             
-            // Update user info
-            const userName = document.getElementById('userName');
-            const userEmail = document.getElementById('userEmail');
-            if (userName) userName.textContent = this.currentUser.name;
-            if (userEmail) userEmail.textContent = this.currentUser.email;
+            userMenuElement.addEventListener('mouseenter', () => {
+                dropdown.style.opacity = '1';
+                dropdown.style.visibility = 'visible';
+                dropdown.style.transform = 'translateY(0)';
+            });
+
+            userMenuElement.addEventListener('mouseleave', () => {
+                dropdown.style.opacity = '0';
+                dropdown.style.visibility = 'hidden';
+                dropdown.style.transform = 'translateY(-10px)';
+            });
+        }
+
+        // Setup admin dropdown
+        const adminDropdown = document.querySelector('.admin-dropdown');
+        if (adminDropdown) {
+            const adminMenu = adminDropdown.querySelector('.admin-menu');
+            
+            adminDropdown.addEventListener('mouseenter', () => {
+                adminMenu.style.opacity = '1';
+                adminMenu.style.visibility = 'visible';
+                adminMenu.style.transform = 'translateY(0)';
+            });
+
+            adminDropdown.addEventListener('mouseleave', () => {
+                adminMenu.style.opacity = '0';
+                adminMenu.style.visibility = 'hidden';
+                adminMenu.style.transform = 'translateY(-10px)';
+            });
+        }
+    }
+
+    toggleMobileMenu() {
+        const isOpen = this.mobileMenu.classList.contains('show');
+        
+        if (isOpen) {
+            this.closeMobileMenu();
         } else {
-            // User is not authenticated
-            if (authButtons) authButtons.style.display = 'flex';
-            if (userMenu) userMenu.style.display = 'none';
-            if (mobileAuthButtons) mobileAuthButtons.style.display = 'flex';
-            if (mobileUserMenu) mobileUserMenu.style.display = 'none';
+            this.openMobileMenu();
+        }
+    }
+
+    openMobileMenu() {
+        this.mobileMenu.classList.add('show');
+        this.mobileMenu.style.display = 'block';
+        this.mobileMenuBtn.innerHTML = '<i class="fas fa-times"></i>';
+        document.body.style.overflow = 'hidden';
+    }
+
+    closeMobileMenu() {
+        this.mobileMenu.classList.remove('show');
+        this.mobileMenu.style.display = 'none';
+        this.mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        document.body.style.overflow = '';
+    }
+
+    checkAuthState() {
+        const currentUser = this.getCurrentUser();
+        
+        if (currentUser) {
+            this.showUserMenu(currentUser);
+        } else {
+            this.showAuthButtons();
+        }
+    }
+
+    getCurrentUser() {
+        try {
+            const userData = localStorage.getItem('currentUser');
+            return userData ? JSON.parse(userData) : null;
+        } catch (error) {
+            console.error('Error getting current user:', error);
+            return null;
+        }
+    }
+
+    showUserMenu(user) {
+        // Hide auth buttons
+        if (this.authButtons) {
+            this.authButtons.style.display = 'none';
+        }
+        if (this.mobileAuth) {
+            this.mobileAuth.style.display = 'none';
+        }
+
+        // Show user menu
+        if (this.userMenu) {
+            this.userMenu.style.display = 'block';
+        }
+        if (this.mobileUserMenu) {
+            this.mobileUserMenu.style.display = 'block';
+        }
+
+        // Update user info
+        if (this.userName) {
+            this.userName.textContent = user.name;
+        }
+        if (this.userEmail) {
+            this.userEmail.textContent = user.email;
+        }
+        if (this.userAvatar) {
+            this.userAvatar.textContent = user.avatar || '👤';
+        }
+    }
+
+    showAuthButtons() {
+        // Show auth buttons
+        if (this.authButtons) {
+            this.authButtons.style.display = 'flex';
+        }
+        if (this.mobileAuth) {
+            this.mobileAuth.style.display = 'flex';
+        }
+
+        // Hide user menu
+        if (this.userMenu) {
+            this.userMenu.style.display = 'none';
+        }
+        if (this.mobileUserMenu) {
+            this.mobileUserMenu.style.display = 'none';
         }
     }
 
@@ -61,128 +178,44 @@ class NavbarManager {
         const navItems = document.querySelectorAll('.nav-item, .mobile-nav-item');
         
         navItems.forEach(item => {
-            item.classList.remove('active');
-            if (item.getAttribute('href') === currentPath) {
+            const href = item.getAttribute('href');
+            if (href === currentPath || (currentPath === '/' && href === '/')) {
                 item.classList.add('active');
+            } else {
+                item.classList.remove('active');
             }
         });
     }
 
-    addEventListeners() {
-        // Mobile menu toggle
-        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', this.toggleMobileMenu.bind(this));
-        }
-
-        // Close mobile menu when clicking nav items
-        const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
-        mobileNavItems.forEach(item => {
-            item.addEventListener('click', this.closeMobileMenu.bind(this));
-        });
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', this.handleOutsideClick.bind(this));
-    }
-
-    toggleMobileMenu() {
-        const mobileNav = document.getElementById('mobileNav');
-        const menuIcon = document.querySelector('.menu-icon');
-        const closeIcon = document.querySelector('.close-icon');
-        
-        if (mobileNav.classList.contains('active')) {
-            mobileNav.classList.remove('active');
-            mobileNav.style.display = 'none';
-            menuIcon.style.display = 'block';
-            closeIcon.style.display = 'none';
-        } else {
-            mobileNav.classList.add('active');
-            mobileNav.style.display = 'block';
-            menuIcon.style.display = 'none';
-            closeIcon.style.display = 'block';
-        }
-    }
-
-    closeMobileMenu() {
-        const mobileNav = document.getElementById('mobileNav');
-        const menuIcon = document.querySelector('.menu-icon');
-        const closeIcon = document.querySelector('.close-icon');
-        
-        mobileNav.classList.remove('active');
-        mobileNav.style.display = 'none';
-        menuIcon.style.display = 'block';
-        closeIcon.style.display = 'none';
-    }
-
-    toggleAdminDropdown() {
-        const dropdown = document.querySelector('.admin-dropdown').parentElement;
-        this.toggleDropdown(dropdown);
-    }
-
-    toggleUserDropdown() {
-        const dropdown = document.querySelector('.user-avatar').parentElement;
-        this.toggleDropdown(dropdown);
-    }
-
-    toggleDropdown(dropdown) {
-        const isActive = dropdown.classList.contains('active');
-        
-        // Close all dropdowns first
-        document.querySelectorAll('.dropdown').forEach(d => {
-            d.classList.remove('active');
-        });
-        
-        // Toggle current dropdown
-        if (!isActive) {
-            dropdown.classList.add('active');
-        }
-    }
-
-    handleOutsideClick(event) {
-        const dropdowns = document.querySelectorAll('.dropdown');
-        dropdowns.forEach(dropdown => {
-            if (!dropdown.contains(event.target)) {
-                dropdown.classList.remove('active');
-            }
+    updateCartCount(count) {
+        const cartCounts = document.querySelectorAll('.cart-count');
+        cartCounts.forEach(element => {
+            element.textContent = count;
         });
     }
-
-    logout() {
-        // Clear user data
-        this.currentUser = null;
-        localStorage.removeItem('currentUser');
-        
-        // Update UI
-        this.updateAuthUI();
-        
-        // Redirect to home page
-        window.location.href = '/';
-    }
 }
 
-// Global functions for onclick handlers
-function toggleMobileMenu() {
-    navbarManager.toggleMobileMenu();
-}
-
-function closeMobileMenu() {
-    navbarManager.closeMobileMenu();
-}
-
-function toggleAdminDropdown() {
-    navbarManager.toggleAdminDropdown();
-}
-
-function toggleUserDropdown() {
-    navbarManager.toggleUserDropdown();
-}
-
+// Global logout function
 function logout() {
-    navbarManager.logout();
+    localStorage.removeItem('currentUser');
+    window.location.href = '/';
 }
 
 // Initialize navbar when DOM is loaded
-let navbarManager;
-document.addEventListener('DOMContentLoaded', function() {
-    navbarManager = new NavbarManager();
+document.addEventListener('DOMContentLoaded', () => {
+    window.navbar = new Navbar();
 });
+
+// Update auth state when storage changes
+window.addEventListener('storage', (e) => {
+    if (e.key === 'currentUser') {
+        if (window.navbar) {
+            window.navbar.checkAuthState();
+        }
+    }
+});
+
+// Export for use in other scripts
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Navbar;
+}

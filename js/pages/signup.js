@@ -1,123 +1,209 @@
-// AuthContext-like functionality
-class AuthManager {
-    constructor() {
-        this.currentUser = this.getCurrentUser();
-    }
+// Fixed Signup Page JavaScript - Uses main auth.js system
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait for auth system to be ready
+    const waitForAuth = () => {
+        if (typeof authInstance !== 'undefined' && authInstance) {
+            initializeSignupPage();
+        } else {
+            setTimeout(waitForAuth, 100);
+        }
+    };
+    waitForAuth();
+});
 
-    getCurrentUser() {
-        const storedUser = localStorage.getItem('currentUser');
-        return storedUser ? JSON.parse(storedUser) : null;
-    }
+function initializeSignupPage() {
+    const signupForm = document.getElementById('signupForm');
+    const inputs = {
+        name: document.getElementById('name'),
+        email: document.getElementById('email'),
+        phone: document.getElementById('phone'),
+        location: document.getElementById('location'),
+        password: document.getElementById('password'),
+        confirmPassword: document.getElementById('confirmPassword')
+    };
+    const submitBtn = document.getElementById('submitBtn');
 
-    async signup(userData) {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
+    // Form submission handler
+    signupForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = getFormData();
+        
+        // Validation
+        const validation = validateForm(formData);
+        if (!validation.isValid) {
+            showToast('Validation Error', validation.errors[0], 'destructive');
+            return;
+        }
+        
+        // Show loading state
+        setLoadingState(true);
         
         try {
-            // Get existing users
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const result = await authInstance.signup(formData);
             
-            // Check if user already exists
-            if (users.find(u => u.email === userData.email)) {
-                return { success: false, error: 'User already exists' };
+            if (result.success) {
+                showToast('Account Created!', 'Welcome to SportHub! You can now explore all features.');
+                // Clear form
+                clearForm();
+                // Redirect to home page
+                setTimeout(() => {
+                    window.location.href = '../index.html';
+                }, 2000);
+            } else {
+                showToast('Signup Failed', result.error || 'An account with this email already exists.', 'destructive');
             }
-
-            // Create new user (matching your AuthContext structure)
-            const newUser = {
-                id: Date.now().toString(),
-                name: userData.name,
-                email: userData.email,
-                phone: userData.phone,
-                location: userData.location,
-                bio: '',
-                role: 'Player',
-                joinDate: new Date().toISOString().split('T')[0],
-                sports: [],
-                avatar: '👤'
-            };
-
-            // Store user with password for login
-            const userWithPassword = { ...newUser, password: userData.password };
-            users.push(userWithPassword);
-            localStorage.setItem('users', JSON.stringify(users));
-
-            // Set current user (without password)
-            this.currentUser = newUser;
-            localStorage.setItem('currentUser', JSON.stringify(newUser));
-            
-            return { success: true };
         } catch (error) {
-            return { success: false, error: 'Registration failed' };
+            console.error('Signup error:', error);
+            showToast('Error', 'An unexpected error occurred. Please try again.', 'destructive');
+        } finally {
+            setLoadingState(false);
         }
-    }
+    });
 
-    logout() {
-        this.currentUser = null;
-        localStorage.removeItem('currentUser');
-    }
+    // Real-time validation for each field
+    Object.keys(inputs).forEach(fieldName => {
+        const input = inputs[fieldName];
+        
+        input.addEventListener('blur', function() {
+            validateField(fieldName, this.value.trim());
+        });
 
-    isAuthenticated() {
-        return !!this.currentUser;
-    }
-}
+        input.addEventListener('input', function() {
+            this.classList.remove('error', 'success');
+            clearFieldError(this);
+            
+            // Special handling for password strength
+            if (fieldName === 'password') {
+                updatePasswordStrength(this.value);
+            }
+            
+            // Special handling for confirm password
+            if (fieldName === 'confirmPassword') {
+                const password = inputs.password.value;
+                if (this.value && password && this.value === password) {
+                    this.classList.add('success');
+                } else if (this.value && password && this.value !== password) {
+                    this.classList.add('error');
+                }
+            }
+        });
+    });
 
-// Initialize auth manager
-const auth = new AuthManager();
+    // Handle Enter key navigation
+    Object.values(inputs).forEach((input, index) => {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const nextInput = Object.values(inputs)[index + 1];
+                if (nextInput) {
+                    nextInput.focus();
+                } else {
+                    signupForm.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+    });
 
-// Form data management
-class FormManager {
-    constructor() {
-        this.formData = {
-            name: '',
-            email: '',
-            password: '',
-            confirmPassword: '',
-            phone: '',
-            location: ''
+    function getFormData() {
+        return {
+            name: inputs.name.value.trim(),
+            email: inputs.email.value.trim(),
+            phone: inputs.phone.value.trim(),
+            location: inputs.location.value.trim(),
+            password: inputs.password.value,
+            confirmPassword: inputs.confirmPassword.value
         };
-        this.isLoading = false;
     }
 
-    updateField(field, value) {
-        this.formData[field] = value;
-        this.validateField(field, value);
+    function validateForm(data) {
+        const errors = [];
+
+        // Use the main auth system's validation if available
+        if (authInstance && typeof authInstance.validateSignupForm === 'function') {
+            return authInstance.validateSignupForm(data);
+        }
+
+        // Fallback validation
+        if (!data.name || data.name.length < 2) {
+            errors.push('Name must be at least 2 characters long');
+        }
+
+        if (!validateEmail(data.email)) {
+            errors.push('Please enter a valid email address');
+        }
+
+        if (!validatePhone(data.phone)) {
+            errors.push('Please enter a valid phone number');
+        }
+
+        if (!data.location || data.location.length < 2) {
+            errors.push('Location must be at least 2 characters long');
+        }
+
+        if (!data.password || data.password.length < 8) {
+            errors.push('Password must be at least 8 characters long');
+        }
+
+        if (data.password !== data.confirmPassword) {
+            errors.push('Passwords do not match');
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors: errors
+        };
     }
 
-    validateField(field, value) {
-        const input = document.getElementById(field);
-        
-        // Remove existing validation classes
-        input.classList.remove('error', 'success');
-        
-        // Basic validation
-        if (field === 'email') {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (value && !emailRegex.test(value)) {
-                input.classList.add('error');
-                return false;
-            } else if (value) {
+    function validateField(fieldName, value) {
+        const input = inputs[fieldName];
+        let isValid = true;
+        let errorMessage = '';
+
+        switch (fieldName) {
+            case 'name':
+                isValid = value.length >= 2;
+                errorMessage = 'Name must be at least 2 characters long';
+                break;
+            case 'email':
+                isValid = validateEmail(value);
+                errorMessage = 'Please enter a valid email address';
+                break;
+            case 'phone':
+                isValid = validatePhone(value);
+                errorMessage = 'Please enter a valid phone number';
+                break;
+            case 'location':
+                isValid = value.length >= 2;
+                errorMessage = 'Location must be at least 2 characters long';
+                break;
+            case 'password':
+                isValid = value.length >= 8;
+                errorMessage = 'Password must be at least 8 characters long';
+                break;
+            case 'confirmPassword':
+                isValid = value === inputs.password.value;
+                errorMessage = 'Passwords do not match';
+                break;
+        }
+
+        if (value) {
+            if (isValid) {
+                input.classList.remove('error');
                 input.classList.add('success');
+                clearFieldError(input);
+            } else {
+                input.classList.remove('success');
+                input.classList.add('error');
+                showFieldError(input, errorMessage);
             }
         }
-        
-        if (field === 'password') {
-            this.updatePasswordStrength(value);
-        }
-        
-        if (field === 'confirmPassword') {
-            if (value && value !== this.formData.password) {
-                input.classList.add('error');
-                return false;
-            } else if (value && value === this.formData.password) {
-                input.classList.add('success');
-            }
-        }
-        
-        return true;
+
+        return isValid;
     }
 
-    updatePasswordStrength(password) {
-        // Remove existing password strength indicator
+    function updatePasswordStrength(password) {
+        // Remove existing indicator
         const existingIndicator = document.querySelector('.password-strength');
         if (existingIndicator) {
             existingIndicator.remove();
@@ -125,12 +211,13 @@ class FormManager {
         
         if (!password) return;
         
-        const passwordContainer = document.getElementById('password').parentElement.parentElement;
+        const passwordContainer = inputs.password.parentElement.parentElement;
         const strengthIndicator = document.createElement('div');
         strengthIndicator.className = 'password-strength';
         
         let strength = 0;
         let strengthText = '';
+        let strengthClass = '';
         
         if (password.length >= 8) strength++;
         if (/[A-Z]/.test(password)) strength++;
@@ -139,354 +226,110 @@ class FormManager {
         if (/[^A-Za-z0-9]/.test(password)) strength++;
         
         if (strength < 3) {
-            strengthIndicator.classList.add('weak');
+            strengthClass = 'weak';
             strengthText = 'Weak password';
         } else if (strength < 4) {
-            strengthIndicator.classList.add('medium');
+            strengthClass = 'medium';
             strengthText = 'Medium strength';
         } else {
-            strengthIndicator.classList.add('strong');
+            strengthClass = 'strong';
             strengthText = 'Strong password';
         }
         
+        strengthIndicator.classList.add(strengthClass);
         strengthIndicator.textContent = strengthText;
         passwordContainer.appendChild(strengthIndicator);
     }
 
-    validateForm() {
-        const requiredFields = ['name', 'email', 'phone', 'location', 'password', 'confirmPassword'];
-        let isValid = true;
-        
-        for (const field of requiredFields) {
-            const value = this.formData[field];
-            if (!value || !this.validateField(field, value)) {
-                isValid = false;
-            }
+    function setLoadingState(loading) {
+        submitBtn.disabled = loading;
+        if (loading) {
+            submitBtn.innerHTML = '<span class="spinner"></span>Creating account...';
+        } else {
+            submitBtn.innerHTML = 'Create Account';
         }
-        
-        // Check password match
-        if (this.formData.password !== this.formData.confirmPassword) {
-            isValid = false;
-        }
-        
-        return isValid;
     }
 
-    reset() {
-        this.formData = {
-            name: '',
-            email: '',
-            password: '',
-            confirmPassword: '',
-            phone: '',
-            location: ''
-        };
-        
-        // Clear form inputs
-        Object.keys(this.formData).forEach(field => {
-            const input = document.getElementById(field);
-            if (input) {
-                input.value = '';
-                input.classList.remove('error', 'success');
-            }
+    function clearForm() {
+        Object.values(inputs).forEach(input => {
+            input.value = '';
+            input.classList.remove('error', 'success');
         });
+        clearAllFieldErrors();
         
-        // Remove password strength indicator
         const strengthIndicator = document.querySelector('.password-strength');
         if (strengthIndicator) {
             strengthIndicator.remove();
         }
     }
-}
 
-// Initialize form manager
-const formManager = new FormManager();
+    function showFieldError(input, message) {
+        clearFieldError(input);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.textContent = message;
+        input.parentElement.parentElement.appendChild(errorDiv);
+    }
 
-// Toast functionality (matching your useToast hook)
-function showToast(title, description, variant = 'default') {
-    const toastContainer = document.getElementById('toastContainer');
-    
-    const toast = document.createElement('div');
-    toast.className = `toast ${variant === 'destructive' ? 'toast-destructive' : ''}`;
-    
-    toast.innerHTML = `
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-description">${description}</div>
-        </div>
-    `;
-    
-    toastContainer.appendChild(toast);
-    
-    // Trigger animation
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 100);
-    
-    // Remove toast after 5 seconds
-    setTimeout(() => {
-        toast.classList.remove('show');
+    function clearFieldError(input) {
+        const errorDiv = input.parentElement.parentElement.querySelector('.field-error');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    }
+
+    function clearAllFieldErrors() {
+        document.querySelectorAll('.field-error').forEach(error => error.remove());
+    }
+
+    function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    function validatePhone(phone) {
+        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+        return phoneRegex.test(phone.replace(/[\s()-]/g, ''));
+    }
+
+    // Toast function (simplified - uses the auth system's toast if available)
+    function showToast(title, description, variant = 'default') {
+        // Try to use the main auth system's toast first
+        if (typeof window.showGlobalToast === 'function') {
+            window.showGlobalToast(title, description, variant);
+            return;
+        }
+
+        // Fallback toast implementation
+        const toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${variant === 'destructive' ? 'toast-destructive' : ''}`;
+        
+        toast.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-description">${description}</div>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 100);
+        
         setTimeout(() => {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
-        }, 300);
-    }, 5000);
-}
-
-// Form submission handler (matching your React component logic)
-async function handleSubmit(e) {
-    e.preventDefault();
-    
-    // Password validation
-    if (formManager.formData.password !== formManager.formData.confirmPassword) {
-        showToast(
-            'Password mismatch',
-            'Passwords do not match. Please try again.',
-            'destructive'
-        );
-        return;
-    }
-    
-    // Form validation
-    if (!formManager.validateForm()) {
-        showToast(
-            'Validation Error',
-            'Please fill in all required fields correctly.',
-            'destructive'
-        );
-        return;
-    }
-    
-    const submitBtn = document.getElementById('submitBtn');
-    
-    // Show loading state
-    formManager.isLoading = true;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner"></span>Creating account...';
-    
-    try {
-        const result = await auth.signup({
-            name: formManager.formData.name,
-            email: formManager.formData.email,
-            password: formManager.formData.password,
-            phone: formManager.formData.phone,
-            location: formManager.formData.location
-        });
-        
-        if (result.success) {
-            showToast(
-                'Account created!',
-                'Welcome to SportConnect! You can now update your profile.'
-            );
-            
-            // Redirect after successful signup (matching your navigate('/profile'))
+            toast.classList.remove('show');
             setTimeout(() => {
-                window.location.href = '/profile'; // Replace with your profile URL
-            }, 2000);
-        } else {
-            showToast(
-                'Signup failed',
-                'An account with this email already exists.',
-                'destructive'
-            );
-        }
-    } catch (error) {
-        showToast(
-            'Error',
-            'An error occurred. Please try again.',
-            'destructive'
-        );
-    } finally {
-        // Reset button state
-        formManager.isLoading = false;
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Create Account';
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 4000);
     }
-}
 
-// Input change handlers
-function setupFormHandlers() {
-    const form = document.getElementById('signupForm');
-    const inputs = form.querySelectorAll('input');
-    
-    // Add input event listeners
-    inputs.forEach(input => {
-        input.addEventListener('input', (e) => {
-            const field = e.target.id;
-            const value = e.target.value;
-            formManager.updateField(field, value);
-        });
-        
-        // Add blur event for validation
-        input.addEventListener('blur', (e) => {
-            const field = e.target.id;
-            const value = e.target.value;
-            formManager.validateField(field, value);
-        });
-    });
-    
-    // Add form submit handler
-    form.addEventListener('submit', handleSubmit);
-}
-
-// Real-time validation helpers
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-function validatePhone(phone) {
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ''));
-}
-
-function sanitizeInput(input) {
-    return input.trim().replace(/[<>]/g, '');
-}
-
-// Password strength checker
-function checkPasswordStrength(password) {
-    let score = 0;
-    const feedback = [];
-    
-    if (password.length >= 8) {
-        score += 1;
-    } else {
-        feedback.push('Use at least 8 characters');
-    }
-    
-    if (/[A-Z]/.test(password)) {
-        score += 1;
-    } else {
-        feedback.push('Add uppercase letters');
-    }
-    
-    if (/[a-z]/.test(password)) {
-        score += 1;
-    } else {
-        feedback.push('Add lowercase letters');
-    }
-    
-    if (/[0-9]/.test(password)) {
-        score += 1;
-    } else {
-        feedback.push('Add numbers');
-    }
-    
-    if (/[^A-Za-z0-9]/.test(password)) {
-        score += 1;
-    } else {
-        feedback.push('Add special characters');
-    }
-    
-    return { score, feedback };
-}
-
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Setup form handlers
-    setupFormHandlers();
-    
-    // Initialize sample users if none exist
-    if (!localStorage.getItem('users')) {
-        const sampleUsers = [
-            {
-                id: '1',
-                name: 'John Doe',
-                email: 'user@example.com',
-                password: 'password',
-                phone: '+1234567890',
-                location: 'New York, NY',
-                bio: 'Passionate sports enthusiast',
-                role: 'Player',
-                joinDate: '2024-01-15',
-                sports: ['Basketball', 'Tennis'],
-                avatar: '👤'
-            }
-        ];
-        localStorage.setItem('users', JSON.stringify(sampleUsers));
-    }
-    
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Enter key on form submission
-        if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
-            e.preventDefault();
-            const form = document.getElementById('signupForm');
-            const submitBtn = document.getElementById('submitBtn');
-            if (!submitBtn.disabled) {
-                handleSubmit(e);
-            }
-        }
-        
-        // Escape key to clear form
-        if (e.key === 'Escape') {
-            const confirmClear = confirm('Are you sure you want to clear the form?');
-            if (confirmClear) {
-                formManager.reset();
-            }
-        }
-    });
-    
     // Auto-focus first input
-    const firstInput = document.getElementById('name');
-    if (firstInput) {
-        firstInput.focus();
-    }
-    
-    console.log('Signup form initialized successfully!');
-    console.log('Features available:');
-    console.log('- Real-time validation');
-    console.log('- Password strength checker');
-    console.log('- Toast notifications');
-    console.log('- Form persistence');
-    console.log('- Keyboard shortcuts (Enter to submit, Escape to clear)');
-});
+    inputs.name.focus();
 
-// Utility functions for form enhancement
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
+    console.log('Signup page initialized successfully!');
 }
-
-// Enhanced input validation with debouncing
-const debouncedValidation = debounce((field, value) => {
-    formManager.validateField(field, value);
-}, 300);
-
-// Form persistence (save form data to localStorage)
-function saveFormData() {
-    localStorage.setItem('signupFormData', JSON.stringify(formManager.formData));
-}
-
-function loadFormData() {
-    const savedData = localStorage.getItem('signupFormData');
-    if (savedData) {
-        const data = JSON.parse(savedData);
-        Object.keys(data).forEach(field => {
-            const input = document.getElementById(field);
-            if (input && data[field]) {
-                input.value = data[field];
-                formManager.formData[field] = data[field];
-            }
-        });
-    }
-}
-
-// Clear saved form data
-function clearSavedFormData() {
-    localStorage.removeItem('signupFormData');
-}
-
-// Export functions for potential use in other scripts
-window.AuthManager = AuthManager;
-window.FormManager = FormManager;
-window.showToast = showToast;
