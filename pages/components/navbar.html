@@ -1,143 +1,124 @@
+<!-- components/navbar.html -->
 <nav class="navbar">
-    <div class="container">
+    <div class="nav-container">
         <div class="nav-content">
             <!-- Logo -->
-            <a href="/" class="logo">
+            <a href="/" class="nav-logo">
                 <div class="logo-icon">
-                    <i data-lucide="trophy"></i>
+                    <i class="fas fa-trophy"></i>
                 </div>
                 <span class="logo-text">SportHub</span>
             </a>
 
             <!-- Desktop Navigation -->
-            <div class="nav-items desktop-nav">
-                <a href="/" class="nav-item active">
-                    <i data-lucide="trophy"></i>
+            <div class="nav-menu">
+                <a href="/" class="nav-item">
+                    <i class="fas fa-trophy"></i>
                     <span>Home</span>
                 </a>
-                <a href="/book-ground" class="nav-item">
-                    <i data-lucide="calendar"></i>
+                <a href="/pages/book-ground.html" class="nav-item">
+                    <i class="fas fa-calendar"></i>
                     <span>Book Ground</span>
                 </a>
-                <a href="/book-coach" class="nav-item">
-                    <i data-lucide="user"></i>
+                <a href="/pages/book-coach.html" class="nav-item">
+                    <i class="fas fa-user"></i>
                     <span>Book Coach</span>
                 </a>
-                <a href="/shop" class="nav-item">
-                    <i data-lucide="shopping-cart"></i>
+                <a href="/pages/shop.html" class="nav-item">
+                    <i class="fas fa-shopping-cart"></i>
                     <span>Sports Shop</span>
                 </a>
             </div>
 
-            <!-- Auth & Cart Section -->
-            <div class="auth-section desktop-nav">
-                <a href="/cart" class="cart-btn">
-                    <i data-lucide="shopping-cart"></i>
-                    <span class="cart-badge">3</span>
+            <!-- Cart and Auth Buttons -->
+            <div class="nav-actions">
+                <a href="/pages/cart.html" class="cart-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">3</span>
                 </a>
-                <a href="/service-provider-register" class="btn btn-outline">
+                <a href="/pages/service-provider-register.html" class="provider-btn">
                     Join as Provider
                 </a>
-
-                <!-- Auth Buttons (when not authenticated) -->
-                <div class="auth-buttons" id="authButtons">
-                    <a href="/login" class="btn btn-outline">Login</a>
-                    <a href="/signup" class="btn btn-primary">Sign Up</a>
-                </div>
-
-                <!-- User Menu (when authenticated) -->
-                <div class="user-menu" id="userMenu" style="display: none;">
-                    <div class="dropdown">
-                        <button class="btn btn-outline admin-dropdown" onclick="toggleAdminDropdown()">
-                            Admin
-                        </button>
-                        <div class="dropdown-content admin-dropdown-content">
-                            <a href="/admin">Main Admin</a>
-                            <a href="/admin/shop">Shop Admin</a>
-                            <a href="/admin/ground">Ground Admin</a>
-                            <a href="/admin/coach">Coach Admin</a>
-                        </div>
+                <div class="admin-dropdown">
+                    <button class="admin-btn">Admin</button>
+                    <div class="admin-menu">
+                        <a href="/admin/dashboard.html">Main Admin</a>
+                        <a href="/pages/admin/shop.html">Shop Admin</a>
+                        <a href="/admin/pages/ground.html">Ground Admin</a>
+                        <a href="/admin/pages/coach.html">Coach Admin</a>
                     </div>
-
-                    <div class="dropdown">
-                        <button class="user-avatar" onclick="toggleUserDropdown()">
-                            <div class="avatar">👤</div>
-                        </button>
-                        <div class="dropdown-content user-dropdown-content">
-                            <div class="user-info">
-                                <p class="user-name" id="userName">John Doe</p>
-                                <p class="user-email" id="userEmail">john@example.com</p>
-                            </div>
-                            <div class="dropdown-separator"></div>
-                            <a href="/profile">
-                                <i data-lucide="user"></i>
-                                Profile
-                            </a>
-                            <a href="/my-bookings">
-                                <i data-lucide="book-open"></i>
-                                My Bookings
-                            </a>
-                            <div class="dropdown-separator"></div>
-                            <a href="#" onclick="logout()" class="logout-btn">
-                                <i data-lucide="log-out"></i>
-                                Log out
-                            </a>
+                </div>
+                <div class="auth-buttons" id="authButtons">
+                    <a href="/pages/login.html" class="login-btn">Login</a>
+                    <a href="/pages/signup.html" class="signup-btn">Sign Up</a>
+                </div>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <div class="user-avatar">
+                        <span id="userAvatar">👤</span>
+                    </div>
+                    <div class="user-dropdown">
+                        <div class="user-info">
+                            <p class="user-name" id="userName">User Name</p>
+                            <p class="user-email" id="userEmail">user@email.com</p>
                         </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="/pages/profile.html" class="dropdown-item">
+                            <i class="fas fa-user"></i>Profile
+                        </a>
+                        <a href="/pages/my-bookings.html" class="dropdown-item">
+                            <i class="fas fa-book-open"></i>My Bookings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>Log out
+                        </button>
                     </div>
                 </div>
             </div>
 
             <!-- Mobile menu button -->
-            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-                <i data-lucide="menu" class="menu-icon"></i>
-                <i data-lucide="x" class="close-icon" style="display: none;"></i>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
             </button>
         </div>
 
         <!-- Mobile Navigation -->
-        <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-menu" id="mobileMenu">
             <div class="mobile-nav-items">
-                <a href="/" class="mobile-nav-item active" onclick="closeMobileMenu()">
-                    <i data-lucide="trophy"></i>
+                <a href="/" class="mobile-nav-item">
+                    <i class="fas fa-trophy"></i>
                     <span>Home</span>
                 </a>
-                <a href="/book-ground" class="mobile-nav-item" onclick="closeMobileMenu()">
-                    <i data-lucide="calendar"></i>
+                <a href="/pages/book-ground.html" class="mobile-nav-item">
+                    <i class="fas fa-calendar"></i>
                     <span>Book Ground</span>
                 </a>
-                <a href="/book-coach" class="mobile-nav-item" onclick="closeMobileMenu()">
-                    <i data-lucide="user"></i>
+                <a href="/pages/book-coach.html" class="mobile-nav-item">
+                    <i class="fas fa-user"></i>
                     <span>Book Coach</span>
                 </a>
-                <a href="/shop" class="mobile-nav-item" onclick="closeMobileMenu()">
-                    <i data-lucide="shopping-cart"></i>
+                <a href="/pages/shop.html" class="mobile-nav-item">
+                    <i class="fas fa-shopping-cart"></i>
                     <span>Sports Shop</span>
                 </a>
-
-                <div class="mobile-auth-section">
-                    <!-- Mobile Auth Buttons (when not authenticated) -->
-                    <div class="mobile-auth-buttons" id="mobileAuthButtons">
-                        <a href="/login" class="btn btn-outline mobile-auth-btn" onclick="closeMobileMenu()">Login</a>
-                        <a href="/signup" class="btn btn-primary mobile-auth-btn" onclick="closeMobileMenu()">Sign
-                            Up</a>
-                    </div>
-
-                    <!-- Mobile User Menu (when authenticated) -->
-                    <div class="mobile-user-menu" id="mobileUserMenu" style="display: none;">
-                        <a href="/profile" class="btn btn-outline mobile-user-btn" onclick="closeMobileMenu()">
-                            <i data-lucide="user"></i>
-                            Profile
-                        </a>
-                        <a href="/my-bookings" class="btn btn-outline mobile-user-btn" onclick="closeMobileMenu()">
-                            <i data-lucide="book-open"></i>
-                            My Bookings
-                        </a>
-                        <button class="btn btn-outline mobile-user-btn logout-btn" onclick="logout()">
-                            <i data-lucide="log-out"></i>
-                            Log out
-                        </button>
-                    </div>
-                </div>
+            </div>
+            <div class="mobile-auth" id="mobileAuth">
+                <a href="/pages/login.html" class="mobile-auth-btn">Login</a>
+                <a href="/pages/signup.html" class="mobile-auth-btn primary">Sign Up</a>
+            </div>
+            <div class="mobile-user-menu" id="mobileUserMenu" style="display: none;">
+                <a href="/pages/profile.html" class="mobile-nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="/pages/my-bookings.html" class="mobile-nav-item">
+                    <i class="fas fa-book-open"></i>
+                    <span>My Bookings</span>
+                </a>
+                <button class="mobile-nav-item logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log out</span>
+                </button>
             </div>
         </div>
     </div>

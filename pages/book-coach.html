@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,18 +8,12 @@
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/pages.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
 </head>
-<body>
-    <div id="navbar-container"></div>
-    
-    <main class="booking-container">
-        <!-- Coach booking content -->
-    </main>
 
-    <script src="../js/utils.js"></script>
-    <script src="../js/auth.js"></script>
-    <script src="../js/components/rating-feedback.js"></script>
-    <script src="../js/pages/book-coach.js"></script>
+<body>
+    <!-- Load Navbar -->
+    <div id="navbar-container"></div>
 
     <div class="container">
         <div class="header">
@@ -89,7 +84,8 @@
                     <div class="price">Rs 1500<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
                 </div>
                 <div class="coach-description">
-                    Former professional player with 8 years coaching experience. Specialized in youth development.He is famous for his smart game plans and winning many trophies.
+                    Former professional player with 8 years coaching experience. Specialized in youth development.He is
+                    famous for his smart game plans and winning many trophies.
                 </div>
                 <div class="specializations">
                     <h4>Specializations:</h4>
@@ -128,7 +124,8 @@
                     <div class="price">Rs.2500<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
                 </div>
                 <div class="coach-description">
-                    Professional cricket coach with tournament experience. Focus on competitive players.He is known for being calm, honest, and good at training young players.
+                    Professional cricket coach with tournament experience. Focus on competitive players.He is known for
+                    being calm, honest, and good at training young players.
                 </div>
                 <div class="specializations">
                     <h4>Specializations:</h4>
@@ -167,8 +164,9 @@
                     <div class="price">Rs.3500<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
                 </div>
                 <div class="coach-description">
-                    Former college player focused on fundamentals and skill development for all levels.He started the Gopichand Academy to train young players.
-He coached stars like PV Sindhu and Saina Nehwal, who won Olympic medals.
+                    Former college player focused on fundamentals and skill development for all levels.He started the
+                    Gopichand Academy to train young players.
+                    He coached stars like PV Sindhu and Saina Nehwal, who won Olympic medals.
                 </div>
                 <div class="specializations">
                     <h4>Specializations:</h4>
@@ -207,14 +205,14 @@ He coached stars like PV Sindhu and Saina Nehwal, who won Olympic medals.
                     <div class="price">Rs.5000<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
                 </div>
                 <div class="coach-description">
-                   Amila suraweera is the head coach of the Indian cricket team.
+                    Amila suraweera is the head coach of the Indian cricket team.
                 </div>
                 <div class="specializations">
                     <h4>Specializations:</h4>
                     <div class="tags">
                         <span class="tag">Mental training</span>
                         <span class="tag">Competitive Cricket</span>
-            
+
                     </div>
                 </div>
                 <div class="certifications">
@@ -229,5 +227,28 @@ He coached stars like PV Sindhu and Saina Nehwal, who won Olympic medals.
         </div>
     </div>
 
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/components/rating-feedback.js"></script>
+    <script src="../js/pages/book-coach.js"></script>
+    <script src="/js/components/navbar.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('/pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar(); // Initialize navbar behavior
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+    </script>
+
+
 </body>
+
 </html>
