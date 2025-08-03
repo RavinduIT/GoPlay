@@ -1,165 +1,17 @@
-// Enhanced Authentication JavaScript - Main Auth System
+// Fixed Authentication JavaScript - Main Auth System
 class Auth {
     constructor() {
         this.currentUser = null;
+        this.isInitialized = false;
         this.init();
     }
 
     init() {
+        this.initializeDefaultUsers();
         this.loadCurrentUser();
         this.setupStorageListener();
-    }
-
-    loadCurrentUser() {
-        try {
-            const userData = localStorage.getItem('currentUser');
-            this.currentUser = userData ? JSON.parse(userData) : null;
-        } catch (error) {
-            console.error('Error loading current user:', error);
-            this.currentUser = null;
-        }
-    }
-
-    setupStorageListener() {
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'currentUser') {
-                this.loadCurrentUser();
-                this.updateAuthUI();
-            }
-        });
-    }
-
-    async login(email, password) {
-        try {
-            // Get users from localStorage
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const foundUser = users.find(u => u.email === email && u.password === password);
-            
-            if (foundUser) {
-                const { password: _, ...userWithoutPassword } = foundUser;
-                this.currentUser = userWithoutPassword;
-                localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-                this.updateAuthUI();
-                this.extendSession(); // Track session
-                return { success: true, user: userWithoutPassword };
-            }
-            
-            return { success: false, error: 'Invalid email or password' };
-        } catch (error) {
-            console.error('Login error:', error);
-            return { success: false, error: 'Login failed' };
-        }
-    }
-
-    async signup(userData) {
-        try {
-            // Validate signup form first
-            const validation = this.validateSignupForm(userData);
-            if (!validation.isValid) {
-                return { success: false, error: validation.errors[0] };
-            }
-
-            // Get existing users
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            
-            // Check if user already exists
-            if (users.find(u => u.email === userData.email)) {
-                return { success: false, error: 'User already exists with this email' };
-            }
-
-            // Create new user
-            const newUser = {
-                id: Date.now().toString(),
-                name: userData.name,
-                email: userData.email,
-                phone: userData.phone,
-                location: userData.location,
-                bio: '',
-                role: 'Player',
-                joinDate: new Date().toISOString().split('T')[0],
-                sports: [],
-                avatar: '👤'
-            };
-
-            // Store user with password for login
-            const userWithPassword = { ...newUser, password: userData.password };
-            users.push(userWithPassword);
-            localStorage.setItem('users', JSON.stringify(users));
-
-            // Set current user (without password)
-            this.currentUser = newUser;
-            localStorage.setItem('currentUser', JSON.stringify(newUser));
-            this.updateAuthUI();
-            this.extendSession(); // Track session
-            
-            return { success: true, user: newUser };
-        } catch (error) {
-            console.error('Signup error:', error);
-            return { success: false, error: 'Signup failed' };
-        }
-    }
-
-    logout() {
-        this.currentUser = null;
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('sessionTimestamp');
-        this.updateAuthUI();
-        
-        // Redirect to home page if on protected page
-        const protectedPages = ['/pages/profile.html', '/pages/my-bookings.html'];
-        if (protectedPages.some(page => window.location.pathname.includes(page))) {
-            window.location.href = '../index.html'; // Fixed redirect path
-        }
-    }
-
-    updateUser(userData) {
-        if (this.currentUser) {
-            const updatedUser = { ...this.currentUser, ...userData };
-            this.currentUser = updatedUser;
-            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-            
-            // Update user in users array
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const userIndex = users.findIndex(u => u.id === this.currentUser.id);
-            if (userIndex !== -1) {
-                users[userIndex] = { ...users[userIndex], ...userData };
-                localStorage.setItem('users', JSON.stringify(users));
-            }
-            
-            this.updateAuthUI();
-            return { success: true, user: updatedUser };
-        }
-        
-        return { success: false, error: 'No current user' };
-    }
-
-    updateAuthUI() {
-        // Update navbar auth state
-        if (window.navbar) {
-            window.navbar.checkAuthState();
-        }
-        
-        // Dispatch custom event for other components
-        window.dispatchEvent(new CustomEvent('authStateChanged', {
-            detail: { user: this.currentUser, isAuthenticated: !!this.currentUser }
-        }));
-    }
-
-    isAuthenticated() {
-        return !!this.currentUser;
-    }
-
-    getCurrentUser() {
-        return this.currentUser;
-    }
-
-    hasRole(role) {
-        return this.currentUser && this.currentUser.role === role;
-    }
-
-    // Check if user has access to admin features
-    canAccessAdmin() {
-        return this.isAuthenticated() && ['Admin', 'Shop Owner', 'Complex Owner', 'Coach'].includes(this.currentUser.role);
+        this.isInitialized = true;
+        console.log('Auth system initialized');
     }
 
     // Initialize default users if none exist
@@ -210,69 +62,181 @@ class Auth {
             ];
             
             localStorage.setItem('users', JSON.stringify(defaultUsers));
+            console.log('Default users created');
         }
     }
 
-    // Enhanced password validation
-    validatePassword(password) {
-        const minLength = 8;
-        const hasUpperCase = /[A-Z]/.test(password);
-        const hasLowerCase = /[a-z]/.test(password);
-        const hasNumbers = /\d/.test(password);
-        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    loadCurrentUser() {
+        try {
+            const userData = localStorage.getItem('currentUser');
+            this.currentUser = userData ? JSON.parse(userData) : null;
+            console.log('Current user loaded:', this.currentUser ? this.currentUser.email : 'None');
+        } catch (error) {
+            console.error('Error loading current user:', error);
+            this.currentUser = null;
+        }
+    }
 
-        const errors = [];
+    setupStorageListener() {
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'currentUser') {
+                this.loadCurrentUser();
+                this.updateAuthUI();
+            }
+        });
+    }
+
+    async login(email, password) {
+        try {
+            console.log('Attempting login for:', email);
+            
+            // Get users from localStorage
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            console.log('Found users:', users.length);
+            
+            const foundUser = users.find(u => u.email === email && u.password === password);
+            
+            if (foundUser) {
+                console.log('User found, logging in:', foundUser.email);
+                
+                // Remove password from current user object
+                const { password: _, ...userWithoutPassword } = foundUser;
+                this.currentUser = userWithoutPassword;
+                
+                // Store current user
+                localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+                localStorage.setItem('sessionTimestamp', Date.now().toString());
+                
+                this.updateAuthUI();
+                
+                return { success: true, user: userWithoutPassword };
+            }
+            
+            console.log('Invalid credentials');
+            return { success: false, error: 'Invalid email or password' };
+        } catch (error) {
+            console.error('Login error:', error);
+            return { success: false, error: 'Login failed' };
+        }
+    }
+
+    async signup(userData) {
+        try {
+            console.log('Attempting signup for:', userData.email);
+            
+            // Validate signup form
+            const validation = this.validateSignupForm(userData);
+            if (!validation.isValid) {
+                return { success: false, error: validation.errors[0] };
+            }
+
+            // Get existing users
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            // Check if user already exists
+            if (users.find(u => u.email === userData.email)) {
+                return { success: false, error: 'User already exists with this email' };
+            }
+
+            // Create new user
+            const newUser = {
+                id: Date.now().toString(),
+                name: userData.name,
+                email: userData.email,
+                phone: userData.phone,
+                location: userData.location,
+                bio: '',
+                role: 'Player',
+                joinDate: new Date().toISOString().split('T')[0],
+                sports: [],
+                avatar: '👤'
+            };
+
+            // Store user with password for login
+            const userWithPassword = { ...newUser, password: userData.password };
+            users.push(userWithPassword);
+            localStorage.setItem('users', JSON.stringify(users));
+
+            // Set current user (without password)
+            this.currentUser = newUser;
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            localStorage.setItem('sessionTimestamp', Date.now().toString());
+            
+            this.updateAuthUI();
+            
+            console.log('User registered successfully:', newUser.email);
+            return { success: true, user: newUser };
+        } catch (error) {
+            console.error('Signup error:', error);
+            return { success: false, error: 'Signup failed' };
+        }
+    }
+
+    logout() {
+        console.log('Logging out user');
+        this.currentUser = null;
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('sessionTimestamp');
+        this.updateAuthUI();
         
-        if (password.length < minLength) {
-            errors.push(`Password must be at least ${minLength} characters long`);
+        // Redirect to home page if on protected page
+        const currentPath = window.location.pathname;
+        const protectedPages = ['/pages/profile.html', '/pages/my-bookings.html'];
+        if (protectedPages.some(page => currentPath.includes(page))) {
+            window.location.href = '../index.html';
         }
-        if (!hasUpperCase) {
-            errors.push('Password must contain at least one uppercase letter');
-        }
-        if (!hasLowerCase) {
-            errors.push('Password must contain at least one lowercase letter');
-        }
-        if (!hasNumbers) {
-            errors.push('Password must contain at least one number');
-        }
-        if (!hasSpecialChar) {
-            errors.push('Password must contain at least one special character');
-        }
-
-        return {
-            isValid: errors.length === 0,
-            errors: errors,
-            strength: this.getPasswordStrength(password)
-        };
     }
 
-    // Get password strength score
-    getPasswordStrength(password) {
-        let score = 0;
-        if (password.length >= 8) score++;
-        if (/[A-Z]/.test(password)) score++;
-        if (/[a-z]/.test(password)) score++;
-        if (/\d/.test(password)) score++;
-        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
+    updateUser(userData) {
+        if (this.currentUser) {
+            const updatedUser = { ...this.currentUser, ...userData };
+            this.currentUser = updatedUser;
+            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+            
+            // Update user in users array
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.id === this.currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex] = { ...users[userIndex], ...userData };
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+            
+            this.updateAuthUI();
+            return { success: true, user: updatedUser };
+        }
         
-        if (score < 3) return { level: 'weak', text: 'Weak' };
-        if (score < 4) return { level: 'medium', text: 'Medium' };
-        return { level: 'strong', text: 'Strong' };
+        return { success: false, error: 'No current user' };
     }
 
-    // Email validation
-    validateEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+    updateAuthUI() {
+        // Update navbar auth state
+        if (window.navbar) {
+            window.navbar.checkAuthState();
+        }
+        
+        // Dispatch custom event for other components
+        window.dispatchEvent(new CustomEvent('authStateChanged', {
+            detail: { user: this.currentUser, isAuthenticated: !!this.currentUser }
+        }));
     }
 
-    // Phone validation
-    validatePhone(phone) {
-        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-        return phoneRegex.test(phone.replace(/[\s()-]/g, ''));
+    isAuthenticated() {
+        return !!this.currentUser;
     }
 
-    // Enhanced form validation
+    getCurrentUser() {
+        return this.currentUser;
+    }
+
+    hasRole(role) {
+        return this.currentUser && this.currentUser.role === role;
+    }
+
+    canAccessAdmin() {
+        return this.isAuthenticated() && ['Admin', 'Shop Owner', 'Complex Owner', 'Coach'].includes(this.currentUser.role);
+    }
+
+    // Form validation
     validateSignupForm(formData) {
         const errors = [];
 
@@ -284,9 +248,8 @@ class Auth {
             errors.push('Please enter a valid email address');
         }
 
-        const passwordValidation = this.validatePassword(formData.password);
-        if (!passwordValidation.isValid) {
-            errors.push(...passwordValidation.errors);
+        if (!formData.password || formData.password.length < 6) {
+            errors.push('Password must be at least 6 characters long');
         }
 
         if (formData.password !== formData.confirmPassword) {
@@ -307,33 +270,17 @@ class Auth {
         };
     }
 
-    // Session management
-    extendSession() {
-        if (this.currentUser) {
-            const sessionData = {
-                user: this.currentUser,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-            localStorage.setItem('sessionTimestamp', sessionData.timestamp.toString());
-        }
+    validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
     }
 
-    checkSessionExpiry() {
-        const sessionTimestamp = localStorage.getItem('sessionTimestamp');
-        if (sessionTimestamp) {
-            const sessionAge = Date.now() - parseInt(sessionTimestamp);
-            const maxAge = 24 * 60 * 60 * 1000; // 24 hours
-            
-            if (sessionAge > maxAge) {
-                this.logout();
-                return false;
-            }
-        }
-        return true;
+    validatePhone(phone) {
+        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+        return phoneRegex.test(phone.replace(/[\s()-]/g, ''));
     }
 
-    // Enhanced toast function for global use
+    // Toast notification
     showToast(title, description, variant = 'default') {
         const toastContainer = document.getElementById('toastContainer') || this.createToastContainer();
         
@@ -350,7 +297,7 @@ class Auth {
         
         toastContainer.appendChild(toast);
         
-        // Trigger animation
+        // Show toast
         setTimeout(() => {
             toast.classList.add('show');
         }, 100);
@@ -368,7 +315,6 @@ class Auth {
         }, 5000);
     }
 
-    // Create toast container if it doesn't exist
     createToastContainer() {
         let container = document.getElementById('toastContainer');
         if (!container) {
@@ -380,59 +326,19 @@ class Auth {
         return container;
     }
 
-    // Forgot password (mock implementation)
-    async forgotPassword(email) {
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const user = users.find(u => u.email === email);
-        
-        if (user) {
-            // In a real app, this would send an email
-            console.log(`Password reset email would be sent to ${email}`);
-            return { success: true, message: 'Password reset email sent' };
+    // Session management
+    checkSessionExpiry() {
+        const sessionTimestamp = localStorage.getItem('sessionTimestamp');
+        if (sessionTimestamp) {
+            const sessionAge = Date.now() - parseInt(sessionTimestamp);
+            const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+            
+            if (sessionAge > maxAge) {
+                this.logout();
+                return false;
+            }
         }
-        
-        return { success: false, error: 'Email not found' };
-    }
-
-    // Reset password (mock implementation)
-    async resetPassword(token, newPassword) {
-        // In a real app, this would validate the token
-        const passwordValidation = this.validatePassword(newPassword);
-        
-        if (!passwordValidation.isValid) {
-            return { success: false, errors: passwordValidation.errors };
-        }
-        
-        // Mock successful reset
-        return { success: true, message: 'Password reset successfully' };
-    }
-
-    // Change password for logged in user
-    async changePassword(currentPassword, newPassword) {
-        if (!this.currentUser) {
-            return { success: false, error: 'Not logged in' };
-        }
-
-        // Verify current password
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const user = users.find(u => u.id === this.currentUser.id);
-        
-        if (!user || user.password !== currentPassword) {
-            return { success: false, error: 'Current password is incorrect' };
-        }
-
-        // Validate new password
-        const validation = this.validatePassword(newPassword);
-        if (!validation.isValid) {
-            return { success: false, error: validation.errors[0] };
-        }
-
-        // Update password
-        const userIndex = users.findIndex(u => u.id === this.currentUser.id);
-        users[userIndex].password = newPassword;
-        localStorage.setItem('users', JSON.stringify(users));
-
-        return { success: true, message: 'Password changed successfully' };
+        return true;
     }
 }
 
@@ -441,8 +347,8 @@ let authInstance = null;
 
 // Initialize auth when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Initializing auth system...');
     authInstance = new Auth();
-    authInstance.initializeDefaultUsers();
     
     // Make toast function globally available
     window.showGlobalToast = (title, description, variant) => {
@@ -458,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 5 * 60 * 1000);
 
-    console.log('Auth system initialized successfully!');
+    console.log('Auth system ready!');
     console.log('Test credentials:');
     console.log('User: user@example.com / password');
     console.log('Coach: coach@example.com / password');
@@ -467,11 +373,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Global functions for easy access
 function login(email, password) {
-    return authInstance ? authInstance.login(email, password) : Promise.resolve({ success: false, error: 'Auth not initialized' });
+    if (!authInstance) {
+        console.error('Auth not initialized');
+        return Promise.resolve({ success: false, error: 'Auth not initialized' });
+    }
+    return authInstance.login(email, password);
 }
 
 function signup(userData) {
-    return authInstance ? authInstance.signup(userData) : Promise.resolve({ success: false, error: 'Auth not initialized' });
+    if (!authInstance) {
+        console.error('Auth not initialized');
+        return Promise.resolve({ success: false, error: 'Auth not initialized' });
+    }
+    return authInstance.signup(userData);
 }
 
 function logout() {

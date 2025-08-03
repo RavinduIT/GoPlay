@@ -1,13 +1,19 @@
-// Fixed Login Page JavaScript - Uses main auth.js system
+// Fixed Login Page JavaScript
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Login page loading...');
+    
     // Wait for auth system to be ready
     const waitForAuth = () => {
-        if (typeof authInstance !== 'undefined' && authInstance) {
+        if (typeof authInstance !== 'undefined' && authInstance && authInstance.isInitialized) {
+            console.log('Auth system ready, initializing login page');
             initializeLoginPage();
         } else {
+            console.log('Waiting for auth system...');
             setTimeout(waitForAuth, 100);
         }
     };
+    
+    // Start waiting for auth
     waitForAuth();
 });
 
@@ -17,12 +23,22 @@ function initializeLoginPage() {
     const passwordInput = document.getElementById('password');
     const submitBtn = document.getElementById('submitBtn');
 
+    if (!loginForm || !emailInput || !passwordInput || !submitBtn) {
+        console.error('Required form elements not found');
+        return;
+    }
+
+    console.log('Login page elements found, setting up handlers');
+
     // Form submission handler
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+        console.log('Login form submitted');
         
         const email = emailInput.value.trim();
         const password = passwordInput.value;
+        
+        console.log('Login attempt for email:', email);
         
         // Basic validation
         if (!email || !password) {
@@ -39,13 +55,26 @@ function initializeLoginPage() {
         setLoadingState(true);
         
         try {
-            const result = await authInstance.login(email, password);
+            console.log('Calling login function...');
+            const result = await login(email, password);
+            console.log('Login result:', result);
             
             if (result.success) {
                 showToast('Welcome back!', 'You have successfully logged in.');
-                // Redirect to home page after successful login
+                
+                // Clear form
+                emailInput.value = '';
+                passwordInput.value = '';
+                
+                // Redirect after a short delay
                 setTimeout(() => {
-                    window.location.href = '../index.html';
+                    // Check if we're in a subdirectory
+                    const currentPath = window.location.pathname;
+                    if (currentPath.includes('/pages/')) {
+                        window.location.href = '../index.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
                 }, 1500);
             } else {
                 showToast('Login Failed', result.error || 'Invalid email or password.', 'destructive');
@@ -79,21 +108,30 @@ function initializeLoginPage() {
         });
     });
 
-    // Handle Enter key
-    [emailInput, passwordInput].forEach(input => {
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                loginForm.dispatchEvent(new Event('submit'));
-            }
-        });
+    // Handle Enter key navigation
+    emailInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            passwordInput.focus();
+        }
     });
 
+    passwordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            loginForm.dispatchEvent(new Event('submit'));
+        }
+    });
+
+    // Helper functions
     function setLoadingState(loading) {
         submitBtn.disabled = loading;
         if (loading) {
-            submitBtn.innerHTML = '<span class="spinner"></span>Signing in...';
+            submitBtn.innerHTML = '<div class="spinner"></div>Signing in...';
+            submitBtn.style.opacity = '0.8';
         } else {
             submitBtn.innerHTML = 'Login';
+            submitBtn.style.opacity = '1';
         }
     }
 
@@ -107,6 +145,9 @@ function initializeLoginPage() {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'field-error';
         errorDiv.textContent = message;
+        errorDiv.style.color = '#ef4444';
+        errorDiv.style.fontSize = '14px';
+        errorDiv.style.marginTop = '4px';
         input.parentElement.parentElement.appendChild(errorDiv);
     }
 
@@ -117,39 +158,72 @@ function initializeLoginPage() {
         }
     }
 
-    // Toast function (simplified - uses the auth system's toast if available)
+    // Toast function with fallback
     function showToast(title, description, variant = 'default') {
-        // Try to use the main auth system's toast first
+        console.log('Showing toast:', title, description);
+        
+        // Try to use the global auth system's toast first
         if (typeof window.showGlobalToast === 'function') {
             window.showGlobalToast(title, description, variant);
             return;
         }
 
-        // Fallback toast implementation
-        const toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) return;
+        // Try auth instance directly
+        if (authInstance && authInstance.showToast) {
+            authInstance.showToast(title, description, variant);
+            return;
+        }
+
+        // Fallback: simple alert
+        if (variant === 'destructive') {
+            alert('Error: ' + description);
+        } else {
+            alert(title + ': ' + description);
+        }
         
+        // Try to create a simple toast
+        createSimpleToast(title, description, variant);
+    }
+
+    function createSimpleToast(title, description, variant) {
+        // Remove existing toasts
+        const existingToasts = document.querySelectorAll('.simple-toast');
+        existingToasts.forEach(toast => toast.remove());
+
         const toast = document.createElement('div');
-        toast.className = `toast ${variant === 'destructive' ? 'toast-destructive' : ''}`;
-        
-        toast.innerHTML = `
-            <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                <div class="toast-description">${description}</div>
-            </div>
+        toast.className = 'simple-toast';
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${variant === 'destructive' ? '#ef4444' : '#10b981'};
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-width: 400px;
+            font-family: inherit;
         `;
         
-        toastContainer.appendChild(toast);
+        toast.innerHTML = `
+            <div style="font-weight: 600; margin-bottom: 4px;">${title}</div>
+            <div style="font-size: 14px; opacity: 0.9;">${description}</div>
+        `;
         
-        setTimeout(() => toast.classList.add('show'), 100);
+        document.body.appendChild(toast);
         
+        // Auto remove after 4 seconds
         setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
-                }
-            }, 300);
+            if (toast.parentNode) {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
+            }
         }, 4000);
     }
 

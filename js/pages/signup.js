@@ -1,13 +1,19 @@
-// Fixed Signup Page JavaScript - Uses main auth.js system
+// Fixed Signup Page JavaScript
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Signup page loading...');
+    
     // Wait for auth system to be ready
     const waitForAuth = () => {
-        if (typeof authInstance !== 'undefined' && authInstance) {
+        if (typeof authInstance !== 'undefined' && authInstance && authInstance.isInitialized) {
+            console.log('Auth system ready, initializing signup page');
             initializeSignupPage();
         } else {
+            console.log('Waiting for auth system...');
             setTimeout(waitForAuth, 100);
         }
     };
+    
+    // Start waiting for auth
     waitForAuth();
 });
 
@@ -23,15 +29,34 @@ function initializeSignupPage() {
     };
     const submitBtn = document.getElementById('submitBtn');
 
+    // Check if all elements exist
+    if (!signupForm || !submitBtn) {
+        console.error('Required form elements not found');
+        return;
+    }
+
+    // Check if all inputs exist
+    for (const [key, input] of Object.entries(inputs)) {
+        if (!input) {
+            console.error(`Input ${key} not found`);
+            return;
+        }
+    }
+
+    console.log('Signup page elements found, setting up handlers');
+
     // Form submission handler
     signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+        console.log('Signup form submitted');
         
         const formData = getFormData();
+        console.log('Form data:', { ...formData, password: '[HIDDEN]', confirmPassword: '[HIDDEN]' });
         
         // Validation
         const validation = validateForm(formData);
         if (!validation.isValid) {
+            console.log('Validation failed:', validation.errors);
             showToast('Validation Error', validation.errors[0], 'destructive');
             return;
         }
@@ -40,15 +65,24 @@ function initializeSignupPage() {
         setLoadingState(true);
         
         try {
-            const result = await authInstance.signup(formData);
+            console.log('Calling signup function...');
+            const result = await signup(formData);
+            console.log('Signup result:', result);
             
             if (result.success) {
                 showToast('Account Created!', 'Welcome to SportHub! You can now explore all features.');
+                
                 // Clear form
                 clearForm();
-                // Redirect to home page
+                
+                // Redirect after a short delay
                 setTimeout(() => {
-                    window.location.href = '../index.html';
+                    const currentPath = window.location.pathname;
+                    if (currentPath.includes('/pages/')) {
+                        window.location.href = '../index.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
                 }, 2000);
             } else {
                 showToast('Signup Failed', result.error || 'An account with this email already exists.', 'destructive');
@@ -85,19 +119,22 @@ function initializeSignupPage() {
                     this.classList.add('success');
                 } else if (this.value && password && this.value !== password) {
                     this.classList.add('error');
+                    showFieldError(this, 'Passwords do not match');
                 }
             }
         });
     });
 
     // Handle Enter key navigation
-    Object.values(inputs).forEach((input, index) => {
+    const inputOrder = ['name', 'email', 'phone', 'location', 'password', 'confirmPassword'];
+    inputOrder.forEach((fieldName, index) => {
+        const input = inputs[fieldName];
         input.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                const nextInput = Object.values(inputs)[index + 1];
-                if (nextInput) {
-                    nextInput.focus();
+                const nextField = inputOrder[index + 1];
+                if (nextField && inputs[nextField]) {
+                    inputs[nextField].focus();
                 } else {
                     signupForm.dispatchEvent(new Event('submit'));
                 }
@@ -119,12 +156,6 @@ function initializeSignupPage() {
     function validateForm(data) {
         const errors = [];
 
-        // Use the main auth system's validation if available
-        if (authInstance && typeof authInstance.validateSignupForm === 'function') {
-            return authInstance.validateSignupForm(data);
-        }
-
-        // Fallback validation
         if (!data.name || data.name.length < 2) {
             errors.push('Name must be at least 2 characters long');
         }
@@ -141,8 +172,8 @@ function initializeSignupPage() {
             errors.push('Location must be at least 2 characters long');
         }
 
-        if (!data.password || data.password.length < 8) {
-            errors.push('Password must be at least 8 characters long');
+        if (!data.password || data.password.length < 6) {
+            errors.push('Password must be at least 6 characters long');
         }
 
         if (data.password !== data.confirmPassword) {
@@ -178,8 +209,8 @@ function initializeSignupPage() {
                 errorMessage = 'Location must be at least 2 characters long';
                 break;
             case 'password':
-                isValid = value.length >= 8;
-                errorMessage = 'Password must be at least 8 characters long';
+                isValid = value.length >= 6;
+                errorMessage = 'Password must be at least 6 characters long';
                 break;
             case 'confirmPassword':
                 isValid = value === inputs.password.value;
@@ -217,26 +248,32 @@ function initializeSignupPage() {
         
         let strength = 0;
         let strengthText = '';
-        let strengthClass = '';
+        let color = '';
         
-        if (password.length >= 8) strength++;
+        if (password.length >= 6) strength++;
         if (/[A-Z]/.test(password)) strength++;
         if (/[a-z]/.test(password)) strength++;
         if (/[0-9]/.test(password)) strength++;
         if (/[^A-Za-z0-9]/.test(password)) strength++;
         
         if (strength < 3) {
-            strengthClass = 'weak';
+            color = '#ef4444';
             strengthText = 'Weak password';
         } else if (strength < 4) {
-            strengthClass = 'medium';
+            color = '#f59e0b';
             strengthText = 'Medium strength';
         } else {
-            strengthClass = 'strong';
+            color = '#10b981';
             strengthText = 'Strong password';
         }
         
-        strengthIndicator.classList.add(strengthClass);
+        strengthIndicator.style.cssText = `
+            color: ${color};
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: 500;
+        `;
+        
         strengthIndicator.textContent = strengthText;
         passwordContainer.appendChild(strengthIndicator);
     }
@@ -244,9 +281,11 @@ function initializeSignupPage() {
     function setLoadingState(loading) {
         submitBtn.disabled = loading;
         if (loading) {
-            submitBtn.innerHTML = '<span class="spinner"></span>Creating account...';
+            submitBtn.innerHTML = '<div class="spinner"></div>Creating account...';
+            submitBtn.style.opacity = '0.8';
         } else {
             submitBtn.innerHTML = 'Create Account';
+            submitBtn.style.opacity = '1';
         }
     }
 
@@ -268,6 +307,11 @@ function initializeSignupPage() {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'field-error';
         errorDiv.textContent = message;
+        errorDiv.style.cssText = `
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 4px;
+        `;
         input.parentElement.parentElement.appendChild(errorDiv);
     }
 
@@ -292,39 +336,81 @@ function initializeSignupPage() {
         return phoneRegex.test(phone.replace(/[\s()-]/g, ''));
     }
 
-    // Toast function (simplified - uses the auth system's toast if available)
+    // Toast function with fallback
     function showToast(title, description, variant = 'default') {
-        // Try to use the main auth system's toast first
+        console.log('Showing toast:', title, description);
+        
+        // Try to use the global auth system's toast first
         if (typeof window.showGlobalToast === 'function') {
             window.showGlobalToast(title, description, variant);
             return;
         }
 
-        // Fallback toast implementation
-        const toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) return;
+        // Try auth instance directly
+        if (authInstance && authInstance.showToast) {
+            authInstance.showToast(title, description, variant);
+            return;
+        }
+
+        // Fallback: simple alert
+        if (variant === 'destructive') {
+            alert('Error: ' + description);
+        } else {
+            alert(title + ': ' + description);
+        }
         
+        // Try to create a simple toast
+        createSimpleToast(title, description, variant);
+    }
+
+    function createSimpleToast(title, description, variant) {
+        // Remove existing toasts
+        const existingToasts = document.querySelectorAll('.simple-toast');
+        existingToasts.forEach(toast => toast.remove());
+
         const toast = document.createElement('div');
-        toast.className = `toast ${variant === 'destructive' ? 'toast-destructive' : ''}`;
-        
-        toast.innerHTML = `
-            <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                <div class="toast-description">${description}</div>
-            </div>
+        toast.className = 'simple-toast';
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${variant === 'destructive' ? '#ef4444' : '#10b981'};
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-width: 400px;
+            font-family: inherit;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
         `;
         
-        toastContainer.appendChild(toast);
+        toast.innerHTML = `
+            <div style="font-weight: 600; margin-bottom: 4px;">${title}</div>
+            <div style="font-size: 14px; opacity: 0.9;">${description}</div>
+        `;
         
-        setTimeout(() => toast.classList.add('show'), 100);
+        document.body.appendChild(toast);
         
+        // Show toast with animation
         setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
-                }
-            }, 300);
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Auto remove after 4 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
+            }
         }, 4000);
     }
 
