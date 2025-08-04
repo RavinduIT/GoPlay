@@ -1,68 +1,54 @@
 /* Main CSS - Global Styles and Variables */
 
-/* CSS Custom Properties (Variables) */
 :root {
-  /* Colors */
-  --primary: #2563eb;
+  /* Greens - Base theme */
+  --primary: #15803d; /* Deep green */
   --primary-foreground: #ffffff;
-  --primary-50: rgba(37, 99, 235, 0.05);
-  --primary-100: rgba(37, 99, 235, 0.1);
-  
-  --accent: #7c3aed;
-  --accent-50: rgba(124, 58, 237, 0.05);
-  --accent-100: rgba(124, 58, 237, 0.1);
-  
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
-  
+  --primary-50: rgba(21, 128, 61, 0.05);
+  --primary-100: rgba(21, 128, 61, 0.1);
+
+  --accent: #22c55e; /* Vivid green */
+  --accent-50: rgba(34, 197, 94, 0.05);
+  --accent-100: rgba(34, 197, 94, 0.1);
+
+  /* Backgrounds */
+  --background: #ffffff;           /* Clean white */
+  --foreground: #0f172a;           /* Rich dark blue/black for contrast */
+  --muted: #f0fdf4;                /* Subtle minty green */
+  --muted-foreground: #475569;     /* Slightly softened black */
+
+  /* Card Styles */
   --card: #ffffff;
   --card-foreground: #0f172a;
-  
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  
-  --destructive: #ef4444;
+
+  /* Input/Border */
+  --border: #bbf7d0;               /* Soft green border */
+  --input: #ecfdf5;                /* Very light green input */
+
+  /* Secondary UI colors */
+  --secondary: #ecfdf5;            /* Light minty green background */
+  --secondary-foreground: #064e3b; /* Very dark green text */
+
+  /* Destructive (alerts) */
+  --destructive: #dc2626;          /* Strong red */
   --destructive-foreground: #ffffff;
-  
+
   /* Shadows */
-  --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-strong: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  
+  --shadow-soft: 0 1px 3px 0 rgba(21, 128, 61, 0.1), 0 1px 2px 0 rgba(21, 128, 61, 0.06);
+  --shadow-medium: 0 4px 6px -1px rgba(21, 128, 61, 0.1), 0 2px 4px -1px rgba(21, 128, 61, 0.06);
+  --shadow-strong: 0 10px 15px -3px rgba(21, 128, 61, 0.1), 0 4px 6px -2px rgba(21, 128, 61, 0.05);
+
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  --gradient-hero: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  
-  /* Spacing */
-  --container-padding: 1rem;
-  --section-padding: 5rem 0;
-  
-  /* Border Radius */
+  --gradient-hero: linear-gradient(135deg, #064e3b 0%, #022c22 100%); /* Deep jungle gradient */
+
   --radius: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --radius-lg: 1rem;
 }
 
+
 /* Dark mode variables */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    --card: #1e293b;
-    --card-foreground: #f8fafc;
-    --border: #334155;
-    --input: #334155;
-    --secondary: #334155;
-    --secondary-foreground: #f8fafc;
-  }
-}
+
 
 /* Reset and Base Styles */
 *, *::before, *::after {
