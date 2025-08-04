@@ -1,14 +1,32 @@
 {
     "grounds": [
         {
-            "id": 1,
-            "name": "",
-            "sport": "",
-            "location": "",
-            "hourlyRate": 0,
-            "facilities": [],
-            "images": [],
-            "availability": []
-        }
+      "id": 1,
+      "userId": 1,
+      "venueId": 1,
+      "venueName": "City Sports Complex",
+      "sport": "Tennis",
+      "date": "2024-02-15",
+      "time": "10:00 AM - 12:00 PM",
+      "duration": 2,
+      "price": 50,
+      "status": "Confirmed",
+      "paymentStatus": "Paid",
+      "bookingDate": "2024-02-01"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "venueId": 2,
+      "venueName": "Tennis Center Pro",
+      "sport": "Tennis",
+      "date": "2024-02-20",
+      "time": "2:00 PM - 4:00 PM",
+      "duration": 2,
+      "price": 60,
+      "status": "Pending",
+      "paymentStatus": "Pending",
+      "bookingDate": "2024-02-02"
+    }
     ]
 }
