@@ -5,9 +5,9 @@
             <!-- Logo -->
             <a href="/" class="nav-logo">
                 <div class="logo-icon">
-                    <i class="fas fa-trophy"></i>
+                    <img src="../assets/images/logo.jpeg" width="45" height="45" alt="GoPlay Logo" />
                 </div>
-                <span class="logo-text">SportHub</span>
+                <span class="logo-text">GoPlay</span>
             </a>
 
             <!-- Desktop Navigation -->
@@ -84,6 +84,7 @@
 
         <!-- Mobile Navigation -->
         <div class="mobile-menu" id="mobileMenu">
+            <!-- Navigation Items -->
             <div class="mobile-nav-items">
                 <a href="/" class="mobile-nav-item">
                     <i class="fas fa-trophy"></i>
@@ -102,11 +103,73 @@
                     <span>Sports Shop</span>
                 </a>
             </div>
-            <div class="mobile-auth" id="mobileAuth">
-                <a href="/pages/login.html" class="mobile-auth-btn">Login</a>
-                <a href="/pages/signup.html" class="mobile-auth-btn primary">Sign Up</a>
+
+            <!-- Mobile Cart -->
+            <div class="mobile-cart">
+                <a href="/pages/cart.html" class="mobile-nav-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Cart</span>
+                    <span class="cart-count mobile-cart-count">3</span>
+                </a>
             </div>
+
+            <!-- Mobile Service Provider -->
+            <div class="mobile-provider">
+                <a href="/pages/service-provider-register.html" class="mobile-nav-item">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Join as Provider</span>
+                </a>
+            </div>
+
+            <!-- Mobile Admin Menu -->
+            <div class="mobile-admin">
+                <div class="mobile-nav-item admin-header">
+                    <i class="fas fa-cog"></i>
+                    <span>Admin</span>
+                </div>
+                <div class="mobile-admin-items">
+                    <a href="/admin/dashboard.html" class="mobile-nav-item sub-item">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Main Admin</span>
+                    </a>
+                    <a href="/pages/admin/shop.html" class="mobile-nav-item sub-item">
+                        <i class="fas fa-store"></i>
+                        <span>Shop Admin</span>
+                    </a>
+                    <a href="/admin/pages/ground.html" class="mobile-nav-item sub-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Ground Admin</span>
+                    </a>
+                    <a href="/admin/pages/coach.html" class="mobile-nav-item sub-item">
+                        <i class="fas fa-whistle"></i>
+                        <span>Coach Admin</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mobile Auth (shown when not logged in) -->
+            <div class="mobile-auth" id="mobileAuth">
+                <a href="/pages/login.html" class="mobile-auth-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </a>
+                <a href="/pages/signup.html" class="mobile-auth-btn primary">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Sign Up</span>
+                </a>
+            </div>
+
+            <!-- Mobile User Menu (shown when logged in) -->
             <div class="mobile-user-menu" id="mobileUserMenu" style="display: none;">
+                <div class="mobile-user-info">
+                    <div class="mobile-user-avatar">
+                        <span id="mobileUserAvatar">👤</span>
+                    </div>
+                    <div class="mobile-user-details">
+                        <p class="mobile-user-name" id="mobileUserName">User Name</p>
+                        <p class="mobile-user-email" id="mobileUserEmail">user@email.com</p>
+                    </div>
+                </div>
                 <a href="/pages/profile.html" class="mobile-nav-item">
                     <i class="fas fa-user"></i>
                     <span>Profile</span>

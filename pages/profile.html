@@ -3,20 +3,1054 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - SportHub</title>
+    <title>Profile - SportHub</title>
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/pages.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Profile Page Styles */
+        .profile-page {
+            min-height: 100vh;
+            background-color: #f8fafc;
+        }
+
+        .profile-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 4rem 0;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .profile-hero-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .profile-avatar-section {
+            position: relative;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-avatar {
+            width: 128px;
+            height: 128px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            border: 2px solid white;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-upload-btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.1);
+        }
+
+        .profile-info h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .profile-details {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .detail-item i {
+            width: 16px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .profile-content {
+            padding: 3rem 0;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #2d3748;
+            margin: 0;
+            flex: 1;
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input:disabled, .form-select:disabled, .form-textarea:disabled {
+            background: #f9fafb;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 1px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn.small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .sports-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .sports-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .sport-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sport-badge:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .sport-badge.removable:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .sport-remove {
+            opacity: 0.7;
+            margin-left: 0.25rem;
+        }
+
+        .add-sport-section {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-label {
+            color: #6b7280;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .stat-highlight {
+            color: #667eea;
+        }
+
+        .booking-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .booking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.5rem;
+        }
+
+        .booking-name {
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .booking-type {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .booking-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-upcoming {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .booking-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .booking-amount {
+            font-weight: 500;
+            color: #667eea;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            padding: 1rem 1.5rem;
+            z-index: 1000;
+            max-width: 400px;
+            border-left: 4px solid #10b981;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .toast-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-hero-content {
+                text-align: center;
+                flex-direction: column;
+            }
+
+            .profile-details {
+                justify-content: center;
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .profile-info h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .add-sport-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="navbar-container"></div>
-    
-    <main class="profile-container">
-        <!-- Profile content -->
-    </main>
+    <!-- Profile Page Content -->
+    <div class="profile-page">
+        <!-- Hero Section -->
+        <div class="profile-hero">
+            <div class="container">
+                <div class="profile-hero-content">
+                    <div class="profile-avatar-section">
+                        <div class="avatar-wrapper">
+                            <img id="profileImage" src="https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=400&h=400&fit=crop&crop=faces" alt="Profile" class="profile-avatar">
+                            <button class="avatar-upload-btn" id="avatarUploadBtn" title="Upload profile picture">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <h1 id="profileName">Loading...</h1>
+                        <div class="profile-details">
+                            <div class="detail-item">
+                                <i class="fas fa-envelope"></i>
+                                <span id="profileEmail">Loading...</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span id="profileLocation">Loading...</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span id="profileJoinDate">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="profile-role">
+                            <span class="badge" id="profileRole">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <script src="../js/utils.js"></script>
+        <!-- Main Content -->
+        <div class="container profile-content">
+            <div class="profile-grid">
+                <!-- Profile Information Card -->
+                <div class="profile-main">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-user"></i>
+                                Profile Information
+                            </h2>
+                            <button class="btn btn-outline" id="editProfileBtn">
+                                <i class="fas fa-edit"></i>
+                                Edit Profile
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <form id="profileForm">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="inputName">Full Name</label>
+                                        <input type="text" id="inputName" class="form-input" disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputEmail">Email</label>
+                                        <input type="email" id="inputEmail" class="form-input" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="inputPhone">Phone Number</label>
+                                        <input type="tel" id="inputPhone" class="form-input" disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputLocation">Location</label>
+                                        <input type="text" id="inputLocation" class="form-input" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="inputRole">Role</label>
+                                    <select id="inputRole" class="form-select" disabled>
+                                        <option value="Player">Player</option>
+                                        <option value="Coach">Coach</option>
+                                        <option value="Shop Owner">Shop Owner</option>
+                                        <option value="Complex Owner">Complex Owner</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="inputBio">Bio</label>
+                                    <textarea id="inputBio" class="form-textarea" rows="4" disabled placeholder="Tell us about yourself..."></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Favorite Sports</label>
+                                    <div class="sports-container">
+                                        <div id="sportsDisplay" class="sports-badges"></div>
+                                        <div id="addSportSection" class="add-sport-section" style="display: none;">
+                                            <input type="text" id="newSportInput" class="form-input small" placeholder="Enter sport name">
+                                            <button type="button" class="btn btn-primary small" id="addSportBtn">Add</button>
+                                            <button type="button" class="btn btn-outline small" id="cancelSportBtn">Cancel</button>
+                                        </div>
+                                        <button type="button" class="btn btn-outline small" id="showAddSportBtn" style="display: none;">
+                                            <i class="fas fa-plus"></i> Add Sport
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions" id="formActions" style="display: none;">
+                                    <button type="button" class="btn btn-primary" id="saveProfileBtn">
+                                        <i class="fas fa-save"></i>
+                                        Save Changes
+                                    </button>
+                                    <button type="button" class="btn btn-outline" id="cancelEditBtn">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="profile-sidebar">
+                    <!-- Quick Stats Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Stats</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="stats-list">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Bookings:</span>
+                                    <span class="stat-value">12</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">This Month:</span>
+                                    <span class="stat-value">3</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Spent:</span>
+                                    <span class="stat-value stat-highlight">$520</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Favorite Sport:</span>
+                                    <span class="stat-value">Football</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Bookings Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Bookings</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="recentBookings">
+                                <div class="booking-item">
+                                    <div class="booking-header">
+                                        <div>
+                                            <div class="booking-name">City Sports Complex</div>
+                                            <div class="booking-type">Ground</div>
+                                        </div>
+                                        <span class="booking-status status-completed">Completed</span>
+                                    </div>
+                                    <div class="booking-footer">
+                                        <span>2024-01-15 • 14:00-16:00</span>
+                                        <span class="booking-amount">$50</span>
+                                    </div>
+                                </div>
+
+                                <div class="booking-item">
+                                    <div class="booking-header">
+                                        <div>
+                                            <div class="booking-name">Sarah Thompson - Tennis</div>
+                                            <div class="booking-type">Coach</div>
+                                        </div>
+                                        <span class="booking-status status-completed">Completed</span>
+                                    </div>
+                                    <div class="booking-footer">
+                                        <span>2024-01-10 • 10:00-11:00</span>
+                                        <span class="booking-amount">$60</span>
+                                    </div>
+                                </div>
+
+                                <div class="booking-item">
+                                    <div class="booking-header">
+                                        <div>
+                                            <div class="booking-name">Basketball Arena Pro</div>
+                                            <div class="booking-type">Ground</div>
+                                        </div>
+                                        <span class="booking-status status-upcoming">Upcoming</span>
+                                    </div>
+                                    <div class="booking-footer">
+                                        <span>2024-01-20 • 18:00-20:00</span>
+                                        <span class="booking-amount">$40</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;">
+                                View All Bookings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="../js/auth.js"></script>
-    <script src="../js/pages/profile.js"></script>
+    <script>
+        class ProfilePage {
+            constructor() {
+                this.isEditing = false;
+                this.currentUser = null;
+                this.init();
+            }
+
+            async init() {
+                try {
+                    // Wait for auth to be ready
+                    if (typeof window.authInstance === 'undefined') {
+                        await new Promise(resolve => {
+                            const checkAuth = () => {
+                                if (typeof window.authInstance !== 'undefined') {
+                                    resolve();
+                                } else {
+                                    setTimeout(checkAuth, 100);
+                                }
+                            };
+                            checkAuth();
+                        });
+                    }
+
+                    // Check if user is authenticated
+                    if (!window.isAuthenticated()) {
+                        window.location.href = '../login.html';
+                        return;
+                    }
+
+                    this.currentUser = window.getCurrentUser();
+                    this.loadUserData();
+                    this.setupEventListeners();
+                } catch (error) {
+                    console.error('Error initializing profile page:', error);
+                    this.showToast('Error', 'Failed to load profile', 'error');
+                }
+            }
+
+            loadUserData() {
+                if (!this.currentUser) return;
+
+                // Update hero section
+                document.getElementById('profileName').textContent = this.currentUser.name;
+                document.getElementById('profileEmail').textContent = this.currentUser.email;
+                document.getElementById('profileLocation').textContent = this.currentUser.location;
+                document.getElementById('profileRole').textContent = this.currentUser.role;
+                
+                const joinDate = new Date(this.currentUser.joinDate);
+                document.getElementById('profileJoinDate').textContent = `Member since ${joinDate.getFullYear()}`;
+
+                // Update profile image
+                if (this.currentUser.avatar) {
+                    document.getElementById('profileImage').src = this.currentUser.avatar;
+                }
+
+                // Update form fields
+                document.getElementById('inputName').value = this.currentUser.name || '';
+                document.getElementById('inputEmail').value = this.currentUser.email || '';
+                document.getElementById('inputPhone').value = this.currentUser.phone || '';
+                document.getElementById('inputLocation').value = this.currentUser.location || '';
+                document.getElementById('inputRole').value = this.currentUser.role || 'Player';
+                document.getElementById('inputBio').value = this.currentUser.bio || '';
+
+                // Update sports display
+                this.updateSportsDisplay();
+            }
+
+            loadStaticStats() {
+                // Update stats with static data
+                const statsElements = document.querySelectorAll('.stat-value');
+                if (statsElements.length >= 4) {
+                    statsElements[0].textContent = STATIC_STATS.totalBookings;
+                    statsElements[1].textContent = STATIC_STATS.thisMonth;
+                    statsElements[2].textContent = `${STATIC_STATS.totalSpent}`;
+                    statsElements[3].textContent = STATIC_STATS.favoriteSport;
+                }
+            }
+
+            loadStaticBookings() {
+                const bookingsContainer = document.getElementById('recentBookings');
+                bookingsContainer.innerHTML = '';
+
+                STATIC_BOOKINGS.forEach(booking => {
+                    const bookingItem = document.createElement('div');
+                    bookingItem.className = 'booking-item';
+                    
+                    const statusClass = booking.status === 'Completed' ? 'status-completed' : 'status-upcoming';
+                    
+                    bookingItem.innerHTML = `
+                        <div class="booking-header">
+                            <div>
+                                <div class="booking-name">${booking.name}</div>
+                                <div class="booking-type">${booking.type}</div>
+                            </div>
+                            <span class="booking-status ${statusClass}">${booking.status}</span>
+                        </div>
+                        <div class="booking-footer">
+                            <span>${booking.date} • ${booking.time}</span>
+                            <span class="booking-amount">${booking.amount}</span>
+                        </div>
+                    `;
+                    
+                    bookingsContainer.appendChild(bookingItem);
+                });
+
+                // Add "View All Bookings" button
+                const viewAllBtn = document.createElement('button');
+                viewAllBtn.className = 'btn btn-outline';
+                viewAllBtn.style.width = '100%';
+                viewAllBtn.style.marginTop = '1rem';
+                viewAllBtn.innerHTML = 'View All Bookings';
+                bookingsContainer.appendChild(viewAllBtn);
+            }
+
+            updateSportsDisplay() {
+                const sportsDisplay = document.getElementById('sportsDisplay');
+                sportsDisplay.innerHTML = '';
+
+                if (this.currentUser.sports && this.currentUser.sports.length > 0) {
+                    this.currentUser.sports.forEach(sport => {
+                        const badge = document.createElement('span');
+                        badge.className = `sport-badge ${this.isEditing ? 'removable' : ''}`;
+                        badge.innerHTML = `
+                            ${sport}
+                            ${this.isEditing ? '<span class="sport-remove">×</span>' : ''}
+                        `;
+                        
+                        if (this.isEditing) {
+                            badge.addEventListener('click', () => this.removeSport(sport));
+                        }
+                        
+                        sportsDisplay.appendChild(badge);
+                    });
+                }
+            }
+
+            setupEventListeners() {
+                // Edit profile button
+                document.getElementById('editProfileBtn').addEventListener('click', () => {
+                    this.toggleEditMode();
+                });
+
+                // Save profile button
+                document.getElementById('saveProfileBtn').addEventListener('click', () => {
+                    this.saveProfile();
+                });
+
+                // Cancel edit button
+                document.getElementById('cancelEditBtn').addEventListener('click', () => {
+                    this.cancelEdit();
+                });
+
+                // Avatar upload
+                document.getElementById('avatarUploadBtn').addEventListener('click', () => {
+                    document.getElementById('avatarInput').click();
+                });
+
+                document.getElementById('avatarInput').addEventListener('change', (e) => {
+                    this.handleImageUpload(e);
+                });
+
+                // Sports management
+                document.getElementById('showAddSportBtn').addEventListener('click', () => {
+                    this.showAddSportSection();
+                });
+
+                document.getElementById('addSportBtn').addEventListener('click', () => {
+                    this.addSport();
+                });
+
+                document.getElementById('cancelSportBtn').addEventListener('click', () => {
+                    this.hideAddSportSection();
+                });
+
+                document.getElementById('newSportInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.addSport();
+                    }
+                });
+
+                // Form submission prevention
+                document.getElementById('profileForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                });
+            }
+
+            toggleEditMode() {
+                this.isEditing = !this.isEditing;
+                
+                const inputs = document.querySelectorAll('#profileForm input, #profileForm select, #profileForm textarea');
+                const editBtn = document.getElementById('editProfileBtn');
+                const formActions = document.getElementById('formActions');
+                const showAddSportBtn = document.getElementById('showAddSportBtn');
+
+                inputs.forEach(input => {
+                    input.disabled = !this.isEditing;
+                });
+
+                if (this.isEditing) {
+                    editBtn.innerHTML = '<i class="fas fa-times"></i> Cancel';
+                    editBtn.className = 'btn btn-outline';
+                    formActions.style.display = 'flex';
+                    showAddSportBtn.style.display = 'inline-flex';
+                } else {
+                    editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit Profile';
+                    editBtn.className = 'btn btn-outline';
+                    formActions.style.display = 'none';
+                    showAddSportBtn.style.display = 'none';
+                    this.hideAddSportSection();
+                }
+
+                this.updateSportsDisplay();
+            }
+
+            saveProfile() {
+                const formData = {
+                    name: document.getElementById('inputName').value.trim(),
+                    email: document.getElementById('inputEmail').value.trim(),
+                    phone: document.getElementById('inputPhone').value.trim(),
+                    location: document.getElementById('inputLocation').value.trim(),
+                    role: document.getElementById('inputRole').value,
+                    bio: document.getElementById('inputBio').value.trim()
+                };
+
+                // Validate required fields
+                if (!formData.name || !formData.email || !formData.phone || !formData.location) {
+                    this.showToast('Validation Error', 'Please fill in all required fields', 'error');
+                    return;
+                }
+
+                // Validate email format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(formData.email)) {
+                    this.showToast('Validation Error', 'Please enter a valid email address', 'error');
+                    return;
+                }
+
+                try {
+                    const result = window.updateUser(formData);
+                    if (result.success) {
+                        this.currentUser = result.user;
+                        this.toggleEditMode();
+                        this.loadUserData();
+                        this.showToast('Success', 'Profile updated successfully!');
+                    } else {
+                        this.showToast('Error', result.error || 'Failed to update profile', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error saving profile:', error);
+                    this.showToast('Error', 'Failed to update profile', 'error');
+                }
+            }
+
+            cancelEdit() {
+                this.toggleEditMode();
+                this.loadUserData(); // Reset form data
+            }
+
+            handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    this.showToast('Error', 'Please select an image smaller than 5MB', 'error');
+                    return;
+                }
+
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    this.showToast('Error', 'Please select an image file', 'error');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imageUrl = e.target.result;
+                    document.getElementById('profileImage').src = imageUrl;
+                    
+                    // Update user avatar
+                    const result = window.updateUser({ avatar: imageUrl });
+                    if (result.success) {
+                        this.currentUser = result.user;
+                        this.showToast('Success', 'Profile picture updated successfully!');
+                    } else {
+                        this.showToast('Error', 'Failed to update profile picture', 'error');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+
+            showAddSportSection() {
+                document.getElementById('addSportSection').style.display = 'flex';
+                document.getElementById('showAddSportBtn').style.display = 'none';
+                document.getElementById('newSportInput').focus();
+            }
+
+            hideAddSportSection() {
+                document.getElementById('addSportSection').style.display = 'none';
+                document.getElementById('showAddSportBtn').style.display = 'inline-flex';
+                document.getElementById('newSportInput').value = '';
+            }
+
+            addSport() {
+                const newSport = document.getElementById('newSportInput').value.trim();
+                
+                if (!newSport) {
+                    this.showToast('Error', 'Please enter a sport name', 'error');
+                    return;
+                }
+
+                if (this.currentUser.sports && this.currentUser.sports.includes(newSport)) {
+                    this.showToast('Error', 'This sport is already in your list', 'error');
+                    return;
+                }
+
+                const updatedSports = [...(this.currentUser.sports || []), newSport];
+                const result = window.updateUser({ sports: updatedSports });
+                
+                if (result.success) {
+                    this.currentUser = result.user;
+                    this.updateSportsDisplay();
+                    this.hideAddSportSection();
+                    this.showToast('Success', `${newSport} added to your favorite sports!`);
+                } else {
+                    this.showToast('Error', 'Failed to add sport', 'error');
+                }
+            }
+
+            removeSport(sportToRemove) {
+                const updatedSports = this.currentUser.sports.filter(sport => sport !== sportToRemove);
+                const result = window.updateUser({ sports: updatedSports });
+                
+                if (result.success) {
+                    this.currentUser = result.user;
+                    this.updateSportsDisplay();
+                    this.showToast('Success', `${sportToRemove} removed from your favorite sports`);
+                } else {
+                    this.showToast('Error', 'Failed to remove sport', 'error');
+                }
+            }
+
+            showToast(title, message, type = 'success') {
+                // Remove existing toasts
+                const existingToasts = document.querySelectorAll('.toast');
+                existingToasts.forEach(toast => toast.remove());
+
+                const toast = document.createElement('div');
+                toast.className = `toast ${type === 'error' ? 'error' : ''}`;
+                
+                toast.innerHTML = `
+                    <div class="toast-title">${this.escapeHtml(title)}</div>
+                    <div class="toast-description">${this.escapeHtml(message)}</div>
+                `;
+
+                document.body.appendChild(toast);
+
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.style.opacity = '0';
+                        toast.style.transform = 'translateX(100%)';
+                        setTimeout(() => {
+                            if (toast.parentElement) {
+                                toast.remove();
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize profile page when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new ProfilePage();
+        });
+
+        // Also initialize if DOM is already loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                new ProfilePage();
+            });
+        } else {
+            new ProfilePage();
+        }
+    </script>
 </body>
 </html>

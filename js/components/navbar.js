@@ -1,15 +1,16 @@
 // Navbar JavaScript
 class Navbar {
     constructor() {
-        this.mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        this.mobileMenu = document.getElementById('mobileMenu');
-        this.authButtons = document.getElementById('authButtons');
-        this.userMenu = document.getElementById('userMenu');
-        this.mobileAuth = document.getElementById('mobileAuth');
-        this.mobileUserMenu = document.getElementById('mobileUserMenu');
-        this.userName = document.getElementById('userName');
-        this.userEmail = document.getElementById('userEmail');
-        this.userAvatar = document.getElementById('userAvatar');
+        // Try both ID and class selectors for flexibility
+        this.mobileMenuBtn = document.getElementById('mobileMenuBtn') || document.querySelector('.mobile-menu-btn');
+        this.mobileMenu = document.getElementById('mobileMenu') || document.querySelector('.mobile-menu');
+        this.authButtons = document.getElementById('authButtons') || document.querySelector('.nav-actions .auth-buttons');
+        this.userMenu = document.getElementById('userMenu') || document.querySelector('.user-menu');
+        this.mobileAuth = document.getElementById('mobileAuth') || document.querySelector('.mobile-auth');
+        this.mobileUserMenu = document.getElementById('mobileUserMenu') || document.querySelector('.mobile-user-menu');
+        this.userName = document.getElementById('userName') || document.querySelector('.user-name');
+        this.userEmail = document.getElementById('userEmail') || document.querySelector('.user-email');
+        this.userAvatar = document.getElementById('userAvatar') || document.querySelector('.user-avatar');
         
         this.init();
     }
@@ -23,12 +24,14 @@ class Navbar {
 
     setupMobileMenu() {
         if (this.mobileMenuBtn && this.mobileMenu) {
-            this.mobileMenuBtn.addEventListener('click', () => {
+            this.mobileMenuBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 this.toggleMobileMenu();
             });
 
             // Close mobile menu when clicking on nav items
-            const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+            const mobileNavItems = document.querySelectorAll('.mobile-nav-item, .mobile-auth-btn');
             mobileNavItems.forEach(item => {
                 item.addEventListener('click', () => {
                     this.closeMobileMenu();
@@ -37,9 +40,23 @@ class Navbar {
 
             // Close mobile menu when clicking outside
             document.addEventListener('click', (e) => {
-                if (!this.mobileMenu.contains(e.target) && !this.mobileMenuBtn.contains(e.target)) {
+                if (this.mobileMenu.classList.contains('show') && 
+                    !this.mobileMenu.contains(e.target) && 
+                    !this.mobileMenuBtn.contains(e.target)) {
                     this.closeMobileMenu();
                 }
+            });
+
+            // Handle escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && this.mobileMenu.classList.contains('show')) {
+                    this.closeMobileMenu();
+                }
+            });
+        } else {
+            console.warn('Mobile menu elements not found:', {
+                mobileMenuBtn: !!this.mobileMenuBtn,
+                mobileMenu: !!this.mobileMenu
             });
         }
     }
@@ -49,36 +66,38 @@ class Navbar {
         const userMenuElement = document.querySelector('.user-menu');
         if (userMenuElement) {
             const dropdown = userMenuElement.querySelector('.user-dropdown');
-            
-            userMenuElement.addEventListener('mouseenter', () => {
-                dropdown.style.opacity = '1';
-                dropdown.style.visibility = 'visible';
-                dropdown.style.transform = 'translateY(0)';
-            });
+            if (dropdown) {
+                userMenuElement.addEventListener('mouseenter', () => {
+                    dropdown.style.opacity = '1';
+                    dropdown.style.visibility = 'visible';
+                    dropdown.style.transform = 'translateY(0)';
+                });
 
-            userMenuElement.addEventListener('mouseleave', () => {
-                dropdown.style.opacity = '0';
-                dropdown.style.visibility = 'hidden';
-                dropdown.style.transform = 'translateY(-10px)';
-            });
+                userMenuElement.addEventListener('mouseleave', () => {
+                    dropdown.style.opacity = '0';
+                    dropdown.style.visibility = 'hidden';
+                    dropdown.style.transform = 'translateY(-10px)';
+                });
+            }
         }
 
         // Setup admin dropdown
         const adminDropdown = document.querySelector('.admin-dropdown');
         if (adminDropdown) {
             const adminMenu = adminDropdown.querySelector('.admin-menu');
-            
-            adminDropdown.addEventListener('mouseenter', () => {
-                adminMenu.style.opacity = '1';
-                adminMenu.style.visibility = 'visible';
-                adminMenu.style.transform = 'translateY(0)';
-            });
+            if (adminMenu) {
+                adminDropdown.addEventListener('mouseenter', () => {
+                    adminMenu.style.opacity = '1';
+                    adminMenu.style.visibility = 'visible';
+                    adminMenu.style.transform = 'translateY(0)';
+                });
 
-            adminDropdown.addEventListener('mouseleave', () => {
-                adminMenu.style.opacity = '0';
-                adminMenu.style.visibility = 'hidden';
-                adminMenu.style.transform = 'translateY(-10px)';
-            });
+                adminDropdown.addEventListener('mouseleave', () => {
+                    adminMenu.style.opacity = '0';
+                    adminMenu.style.visibility = 'hidden';
+                    adminMenu.style.transform = 'translateY(-10px)';
+                });
+            }
         }
     }
 
@@ -94,16 +113,25 @@ class Navbar {
 
     openMobileMenu() {
         this.mobileMenu.classList.add('show');
-        this.mobileMenu.style.display = 'block';
+        this.mobileMenu.classList.remove('hide');
         this.mobileMenuBtn.innerHTML = '<i class="fas fa-times"></i>';
+        this.mobileMenuBtn.setAttribute('aria-expanded', 'true');
+        this.mobileMenuBtn.setAttribute('aria-label', 'Close menu');
         document.body.style.overflow = 'hidden';
     }
 
     closeMobileMenu() {
+        this.mobileMenu.classList.add('hide');
         this.mobileMenu.classList.remove('show');
-        this.mobileMenu.style.display = 'none';
         this.mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        this.mobileMenuBtn.setAttribute('aria-expanded', 'false');
+        this.mobileMenuBtn.setAttribute('aria-label', 'Open menu');
         document.body.style.overflow = '';
+        
+        // Remove hide class after animation completes
+        setTimeout(() => {
+            this.mobileMenu.classList.remove('hide');
+        }, 300);
     }
 
     checkAuthState() {
@@ -143,7 +171,7 @@ class Navbar {
             this.mobileUserMenu.style.display = 'block';
         }
 
-        // Update user info
+        // Update user info for desktop
         if (this.userName) {
             this.userName.textContent = user.name;
         }
@@ -152,6 +180,21 @@ class Navbar {
         }
         if (this.userAvatar) {
             this.userAvatar.textContent = user.avatar || '👤';
+        }
+
+        // Update user info for mobile
+        const mobileUserName = document.getElementById('mobileUserName');
+        const mobileUserEmail = document.getElementById('mobileUserEmail');
+        const mobileUserAvatar = document.getElementById('mobileUserAvatar');
+        
+        if (mobileUserName) {
+            mobileUserName.textContent = user.name;
+        }
+        if (mobileUserEmail) {
+            mobileUserEmail.textContent = user.email;
+        }
+        if (mobileUserAvatar) {
+            mobileUserAvatar.textContent = user.avatar || '👤';
         }
     }
 
