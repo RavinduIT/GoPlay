@@ -1,42 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop - SportHub</title>
-    <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="../css/components.css">
-    <link rel="stylesheet" href="../css/pages.css">
-    <link rel="stylesheet" href="/css/components/navbar.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop - SportHub</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <link rel="stylesheet" href="/css/components/navbar.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
-    <!-- Navbar Component -->
-    <div id="navbar-container"></div>
-    
-    <main class="shop-container">
-        <!-- Shop content -->
-    </main>
+  <!-- Navbar Component -->
+  <div id="navbar-container"></div>
 
-    <script src="../js/utils.js"></script>
-    <script src="../js/auth.js"></script>
-    <script src="../js/pages/shop.js"></script>
-    <script src="/js/components/navbar.js"></script>
-    <script>
-        // Load the shared navbar dynamically
-        fetch('/pages/components/navbar.html')
-            .then(res => res.text())
-            .then(data => {
-                document.getElementById('navbar-container').innerHTML = data;
-                new Navbar(); // Initialize navbar behavior
-            });
+  <main class="shop-container">
+    <header>
+      <h1>Sports Equipment Shop</h1>
+      <p>Quality sports gear from top brands for all your athletic needs</p>
+      <div class="search-bar">
+        <input type="text" placeholder="Search products..." />
+        <select>
+          <option>All categories</option>
+          <option>Basketball</option>
+          <option>Cricket</option>
+          <option>Badminton</option>
+          <option>Tennis</option>
+        </select>
+        <select>
+          <option>All brands</option>
+          <option>Nike</option>
+          <option>Spalding</option>
+          <option>Speedo</option>
+          <option>Wilson</option>
+          <option>Li-Ning</option>
+          <option>Stanford</option>
+          <option>Under Armour</option>
+        </select>
+        <select>
+          <option>Price range</option>
+          <option>Rs.0–Rs.10,000</option>
+          <option>Rs.10,000–Rs.20,000</option>
+          <option>Rs.20,000–Rs.30,000</option>
+          <option>Rs.30,000–Rs.40,000</option>
+          <option>Rs.40,000–Rs.50,000</option>
+          <option>Above-Rs.50,000</option>
+        </select>
+      </div>
+    </header>
 
-        // Global logout function
-        function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = '/';
-        }
-    </script>
+    <h2>Products (6)</h2>
+    <div class="product-grid">
+      <!-- Product 1 -->
+      <div class="product-card">
+        <img src="images/badminton.jpg" alt="badminton" class="product-img" />
+        <h3 class="product-title">Badminton Racket</h3>
+        <div class="product-brand">Li-Ning</div>
+        <span class="category-tag">Badminton</span>
+        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.5</span> <span class="review-count">(128)</span></div>
+        <div class="price"><span class="current-price">Rs.6,500.00</span></div>
+        <p class="description">Smash harder, move faster – engineered for champions</p>
+        <div class="features"><span class="feature">Flexible</span> <span class="feature">Lightweight</span> <span class="feature">Beginner</span></div>
+        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
+      </div>
+
+      <!-- Product 2 -->
+      <div class="product-card">
+        <img src="images/basketball.jpg" alt="Premium Basketball" class="product-img" />
+        <h3 class="product-title">Spalding Basketball [Pulse]</h3>
+        <div class="product-brand">Spalding</div>
+        <span class="category-tag">Basketball</span>
+        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.6</span> <span class="review-count">(189)</span></div>
+        <div class="price"><span class="current-price">Rs.2,500.00</span></div>
+        <p class="description">Durable leather basketball for indoor and outdoor play</p>
+        <div class="features"><span class="feature">Size 7</span> <span class="feature">Indoor/Outdoor</span> <span class="feature">High Grip</span></div>
+        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
+      </div>
+
+      <!-- Product 3 -->
+      <div class="product-card">
+        <img src="images/cricket bat.jpg" alt="cricket bat" class="product-img" />
+        <h3 class="product-title">Original English Willow Cricket Bat</h3>
+        <div class="product-brand">Stanford</div>
+        <span class="category-tag">Cricket</span>
+        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.7</span> <span class="review-count">(312)</span></div>
+        <div class="price"><span class="current-price">Rs.125,000.00</span></div>
+        <p class="description">Best Quality Bat for Beginner use</p>
+        <div class="features"><span class="feature">Weight 1.13kg</span> <span class="feature">Best Quality</span> <span class="feature">Leather</span></div>
+        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
+      </div>
+
+      <!-- Product 4 -->
+      <div class="product-card">
+        <img src="images/football.jpg" alt="Professional Football" class="product-img" />
+        <h3 class="product-title">Professional Football</h3>
+        <div class="product-brand">Nike</div>
+        <span class="category-tag">Football</span>
+        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.8</span> <span class="review-count">(234)</span></div>
+        <div class="price"><span class="current-price">Rs.3,000.00</span></div>
+        <p class="description">Professional quality football for competitive matches</p>
+        <div class="features"><span class="feature">Official Size 5</span> <span class="feature">FIFA Approved</span> <span class="feature">Durable Construction</span></div>
+        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
+      </div>
+
+      <!-- Product 5 -->
+      <div class="product-card">
+        <img src="images/tennis-racket.jpg" alt="Tennis Racket" class="product-img" />
+        <h3 class="product-title">Tennis Racket</h3>
+        <div class="product-brand">Wilson</div>
+        <span class="category-tag">Tennis</span>
+        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.9</span> <span class="review-count">(89)</span></div>
+        <div class="price"><span class="current-price">Rs.5,000.00</span></div>
+        <p class="description">Lightweight and strong racket for power and control</p>
+        <div class="features"><span class="feature">Graphite Frame</span> <span class="feature">Shock Absorption</span> <span class="feature">Pro Grip</span></div>
+        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
+      </div>
+
+      <!-- Product 6 -->
+      <div class="product-card">
+        <img src="images/cricket helmet.jpg" alt="helmet" class="product-img" />
+        <h3 class="product-title">Cricket Helmet</h3>
+        <div class="product-brand">Adidas</div>
+        <span class="category-tag">Cricket</span>
+        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.4</span> <span class="review-count">(67)</span></div>
+        <div class="price"><span class="current-price">Rs.7,000.00</span></div>
+        <p class="description">Play fearless. Head protection that never backs down</p>
+        <div class="features"><span class="feature">Stainless Steel Grill</span> <span class="feature">Moisture-wicking design</span> <span class="feature">Lightweight</span></div>
+        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/pages/shop.js"></script>
+  <script src="/js/components/navbar.js"></script>
+  <script>
+    fetch('/pages/components/navbar.html')
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById('navbar-container').innerHTML = data;
+        new Navbar();
+      });
+
+    function logout() {
+      localStorage.removeItem('currentUser');
+      window.location.href = '/';
+    }
+  </script>
 </body>
 </html>
