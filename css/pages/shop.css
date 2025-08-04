@@ -1,0 +1,217 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f7f7f7;
+  margin: 0;
+}
+
+/* Header Section */
+header {
+  background: #00a651;
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+
+h2 {
+  margin-bottom: 20px;
+  font-size: 1.5em;
+  padding: 0 30px;
+}
+header h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+
+header p {
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+.search-bar {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 50px;
+}
+
+.search-bar input,
+.search-bar select {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  min-width: 180px;
+}
+
+/* Main container */
+.container {
+  /*padding: 100px;*/
+  padding: 30px 40px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* Product section */
+.product-section h2 {
+  margin-bottom: 20px;
+}
+
+/* Product grid responsive layout */
+.product-grid {
+  display: grid;
+  padding: 0 30px;
+  gap: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+/* Product card styling */
+.product-card {
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  transition: box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.badge-sale {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: #ff4d4f;
+  color: white;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
+.product-img {
+  width: 50%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 2px;
+}
+
+.product-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 4px 0 2px;
+}
+
+.product-brand {
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.category-tag {
+  background-color: #f2f2f2;
+  color: #00a651;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 15px;
+  display: inline-block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.rating {
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  color: #fbc02d;
+}
+
+.rating-score {
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.review-count {
+  color: #999;
+  margin-left: 4px;
+}
+
+.price {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #00a651;
+  margin-bottom: 10px;
+}
+
+
+.description {
+  font-size: 0.85rem;
+  color: #444;
+  margin-bottom: 12px;
+}
+
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.feature {
+  font-size: 0.75rem;
+  background: #e0f7ec;
+  padding: 6px 10px;
+  border-radius: 15px;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.icon-button {
+  background: none;
+  border: 1px solid #ccc;
+  padding: 8px;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.view-btn {
+  background: white;
+  border: 1px solid #ccc;
+  color: #333;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.buy-btn {
+  background: #00a651;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.buy-btn:hover {
+  background: #008c45;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .search-bar {
+    flex-direction: column;
+    align-items: center;
+  }
+}
