@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Professional Coaches</title>
+    <link rel="stylesheet" href="/css/components/navbar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -24,7 +27,7 @@
         }
 
         .header {
-           text-align: center;
+            text-align: center;
             color: white;
             margin-bottom: 40px;
             background: linear-gradient(135deg, #3fea48 0%, #15951b 100%);
@@ -297,18 +300,23 @@
             .search-filters {
                 grid-template-columns: 1fr;
             }
-            
+
             .coaches-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .header h1 {
                 font-size: 2rem;
             }
         }
     </style>
 </head>
+
 <body>
+
+    <!-- Navbar Component -->
+    <div id="navbar-container"></div>
+
     <div class="container">
         <div class="header">
             <h1>Book Professional Coaches</h1>
@@ -375,26 +383,26 @@
         let isLoading = false;
 
         // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             initializeApp();
         });
 
         async function initializeApp() {
             try {
                 setLoading(true);
-                
+
                 // Load initial data
                 await Promise.all([
                     loadCoaches(),
                     loadFilterOptions()
                 ]);
-                
+
                 // Setup event listeners
                 setupEventListeners();
-                
+
                 // Display initial results
                 displayCoaches(allCoaches);
-                
+
             } catch (error) {
                 console.error('Failed to initialize app:', error);
                 showError('Failed to load coaches. Please refresh the page.');
@@ -409,7 +417,7 @@
                 // For now, using static data. Replace this with actual API call:
                 // const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.coaches}`);
                 // const coaches = await response.json();
-                
+
                 allCoaches = [
                     {
                         id: 1,
@@ -483,7 +491,7 @@
 
                 // Filter only active coaches
                 allCoaches = allCoaches.filter(coach => coach.isActive);
-                
+
             } catch (error) {
                 console.error('Error loading coaches:', error);
                 throw error;
@@ -533,10 +541,10 @@
         function displayCoaches(coaches) {
             const grid = document.getElementById('coaches-grid');
             const resultsCount = document.getElementById('results-count');
-            
+
             // Update results count
             resultsCount.textContent = `Available Coaches (${coaches.length})`;
-            
+
             if (coaches.length === 0) {
                 grid.innerHTML = `
                     <div class="no-results">
@@ -550,7 +558,7 @@
 
             // Generate coach cards
             grid.innerHTML = coaches.map(coach => createCoachCard(coach)).join('');
-            
+
             // Add event listeners to book buttons
             setupBookingListeners();
         }
@@ -600,18 +608,18 @@
             const sportFilter = document.getElementById('sport').value;
             const locationFilter = document.getElementById('location').value;
             const priceFilter = document.getElementById('price').value;
-            
+
             filteredCoaches = allCoaches.filter(coach => {
                 // Sport filter
                 if (sportFilter && coach.sport !== sportFilter) {
                     return false;
                 }
-                
+
                 // Location filter
                 if (locationFilter && coach.location !== locationFilter) {
                     return false;
                 }
-                
+
                 // Price filter
                 if (priceFilter) {
                     if (priceFilter === '1000-2000' && (coach.price < 1000 || coach.price > 2000)) {
@@ -624,17 +632,17 @@
                         return false;
                     }
                 }
-                
+
                 return true;
             });
-            
+
             displayCoaches(filteredCoaches);
         }
 
         // Setup booking button listeners
         function setupBookingListeners() {
             document.querySelectorAll('.book-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
+                btn.addEventListener('click', function (e) {
                     e.preventDefault();
                     const coachId = parseInt(this.closest('.coach-card').dataset.coachId);
                     bookCoach(coachId);
@@ -677,14 +685,14 @@
 
                 // Show success message (replace with proper booking flow)
                 alert(`Booking request sent for ${coach.name}! You will be redirected to the booking form.`);
-                
+
                 // In production, redirect to booking form:
                 // window.location.href = `/booking/${coachId}`;
 
             } catch (error) {
                 console.error('Booking error:', error);
                 alert('Failed to book coach. Please try again.');
-                
+
                 // Reset button state
                 const button = document.querySelector(`[data-coach-id="${coachId}"] .book-btn`);
                 button.innerHTML = '📞 Book Coach';
@@ -697,7 +705,7 @@
             isLoading = loading;
             const grid = document.getElementById('coaches-grid');
             const resultsCount = document.getElementById('results-count');
-            
+
             if (loading) {
                 grid.innerHTML = '<div class="loading">Loading coaches...</div>';
                 resultsCount.textContent = 'Loading coaches...';
@@ -772,5 +780,22 @@
         // Auto-refresh every 5 minutes (optional)
         // setInterval(refreshCoaches, 5 * 60 * 1000);
     </script>
+    <script src="/js/components/navbar.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('/pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar(); // Initialize navbar behavior
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+    </script>
 </body>
+
 </html>
