@@ -46,10 +46,10 @@ async function loadGroundsData() {
 const groundsData = [
     {
         id: 1,
-        name: "City Sports Complex",
+        name: "Havelock City Sports Complex",
         location: "Downtown",
         sports: ["Tennis", "Basketball", "Volleyball"],
-        pricePerHour: 50,
+        pricePerHour: 5000,
         rating: 4.5,
         amenities: ["Parking", "Changing Rooms", "Water Fountain", "Lighting"],
         availableSlots: ["9:00 AM", "11:00 AM", "2:00 PM", "4:00 PM", "6:00 PM"],
