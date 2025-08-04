@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +11,203 @@
   <link rel="stylesheet" href="/css/components/navbar.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="../css/pages/shop.css" />
+  <style>
+    /* Basic styling for the shop */
+    .shop-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    
+    .search-bar input,
+    .search-bar select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    
+    .search-bar input {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .product-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .product-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 5px;
+      margin-bottom: 15px;
+    }
+    
+    .product-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 10px 0 5px 0;
+      color: #333;
+    }
+    
+    .product-brand {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    
+    .category-tag {
+      background: #007bff;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 15px;
+      font-size: 12px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    
+    .rating {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    
+    .star {
+      color: #ffc107;
+    }
+    
+    .rating-score {
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .review-count {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .price {
+      margin: 10px 0;
+    }
+    
+    .current-price {
+      font-size: 20px;
+      font-weight: bold;
+      color: #28a745;
+    }
+    
+    .description {
+      color: #666;
+      font-size: 14px;
+      margin: 10px 0;
+      line-height: 1.4;
+    }
+    
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 10px 0;
+    }
+    
+    .feature {
+      background: #f8f9fa;
+      padding: 4px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: #666;
+      border: 1px solid #e9ecef;
+    }
+    
+    .buttons {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 15px;
+    }
+    
+    .icon-button {
+      background: none;
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .icon-button:hover {
+      background: #f8f9fa;
+    }
+    
+    .view-btn, .buy-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    
+    .view-btn {
+      background: #6c757d;
+      color: white;
+      flex: 1;
+    }
+    
+    .view-btn:hover {
+      background: #5a6268;
+    }
+    
+    .buy-btn {
+      background: #28a745;
+      color: white;
+      flex: 1;
+    }
+    
+    .buy-btn:hover {
+      background: #218838;
+    }
+    
+    .no-image {
+      width: 100%;
+      height: 200px;
+      background: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      border: 2px dashed #ddd;
+    }
+  </style>
 </head>
 <body>
   <!-- Navbar Component -->
@@ -19,117 +217,43 @@
       <h1>Sports Equipment Shop</h1>
       <p>Quality sports gear from top brands for all your athletic needs</p>
       <div class="search-bar">
-        <input type="text" placeholder="Search products..." />
-        <select>
-          <option>All categories</option>
-          <option>Basketball</option>
-          <option>Cricket</option>
-          <option>Badminton</option>
-          <option>Tennis</option>
+        <input type="text" id="searchInput" placeholder="Search products..." />
+        <select id="categoryFilter">
+          <option value="">All categories</option>
+          <option value="Basketball">Basketball</option>
+          <option value="Cricket">Cricket</option>
+          <option value="Badminton">Badminton</option>
+          <option value="Tennis">Tennis</option>
+          <option value="Football">Football</option>
         </select>
-        <select>
-          <option>All brands</option>
-          <option>Nike</option>
-          <option>Spalding</option>
-          <option>Speedo</option>
-          <option>Wilson</option>
-          <option>Li-Ning</option>
-          <option>Stanford</option>
-          <option>Under Armour</option>
+        <select id="brandFilter">
+          <option value="">All brands</option>
+          <option value="Nike">Nike</option>
+          <option value="Spalding">Spalding</option>
+          <option value="Speedo">Speedo</option>
+          <option value="Wilson">Wilson</option>
+          <option value="Li-Ning">Li-Ning</option>
+          <option value="Stanford">Stanford</option>
+          <option value="Under Armour">Under Armour</option>
+          <option value="Adidas">Adidas</option>
         </select>
-        <select>
-          <option>Price range</option>
-          <option>Rs.0–Rs.10,000</option>
-          <option>Rs.10,000–Rs.20,000</option>
-          <option>Rs.20,000–Rs.30,000</option>
-          <option>Rs.30,000–Rs.40,000</option>
-          <option>Rs.40,000–Rs.50,000</option>
-          <option>Above-Rs.50,000</option>
+        <select id="priceFilter">
+          <option value="">Price range</option>
+          <option value="0-10000">Rs.0–Rs.10,000</option>
+          <option value="10000-20000">Rs.10,000–Rs.20,000</option>
+          <option value="20000-30000">Rs.20,000–Rs.30,000</option>
+          <option value="30000-40000">Rs.30,000–Rs.40,000</option>
+          <option value="40000-50000">Rs.40,000–Rs.50,000</option>
+          <option value="50000+">Above Rs.50,000</option>
         </select>
       </div>
     </header>
 
-    <h2>Products (6)</h2>
-    <div class="product-grid" id="productGrid"></div>
-
-      <!-- Product 1 -->
-      <div class="product-card">
-        <img src="images/badminton.jpg" alt="badminton" class="product-img" />
-        <h3 class="product-title">Badminton Racket</h3>
-        <div class="product-brand">Li-Ning</div>
-        <span class="category-tag">Badminton</span>
-        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.5</span> <span class="review-count">(128)</span></div>
-        <div class="price"><span class="current-price">Rs.6,500.00</span></div>
-        <p class="description">Smash harder, move faster – engineered for champions</p>
-        <div class="features"><span class="feature">Flexible</span> <span class="feature">Lightweight</span> <span class="feature">Beginner</span></div>
-        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
-      </div>
-
-      <!-- Product 2 -->
-      <div class="product-card">
-        <img src="images/basketball.jpg" alt="Premium Basketball" class="product-img" />
-        <h3 class="product-title">Spalding Basketball [Pulse]</h3>
-        <div class="product-brand">Spalding</div>
-        <span class="category-tag">Basketball</span>
-        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.6</span> <span class="review-count">(189)</span></div>
-        <div class="price"><span class="current-price">Rs.2,500.00</span></div>
-        <p class="description">Durable leather basketball for indoor and outdoor play</p>
-        <div class="features"><span class="feature">Size 7</span> <span class="feature">Indoor/Outdoor</span> <span class="feature">High Grip</span></div>
-        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
-      </div>
-
-      <!-- Product 3 -->
-      <div class="product-card">
-        <img src="images/cricket bat.jpg" alt="cricket bat" class="product-img" />
-        <h3 class="product-title">Original English Willow Cricket Bat</h3>
-        <div class="product-brand">Stanford</div>
-        <span class="category-tag">Cricket</span>
-        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.7</span> <span class="review-count">(312)</span></div>
-        <div class="price"><span class="current-price">Rs.125,000.00</span></div>
-        <p class="description">Best Quality Bat for Beginner use</p>
-        <div class="features"><span class="feature">Weight 1.13kg</span> <span class="feature">Best Quality</span> <span class="feature">Leather</span></div>
-        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
-      </div>
-
-      <!-- Product 4 -->
-      <div class="product-card">
-        <img src="images/football.jpg" alt="Professional Football" class="product-img" />
-        <h3 class="product-title">Professional Football</h3>
-        <div class="product-brand">Nike</div>
-        <span class="category-tag">Football</span>
-        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.8</span> <span class="review-count">(234)</span></div>
-        <div class="price"><span class="current-price">Rs.3,000.00</span></div>
-        <p class="description">Professional quality football for competitive matches</p>
-        <div class="features"><span class="feature">Official Size 5</span> <span class="feature">FIFA Approved</span> <span class="feature">Durable Construction</span></div>
-        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
-      </div>
-
-      <!-- Product 5 -->
-      <div class="product-card">
-        <img src="images/tennis-racket.jpg" alt="Tennis Racket" class="product-img" />
-        <h3 class="product-title">Tennis Racket</h3>
-        <div class="product-brand">Wilson</div>
-        <span class="category-tag">Tennis</span>
-        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.9</span> <span class="review-count">(89)</span></div>
-        <div class="price"><span class="current-price">Rs.5,000.00</span></div>
-        <p class="description">Lightweight and strong racket for power and control</p>
-        <div class="features"><span class="feature">Graphite Frame</span> <span class="feature">Shock Absorption</span> <span class="feature">Pro Grip</span></div>
-        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
-      </div>
-
-      <!-- Product 6 -->
-      <div class="product-card">
-        <img src="images/cricket helmet.jpg" alt="helmet" class="product-img" />
-        <h3 class="product-title">Cricket Helmet</h3>
-        <div class="product-brand">Adidas</div>
-        <span class="category-tag">Cricket</span>
-        <div class="rating"><span class="star">⭐</span> <span class="rating-score">4.4</span> <span class="review-count">(67)</span></div>
-        <div class="price"><span class="current-price">Rs.7,000.00</span></div>
-        <p class="description">Play fearless. Head protection that never backs down</p>
-        <div class="features"><span class="feature">Stainless Steel Grill</span> <span class="feature">Moisture-wicking design</span> <span class="feature">Lightweight</span></div>
-        <div class="buttons"><button class="icon-button">🤍</button> <button class="view-btn">View Details</button> <button class="buy-btn">Buy Now</button></div>
-      </div>
-    </div>
+    <h2 id="productCount">Products (6)</h2>
+    
+    <!-- Added the missing product grid container -->
+    <div id="productGrid" class="product-grid"></div>
+    
   </main>
 
   <script src="../js/utils.js"></script>
@@ -137,12 +261,14 @@
   <script src="../js/pages/shop.js"></script>
   <script src="/js/components/navbar.js"></script>
   <script>
+    // Load navbar
     fetch('/pages/components/navbar.html')
       .then(res => res.text())
       .then(data => {
         document.getElementById('navbar-container').innerHTML = data;
         new Navbar();
-      });
+      })
+      .catch(err => console.log('Navbar not found, continuing without it'));
 
     function logout() {
       localStorage.removeItem('currentUser');
@@ -150,112 +276,188 @@
     }
   </script>
   <script>
-  const products = [
-    {
-      title: "Badminton Racket",
-      brand: "Li-Ning",
-      category: "Badminton",
-      rating: 4.5,
-      reviews: 128,
-      price: 6500,
-      description: "Smash harder, move faster – engineered for champions",
-      features: ["Flexible", "Lightweight", "Beginner"],
-      image: "images/badminton.jpg"
-    },
-    {
-      title: "Spalding Basketball [Pulse]",
-      brand: "Spalding",
-      category: "Basketball",
-      rating: 4.6,
-      reviews: 189,
-      price: 2500,
-      description: "Durable leather basketball for indoor and outdoor play",
-      features: ["Size 7", "Indoor/Outdoor", "High Grip"],
-      image: "images/basketball.jpg"
-    },
-    {
-      title: "Original English Willow Cricket Bat",
-      brand: "Stanford",
-      category: "Cricket",
-      rating: 4.7,
-      reviews: 312,
-      price: 125000,
-      description: "Best Quality Bat for Beginner use",
-      features: ["Weight 1.13kg", "Best Quality", "Leather"],
-      image: "images/cricket bat.jpg"
-    },
-    {
-      title: "Professional Football",
-      brand: "Nike",
-      category: "Football",
-      rating: 4.8,
-      reviews: 234,
-      price: 3000,
-      description: "Professional quality football for competitive matches",
-      features: ["Official Size 5", "FIFA Approved", "Durable Construction"],
-      image: "images/football.jpg"
-    },
-    {
-      title: "Tennis Racket",
-      brand: "Wilson",
-      category: "Tennis",
-      rating: 4.9,
-      reviews: 89,
-      price: 5000,
-      description: "Lightweight and strong racket for power and control",
-      features: ["Graphite Frame", "Shock Absorption", "Pro Grip"],
-      image: "images/tennis-racket.jpg"
-    },
-    {
-      title: "Cricket Helmet",
-      brand: "Adidas",
-      category: "Cricket",
-      rating: 4.4,
-      reviews: 67,
-      price: 7000,
-      description: "Play fearless. Head protection that never backs down",
-      features: ["Stainless Steel Grill", "Moisture-wicking design", "Lightweight"],
-      image: "images/cricket helmet.jpg"
+    const products = [
+      {
+        title: "Badminton Racket",
+        brand: "Li-Ning",
+        category: "Badminton",
+        rating: 4.5,
+        reviews: 128,
+        price: 6500,
+        description: "Smash harder, move faster – engineered for champions",
+        features: ["Flexible", "Lightweight", "Beginner"],
+        image: "images/badminton.jpg"
+      },
+      {
+        title: "Spalding Basketball [Pulse]",
+        brand: "Spalding",
+        category: "Basketball",
+        rating: 4.6,
+        reviews: 189,
+        price: 2500,
+        description: "Durable leather basketball for indoor and outdoor play",
+        features: ["Size 7", "Indoor/Outdoor", "High Grip"],
+        image: "images/basketball.jpg"
+      },
+      {
+        title: "Original English Willow Cricket Bat",
+        brand: "Stanford",
+        category: "Cricket",
+        rating: 4.7,
+        reviews: 312,
+        price: 125000,
+        description: "Best Quality Bat for Beginner use",
+        features: ["Weight 1.13kg", "Best Quality", "Leather"],
+        image: "images/cricket bat.jpg"
+      },
+      {
+        title: "Professional Football",
+        brand: "Nike",
+        category: "Football",
+        rating: 4.8,
+        reviews: 234,
+        price: 3000,
+        description: "Professional quality football for competitive matches",
+        features: ["Official Size 5", "FIFA Approved", "Durable Construction"],
+        image: "images/football.jpg"
+      },
+      {
+        title: "Tennis Racket",
+        brand: "Wilson",
+        category: "Tennis",
+        rating: 4.9,
+        reviews: 89,
+        price: 5000,
+        description: "Lightweight and strong racket for power and control",
+        features: ["Graphite Frame", "Shock Absorption", "Pro Grip"],
+        image: "images/tennis-racket.jpg"
+      },
+      {
+        title: "Cricket Helmet",
+        brand: "Adidas",
+        category: "Cricket",
+        rating: 4.4,
+        reviews: 67,
+        price: 7000,
+        description: "Play fearless. Head protection that never backs down",
+        features: ["Stainless Steel Grill", "Moisture-wicking design", "Lightweight"],
+        image: "images/cricket helmet.jpg"
+      }
+    ];
+
+    // Store original products for filtering
+    let filteredProducts = [...products];
+
+    function renderProducts(productsToRender) {
+      const productGrid = document.getElementById("productGrid");
+      productGrid.innerHTML = ""; // Clear existing products
+
+      if (productsToRender.length === 0) {
+        productGrid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No products found matching your criteria.</p>';
+        updateProductCount(0);
+        return;
+      }
+
+      productsToRender.forEach((product, index) => {
+        const productHTML = `
+          <div class="product-card">
+            <div class="no-image">Product Image</div>
+            <h3 class="product-title">${product.title}</h3>
+            <div class="product-brand">${product.brand}</div>
+            <span class="category-tag">${product.category}</span>
+            <div class="rating">
+              <span class="star">⭐</span>
+              <span class="rating-score">${product.rating}</span>
+              <span class="review-count">(${product.reviews})</span>
+            </div>
+            <div class="price"><span class="current-price">Rs.${product.price.toLocaleString()}.00</span></div>
+            <p class="description">${product.description}</p>
+            <div class="features">
+              ${product.features.map(f => `<span class="feature">${f}</span>`).join('')}
+            </div>
+            <div class="buttons">
+              <button class="icon-button" onclick="toggleWishlist(${index})">🤍</button>
+              <button class="view-btn" onclick="viewProduct(${index})">View Details</button>
+              <button class="buy-btn" onclick="buyProduct(${index})">Buy Now</button>
+            </div>
+          </div>
+        `;
+        productGrid.insertAdjacentHTML("beforeend", productHTML);
+      });
+
+      updateProductCount(productsToRender.length);
     }
-  ];
 
-  function renderProducts(products) {
-    const productGrid = document.getElementById("productGrid");
-    productGrid.innerHTML = ""; // Clear if needed
+    function updateProductCount(count) {
+      document.getElementById('productCount').textContent = `Products (${count})`;
+    }
 
-    products.forEach(product => {
-      const productHTML = `
-        <div class="product-card">
-          <img src="${product.image}" alt="${product.title}" class="product-img" />
-          <h3 class="product-title">${product.title}</h3>
-          <div class="product-brand">${product.brand}</div>
-          <span class="category-tag">${product.category}</span>
-          <div class="rating">
-            <span class="star">⭐</span>
-            <span class="rating-score">${product.rating}</span>
-            <span class="review-count">(${product.reviews})</span>
-          </div>
-          <div class="price"><span class="current-price">Rs.${product.price.toLocaleString()}.00</span></div>
-          <p class="description">${product.description}</p>
-          <div class="features">
-            ${product.features.map(f => `<span class="feature">${f}</span>`).join('')}
-          </div>
-          <div class="buttons">
-            <button class="icon-button">🤍</button>
-            <button class="view-btn">View Details</button>
-            <button class="buy-btn">Buy Now</button>
-          </div>
-        </div>
-      `;
-      productGrid.insertAdjacentHTML("beforeend", productHTML);
+    // Filter functions
+    function filterProducts() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const categoryFilter = document.getElementById('categoryFilter').value;
+      const brandFilter = document.getElementById('brandFilter').value;
+      const priceFilter = document.getElementById('priceFilter').value;
+
+      filteredProducts = products.filter(product => {
+        // Search filter
+        const matchesSearch = product.title.toLowerCase().includes(searchTerm) ||
+                            product.description.toLowerCase().includes(searchTerm) ||
+                            product.brand.toLowerCase().includes(searchTerm);
+
+        // Category filter
+        const matchesCategory = !categoryFilter || product.category === categoryFilter;
+
+        // Brand filter
+        const matchesBrand = !brandFilter || product.brand === brandFilter;
+
+        // Price filter
+        let matchesPrice = true;
+        if (priceFilter) {
+          if (priceFilter === '50000+') {
+            matchesPrice = product.price > 50000;
+          } else {
+            const [min, max] = priceFilter.split('-').map(Number);
+            matchesPrice = product.price >= min && product.price <= max;
+          }
+        }
+
+        return matchesSearch && matchesCategory && matchesBrand && matchesPrice;
+      });
+
+      renderProducts(filteredProducts);
+    }
+
+    // Event listeners for filters
+    document.addEventListener("DOMContentLoaded", () => {
+      renderProducts(products);
+
+      // Add event listeners to filters
+      document.getElementById('searchInput').addEventListener('input', filterProducts);
+      document.getElementById('categoryFilter').addEventListener('change', filterProducts);
+      document.getElementById('brandFilter').addEventListener('change', filterProducts);
+      document.getElementById('priceFilter').addEventListener('change', filterProducts);
     });
-  }
 
-  // Call the function when page loads
-  document.addEventListener("DOMContentLoaded", () => {
-    renderProducts(products);
-  });
-</script>
+    // Button click handlers
+    function toggleWishlist(index) {
+      const button = event.target;
+      button.textContent = button.textContent === '🤍' ? '❤️' : '🤍';
+      console.log('Toggled wishlist for:', filteredProducts[index].title);
+    }
+
+    function viewProduct(index) {
+      console.log('Viewing product:', filteredProducts[index].title);
+      // Add your view product logic here
+      alert(`Viewing details for: ${filteredProducts[index].title}`);
+    }
+
+    function buyProduct(index) {
+      console.log('Buying product:', filteredProducts[index].title);
+      // Add your buy product logic here
+      alert(`Added to cart: ${filteredProducts[index].title}`);
+    }
+  </script>
 
 </body>
 </html>
