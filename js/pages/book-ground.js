@@ -32,7 +32,7 @@ function initializeBookGroundPage() {
 
 async function loadGroundsData() {
     try {
-        const response = await fetch('grounds.json');
+        const response = await fetch('../../data/grounds.json');
         const data = await response.json();
         allGrounds = data.grounds;
         filteredGrounds = [...allGrounds];
@@ -40,9 +40,67 @@ async function loadGroundsData() {
         updateResultsCount();
     } catch (error) {
         console.error('Error loading grounds data:', error);
-        displayError('Failed to load sports grounds. Please try again later.');
+        displayError('Fuckeeeedddddd.');
     }
 }
+const groundsData = [
+    {
+        id: 1,
+        name: "City Sports Complex",
+        location: "Downtown",
+        sports: ["Tennis", "Basketball", "Volleyball"],
+        pricePerHour: 50,
+        rating: 4.5,
+        amenities: ["Parking", "Changing Rooms", "Water Fountain", "Lighting"],
+        availableSlots: ["9:00 AM", "11:00 AM", "2:00 PM", "4:00 PM", "6:00 PM"],
+        image: "https://via.placeholder.com/400x200?text=City+Sports+Complex"
+    },
+    {
+        id: 2,
+        name: "Tennis Center Pro",
+        location: "North Side",
+        sports: ["Tennis"],
+        pricePerHour: 60,
+        rating: 4.8,
+        amenities: ["Parking", "Pro Shop", "Coaching", "Equipment Rental"],
+        availableSlots: ["8:00 AM", "10:00 AM", "1:00 PM", "3:00 PM", "5:00 PM"],
+        image: "https://via.placeholder.com/400x200?text=Tennis+Center+Pro"
+    },
+    {
+        id: 3,
+        name: "Olympic Arena",
+        location: "East District",
+        sports: ["Basketball", "Badminton", "Squash"],
+        pricePerHour: 75,
+        rating: 4.7,
+        amenities: ["Parking", "Cafeteria", "Air Conditioning", "Sound System"],
+        availableSlots: ["7:00 AM", "12:00 PM", "3:00 PM", "7:00 PM"],
+        image: "https://via.placeholder.com/400x200?text=Olympic+Arena"
+    },
+    {
+        id: 4,
+        name: "Green Field Stadium",
+        location: "South End",
+        sports: ["Football", "Cricket", "Rugby"],
+        pricePerHour: 100,
+        rating: 4.6,
+        amenities: ["Parking", "Dressing Rooms", "Medical Room", "Scoreboard"],
+        availableSlots: ["6:00 AM", "9:00 AM", "2:00 PM", "5:00 PM"],
+        image: "https://via.placeholder.com/400x200?text=Green+Field+Stadium"
+    },
+    {
+        id: 5,
+        name: "Aqua Sports Center",
+        location: "West Side",
+        sports: ["Swimming", "Water Polo", "Diving"],
+        pricePerHour: 80,
+        rating: 4.4,
+        amenities: ["Parking", "Lockers", "Showers", "Pool Equipment"],
+        availableSlots: ["6:00 AM", "8:00 AM", "11:00 AM", "4:00 PM", "7:00 PM"],
+        image: "https://via.placeholder.com/400x200?text=Aqua+Sports+Center"
+    }
+];
+
 
 // Global variables
 let allGrounds = [];
