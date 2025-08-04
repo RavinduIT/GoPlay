@@ -7,9 +7,13 @@
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/pages.css">
+    <link rel="stylesheet" href="../css/components/navbar.css">
     <link rel="stylesheet" href="../css/pages/ground.css">
 </head>
 <body>
+    <!-- Navbar Component -->
+    <div id="navbar-container"></div>
+
     <div class="hero-section">
         <h1>Book Sports Grounds</h1>
         <p>Find and reserve the perfect sports facility for your game</p>
@@ -52,5 +56,21 @@
     </div>
 
     <script src="script.js"></script>
+    <script src="/js/components/navbar.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('/pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar(); // Initialize navbar behavior
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+    </script>
 </body>
 </html>
