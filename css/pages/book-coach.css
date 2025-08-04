@@ -1,0 +1,613 @@
+/* Coach Booking Page Styles - Green White Black Theme */
+
+/* Main Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  min-height: 100vh;
+  background: var(--background);
+}
+
+/* Header Section */
+.header {
+  text-align: center;
+  padding: 5rem 0 3rem;
+  background: var(--gradient-hero);
+  margin: 0 -1rem 3rem;
+  color: var(--primary-foreground);
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--primary-50);
+  opacity: 0.4;
+}
+
+.header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 2;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.header .hero-highlight {
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+}
+
+.header p {
+  font-size: 1.25rem;
+  opacity: 0.9;
+  max-width: 48rem;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+  line-height: 1.6;
+}
+
+/* Search Section */
+.search-section {
+  background: linear-gradient(135deg, var(--card) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 3rem;
+  box-shadow: var(--shadow-strong);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.search-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--primary-50);
+  opacity: 0.3;
+}
+
+.search-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  align-items: end;
+  position: relative;
+  z-index: 2;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filter-group select {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+}
+
+.filter-group select:hover {
+  border-color: var(--primary);
+}
+
+.search-btn {
+  padding: 0.75rem 2rem;
+  background: var(--gradient-primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  box-shadow: var(--shadow-medium);
+}
+
+.search-btn:hover {
+  box-shadow: var(--shadow-strong);
+  transform: translateY(-2px);
+}
+
+/* Results Header */
+.results-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.results-header h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 1.5rem;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.results-header .title-highlight {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Coaches Grid */
+.coaches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+/* Coach Card */
+.coach-card {
+  background: linear-gradient(135deg, var(--card) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  transition: all 0.5s ease;
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+.coach-card:hover {
+  box-shadow: var(--shadow-strong);
+  transform: translateY(-8px);
+}
+
+.coach-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary) 5%, transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.coach-card:hover::before {
+  opacity: 0.05;
+}
+
+/* Coach Header */
+.coach-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.coach-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary);
+  box-shadow: var(--shadow-medium);
+  transition: all 0.3s ease;
+}
+
+.coach-card:hover .coach-image {
+  transform: scale(1.05);
+}
+
+.coach-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.coach-info h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--card-foreground);
+  margin-bottom: 0.25rem;
+  transition: all 0.3s ease;
+}
+
+.coach-card:hover .coach-info h3 {
+  color: var(--primary);
+}
+
+.coach-title {
+  color: var(--muted-foreground);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.coach-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.star {
+  color: #22c55e;
+  font-size: 1rem;
+}
+
+.location-badge {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: right;
+  line-height: 1.2;
+}
+
+/* Coach Description */
+.coach-description {
+  padding: 0 1.5rem 1rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* Specializations & Certifications */
+.specializations,
+.certifications {
+  text-align: center;
+  padding: 0 1.5rem 1rem;
+  position: relative;
+}
+
+.specializations h4,
+.certifications h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.tag {
+  background: var(--gradient-primary);
+  color: var(--primary-foreground);
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-soft);
+}
+
+.tag:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-medium);
+}
+
+.cert-tag {
+  background: var(--foreground);
+  color: var(--background);
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-soft);
+}
+
+.cert-tag:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-medium);
+  background: var(--primary);
+}
+
+/* Book Button */
+.book-btn {
+  width: calc(100% - 3rem);
+  margin: 0 1.5rem 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--gradient-primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  box-shadow: var(--shadow-medium);
+}
+
+.book-btn:hover {
+  box-shadow: var(--shadow-strong);
+  transform: translateY(-2px);
+}
+
+.book-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.book-btn i {
+  transition: all 0.3s ease;
+}
+
+.book-btn:hover i {
+  animation: pulse 2s infinite;
+}
+
+/* Loading State */
+.loading {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 0;
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  background: linear-gradient(135deg, var(--card) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
+
+.loading::before {
+  content: '⏳';
+  margin-right: 0.5rem;
+  animation: spin 2s linear infinite;
+}
+
+/* No Results State */
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, var(--card) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+  position: relative;
+}
+
+.no-results::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--primary-50);
+  opacity: 0.3;
+  border-radius: var(--radius-lg);
+}
+
+.no-results .icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+  position: relative;
+  z-index: 2;
+}
+
+.no-results h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.no-results p {
+  color: var(--muted-foreground);
+  font-size: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .header h1 {
+    font-size: 2.5rem;
+  }
+  
+  .results-header h2 {
+    font-size: 2rem;
+  }
+  
+  .coaches-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 3rem 0 2rem;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .header p {
+    font-size: 1.125rem;
+  }
+  
+  .results-header h2 {
+    font-size: 1.75rem;
+  }
+  
+  .search-filters {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .coaches-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .coach-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .coach-image {
+    align-self: center;
+  }
+  
+  .price {
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+  
+  .search-section {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+  
+  .header {
+    margin: 0 -0.5rem 2rem;
+  }
+  
+  .header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .header p {
+    font-size: 1rem;
+  }
+  
+  .results-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .search-section {
+    padding: 1.5rem;
+  }
+  
+  .coach-header {
+    padding: 1rem;
+  }
+  
+  .coach-description,
+  .specializations,
+  .certifications {
+    padding: 0 1rem 1rem;
+  }
+  
+  .book-btn {
+    width: calc(100% - 2rem);
+    margin: 0 1rem 1rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .tags {
+    gap: 0.25rem;
+  }
+  
+  .tag,
+  .cert-tag {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .coaches-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
