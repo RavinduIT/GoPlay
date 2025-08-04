@@ -1,20 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Coach - SportHub</title>
-    <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="../css/components.css">
-    <link rel="stylesheet" href="../css/pages.css">
-    <link rel="stylesheet" href="/css/components/navbar.css">
+    <title>Book Professional Coaches</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+           text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #3fea48 0%, #15951b 100%);
+            padding: 40px 20px;
+            border-radius: 0;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 2fr;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .filter-group select,
+        .search-btn {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: white;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #15951b;
+        }
+
+        .search-btn {
+            background: #15951b;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .search-btn:hover {
+            background: #3d6b4a;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            color: white;
+        }
+
+        .results-header h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .coaches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        .coach-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .coach-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .coach-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .coach-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #4a7c59;
+            margin-right: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .coach-info h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .coach-title {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .coach-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .star {
+            color: #ffc107;
+        }
+
+        .price {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #4a7c59;
+        }
+
+        .location-badge {
+            background: #f1f3f4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #666;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .coach-description {
+            color: #666;
+            line-height: 1.5;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+
+        .specializations {
+            margin: 16px 0;
+        }
+
+        .specializations h4 {
+            font-size: 0.9rem;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            background: #e8f5e8;
+            color: #2d5a32;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .certifications {
+            margin: 16px 0;
+        }
+
+        .cert-tag {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .book-btn {
+            width: 100%;
+            background: #15951b;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .book-btn:hover {
+            background: #3d6b4a;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .no-results .icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .no-results h3 {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .search-filters {
+                grid-template-columns: 1fr;
+            }
+            
+            .coaches-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
-
 <body>
-    <!-- Load Navbar -->
-    <div id="navbar-container"></div>
-
     <div class="container">
         <div class="header">
             <h1>Book Professional Coaches</h1>
@@ -26,33 +320,26 @@
                 <div class="filter-group">
                     <label for="sport">Sport</label>
                     <select id="sport">
-                        <option>All sports</option>
-                        <option>Cricket</option>
-                        <option>Badminton</option>
-                        <option>Football</option>
+                        <option value="">All sports</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label for="location">Location</label>
                     <select id="location">
-                        <option>All locations</option>
-                        <option>Colombo</option>
-                        <option>Matara</option>
-                        <option>Galle</option>
-                        <option>Kandy</option>
+                        <option value="">All locations</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label for="price">Price Range</label>
                     <select id="price">
-                        <option>Any price</option>
-                        <option>Rs.1000-Rs.2000</option>
-                        <option>Rs.2000-Rs.3000</option>
-                        <option>Rs.3000+</option>
+                        <option value="">Any price</option>
+                        <option value="1000-2000">Rs.1000-Rs.2000</option>
+                        <option value="2000-3000">Rs.2000-Rs.3000</option>
+                        <option value="3000+">Rs.3000+</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <button class="search-btn">
+                    <button class="search-btn" onclick="filterCoaches()">
                         🔍 Search
                     </button>
                 </div>
@@ -60,195 +347,430 @@
         </div>
 
         <div class="results-header">
-            <h2>Available Coaches (4)</h2>
-            <button class="more-filters">⚙️ More Filters</button>
+            <h2 id="results-count">Loading coaches...</h2>
         </div>
 
-        <div class="coaches-grid">
-            <!-- John Martinez -->
-            <div class="coach-card">
-                <div class="coach-header">
-                    <div class="coach-avatar">JM</div>
-                    <div class="coach-info">
-                        <h3>R.T RATHNAYAKA</h3>
-                        <div class="coach-title">Football Coach</div>
-                        <div class="coach-meta">
-                            <div class="rating">
-                                <span class="star">⭐</span>
-                                <span>4.9 (156)</span>
-                            </div>
-                            <span>8 years exp</span>
-                            <span class="location-badge">📍Colombo</span>
-                        </div>
-                    </div>
-                    <div class="price">Rs 1500<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
-                </div>
-                <div class="coach-description">
-                    Former professional player with 8 years coaching experience. Specialized in youth development.He is
-                    famous for his smart game plans and winning many trophies.
-                </div>
-                <div class="specializations">
-                    <h4>Specializations:</h4>
-                    <div class="tags">
-                        <span class="tag">Youth Training</span>
-                        <span class="tag">Professional Coaching</span>
-                        <span class="tag">Tactical Analysis</span>
-                    </div>
-                </div>
-                <div class="certifications">
-                    <h4>Certifications:</h4>
-                    <div class="tags">
-                        <span class="cert-tag">FIFA B License</span>
-                        <span class="cert-tag">Sports Science Diploma</span>
-                    </div>
-                </div>
-                <button class="book-btn">📞 Book Coach</button>
-            </div>
-
-            <!-- Sarah Thompson -->
-            <div class="coach-card">
-                <div class="coach-header">
-                    <div class="coach-avatar">ST</div>
-                    <div class="coach-info">
-                        <h3>P.B JAYASUNDARA</h3>
-                        <div class="coach-title">Cricket Coach</div>
-                        <div class="coach-meta">
-                            <div class="rating">
-                                <span class="star">⭐</span>
-                                <span>4.8 (203)</span>
-                            </div>
-                            <span>12 years exp</span>
-                            <span class="location-badge">📍Matara</span>
-                        </div>
-                    </div>
-                    <div class="price">Rs.2500<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
-                </div>
-                <div class="coach-description">
-                    Professional cricket coach with tournament experience. Focus on competitive players.He is known for
-                    being calm, honest, and good at training young players.
-                </div>
-                <div class="specializations">
-                    <h4>Specializations:</h4>
-                    <div class="tags">
-                        <span class="tag">Tournament Preparation</span>
-                        <span class="tag">Technique Development</span>
-                        <span class="tag">Mental Training</span>
-                    </div>
-                </div>
-                <div class="certifications">
-                    <h4>Certifications:</h4>
-                    <div class="tags">
-                        <span class="cert-tag">PTR Professional</span>
-                        <span class="cert-tag">Sports Psychology</span>
-                    </div>
-                </div>
-                <button class="book-btn">📞 Book Coach</button>
-            </div>
-
-            <!-- Mike Johnson -->
-            <div class="coach-card">
-                <div class="coach-header">
-                    <div class="coach-avatar">MJ</div>
-                    <div class="coach-info">
-                        <h3>CHANDANA WIMALARATHNA</h3>
-                        <div class="coach-title">Badminton Coach</div>
-                        <div class="coach-meta">
-                            <div class="rating">
-                                <span class="star">⭐</span>
-                                <span>4.7 (89)</span>
-                            </div>
-                            <span>6 years exp</span>
-                            <span class="location-badge">📍Kandy</span>
-                        </div>
-                    </div>
-                    <div class="price">Rs.3500<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
-                </div>
-                <div class="coach-description">
-                    Former college player focused on fundamentals and skill development for all levels.He started the
-                    Gopichand Academy to train young players.
-                    He coached stars like PV Sindhu and Saina Nehwal, who won Olympic medals.
-                </div>
-                <div class="specializations">
-                    <h4>Specializations:</h4>
-                    <div class="tags">
-                        <span class="tag">Training Olympic-level players</span>
-                        <span class="tag">Defense Training</span>
-                        <span class="tag">Team Strategy</span>
-                    </div>
-                </div>
-                <div class="certifications">
-                    <h4>Certifications:</h4>
-                    <div class="tags">
-                        <span class="cert-tag">USA Coach Certification</span>
-                        <span class="cert-tag">Badminton Fundamentals</span>
-                    </div>
-                </div>
-                <button class="book-btn">📞 Book Coach</button>
-            </div>
-
-            <!-- Lisa Chen -->
-            <div class="coach-card">
-                <div class="coach-header">
-                    <div class="coach-avatar">LC</div>
-                    <div class="coach-info">
-                        <h3>AMILA SURAWEERA</h3>
-                        <div class="coach-title">Cricket Coach</div>
-                        <div class="coach-meta">
-                            <div class="rating">
-                                <span class="star">⭐</span>
-                                <span>4.9 (134)</span>
-                            </div>
-                            <span>10 years exp</span>
-                            <span class="location-badge">📍Galle</span>
-                        </div>
-                    </div>
-                    <div class="price">Rs.5000<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
-                </div>
-                <div class="coach-description">
-                    Amila suraweera is the head coach of the Indian cricket team.
-                </div>
-                <div class="specializations">
-                    <h4>Specializations:</h4>
-                    <div class="tags">
-                        <span class="tag">Mental training</span>
-                        <span class="tag">Competitive Cricket</span>
-
-                    </div>
-                </div>
-                <div class="certifications">
-                    <h4>Certifications:</h4>
-                    <div class="tags">
-                        <span class="cert-tag">level 3 Cricket Coaching Certificate</span>
-                        <span class="cert-tag">England and Wales Cricket Board (ECB) Level 3 Coaching Certificate</span>
-                    </div>
-                </div>
-                <button class="book-btn">📞 Book Coach</button>
+        <div id="coaches-grid" class="coaches-grid">
+            <div class="loading">
+                <div>Loading coaches...</div>
             </div>
         </div>
     </div>
 
-    <script src="../js/utils.js"></script>
-    <script src="../js/auth.js"></script>
-    <script src="../js/components/rating-feedback.js"></script>
-    <script src="../js/pages/book-coach.js"></script>
-    <script src="/js/components/navbar.js"></script>
     <script>
-        // Load the shared navbar dynamically
-        fetch('/pages/components/navbar.html')
-            .then(res => res.text())
-            .then(data => {
-                document.getElementById('navbar-container').innerHTML = data;
-                new Navbar(); // Initialize navbar behavior
-            });
+        // Configuration for API endpoints (replace with your actual backend URLs)
+        const API_CONFIG = {
+            baseUrl: '/api', // Replace with your backend URL
+            endpoints: {
+                coaches: '/coaches',
+                sports: '/sports',
+                locations: '/locations',
+                bookings: '/bookings'
+            }
+        };
 
-        // Global logout function
-        function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = '/';
+        // Global variables
+        let allCoaches = [];
+        let filteredCoaches = [];
+        let isLoading = false;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        async function initializeApp() {
+            try {
+                setLoading(true);
+                
+                // Load initial data
+                await Promise.all([
+                    loadCoaches(),
+                    loadFilterOptions()
+                ]);
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                // Display initial results
+                displayCoaches(allCoaches);
+                
+            } catch (error) {
+                console.error('Failed to initialize app:', error);
+                showError('Failed to load coaches. Please refresh the page.');
+            } finally {
+                setLoading(false);
+            }
         }
+
+        // Load coaches data (replace with API call)
+        async function loadCoaches() {
+            try {
+                // For now, using static data. Replace this with actual API call:
+                // const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.coaches}`);
+                // const coaches = await response.json();
+                
+                allCoaches = [
+                    {
+                        id: 1,
+                        name: "R.T RATHNAYAKA",
+                        sport: "Football",
+                        location: "Colombo",
+                        price: 1500,
+                        rating: 4.9,
+                        reviews: 156,
+                        experience: 8,
+                        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+                        description: "Former professional player with 8 years coaching experience. Specialized in youth development.He is famous for his smart game plans and winning many trophies.",
+                        specializations: ["Youth Training", "Professional Coaching", "Tactical Analysis"],
+                        certifications: ["FIFA B License", "Sports Science Diploma"],
+                        isActive: true,
+                        createdAt: "2024-01-15",
+                        updatedAt: "2024-08-01"
+                    },
+                    {
+                        id: 2,
+                        name: "P.B JAYASUNDARA",
+                        sport: "Cricket",
+                        location: "Matara",
+                        price: 2500,
+                        rating: 4.8,
+                        reviews: 203,
+                        experience: 12,
+                        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
+                        description: "Professional cricket coach with tournament experience. Focus on competitive players.He is known for being calm, honest, and good at training young players.",
+                        specializations: ["Tournament Preparation", "Technique Development", "Mental Training"],
+                        certifications: ["PTR Professional", "Sports Psychology"],
+                        isActive: true,
+                        createdAt: "2024-01-10",
+                        updatedAt: "2024-07-28"
+                    },
+                    {
+                        id: 3,
+                        name: "CHANDANA WIMALARATHNA",
+                        sport: "Badminton",
+                        location: "Kandy",
+                        price: 3500,
+                        rating: 4.7,
+                        reviews: 89,
+                        experience: 6,
+                        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
+                        description: "Former college player focused on fundamentals and skill development for all levels.He started the Gopichand Academy to train young players. He coached stars like PV Sindhu and Saina Nehwal, who won Olympic medals.",
+                        specializations: ["Training Olympic-level players", "Defense Training", "Team Strategy"],
+                        certifications: ["USA Coach Certification", "Badminton Fundamentals"],
+                        isActive: true,
+                        createdAt: "2024-02-01",
+                        updatedAt: "2024-08-02"
+                    },
+                    {
+                        id: 4,
+                        name: "AMILA SURAWEERA",
+                        sport: "Cricket",
+                        location: "Galle",
+                        price: 5000,
+                        rating: 4.9,
+                        reviews: 134,
+                        experience: 10,
+                        image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face",
+                        description: "Amila suraweera is the head coach of the Indian cricket team.",
+                        specializations: ["Mental training", "Competitive Cricket"],
+                        certifications: ["level 3 Cricket Coaching Certificate", "England and Wales Cricket Board (ECB) Level 3 Coaching Certificate"],
+                        isActive: true,
+                        createdAt: "2024-01-20",
+                        updatedAt: "2024-07-30"
+                    }
+                ];
+
+                // Filter only active coaches
+                allCoaches = allCoaches.filter(coach => coach.isActive);
+                
+            } catch (error) {
+                console.error('Error loading coaches:', error);
+                throw error;
+            }
+        }
+
+        // Load filter options dynamically
+        async function loadFilterOptions() {
+            try {
+                // Extract unique sports and locations from coaches data
+                // In production, you might want to fetch these from separate endpoints
+                const sports = [...new Set(allCoaches.map(coach => coach.sport))].sort();
+                const locations = [...new Set(allCoaches.map(coach => coach.location))].sort();
+
+                // Populate sport filter
+                const sportSelect = document.getElementById('sport');
+                sports.forEach(sport => {
+                    const option = document.createElement('option');
+                    option.value = sport;
+                    option.textContent = sport;
+                    sportSelect.appendChild(option);
+                });
+
+                // Populate location filter
+                const locationSelect = document.getElementById('location');
+                locations.forEach(location => {
+                    const option = document.createElement('option');
+                    option.value = location;
+                    option.textContent = location;
+                    locationSelect.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Error loading filter options:', error);
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Filter change listeners
+            document.querySelectorAll('select').forEach(select => {
+                select.addEventListener('change', filterCoaches);
+            });
+        }
+
+        // Display coaches in the grid
+        function displayCoaches(coaches) {
+            const grid = document.getElementById('coaches-grid');
+            const resultsCount = document.getElementById('results-count');
+            
+            // Update results count
+            resultsCount.textContent = `Available Coaches (${coaches.length})`;
+            
+            if (coaches.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-results">
+                        <div class="icon">🔍</div>
+                        <h3>No coaches found</h3>
+                        <p>Try adjusting your filters to see more results</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Generate coach cards
+            grid.innerHTML = coaches.map(coach => createCoachCard(coach)).join('');
+            
+            // Add event listeners to book buttons
+            setupBookingListeners();
+        }
+
+        // Create HTML for a single coach card
+        function createCoachCard(coach) {
+            return `
+                <div class="coach-card" data-coach-id="${coach.id}">
+                    <div class="coach-header">
+                        <img src="${coach.image}" alt="${coach.name}" class="coach-image" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face'">
+                        <div class="coach-info">
+                            <h3>${coach.name}</h3>
+                            <div class="coach-title">${coach.sport} Coach</div>
+                            <div class="coach-meta">
+                                <div class="rating">
+                                    <span class="star">⭐</span>
+                                    <span>${coach.rating} (${coach.reviews})</span>
+                                </div>
+                                <span>${coach.experience} years exp</span>
+                                <span class="location-badge">📍${coach.location}</span>
+                            </div>
+                        </div>
+                        <div class="price">Rs.${coach.price.toLocaleString()}<span style="font-size: 0.7rem; font-weight: 400;">/hour</span></div>
+                    </div>
+                    <div class="coach-description">
+                        ${coach.description}
+                    </div>
+                    <div class="specializations">
+                        <h4>Specializations:</h4>
+                        <div class="tags">
+                            ${coach.specializations.map(spec => `<span class="tag">${spec}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="certifications">
+                        <h4>Certifications:</h4>
+                        <div class="tags">
+                            ${coach.certifications.map(cert => `<span class="cert-tag">${cert}</span>`).join('')}
+                        </div>
+                    </div>
+                    <button class="book-btn" onclick="bookCoach(${coach.id})">📞 Book Coach</button>
+                </div>
+            `;
+        }
+
+        // Filter coaches based on selected criteria
+        function filterCoaches() {
+            const sportFilter = document.getElementById('sport').value;
+            const locationFilter = document.getElementById('location').value;
+            const priceFilter = document.getElementById('price').value;
+            
+            filteredCoaches = allCoaches.filter(coach => {
+                // Sport filter
+                if (sportFilter && coach.sport !== sportFilter) {
+                    return false;
+                }
+                
+                // Location filter
+                if (locationFilter && coach.location !== locationFilter) {
+                    return false;
+                }
+                
+                // Price filter
+                if (priceFilter) {
+                    if (priceFilter === '1000-2000' && (coach.price < 1000 || coach.price > 2000)) {
+                        return false;
+                    }
+                    if (priceFilter === '2000-3000' && (coach.price < 2000 || coach.price > 3000)) {
+                        return false;
+                    }
+                    if (priceFilter === '3000+' && coach.price < 3000) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+            
+            displayCoaches(filteredCoaches);
+        }
+
+        // Setup booking button listeners
+        function setupBookingListeners() {
+            document.querySelectorAll('.book-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const coachId = parseInt(this.closest('.coach-card').dataset.coachId);
+                    bookCoach(coachId);
+                });
+            });
+        }
+
+        // Book a coach (replace with actual booking logic)
+        async function bookCoach(coachId) {
+            try {
+                const coach = allCoaches.find(c => c.id === coachId);
+                if (!coach) {
+                    throw new Error('Coach not found');
+                }
+
+                // Show loading state
+                const button = document.querySelector(`[data-coach-id="${coachId}"] .book-btn`);
+                const originalText = button.innerHTML;
+                button.innerHTML = '⏳ Booking...';
+                button.disabled = true;
+
+                // Simulate API call (replace with actual booking API)
+                // const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.bookings}`, {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                //     body: JSON.stringify({
+                //         coachId: coachId,
+                //         // Add other booking details
+                //     })
+                // });
+
+                // Simulate delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Reset button
+                button.innerHTML = originalText;
+                button.disabled = false;
+
+                // Show success message (replace with proper booking flow)
+                alert(`Booking request sent for ${coach.name}! You will be redirected to the booking form.`);
+                
+                // In production, redirect to booking form:
+                // window.location.href = `/booking/${coachId}`;
+
+            } catch (error) {
+                console.error('Booking error:', error);
+                alert('Failed to book coach. Please try again.');
+                
+                // Reset button state
+                const button = document.querySelector(`[data-coach-id="${coachId}"] .book-btn`);
+                button.innerHTML = '📞 Book Coach';
+                button.disabled = false;
+            }
+        }
+
+        // Utility functions
+        function setLoading(loading) {
+            isLoading = loading;
+            const grid = document.getElementById('coaches-grid');
+            const resultsCount = document.getElementById('results-count');
+            
+            if (loading) {
+                grid.innerHTML = '<div class="loading">Loading coaches...</div>';
+                resultsCount.textContent = 'Loading coaches...';
+            }
+        }
+
+        function showError(message) {
+            const grid = document.getElementById('coaches-grid');
+            grid.innerHTML = `
+                <div class="no-results">
+                    <div class="icon">❌</div>
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // API functions for future backend integration
+        class CoachAPI {
+            static async getCoaches(filters = {}) {
+                const params = new URLSearchParams(filters);
+                const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.coaches}?${params}`);
+                if (!response.ok) throw new Error('Failed to fetch coaches');
+                return response.json();
+            }
+
+            static async getCoach(id) {
+                const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.coaches}/${id}`);
+                if (!response.ok) throw new Error('Failed to fetch coach');
+                return response.json();
+            }
+
+            static async bookCoach(coachId, bookingData) {
+                const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.bookings}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ coachId, ...bookingData })
+                });
+                if (!response.ok) throw new Error('Failed to book coach');
+                return response.json();
+            }
+
+            static async getSports() {
+                const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.sports}`);
+                if (!response.ok) throw new Error('Failed to fetch sports');
+                return response.json();
+            }
+
+            static async getLocations() {
+                const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.locations}`);
+                if (!response.ok) throw new Error('Failed to fetch locations');
+                return response.json();
+            }
+        }
+
+        // Refresh data function (can be called when needed)
+        async function refreshCoaches() {
+            try {
+                setLoading(true);
+                await loadCoaches();
+                await loadFilterOptions();
+                displayCoaches(allCoaches);
+            } catch (error) {
+                showError('Failed to refresh coaches data');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Auto-refresh every 5 minutes (optional)
+        // setInterval(refreshCoaches, 5 * 60 * 1000);
     </script>
-
-
 </body>
-
 </html>
