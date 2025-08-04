@@ -50,7 +50,8 @@
     </header>
 
     <h2>Products (6)</h2>
-    <div class="product-grid">
+    <div class="product-grid" id="productGrid"></div>
+
       <!-- Product 1 -->
       <div class="product-card">
         <img src="images/badminton.jpg" alt="badminton" class="product-img" />
@@ -148,5 +149,113 @@
       window.location.href = '/';
     }
   </script>
+  <script>
+  const products = [
+    {
+      title: "Badminton Racket",
+      brand: "Li-Ning",
+      category: "Badminton",
+      rating: 4.5,
+      reviews: 128,
+      price: 6500,
+      description: "Smash harder, move faster – engineered for champions",
+      features: ["Flexible", "Lightweight", "Beginner"],
+      image: "images/badminton.jpg"
+    },
+    {
+      title: "Spalding Basketball [Pulse]",
+      brand: "Spalding",
+      category: "Basketball",
+      rating: 4.6,
+      reviews: 189,
+      price: 2500,
+      description: "Durable leather basketball for indoor and outdoor play",
+      features: ["Size 7", "Indoor/Outdoor", "High Grip"],
+      image: "images/basketball.jpg"
+    },
+    {
+      title: "Original English Willow Cricket Bat",
+      brand: "Stanford",
+      category: "Cricket",
+      rating: 4.7,
+      reviews: 312,
+      price: 125000,
+      description: "Best Quality Bat for Beginner use",
+      features: ["Weight 1.13kg", "Best Quality", "Leather"],
+      image: "images/cricket bat.jpg"
+    },
+    {
+      title: "Professional Football",
+      brand: "Nike",
+      category: "Football",
+      rating: 4.8,
+      reviews: 234,
+      price: 3000,
+      description: "Professional quality football for competitive matches",
+      features: ["Official Size 5", "FIFA Approved", "Durable Construction"],
+      image: "images/football.jpg"
+    },
+    {
+      title: "Tennis Racket",
+      brand: "Wilson",
+      category: "Tennis",
+      rating: 4.9,
+      reviews: 89,
+      price: 5000,
+      description: "Lightweight and strong racket for power and control",
+      features: ["Graphite Frame", "Shock Absorption", "Pro Grip"],
+      image: "images/tennis-racket.jpg"
+    },
+    {
+      title: "Cricket Helmet",
+      brand: "Adidas",
+      category: "Cricket",
+      rating: 4.4,
+      reviews: 67,
+      price: 7000,
+      description: "Play fearless. Head protection that never backs down",
+      features: ["Stainless Steel Grill", "Moisture-wicking design", "Lightweight"],
+      image: "images/cricket helmet.jpg"
+    }
+  ];
+
+  function renderProducts(products) {
+    const productGrid = document.getElementById("productGrid");
+    productGrid.innerHTML = ""; // Clear if needed
+
+    products.forEach(product => {
+      const productHTML = `
+        <div class="product-card">
+          <img src="${product.image}" alt="${product.title}" class="product-img" />
+          <h3 class="product-title">${product.title}</h3>
+          <div class="product-brand">${product.brand}</div>
+          <span class="category-tag">${product.category}</span>
+          <div class="rating">
+            <span class="star">⭐</span>
+            <span class="rating-score">${product.rating}</span>
+            <span class="review-count">(${product.reviews})</span>
+          </div>
+          <div class="price"><span class="current-price">Rs.${product.price.toLocaleString()}.00</span></div>
+          <p class="description">${product.description}</p>
+          <div class="features">
+            ${product.features.map(f => `<span class="feature">${f}</span>`).join('')}
+          </div>
+          <div class="buttons">
+            <button class="icon-button">🤍</button>
+            <button class="view-btn">View Details</button>
+            <button class="buy-btn">Buy Now</button>
+          </div>
+        </div>
+      `;
+      productGrid.insertAdjacentHTML("beforeend", productHTML);
+    });
+  }
+
+  // Call the function when page loads
+  document.addEventListener("DOMContentLoaded", () => {
+    renderProducts(products);
+  });
+</script>
+
 </body>
 </html>
