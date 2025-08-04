@@ -203,7 +203,8 @@ function createGroundCard(ground) {
             
             <div class="card-actions">
                 <button class="view-details-btn" onclick="viewGroundDetails(${ground.id})">
-                    View Details
+                <a href="../../pages/ground-details.html">
+                    View Details</a>
                 </button>
                 <button class="book-now-btn" onclick="bookGround(${ground.id})">
                     Book Now
