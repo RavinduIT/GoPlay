@@ -24,82 +24,6 @@ window.bookGroundPage = {
 function initializeBookGroundPage() {
     // Initialize ground booking page
 }*/
-// Global variables
-// Your actual data from data.json
-// Global variables
-// Your actual data from data.json
-// Sample grounds data (in real app, this would come from your grounds.json file)
-
-async function loadGroundsData() {
-    try {
-        const response = await fetch('../../data/grounds.json');
-        const data = await response.json();
-        allGrounds = data.grounds;
-        filteredGrounds = [...allGrounds];
-        displayGrounds();
-        updateResultsCount();
-    } catch (error) {
-        console.error('Error loading grounds data:', error);
-        displayError('Fuckeeeedddddd.');
-    }
-}
-const groundsData = [
-    {
-        id: 1,
-        name: "Havelock City Sports Complex",
-        location: "Downtown",
-        sports: ["Tennis", "Basketball", "Volleyball"],
-        pricePerHour: 5000,
-        rating: 4.5,
-        amenities: ["Parking", "Changing Rooms", "Water Fountain", "Lighting"],
-        availableSlots: ["9:00 AM", "11:00 AM", "2:00 PM", "4:00 PM", "6:00 PM"],
-        image: "https://via.placeholder.com/400x200?text=City+Sports+Complex"
-    },
-    {
-        id: 2,
-        name: "Tennis Center Pro",
-        location: "North Side",
-        sports: ["Tennis"],
-        pricePerHour: 60,
-        rating: 4.8,
-        amenities: ["Parking", "Pro Shop", "Coaching", "Equipment Rental"],
-        availableSlots: ["8:00 AM", "10:00 AM", "1:00 PM", "3:00 PM", "5:00 PM"],
-        image: "https://via.placeholder.com/400x200?text=Tennis+Center+Pro"
-    },
-    {
-        id: 3,
-        name: "Olympic Arena",
-        location: "East District",
-        sports: ["Basketball", "Badminton", "Squash"],
-        pricePerHour: 75,
-        rating: 4.7,
-        amenities: ["Parking", "Cafeteria", "Air Conditioning", "Sound System"],
-        availableSlots: ["7:00 AM", "12:00 PM", "3:00 PM", "7:00 PM"],
-        image: "https://via.placeholder.com/400x200?text=Olympic+Arena"
-    },
-    {
-        id: 4,
-        name: "Green Field Stadium",
-        location: "South End",
-        sports: ["Football", "Cricket", "Rugby"],
-        pricePerHour: 100,
-        rating: 4.6,
-        amenities: ["Parking", "Dressing Rooms", "Medical Room", "Scoreboard"],
-        availableSlots: ["6:00 AM", "9:00 AM", "2:00 PM", "5:00 PM"],
-        image: "https://via.placeholder.com/400x200?text=Green+Field+Stadium"
-    },
-    {
-        id: 5,
-        name: "Aqua Sports Center",
-        location: "West Side",
-        sports: ["Swimming", "Water Polo", "Diving"],
-        pricePerHour: 80,
-        rating: 4.4,
-        amenities: ["Parking", "Lockers", "Showers", "Pool Equipment"],
-        availableSlots: ["6:00 AM", "8:00 AM", "11:00 AM", "4:00 PM", "7:00 PM"],
-        image: "https://via.placeholder.com/400x200?text=Aqua+Sports+Center"
-    }
-];
 
 
 // Global variables
@@ -113,28 +37,72 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 });
 
-// Load grounds data (in real app, fetch from grounds.json)
+// Load grounds data from JSON file
 async function loadGroundsData() {
     try {
-        // In a real application, you would fetch from your JSON file like this:
-        // const response = await fetch('grounds.json');
-        // const data = await response.json();
-        // allGrounds = data.grounds;
+        // UPDATE THIS PATH based on your file structure
+        const response = await fetch('../../data/grounds.json'); // Relative path to your JSON file
         
-        // For now, using the sample data
-        allGrounds = groundsData;
-        filteredGrounds = [...allGrounds];
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        allGrounds = data.grounds;
+        filteredGrounds = [...allGrounds]; // Initialize filtered grounds
+        
         displayGrounds();
         updateResultsCount();
+        
+        console.log('Loaded grounds data:', allGrounds);
     } catch (error) {
         console.error('Error loading grounds data:', error);
         displayError('Failed to load sports grounds. Please try again later.');
+        
+        // Fallback: load sample data for testing
+        loadSampleData();
     }
+}
+
+
+function loadSampleData() {
+    console.log('Loading sample data as fallback...');
+    allGrounds = [
+        {
+            id: 1,
+            name: "City Sports Complex",
+            location: "Downtown",
+            sports: ["Tennis", "Basketball"],
+            rating: 4.5,
+            pricePerHour: 25,
+            amenities: ["Parking", "Restrooms", "Lighting", "Equipment Rental"],
+            availableSlots: ["9:00 AM", "11:00 AM", "2:00 PM", "4:00 PM", "6:00 PM"]
+        },
+        {
+            id: 2,
+            name: "Tennis Center Pro",
+            location: "Uptown",
+            sports: ["Tennis"],
+            rating: 4.8,
+            pricePerHour: 30,
+            amenities: ["Pro Shop", "Coaching", "Parking", "Restrooms", "Air Conditioning"],
+            availableSlots: ["8:00 AM", "10:00 AM", "1:00 PM", "3:00 PM", "5:00 PM"]
+        }
+    ];
+    
+    filteredGrounds = [...allGrounds];
+    displayGrounds();
+    updateResultsCount();
 }
 
 // Display grounds in the UI
 function displayGrounds() {
     const container = document.getElementById('grounds-container');
+    
+    if (!container) {
+        console.error('Grounds container not found');
+        return;
+    }
     
     if (filteredGrounds.length === 0) {
         container.innerHTML = '<div class="error">No sports grounds found matching your criteria.</div>';
@@ -147,33 +115,33 @@ function displayGrounds() {
 // Create individual ground card HTML
 function createGroundCard(ground) {
     const stars = generateStars(ground.rating);
-    const sportsHtml = ground.sports.map(sport => 
+    const sportsHtml = ground.sports?.map(sport => 
         `<span class="sport-tag">${sport}</span>`
-    ).join('');
+    ).join('') || '';
     
-    const amenitiesHtml = ground.amenities.slice(0, 4).map(amenity => 
+    const amenitiesHtml = ground.amenities?.slice(0, 4).map(amenity => 
         `<span class="amenity-tag">${amenity}</span>`
-    ).join('');
+    ).join('') || '';
     
-    const timeSlotsHtml = ground.availableSlots.slice(0, 5).map(slot => 
+    const timeSlotsHtml = ground.availableSlots?.slice(0, 5).map(slot => 
         `<span class="time-slot">${slot}</span>`
-    ).join('');
+    ).join('') || '';
     
     return `
         <div class="ground-card" data-ground-id="${ground.id}">
             <div class="card-header">
                 <div class="ground-info">
-                    <h3>${ground.name}</h3>
-                    <div class="ground-type">${ground.sports[0]} Ground</div>
-                    <div class="location">📍 ${ground.location}</div>
+                    <h3>${ground.name || 'Unnamed Ground'}</h3>
+                    <div class="ground-type">${ground.sports?.[0] || 'Sports'} Ground</div>
+                    <div class="location">📍 ${ground.location || 'Location not specified'}</div>
                 </div>
                 <div class="rating-price">
                     <div class="rating">
                         ${stars}
-                        <span>${ground.rating}</span>
+                        <span>${ground.rating || 'N/A'}</span>
                     </div>
                     <div class="price">
-                        $${ground.pricePerHour}
+                        $${ground.pricePerHour || 0}
                         <span class="price-unit">/hour</span>
                     </div>
                 </div>
@@ -190,7 +158,7 @@ function createGroundCard(ground) {
                 <h4>Amenities</h4>
                 <div class="amenities-tags">
                     ${amenitiesHtml}
-                    ${ground.amenities.length > 4 ? `<span class="amenity-tag">+${ground.amenities.length - 4} more</span>` : ''}
+                    ${ground.amenities && ground.amenities.length > 4 ? `<span class="amenity-tag">+${ground.amenities.length - 4} more</span>` : ''}
                 </div>
             </div>
             
@@ -203,8 +171,7 @@ function createGroundCard(ground) {
             
             <div class="card-actions">
                 <button class="view-details-btn" onclick="viewGroundDetails(${ground.id})">
-                <a href="../../pages/ground-details.html">
-                    View Details</a>
+                    View Details
                 </button>
                 <button class="book-now-btn" onclick="bookGround(${ground.id})">
                     Book Now
@@ -216,6 +183,8 @@ function createGroundCard(ground) {
 
 // Generate star rating HTML
 function generateStars(rating) {
+    if (!rating) return '<span class="no-rating">No rating</span>';
+    
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
     let starsHtml = '';
@@ -236,8 +205,13 @@ function populateFilters() {
     const locationSelect = document.getElementById('location');
     const sportTypeSelect = document.getElementById('sport-type');
     
+    if (!locationSelect || !sportTypeSelect) {
+        console.error('Filter elements not found');
+        return;
+    }
+    
     // Get unique locations
-    const locations = [...new Set(allGrounds.map(ground => ground.location))];
+    const locations = [...new Set(allGrounds.map(ground => ground.location).filter(Boolean))];
     locations.forEach(location => {
         const option = document.createElement('option');
         option.value = location;
@@ -246,7 +220,7 @@ function populateFilters() {
     });
     
     // Get unique sports
-    const sports = [...new Set(allGrounds.flatMap(ground => ground.sports))];
+    const sports = [...new Set(allGrounds.flatMap(ground => ground.sports || []))];
     sports.forEach(sport => {
         const option = document.createElement('option');
         option.value = sport;
@@ -261,30 +235,39 @@ function setupEventListeners() {
     const locationSelect = document.getElementById('location');
     const sportTypeSelect = document.getElementById('sport-type');
     
-    // Real-time search
-    searchInput.addEventListener('input', function() {
-        applyFilters();
-    });
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            applyFilters();
+        });
+    }
     
-    locationSelect.addEventListener('change', function() {
-        applyFilters();
-    });
+    if (locationSelect) {
+        locationSelect.addEventListener('change', function() {
+            applyFilters();
+        });
+    }
     
-    sportTypeSelect.addEventListener('change', function() {
-        applyFilters();
-    });
+    if (sportTypeSelect) {
+        sportTypeSelect.addEventListener('change', function() {
+            applyFilters();
+        });
+    }
 }
 
 // Apply filters and search
 function applyFilters() {
-    const searchTerm = document.getElementById('search-grounds').value.toLowerCase();
-    const selectedLocation = document.getElementById('location').value;
-    const selectedSport = document.getElementById('sport-type').value;
+    const searchInput = document.getElementById('search-grounds');
+    const locationSelect = document.getElementById('location');
+    const sportTypeSelect = document.getElementById('sport-type');
+    
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const selectedLocation = locationSelect ? locationSelect.value : '';
+    const selectedSport = sportTypeSelect ? sportTypeSelect.value : '';
     
     filteredGrounds = allGrounds.filter(ground => {
-        const matchesSearch = ground.name.toLowerCase().includes(searchTerm);
+        const matchesSearch = !searchTerm || (ground.name && ground.name.toLowerCase().includes(searchTerm));
         const matchesLocation = !selectedLocation || ground.location === selectedLocation;
-        const matchesSport = !selectedSport || ground.sports.includes(selectedSport);
+        const matchesSport = !selectedSport || (ground.sports && ground.sports.includes(selectedSport));
         
         return matchesSearch && matchesLocation && matchesSport;
     });
@@ -301,27 +284,32 @@ function searchGrounds() {
 // Update results count
 function updateResultsCount() {
     const countElement = document.getElementById('results-count');
-    const count = filteredGrounds.length;
-    countElement.textContent = `${count} sports ground${count !== 1 ? 's' : ''} found`;
+    if (countElement) {
+        const count = filteredGrounds.length;
+        countElement.textContent = `${count} sports ground${count !== 1 ? 's' : ''} found`;
+    }
 }
 
 // Display error message
 function displayError(message) {
     const container = document.getElementById('grounds-container');
-    container.innerHTML = `<div class="error">${message}</div>`;
-}
-
-// View ground details (placeholder function)
-function viewGroundDetails(groundId) {
-    const ground = allGrounds.find(g => g.id === groundId);
-    if (ground) {
-        // In a real app, you might navigate to a details page
-        alert(`Viewing details for: ${ground.name}\nLocation: ${ground.location}\nPrice: $${ground.pricePerHour}/hour`);
-        console.log('Ground details:', ground);
+    if (container) {
+        container.innerHTML = `<div class="error">${message}</div>`;
     }
 }
 
-// Book ground (placeholder function)
+function viewGroundDetails(groundId) {
+    const ground = allGrounds.find(g => g.id === groundId);
+    if (ground) {
+        // Store ground data in localStorage for the details page to access
+        localStorage.setItem('selectedGround', JSON.stringify(ground));
+        
+        // Navigate to details page with ground ID
+        window.location.href = `../../pages/ground-details.html?id=${groundId}`;
+    }
+}
+
+// Book ground
 function bookGround(groundId) {
     const ground = allGrounds.find(g => g.id === groundId);
     if (ground) {
@@ -332,12 +320,8 @@ function bookGround(groundId) {
             return;
         }
         
-        // In a real app, you might navigate to a booking page
-        alert(`Booking ${ground.name}...\nPrice: $${ground.pricePerHour}/hour`);
-        console.log('Booking ground:', ground);
-        
-        // You could redirect to a booking form page:
-        // window.location.href = `booking.html?groundId=${groundId}`;
+        // Navigate to booking page
+        window.location.href = `booking.html?groundId=${groundId}`;
     }
 }
 
@@ -351,11 +335,10 @@ function formatCurrency(amount) {
 
 // Utility function to format time
 function formatTime(timeString) {
-    // Convert 24-hour format to 12-hour format if needed
     return timeString;
 }
 
-// Export functions for external use (if needed)
+// Export functions for external use
 window.searchGrounds = searchGrounds;
 window.viewGroundDetails = viewGroundDetails;
 window.bookGround = bookGround;
