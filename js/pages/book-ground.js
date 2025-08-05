@@ -141,7 +141,7 @@ function createGroundCard(ground) {
                         <span>${ground.rating || 'N/A'}</span>
                     </div>
                     <div class="price">
-                        $${ground.pricePerHour || 0}
+                        Rs ${ground.pricePerHour || 0}
                         <span class="price-unit">/hour</span>
                     </div>
                 </div>
