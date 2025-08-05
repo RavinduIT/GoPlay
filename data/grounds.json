@@ -1,32 +1,64 @@
 {
     "grounds": [
         {
-      "id": 1,
-      "userId": 1,
-      "venueId": 1,
-      "venueName": "City Sports Complex",
-      "sport": "Tennis",
-      "date": "2024-02-15",
-      "time": "10:00 AM - 12:00 PM",
-      "duration": 2,
-      "price": 50,
-      "status": "Confirmed",
-      "paymentStatus": "Paid",
-      "bookingDate": "2024-02-01"
-    },
-    {
-      "id": 2,
-      "userId": 1,
-      "venueId": 2,
-      "venueName": "Tennis Center Pro",
-      "sport": "Tennis",
-      "date": "2024-02-20",
-      "time": "2:00 PM - 4:00 PM",
-      "duration": 2,
-      "price": 60,
-      "status": "Pending",
-      "paymentStatus": "Pending",
-      "bookingDate": "2024-02-02"
-    }
+            "id": 1,
+            "name": "Havelock City Sports Complex",
+            "location": "Downtown",
+            "sports": ["Tennis", "Basketball", "Volleyball"],
+            "rating": 4.5,
+            "pricePerHour": 25,
+            "amenities": ["Parking", "Restrooms", "Lighting", "Equipment Rental", "Changing Rooms", "Cafeteria"],
+            "availableSlots": ["9:00 AM", "11:00 AM", "1:00 PM", "3:00 PM", "5:00 PM", "7:00 PM"]
+        },
+        {
+            "id": 2,
+            "name": "Tennis Center Pro",
+            "location": "Uptown",
+            "sports": ["Tennis"],
+            "rating": 4.8,
+            "pricePerHour": 30,
+            "amenities": ["Pro Shop", "Coaching", "Parking", "Restrooms", "Air Conditioning", "Equipment Rental"],
+            "availableSlots": ["8:00 AM", "10:00 AM", "12:00 PM", "2:00 PM", "4:00 PM", "6:00 PM"]
+        },
+        {
+            "id": 3,
+            "name": "Community Basketball Court",
+            "location": "Westside", 
+            "sports": ["Basketball"],
+            "rating": 4.2,
+            "pricePerHour": 20,
+            "amenities": ["Parking", "Restrooms", "Lighting", "Water Fountain"],
+            "availableSlots": ["10:00 AM", "12:00 PM", "2:00 PM", "4:00 PM", "6:00 PM", "8:00 PM"]
+        },
+        {
+            "id": 4,
+            "name": "Soccer Field Elite",
+            "location": "Eastside",
+            "sports": ["Soccer", "Football"],
+            "rating": 4.7,
+            "pricePerHour": 40,
+            "amenities": ["Parking", "Restrooms", "Lighting", "Changing Rooms", "Scoreboard", "Equipment Storage"],
+            "availableSlots": ["9:00 AM", "11:30 AM", "2:00 PM", "4:30 PM", "7:00 PM"]
+        },
+        {
+            "id": 5,
+            "name": "Multi-Sport Arena",
+            "location": "Downtown",
+            "sports": ["Badminton", "Table Tennis", "Volleyball"],
+            "rating": 4.4,
+            "pricePerHour": 35,
+            "amenities": ["Air Conditioning", "Parking", "Restrooms", "Equipment Rental", "Changing Rooms", "Spectator Seating"],
+            "availableSlots": ["8:00 AM", "10:00 AM", "1:00 PM", "3:00 PM", "5:00 PM", "7:00 PM", "9:00 PM"]
+        },
+        {
+            "id": 6,
+            "name": "Swimming Pool Complex",
+            "location": "Northside",
+            "sports": ["Swimming", "Water Polo"],
+            "rating": 4.6,
+            "pricePerHour": 45,
+            "amenities": ["Changing Rooms", "Lockers", "Parking", "Lifeguard", "Pool Equipment", "Showers"],
+            "availableSlots": ["6:00 AM", "8:00 AM", "10:00 AM", "2:00 PM", "4:00 PM", "6:00 PM"]
+        }
     ]
 }
