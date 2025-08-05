@@ -316,7 +316,8 @@ function bookGround(groundId) {
         // Check if user is logged in
         const currentUser = localStorage.getItem('currentUser');
         if (!currentUser) {
-            alert('Please log in to book a ground.');
+            //alert('Please log in to book a ground.');
+            window.location.href = `../../pages/login.html`;
             return;
         }
         
