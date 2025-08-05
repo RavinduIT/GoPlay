@@ -18,10 +18,10 @@ class HomePage {
         this.popularVenues = [
             {
                 id: 1,
-                name: 'City Sports Complex',
+                name: 'Havelock City Sports Complex',
                 type: 'Multi-Sport',
                 rating: 4.9,
-                price: '$25/hour',
+                price: 'Rs 5000/hour',
                 image: 'assets/images/placeholder.jpg', // Fixed to use placeholder
                 availability: 'Available Now'
             },
@@ -30,7 +30,7 @@ class HomePage {
                 name: 'Tennis Center Pro',
                 type: 'Tennis Courts',
                 rating: 4.8,
-                price: '$30/hour',
+                price: 'Rs 3000/hour',
                 image: 'assets/images/placeholder.jpg', // Fixed to use placeholder
                 availability: 'Available Now'
             },
@@ -39,7 +39,7 @@ class HomePage {
                 name: 'Basketball Arena',
                 type: 'Basketball',
                 rating: 4.7,
-                price: '$20/hour',
+                price: 'Rs 2000/hour',
                 image: 'assets/images/placeholder.jpg', // Fixed to use placeholder
                 availability: 'Available Now'
             }
