@@ -12,6 +12,17 @@ class Navbar {
         this.userEmail = document.getElementById('userEmail') || document.querySelector('.user-email');
         this.userAvatar = document.getElementById('userAvatar') || document.querySelector('.user-avatar');
         
+        // Elements to hide when not logged in
+        this.cartBtn = document.querySelector('.cart-btn');
+        this.providerBtn = document.querySelector('.provider-btn');
+        this.adminDropdown = document.querySelector('.admin-dropdown');
+        this.mobileCart = document.querySelector('.mobile-cart');
+        this.mobileProvider = document.querySelector('.mobile-provider');
+        this.mobileAdmin = document.querySelector('.mobile-admin');
+        
+        // Add timeout for dropdown hover delay
+        this.dropdownTimeout = null;
+        
         this.init();
     }
 
@@ -56,47 +67,80 @@ class Navbar {
         } else {
             console.warn('Mobile menu elements not found:', {
                 mobileMenuBtn: !!this.mobileMenuBtn,
-                mobileMenu: !!this.mobileMenu
+                mobileMenu: !!this.mobileUserMenu
             });
         }
     }
 
     setupUserMenu() {
-        // Setup dropdown hover effects
+        // Setup dropdown hover effects with improved hover handling
         const userMenuElement = document.querySelector('.user-menu');
         if (userMenuElement) {
             const dropdown = userMenuElement.querySelector('.user-dropdown');
             if (dropdown) {
-                userMenuElement.addEventListener('mouseenter', () => {
+                // Show dropdown on hover
+                const showDropdown = () => {
+                    // Clear any pending hide timeout
+                    if (this.dropdownTimeout) {
+                        clearTimeout(this.dropdownTimeout);
+                        this.dropdownTimeout = null;
+                    }
+                    
                     dropdown.style.opacity = '1';
                     dropdown.style.visibility = 'visible';
                     dropdown.style.transform = 'translateY(0)';
-                });
+                };
 
-                userMenuElement.addEventListener('mouseleave', () => {
-                    dropdown.style.opacity = '0';
-                    dropdown.style.visibility = 'hidden';
-                    dropdown.style.transform = 'translateY(-10px)';
-                });
+                // Hide dropdown with delay
+                const hideDropdown = () => {
+                    this.dropdownTimeout = setTimeout(() => {
+                        dropdown.style.opacity = '0';
+                        dropdown.style.visibility = 'hidden';
+                        dropdown.style.transform = 'translateY(-10px)';
+                    }, 150); // Small delay to prevent flickering
+                };
+
+                // Add hover events to both the trigger and dropdown
+                userMenuElement.addEventListener('mouseenter', showDropdown);
+                userMenuElement.addEventListener('mouseleave', hideDropdown);
+                
+                // Also add events to the dropdown itself
+                dropdown.addEventListener('mouseenter', showDropdown);
+                dropdown.addEventListener('mouseleave', hideDropdown);
             }
         }
 
-        // Setup admin dropdown
+        // Setup admin dropdown with same improved logic
         const adminDropdown = document.querySelector('.admin-dropdown');
         if (adminDropdown) {
             const adminMenu = adminDropdown.querySelector('.admin-menu');
             if (adminMenu) {
-                adminDropdown.addEventListener('mouseenter', () => {
+                let adminTimeout = null;
+
+                const showAdminMenu = () => {
+                    if (adminTimeout) {
+                        clearTimeout(adminTimeout);
+                        adminTimeout = null;
+                    }
+                    
                     adminMenu.style.opacity = '1';
                     adminMenu.style.visibility = 'visible';
                     adminMenu.style.transform = 'translateY(0)';
-                });
+                };
 
-                adminDropdown.addEventListener('mouseleave', () => {
-                    adminMenu.style.opacity = '0';
-                    adminMenu.style.visibility = 'hidden';
-                    adminMenu.style.transform = 'translateY(-10px)';
-                });
+                const hideAdminMenu = () => {
+                    adminTimeout = setTimeout(() => {
+                        adminMenu.style.opacity = '0';
+                        adminMenu.style.visibility = 'hidden';
+                        adminMenu.style.transform = 'translateY(-10px)';
+                    }, 150);
+                };
+
+                adminDropdown.addEventListener('mouseenter', showAdminMenu);
+                adminDropdown.addEventListener('mouseleave', hideAdminMenu);
+                
+                adminMenu.addEventListener('mouseenter', showAdminMenu);
+                adminMenu.addEventListener('mouseleave', hideAdminMenu);
             }
         }
     }
@@ -139,8 +183,10 @@ class Navbar {
         
         if (currentUser) {
             this.showUserMenu(currentUser);
+            this.showLoggedInElements();
         } else {
             this.showAuthButtons();
+            this.hideLoggedInElements();
         }
     }
 
@@ -213,6 +259,50 @@ class Navbar {
         }
         if (this.mobileUserMenu) {
             this.mobileUserMenu.style.display = 'none';
+        }
+    }
+
+    showLoggedInElements() {
+        // Show elements that should only be visible when logged in
+        if (this.cartBtn) {
+            this.cartBtn.style.display = 'flex';
+        }
+        if (this.providerBtn) {
+            this.providerBtn.style.display = 'block';
+        }
+        if (this.adminDropdown) {
+            this.adminDropdown.style.display = 'block';
+        }
+        if (this.mobileCart) {
+            this.mobileCart.style.display = 'block';
+        }
+        if (this.mobileProvider) {
+            this.mobileProvider.style.display = 'block';
+        }
+        if (this.mobileAdmin) {
+            this.mobileAdmin.style.display = 'block';
+        }
+    }
+
+    hideLoggedInElements() {
+        // Hide elements that should only be visible when logged in
+        if (this.cartBtn) {
+            this.cartBtn.style.display = 'none';
+        }
+        if (this.providerBtn) {
+            this.providerBtn.style.display = 'none';
+        }
+        if (this.adminDropdown) {
+            this.adminDropdown.style.display = 'none';
+        }
+        if (this.mobileCart) {
+            this.mobileCart.style.display = 'none';
+        }
+        if (this.mobileProvider) {
+            this.mobileProvider.style.display = 'none';
+        }
+        if (this.mobileAdmin) {
+            this.mobileAdmin.style.display = 'none';
         }
     }
 
