@@ -37,8 +37,53 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 });
 
-// Load grounds data from JSON file
+// Load grounds data from localStorage first, then JSON file as fallback
 async function loadGroundsData() {
+    try {
+        // First, try to load from localStorage
+        console.log('Attempting to load grounds data from localStorage...');
+        const localStorageData = loadFromLocalStorage();
+        
+        if (localStorageData && localStorageData.length > 0) {
+            console.log('Successfully loaded grounds data from localStorage:', localStorageData);
+            allGrounds = localStorageData;
+            filteredGrounds = [...allGrounds];
+            displayGrounds();
+            updateResultsCount();
+            return;
+        }
+        
+        // If localStorage is empty or doesn't exist, load from JSON file
+        console.log('localStorage empty or not found, loading from JSON file...');
+        await loadFromJsonFile();
+        
+    } catch (error) {
+        console.error('Error in loadGroundsData:', error);
+        displayError('Failed to load sports grounds. Please try again later.');
+        
+        // Final fallback: load sample data
+        loadSampleData();
+    }
+}
+
+// Load data from localStorage
+function loadFromLocalStorage() {
+    try {
+        const storedGrounds = localStorage.getItem('sportsGrounds');
+        if (storedGrounds) {
+            const parsedData = JSON.parse(storedGrounds);
+            // Handle both array format and object format with 'grounds' property
+            return Array.isArray(parsedData) ? parsedData : (parsedData.grounds || []);
+        }
+        return null;
+    } catch (error) {
+        console.error('Error parsing localStorage data:', error);
+        return null;
+    }
+}
+
+// Load data from JSON file
+async function loadFromJsonFile() {
     try {
         // UPDATE THIS PATH based on your file structure
         const response = await fetch('../../data/grounds.json'); // Relative path to your JSON file
@@ -48,52 +93,69 @@ async function loadGroundsData() {
         }
         
         const data = await response.json();
-        allGrounds = data.grounds;
+        allGrounds = data.grounds || data; // Handle both formats
         filteredGrounds = [...allGrounds]; // Initialize filtered grounds
+        
+        // Store the loaded data in localStorage for future use
+        saveToLocalStorage(allGrounds);
         
         displayGrounds();
         updateResultsCount();
         
-        console.log('Loaded grounds data:', allGrounds);
+        console.log('Loaded grounds data from JSON file:', allGrounds);
     } catch (error) {
-        console.error('Error loading grounds data:', error);
-        displayError('Failed to load sports grounds. Please try again later.');
+        console.error('Error loading grounds data from JSON file:', error);
+        throw error; // Re-throw to trigger fallback
+    }
+}
+
+// Save grounds data to localStorage
+function saveToLocalStorage(groundsData) {
+    try {
+        localStorage.setItem('sportsGrounds', JSON.stringify(groundsData));
+        console.log('Grounds data saved to localStorage');
+    } catch (error) {
+        console.error('Error saving to localStorage:', error);
+    }
+}
+
+// Function to manually update localStorage (can be called from admin panel or other sources)
+function updateLocalStorageGrounds(newGroundsData) {
+    try {
+        const dataToStore = Array.isArray(newGroundsData) ? newGroundsData : newGroundsData.grounds;
+        saveToLocalStorage(dataToStore);
         
-        // Fallback: load sample data for testing
-        loadSampleData();
+        // Refresh the current view
+        allGrounds = dataToStore;
+        filteredGrounds = [...allGrounds];
+        displayGrounds();
+        updateResultsCount();
+        populateFilters(); // Re-populate filters with new data
+        
+        console.log('localStorage updated with new grounds data');
+        return true;
+    } catch (error) {
+        console.error('Error updating localStorage:', error);
+        return false;
+    }
+}
+
+// Function to clear localStorage grounds data
+function clearLocalStorageGrounds() {
+    try {
+        localStorage.removeItem('sportsGrounds');
+        console.log('Grounds data cleared from localStorage');
+        
+        // Reload from JSON file
+        loadGroundsData();
+        return true;
+    } catch (error) {
+        console.error('Error clearing localStorage:', error);
+        return false;
     }
 }
 
 
-function loadSampleData() {
-    console.log('Loading sample data as fallback...');
-    allGrounds = [
-        {
-            id: 1,
-            name: "City Sports Complex",
-            location: "Downtown",
-            sports: ["Tennis", "Basketball"],
-            rating: 4.5,
-            pricePerHour: 25,
-            amenities: ["Parking", "Restrooms", "Lighting", "Equipment Rental"],
-            availableSlots: ["9:00 AM", "11:00 AM", "2:00 PM", "4:00 PM", "6:00 PM"]
-        },
-        {
-            id: 2,
-            name: "Tennis Center Pro",
-            location: "Uptown",
-            sports: ["Tennis"],
-            rating: 4.8,
-            pricePerHour: 30,
-            amenities: ["Pro Shop", "Coaching", "Parking", "Restrooms", "Air Conditioning"],
-            availableSlots: ["8:00 AM", "10:00 AM", "1:00 PM", "3:00 PM", "5:00 PM"]
-        }
-    ];
-    
-    filteredGrounds = [...allGrounds];
-    displayGrounds();
-    updateResultsCount();
-}
 
 // Display grounds in the UI
 function displayGrounds() {
@@ -174,7 +236,8 @@ function createGroundCard(ground) {
                     View Details
                 </button>
                 <button class="book-now-btn" onclick="bookGround(${ground.id})">
-                    Book Now
+                <a href="/pages/login.html">
+                    Book Now</a>
                 </button>
             </div>
         </div>
@@ -208,6 +271,14 @@ function populateFilters() {
     if (!locationSelect || !sportTypeSelect) {
         console.error('Filter elements not found');
         return;
+    }
+    
+    // Clear existing options (except the first default option)
+    while (locationSelect.children.length > 1) {
+        locationSelect.removeChild(locationSelect.lastChild);
+    }
+    while (sportTypeSelect.children.length > 1) {
+        sportTypeSelect.removeChild(sportTypeSelect.lastChild);
     }
     
     // Get unique locations
@@ -343,3 +414,5 @@ function formatTime(timeString) {
 window.searchGrounds = searchGrounds;
 window.viewGroundDetails = viewGroundDetails;
 window.bookGround = bookGround;
+window.updateLocalStorageGrounds = updateLocalStorageGrounds;
+window.clearLocalStorageGrounds = clearLocalStorageGrounds;
