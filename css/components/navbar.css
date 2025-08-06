@@ -209,6 +209,7 @@
 /* Signup Button */
 .signup-btn {
   padding: 0.5rem 1rem;
+  margin-left: 1rem;
   border: none;
   border-radius: var(--radius);
   background: var(--gradient-primary);

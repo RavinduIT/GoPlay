@@ -1,15 +1,92 @@
-{
-    "coaches": [
-        {
-            "id": 1,
-            "name": "",
-            "sport": "",
-            "experience": "",
-            "rating": 0,
-            "hourlyRate": 0,
-            "availability": [],
-            "image": "",
-            "bio": ""
-        }
-    ]
-}
+[
+  {
+    "id": 1,
+    "name": "Alex Rodriguez",
+    "email": "alex.rodriguez@email.com",
+    "phone": "+1234567890",
+    "specialization": ["Tennis", "Badminton"],
+    "experience": "5 years",
+    "location": "New York",
+    "bio": "Professional tennis coach with 5 years of experience training players from beginner to advanced levels.",
+    "certifications": ["PTR Certified", "USPTA Professional"],
+    "hourlyRate": 50,
+    "availability": ["Monday", "Wednesday", "Friday"],
+    "rating": 4.8,
+    "totalStudents": 45,
+    "joinDate": "2023-01-15",
+    "status": "Active",
+    "profileImage": "alex_rodriguez.jpg"
+  },
+  {
+    "id": 2,
+    "name": "Maria Santos",
+    "email": "maria.santos@email.com",
+    "phone": "+1234567891",
+    "specialization": ["Football", "Soccer"],
+    "experience": "8 years",
+    "location": "California",
+    "bio": "Former professional soccer player turned coach. Specializes in youth development and tactical training.",
+    "certifications": ["FIFA Coaching License", "UEFA B License"],
+    "hourlyRate": 60,
+    "availability": ["Tuesday", "Thursday", "Saturday"],
+    "rating": 4.9,
+    "totalStudents": 67,
+    "joinDate": "2022-03-20",
+    "status": "Active",
+    "profileImage": "maria_santos.jpg"
+  },
+  {
+    "id": 3,
+    "name": "David Chen",
+    "email": "david.chen@email.com",
+    "phone": "+1234567892",
+    "specialization": ["Basketball", "Volleyball"],
+    "experience": "6 years",
+    "location": "Texas",
+    "bio": "Basketball coach with extensive experience in player development and team strategy.",
+    "certifications": ["NBA Coach Certification", "NFHS Certified"],
+    "hourlyRate": 55,
+    "availability": ["Monday", "Tuesday", "Thursday"],
+    "rating": 4.7,
+    "totalStudents": 38,
+    "joinDate": "2023-06-10",
+    "status": "Active",
+    "profileImage": "david_chen.jpg"
+  },
+  {
+    "id": 4,
+    "name": "Sarah Johnson",
+    "email": "sarah.johnson@email.com",
+    "phone": "+1234567893",
+    "specialization": ["Swimming", "Water Polo"],
+    "experience": "4 years",
+    "location": "Florida",
+    "bio": "Swimming instructor and water polo coach with Olympic training background.",
+    "certifications": ["Red Cross Water Safety", "USA Swimming Certified"],
+    "hourlyRate": 45,
+    "availability": ["Wednesday", "Friday", "Sunday"],
+    "rating": 4.6,
+    "totalStudents": 29,
+    "joinDate": "2023-09-05",
+    "status": "Active",
+    "profileImage": "sarah_johnson.jpg"
+  },
+  {
+    "id": 5,
+    "name": "Michael Brown",
+    "email": "michael.brown@email.com",
+    "phone": "+1234567894",
+    "specialization": ["Cricket", "Baseball"],
+    "experience": "7 years",
+    "location": "Illinois",
+    "bio": "Cricket and baseball coach with international playing experience.",
+    "certifications": ["Cricket Australia Level 2", "ABCA Certified"],
+    "hourlyRate": 52,
+    "availability": ["Monday", "Wednesday", "Saturday"],
+    "rating": 4.5,
+    "totalStudents": 41,
+    "joinDate": "2022-11-15",
+    "status": "Pending",
+    "profileImage": "michael_brown.jpg"
+  }
+]
