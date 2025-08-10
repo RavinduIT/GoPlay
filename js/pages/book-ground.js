@@ -26,11 +26,11 @@ function initializeBookGroundPage() {
 }*/
 
 
-// Global variables
+
 let allGrounds = [];
 let filteredGrounds = [];
 
-// Initialize the page
+
 document.addEventListener('DOMContentLoaded', function() {
     loadGroundsData();
     populateFilters();
