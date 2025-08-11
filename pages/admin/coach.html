@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/admin/coach.css">
+</head>
+<body>
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Coach Admin Dashboard</h1>
+            <p>Manage your coaching services and sessions</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Total Coaches</span>
+                    <div class="stat-icon coaches">👥</div>
+                </div>
+                <div class="stat-value">2</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Today Earnings</span>
+                    <div class="stat-icon earnings">💰</div>
+                </div>
+                <div class="stat-value">$640</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Sessions Today</span>
+                    <div class="stat-icon sessions">📅</div>
+                </div>
+                <div class="stat-value">8</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Avg Rating</span>
+                    <div class="stat-icon rating">⭐</div>
+                </div>
+                <div class="stat-value">4.8</div>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('coaches')">Coaches</button>
+            <button class="nav-tab" onclick="showTab('sessions')">Sessions</button>
+            <button class="nav-tab" onclick="showTab('certifications')">Certifications</button>
+            <button class="nav-tab" onclick="showTab('analytics')">Analytics</button>
+        </div>
+
+        <div id="coaches" class="tab-content active">
+            <div class="section-card">
+                <h2 class="section-title">+ Add New Coach</h2>
+                <div class="add-coach-form">
+                    <div class="form-group">
+                        <label class="form-label">Coach Name</label>
+                        <input type="text" class="form-input" placeholder="Enter coach name" id="coach-name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sport</label>
+                        <select class="form-input" id="coach-sport">
+                            <option>Select sport</option>
+                            <option>Basketball</option>
+                            <option>Tennis</option>
+                            <option>Football</option>
+                            <option>Soccer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Experience (years)</label>
+                        <input type="number" class="form-input" placeholder="0" id="coach-experience">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Price per Hour ($)</label>
+                        <input type="number" class="form-input" placeholder="0.00" id="coach-price">
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">Biography</label>
+                        <textarea class="form-input form-textarea" placeholder="Enter coach biography and specializations" id="coach-bio"></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <button class="btn btn-primary" id="add-coach-btn">Add Coach</button>
+                    </div>
+                </div>
+
+                <h2 class="section-title">Your Coaching Team</h2>
+                <div class="coach-list">
+                    <div class="coach-item">
+                        <div class="coach-info">
+                            <div class="coach-avatar">MJ</div>
+                            <div class="coach-details">
+                                <h3>Michael Johnson</h3>
+                                <div class="coach-meta">Basketball • 8 years</div>
+                                <div class="coach-meta" style="margin-top: 4px;">Shooting, Defense</div>
+                            </div>
+                        </div>
+                        <div class="coach-stats">
+                            <span style="font-weight: 600;">$75/hour</span>
+                            <span style="color: #059669; font-weight: 600;">⭐ 4.9</span>
+                            <span class="coach-badge">active</span>
+                        </div>
+                        <div class="coach-actions">
+                            <button class="btn-icon btn-edit" title="Edit Coach">✏️</button>
+                            <button class="btn-icon btn-delete" title="Delete Coach">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="coach-item">
+                        <div class="coach-info">
+                            <div class="coach-avatar">SW</div>
+                            <div class="coach-details">
+                                <h3>Sarah Williams</h3>
+                                <div class="coach-meta">Tennis • 12 years</div>
+                                <div class="coach-meta" style="margin-top: 4px;">Technique, Mental Game</div>
+                            </div>
+                        </div>
+                        <div class="coach-stats">
+                            <span style="font-weight: 600;">$85/hour</span>
+                            <span style="color: #059669; font-weight: 600;">⭐ 4.8</span>
+                            <span class="coach-badge">active</span>
+                        </div>
+                        <div class="coach-actions">
+                            <button class="btn-icon btn-edit" title="Edit Coach">✏️</button>
+                            <button class="btn-icon btn-delete" title="Delete Coach">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="sessions" class="tab-content">
+            <div class="section-card">
+                <h2 class="section-title">Coaching Sessions</h2>
+                <div class="session-item">
+                    <div class="session-info">
+                        <h3>Basketball Training</h3>
+                        <div class="session-meta">Alex Johnson • 1 hour • 15:00-16:00</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="session-price">$75.00</div>
+                        <span class="session-status status-scheduled">Scheduled</span>
+                    </div>
+                </div>
+                <div class="session-item">
+                    <div class="session-info">
+                        <h3>Tennis Lesson</h3>
+                        <div class="session-meta">Emma Davis • 1.5 hours • 10:00-11:30</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="session-price">$127.50</div>
+                        <span class="session-status status-completed">Completed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="certifications" class="tab-content">
+            <div class="section-card">
+                <h2 class="section-title">Certifications & Qualifications</h2>
+                <div class="cert-item">
+                    <div class="cert-info">
+                        <div class="cert-icon">🏀</div>
+                        <div class="cert-details">
+                            <h3>FIBA Level 2 Certification</h3>
+                            <div class="cert-meta">Basketball Coaching • Valid until 2025</div>
+                        </div>
+                    </div>
+                    <div class="verified-badge">
+                        ✓ Verified
+                    </div>
+                </div>
+                <div class="cert-item">
+                    <div class="cert-info">
+                        <div class="cert-icon">🧠</div>
+                        <div class="cert-details">
+                            <h3>Sports Psychology Certificate</h3>
+                            <div class="cert-meta">Mental Training • Valid until 2026</div>
+                        </div>
+                    </div>
+                    <div class="verified-badge">
+                        ✓ Verified
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="analytics" class="tab-content">
+            <div class="section-card">
+                <h2 class="section-title">Performance Analytics</h2>
+                <div class="analytics-grid">
+                    <div class="analytics-section">
+                        <h3>Most Popular Sports</h3>
+                        <div class="sport-item">
+                            <span class="sport-name">Basketball</span>
+                            <span class="sport-percentage">55%</span>
+                        </div>
+                        <div class="sport-item">
+                            <span class="sport-name">Tennis</span>
+                            <span class="sport-percentage">35%</span>
+                        </div>
+                        <div class="sport-item">
+                            <span class="sport-name">Football</span>
+                            <span class="sport-percentage">10%</span>
+                        </div>
+                    </div>
+                    <div class="analytics-section">
+                        <h3>Monthly Earnings</h3>
+                        <div class="earnings-value">$5,670</div>
+                        <div class="earnings-growth">+22% from last month</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/pages/admin/coach.js"></script>
+</body>
+</html>
