@@ -1,38 +1,4 @@
-/* Root Variables */
-:root {
-  --primary: #15803d;
-  --primary-foreground: #ffffff;
-  --primary-50: rgba(21, 128, 61, 0.05);
-  --primary-100: rgba(21, 128, 61, 0.1);
-  
-  --accent: #22c55e;
-  --accent-50: rgba(34, 197, 94, 0.05);
-  --accent-100: rgba(34, 197, 94, 0.1);
-  
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
-  
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  
-  --border: #e2e8f0;
-  --input: #f1f5f9;
-  
-  --secondary: #f1f5f9;
-  --secondary-foreground: #475569;
-  
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  
-  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-  
-  --gradient-primary: linear-gradient(135deg, var(--primary), var(--accent));
-  --radius: 0.5rem;
-  --radius-lg: 1rem;
-}
+/* Navbar Component - Uses variables from main.css */
 
 /* Universal Transition */
 * {

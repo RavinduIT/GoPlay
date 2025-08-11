@@ -46,7 +46,7 @@
         }
 
         .icon-wrapper {
-            background-color: hsla(240, 9%, 10%, 0.1);
+            background-color: var(--primary-50);
             padding: 0.75rem;
             border-radius: 50%;
             display: flex;
