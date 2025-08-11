@@ -1,49 +1,72 @@
 /* Main CSS - Global Styles and Variables */
 
 :root {
-  /* Greens - Base theme */
-  --primary: #15803d; /* Deep green */
-  --primary-foreground: #ffffff;
+  /* Enhanced Green Theme - All Variants */
+  --primary: #15803d;              /* Deep green - main brand color */
+  --primary-dark: #064e3b;         /* Darker green for headers/emphasis */
+  --primary-light: #22c55e;        /* Bright green for accents */
+  --primary-foreground: #ffffff;   /* White text on green backgrounds */
+  
+  /* Green Opacity Variations */
   --primary-50: rgba(21, 128, 61, 0.05);
   --primary-100: rgba(21, 128, 61, 0.1);
-
-  --accent: #22c55e; /* Vivid green */
+  --primary-200: rgba(21, 128, 61, 0.2);
+  --primary-300: rgba(21, 128, 61, 0.3);
+  --primary-500: rgba(21, 128, 61, 0.5);
+  
+  --accent: #22c55e;               /* Vivid green */
+  --accent-dark: #16a34a;          /* Darker accent green */
+  --accent-light: #4ade80;         /* Lighter accent green */
   --accent-50: rgba(34, 197, 94, 0.05);
   --accent-100: rgba(34, 197, 94, 0.1);
 
   /* Backgrounds */
   --background: #ffffff;           /* Clean white */
-  --foreground: #0f172a;           /* Rich dark blue/black for contrast */
+  --background-green: #f0fdf4;     /* Very light green background */
+  --foreground: #0f172a;           /* Rich dark text */
   --muted: #f0fdf4;                /* Subtle minty green */
-  --muted-foreground: #475569;     /* Slightly softened black */
+  --muted-foreground: #475569;     /* Softened text */
 
   /* Card Styles */
   --card: #ffffff;
   --card-foreground: #0f172a;
+  --card-green: #f0fdf4;           /* Light green card variant */
 
   /* Input/Border */
   --border: #bbf7d0;               /* Soft green border */
+  --border-green: #16a34a;         /* Strong green border */
   --input: #ecfdf5;                /* Very light green input */
+  --input-border: #bbf7d0;         /* Input border green */
 
   /* Secondary UI colors */
   --secondary: #ecfdf5;            /* Light minty green background */
   --secondary-foreground: #064e3b; /* Very dark green text */
+  --secondary-hover: #dcfce7;      /* Slightly darker on hover */
 
-  /* Destructive (alerts) */
-  --destructive: #dc2626;          /* Strong red */
-  --destructive-foreground: #ffffff;
+  /* Success/Error states */
+  --success: #22c55e;              /* Green for success */
+  --success-foreground: #ffffff;
+  --error: #dc2626;                /* Red for errors */
+  --error-foreground: #ffffff;
+  --warning: #f59e0b;              /* Amber for warnings */
+  --warning-foreground: #ffffff;
 
-  /* Shadows */
+  /* Shadows with green tint */
   --shadow-soft: 0 1px 3px 0 rgba(21, 128, 61, 0.1), 0 1px 2px 0 rgba(21, 128, 61, 0.06);
   --shadow-medium: 0 4px 6px -1px rgba(21, 128, 61, 0.1), 0 2px 4px -1px rgba(21, 128, 61, 0.06);
   --shadow-strong: 0 10px 15px -3px rgba(21, 128, 61, 0.1), 0 4px 6px -2px rgba(21, 128, 61, 0.05);
+  --shadow-green: 0 4px 6px -1px rgba(34, 197, 94, 0.1), 0 2px 4px -1px rgba(34, 197, 94, 0.06);
 
-  /* Gradients */
+  /* Enhanced Gradients */
   --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  --gradient-hero: linear-gradient(135deg, #064e3b 0%, #022c22 100%); /* Deep jungle gradient */
+  --gradient-hero: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  --gradient-light: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+  --gradient-card: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
 
+  /* Spacing and borders */
   --radius: 0.5rem;
   --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
 }
 
 

@@ -6,7 +6,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: white;
+    background-color: var(--background-green);
     min-height: 100vh;
     line-height: 1.6;
 }
@@ -19,13 +19,13 @@ body {
 
 /* Header Styles */
 .header {
-    background: #3e4651;
+    background: var(--gradient-hero);
     height: 200px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: white;
+    color: var(--primary-foreground);
     margin-bottom: 40px;
     position: relative;
     overflow: hidden;

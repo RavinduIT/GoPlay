@@ -1,16 +1,16 @@
  body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f7f7f7;
+      background: var(--background-green);
       margin: 0;
     }
 
     /* Header Section */
     header {
-      background: #00a651;
-      color: white;
+      background: var(--gradient-primary);
+      color: var(--primary-foreground);
       padding: 40px 20px;
       text-align: center;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid var(--border);
     }
 
     h2 {
