@@ -5,8 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coach Admin Dashboard</title>
     <link rel="stylesheet" href="/css/admin/coach.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/components.css">
+    <link rel="stylesheet" href="../../css/pages.css">
+    <link rel="stylesheet" href="../../css/components/navbar.css">
+    
 </head>
 <body>
+    <div id="navbar-container"></div>
     <div class="hero-section">
         <div class="hero-content">
             <h1>Coach Admin Dashboard</h1>
@@ -216,6 +222,22 @@
             </div>
         </div>
     </div>
+    <script src="../../js/components/navbar.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('/pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar(); // Initialize navbar behavior
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+    </script>
 
     <script src="/js/pages/admin/coach.js"></script>
 </body>
