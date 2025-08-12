@@ -9,59 +9,131 @@
   <link rel="stylesheet" href="/css/components/navbar.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="../css/pages/shop.css" />
-  
 </head>
 <body>
   <!-- Navbar Component -->
   <div id="navbar-container"></div>
-  <main class="shop-container">
-    <header>
-      <h1>Sports Equipment Shop</h1>
-      <p>Quality sports gear from top brands for all your athletic needs</p>
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search products..." />
-        <select id="categoryFilter">
-          <option value="">All categories</option>
-          <option value="Basketball">Basketball</option>
-          <option value="Cricket">Cricket</option>
-          <option value="Badminton">Badminton</option>
-          <option value="Tennis">Tennis</option>
-          <option value="Football">Football</option>
-        </select>
-        <select id="brandFilter">
-          <option value="">All brands</option>
-          <option value="Nike">Nike</option>
-          <option value="Spalding">Spalding</option>
-          <option value="Speedo">Speedo</option>
-          <option value="Wilson">Wilson</option>
-          <option value="Li-Ning">Li-Ning</option>
-          <option value="Stanford">Stanford</option>
-          <option value="Under Armour">Under Armour</option>
-          <option value="Adidas">Adidas</option>
-        </select>
-        <select id="priceFilter">
-          <option value="">Price range</option>
-          <option value="0-10000">Rs.0–Rs.10,000</option>
-          <option value="10000-20000">Rs.10,000–Rs.20,000</option>
-          <option value="20000-30000">Rs.20,000–Rs.30,000</option>
-          <option value="30000-40000">Rs.30,000–Rs.40,000</option>
-          <option value="40000-50000">Rs.40,000–Rs.50,000</option>
-          <option value="50000+">Above Rs.50,000</option>
-        </select>
-      </div>
-    </header>
+  
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1>Premium Sports Equipment</h1>
+      <p>Discover top-quality gear from leading brands for all your sporting adventures</p>
+    </div>
+  </section>
 
-    <h2 id="productCount">Products (6)</h2>
-    
-    <!-- Added the missing product grid container -->
-    <div id="productGrid" class="product-grid"></div>
-    
+  <main class="shop-container">
+    <!-- Filters Section -->
+    <section class="filters-section">
+      <div class="filter-container">
+        <div class="search-group">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" placeholder="Search products, brands, categories..." />
+        </div>
+        
+        <div class="filter-group">
+          <select id="categoryFilter">
+            <option value="">All Categories</option>
+            <option value="Tennis">Tennis</option>
+            <option value="Basketball">Basketball</option>
+            <option value="Football">Football</option>
+            <option value="Badminton">Badminton</option>
+            <option value="Swimming">Swimming</option>
+            <option value="Volleyball">Volleyball</option>
+            <option value="Cricket">Cricket</option>
+            <option value="Table Tennis">Table Tennis</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <select id="brandFilter">
+            <option value="">All Brands</option>
+            <option value="Wilson">Wilson</option>
+            <option value="Nike">Nike</option>
+            <option value="Adidas">Adidas</option>
+            <option value="Yonex">Yonex</option>
+            <option value="Speedo">Speedo</option>
+            <option value="Mikasa">Mikasa</option>
+            <option value="Gray Nicolls">Gray Nicolls</option>
+            <option value="Butterfly">Butterfly</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <select id="priceFilter">
+            <option value="">Price Range</option>
+            <option value="0-50">$0 - $50</option>
+            <option value="50-100">$50 - $100</option>
+            <option value="100-200">$100 - $200</option>
+            <option value="200+">$200+</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <select id="sortFilter">
+            <option value="name-asc">Name A-Z</option>
+            <option value="name-desc">Name Z-A</option>
+            <option value="price-asc">Price Low to High</option>
+            <option value="price-desc">Price High to Low</option>
+            <option value="rating-desc">Highest Rated</option>
+            <option value="newest">Newest First</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section">
+      <div class="results-header">
+        <h2 id="productCount">Loading products...</h2>
+        <div class="view-toggle">
+          <button id="gridView" class="view-btn active"><i class="fas fa-th"></i></button>
+          <button id="listView" class="view-btn"><i class="fas fa-list"></i></button>
+        </div>
+      </div>
+      
+      <div id="productGrid" class="product-grid grid-view"></div>
+      <div id="loadingSpinner" class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Loading products...</p>
+      </div>
+      <div id="noResults" class="no-results" style="display: none;">
+        <i class="fas fa-search"></i>
+        <h3>No products found</h3>
+        <p>Try adjusting your filters or search terms</p>
+      </div>
+    </section>
   </main>
 
-  <script src="../js/utils.js"></script>
+  <!-- Cart Sidebar -->
+  <div id="cartSidebar" class="cart-sidebar">
+    <div class="cart-header">
+      <h3><i class="fas fa-shopping-cart"></i> Shopping Cart</h3>
+      <button id="closeCart" class="close-btn">&times;</button>
+    </div>
+    <div class="cart-content">
+      <div id="cartItems"></div>
+      <div class="cart-footer">
+        <div class="cart-total">
+          <strong>Total: $<span id="cartTotal">0.00</span></strong>
+        </div>
+        <button class="checkout-btn">
+          <i class="fas fa-credit-card"></i> Checkout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Button -->
+  <button id="cartButton" class="cart-button">
+    <i class="fas fa-shopping-cart"></i>
+    <span id="cartCount">0</span>
+  </button>
+
+  <script src="../js/components/navbar.js"></script>
   <script src="../js/auth.js"></script>
-  <script src="../js/pages/shop.js"></script>
-  <script src="/js/components/navbar.js"></script>
+  <script src="../data-utils.js"></script>
+  
   <script>
     // Load navbar
     fetch('/pages/components/navbar.html')
@@ -72,192 +144,424 @@
       })
       .catch(err => console.log('Navbar not found, continuing without it'));
 
-    function logout() {
-      localStorage.removeItem('currentUser');
-      window.location.href = '/';
-    }
-  </script>
-  <script>
-    const products = [
-      {
-        title: "Badminton Racket",
-        brand: "Li-Ning",
-        category: "Badminton",
-        rating: 4.5,
-        reviews: 128,
-        price: 6500,
-        description: "Smash harder, move faster – engineered for champions",
-        features: ["Flexible", "Lightweight", "Beginner"],
-        image: "images/badminton.jpg"
-      },
-      {
-        title: "Spalding Basketball [Pulse]",
-        brand: "Spalding",
-        category: "Basketball",
-        rating: 4.6,
-        reviews: 189,
-        price: 2500,
-        description: "Durable leather basketball for indoor and outdoor play",
-        features: ["Size 7", "Indoor/Outdoor", "High Grip"],
-        image: "images/basketball.jpg"
-      },
-      {
-        title: "Original English Willow Cricket Bat",
-        brand: "Stanford",
-        category: "Cricket",
-        rating: 4.7,
-        reviews: 312,
-        price: 125000,
-        description: "Best Quality Bat for Beginner use",
-        features: ["Weight 1.13kg", "Best Quality", "Leather"],
-        image: "images/cricket bat.jpg"
-      },
-      {
-        title: "Professional Football",
-        brand: "Nike",
-        category: "Football",
-        rating: 4.8,
-        reviews: 234,
-        price: 3000,
-        description: "Professional quality football for competitive matches",
-        features: ["Official Size 5", "FIFA Approved", "Durable Construction"],
-        image: "images/football.jpg"
-      },
-      {
-        title: "Tennis Racket",
-        brand: "Wilson",
-        category: "Tennis",
-        rating: 4.9,
-        reviews: 89,
-        price: 5000,
-        description: "Lightweight and strong racket for power and control",
-        features: ["Graphite Frame", "Shock Absorption", "Pro Grip"],
-        image: "images/tennis-racket.jpg"
-      },
-      {
-        title: "Cricket Helmet",
-        brand: "Adidas",
-        category: "Cricket",
-        rating: 4.4,
-        reviews: 67,
-        price: 7000,
-        description: "Play fearless. Head protection that never backs down",
-        features: ["Stainless Steel Grill", "Moisture-wicking design", "Lightweight"],
-        image: "images/cricket helmet.jpg"
-      }
-    ];
-
-    // Store original products for filtering
-    let filteredProducts = [...products];
-
-    function renderProducts(productsToRender) {
-      const productGrid = document.getElementById("productGrid");
-      productGrid.innerHTML = ""; // Clear existing products
-
-      if (productsToRender.length === 0) {
-        productGrid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No products found matching your criteria.</p>';
-        updateProductCount(0);
-        return;
+    // Professional Shop Application
+    class ShopApp {
+      constructor() {
+        this.products = [];
+        this.filteredProducts = [];
+        this.cart = JSON.parse(localStorage.getItem('cart')) || [];
+        this.currentView = 'grid';
+        this.init();
       }
 
-      productsToRender.forEach((product, index) => {
-        const productHTML = `
-          <div class="product-card">
-            <div class="no-image">Product Image</div>
-            <h3 class="product-title">${product.title}</h3>
-            <div class="product-brand">${product.brand}</div>
-            <span class="category-tag">${product.category}</span>
-            <div class="rating">
-              <span class="star">⭐</span>
-              <span class="rating-score">${product.rating}</span>
-              <span class="review-count">(${product.reviews})</span>
+      async init() {
+        try {
+          await this.loadProducts();
+          this.setupEventListeners();
+          this.updateCartDisplay();
+          this.hideLoadingSpinner();
+          this.renderProducts();
+        } catch (error) {
+          console.error('Failed to initialize shop:', error);
+          this.showError('Failed to load products');
+        }
+      }
+
+      async loadProducts() {
+        try {
+          const response = await fetch('../data/products.json');
+          if (!response.ok) throw new Error('Failed to fetch products');
+          this.products = await response.json();
+          this.filteredProducts = [...this.products];
+        } catch (error) {
+          // Fallback to sample data if JSON file fails
+          this.products = this.getSampleProducts();
+          this.filteredProducts = [...this.products];
+        }
+      }
+
+      getSampleProducts() {
+        return [
+          {
+            id: 1,
+            name: "Professional Tennis Racket",
+            brand: "Wilson",
+            category: "Tennis",
+            price: 199.99,
+            originalPrice: 249.99,
+            discount: 20,
+            rating: 4.8,
+            totalReviews: 142,
+            inStock: true,
+            description: "High-performance tennis racket used by professional players",
+            images: ["tennis_racket_1.jpg"],
+            status: "Active"
+          },
+          {
+            id: 2,
+            name: "Premium Basketball Shoes",
+            brand: "Nike",
+            category: "Basketball",
+            price: 179.99,
+            originalPrice: 199.99,
+            discount: 10,
+            rating: 4.7,
+            totalReviews: 89,
+            inStock: true,
+            description: "Latest basketball shoes with advanced cushioning technology",
+            images: ["basketball_shoes_1.jpg"],
+            status: "Active"
+          },
+          {
+            id: 3,
+            name: "FIFA Official Soccer Ball",
+            brand: "Adidas",
+            category: "Football",
+            price: 49.99,
+            originalPrice: 59.99,
+            discount: 17,
+            rating: 4.9,
+            totalReviews: 234,
+            inStock: true,
+            description: "Official FIFA World Cup soccer ball",
+            images: ["soccer_ball_1.jpg"],
+            status: "Active"
+          }
+        ];
+      }
+
+      setupEventListeners() {
+        // Filter listeners
+        document.getElementById('searchInput').addEventListener('input', () => this.applyFilters());
+        document.getElementById('categoryFilter').addEventListener('change', () => this.applyFilters());
+        document.getElementById('brandFilter').addEventListener('change', () => this.applyFilters());
+        document.getElementById('priceFilter').addEventListener('change', () => this.applyFilters());
+        document.getElementById('sortFilter').addEventListener('change', () => this.applyFilters());
+
+        // View toggle listeners
+        document.getElementById('gridView').addEventListener('click', () => this.setView('grid'));
+        document.getElementById('listView').addEventListener('click', () => this.setView('list'));
+
+        // Cart listeners
+        document.getElementById('cartButton').addEventListener('click', () => this.toggleCart());
+        document.getElementById('closeCart').addEventListener('click', () => this.closeCart());
+      }
+
+      applyFilters() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const category = document.getElementById('categoryFilter').value;
+        const brand = document.getElementById('brandFilter').value;
+        const priceRange = document.getElementById('priceFilter').value;
+        const sort = document.getElementById('sortFilter').value;
+
+        this.filteredProducts = this.products.filter(product => {
+          const matchesSearch = !searchTerm || 
+            product.name.toLowerCase().includes(searchTerm) ||
+            product.description.toLowerCase().includes(searchTerm) ||
+            product.brand.toLowerCase().includes(searchTerm);
+
+          const matchesCategory = !category || product.category === category;
+          const matchesBrand = !brand || product.brand === brand;
+          
+          let matchesPrice = true;
+          if (priceRange) {
+            if (priceRange === '200+') {
+              matchesPrice = product.price >= 200;
+            } else {
+              const [min, max] = priceRange.split('-').map(Number);
+              matchesPrice = product.price >= min && product.price <= max;
+            }
+          }
+
+          return matchesSearch && matchesCategory && matchesBrand && matchesPrice && product.status === 'Active';
+        });
+
+        // Apply sorting
+        this.sortProducts(sort);
+        this.renderProducts();
+      }
+
+      sortProducts(sortType) {
+        switch(sortType) {
+          case 'name-asc':
+            this.filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+          case 'name-desc':
+            this.filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
+            break;
+          case 'price-asc':
+            this.filteredProducts.sort((a, b) => a.price - b.price);
+            break;
+          case 'price-desc':
+            this.filteredProducts.sort((a, b) => b.price - a.price);
+            break;
+          case 'rating-desc':
+            this.filteredProducts.sort((a, b) => b.rating - a.rating);
+            break;
+          case 'newest':
+            this.filteredProducts.sort((a, b) => new Date(b.listedDate) - new Date(a.listedDate));
+            break;
+        }
+      }
+
+      renderProducts() {
+        const grid = document.getElementById('productGrid');
+        const noResults = document.getElementById('noResults');
+        
+        if (this.filteredProducts.length === 0) {
+          grid.style.display = 'none';
+          noResults.style.display = 'block';
+          this.updateProductCount(0);
+          return;
+        }
+
+        grid.style.display = 'grid';
+        noResults.style.display = 'none';
+        
+        grid.innerHTML = this.filteredProducts.map(product => 
+          this.createProductCard(product)
+        ).join('');
+        
+        this.updateProductCount(this.filteredProducts.length);
+      }
+
+      createProductCard(product) {
+        const discountBadge = product.discount ? 
+          `<div class="discount-badge">-${product.discount}%</div>` : '';
+        
+        const originalPriceHTML = product.originalPrice ? 
+          `<span class="original-price">$${product.originalPrice.toFixed(2)}</span>` : '';
+
+        return `
+          <div class="product-card ${!product.inStock ? 'out-of-stock' : ''}">
+            ${discountBadge}
+            <div class="product-image">
+              <img src="../assets/images/${product.images[0]}" alt="${product.name}" 
+                   onerror="this.src='../assets/images/placeholder.jpg'">
+              <div class="product-actions">
+                <button class="action-btn wishlist-btn" onclick="shop.toggleWishlist(${product.id})">
+                  <i class="far fa-heart"></i>
+                </button>
+                <button class="action-btn quick-view-btn" onclick="shop.quickView(${product.id})">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
             </div>
-            <div class="price"><span class="current-price">Rs.${product.price.toLocaleString()}.00</span></div>
-            <p class="description">${product.description}</p>
-            <div class="features">
-              ${product.features.map(f => `<span class="feature">${f}</span>`).join('')}
-            </div>
-            <div class="buttons">
-              <button class="icon-button" onclick="toggleWishlist(${index})">🤍</button>
-              <button class="view-btn" onclick="viewProduct(${index})">View Details</button>
-              <button class="buy-btn" onclick="buyProduct(${index})">Buy Now</button>
+            
+            <div class="product-info">
+              <div class="product-brand">${product.brand}</div>
+              <h3 class="product-name">${product.name}</h3>
+              <div class="product-rating">
+                <div class="stars">
+                  ${this.generateStars(product.rating)}
+                </div>
+                <span class="rating-text">${product.rating} (${product.totalReviews})</span>
+              </div>
+              
+              <p class="product-description">${product.description}</p>
+              
+              <div class="product-pricing">
+                <span class="current-price">$${product.price.toFixed(2)}</span>
+                ${originalPriceHTML}
+              </div>
+              
+              <div class="product-buttons">
+                <button class="btn-secondary" onclick="shop.viewDetails(${product.id})">
+                  <i class="fas fa-info-circle"></i> Details
+                </button>
+                <button class="btn-primary ${!product.inStock ? 'disabled' : ''}" 
+                        onclick="shop.addToCart(${product.id})" 
+                        ${!product.inStock ? 'disabled' : ''}>
+                  <i class="fas fa-cart-plus"></i> 
+                  ${product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                </button>
+              </div>
             </div>
           </div>
         `;
-        productGrid.insertAdjacentHTML("beforeend", productHTML);
-      });
+      }
 
-      updateProductCount(productsToRender.length);
-    }
-
-    function updateProductCount(count) {
-      document.getElementById('productCount').textContent = `Products (${count})`;
-    }
-
-    // Filter functions
-    function filterProducts() {
-      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-      const categoryFilter = document.getElementById('categoryFilter').value;
-      const brandFilter = document.getElementById('brandFilter').value;
-      const priceFilter = document.getElementById('priceFilter').value;
-
-      filteredProducts = products.filter(product => {
-        // Search filter
-        const matchesSearch = product.title.toLowerCase().includes(searchTerm) ||
-                            product.description.toLowerCase().includes(searchTerm) ||
-                            product.brand.toLowerCase().includes(searchTerm);
-
-        // Category filter
-        const matchesCategory = !categoryFilter || product.category === categoryFilter;
-
-        // Brand filter
-        const matchesBrand = !brandFilter || product.brand === brandFilter;
-
-        // Price filter
-        let matchesPrice = true;
-        if (priceFilter) {
-          if (priceFilter === '50000+') {
-            matchesPrice = product.price > 50000;
+      generateStars(rating) {
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+          if (i <= rating) {
+            stars += '<i class="fas fa-star"></i>';
+          } else if (i - 0.5 <= rating) {
+            stars += '<i class="fas fa-star-half-alt"></i>';
           } else {
-            const [min, max] = priceFilter.split('-').map(Number);
-            matchesPrice = product.price >= min && product.price <= max;
+            stars += '<i class="far fa-star"></i>';
           }
         }
+        return stars;
+      }
 
-        return matchesSearch && matchesCategory && matchesBrand && matchesPrice;
-      });
+      setView(viewType) {
+        this.currentView = viewType;
+        const grid = document.getElementById('productGrid');
+        const gridBtn = document.getElementById('gridView');
+        const listBtn = document.getElementById('listView');
 
-      renderProducts(filteredProducts);
+        if (viewType === 'grid') {
+          grid.className = 'product-grid grid-view';
+          gridBtn.classList.add('active');
+          listBtn.classList.remove('active');
+        } else {
+          grid.className = 'product-grid list-view';
+          listBtn.classList.add('active');
+          gridBtn.classList.remove('active');
+        }
+        
+        this.renderProducts();
+      }
+
+      addToCart(productId) {
+        const product = this.products.find(p => p.id === productId);
+        if (!product || !product.inStock) return;
+
+        const existingItem = this.cart.find(item => item.id === productId);
+        if (existingItem) {
+          existingItem.quantity += 1;
+        } else {
+          this.cart.push({ ...product, quantity: 1 });
+        }
+
+        this.saveCart();
+        this.updateCartDisplay();
+        this.showCartNotification(product.name);
+      }
+
+      removeFromCart(productId) {
+        this.cart = this.cart.filter(item => item.id !== productId);
+        this.saveCart();
+        this.updateCartDisplay();
+        this.renderCartItems();
+      }
+
+      updateCartQuantity(productId, quantity) {
+        const item = this.cart.find(item => item.id === productId);
+        if (item) {
+          item.quantity = Math.max(0, quantity);
+          if (item.quantity === 0) {
+            this.removeFromCart(productId);
+          } else {
+            this.saveCart();
+            this.updateCartDisplay();
+            this.renderCartItems();
+          }
+        }
+      }
+
+      saveCart() {
+        localStorage.setItem('cart', JSON.stringify(this.cart));
+      }
+
+      updateCartDisplay() {
+        const cartCount = document.getElementById('cartCount');
+        const cartTotal = document.getElementById('cartTotal');
+        
+        const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+        const totalPrice = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        cartCount.textContent = totalItems;
+        cartTotal.textContent = totalPrice.toFixed(2);
+      }
+
+      toggleCart() {
+        const sidebar = document.getElementById('cartSidebar');
+        sidebar.classList.toggle('open');
+        this.renderCartItems();
+      }
+
+      closeCart() {
+        document.getElementById('cartSidebar').classList.remove('open');
+      }
+
+      renderCartItems() {
+        const cartItems = document.getElementById('cartItems');
+        
+        if (this.cart.length === 0) {
+          cartItems.innerHTML = '<div class="empty-cart"><i class="fas fa-shopping-cart"></i><p>Your cart is empty</p></div>';
+          return;
+        }
+
+        cartItems.innerHTML = this.cart.map(item => `
+          <div class="cart-item">
+            <img src="../assets/images/${item.images[0]}" alt="${item.name}" 
+                 onerror="this.src='../assets/images/placeholder.jpg'">
+            <div class="item-details">
+              <h4>${item.name}</h4>
+              <p class="item-price">$${item.price.toFixed(2)}</p>
+            </div>
+            <div class="quantity-controls">
+              <button onclick="shop.updateCartQuantity(${item.id}, ${item.quantity - 1})">-</button>
+              <span>${item.quantity}</span>
+              <button onclick="shop.updateCartQuantity(${item.id}, ${item.quantity + 1})">+</button>
+            </div>
+            <button class="remove-item" onclick="shop.removeFromCart(${item.id})">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `).join('');
+      }
+
+      showCartNotification(productName) {
+        // Simple notification - you can enhance this
+        const notification = document.createElement('div');
+        notification.className = 'cart-notification';
+        notification.innerHTML = `<i class="fas fa-check"></i> ${productName} added to cart!`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+          notification.classList.remove('show');
+          setTimeout(() => notification.remove(), 300);
+        }, 3000);
+      }
+
+      updateProductCount(count) {
+        document.getElementById('productCount').textContent = 
+          `${count} Product${count !== 1 ? 's' : ''} Found`;
+      }
+
+      hideLoadingSpinner() {
+        document.getElementById('loadingSpinner').style.display = 'none';
+      }
+
+      showError(message) {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><p>${message}</p></div>`;
+      }
+
+      // Placeholder methods for future features
+      toggleWishlist(productId) {
+        console.log('Toggle wishlist for product:', productId);
+        // Implement wishlist functionality
+      }
+
+      quickView(productId) {
+        console.log('Quick view for product:', productId);
+        // Implement quick view modal
+      }
+
+      viewDetails(productId) {
+        console.log('View details for product:', productId);
+        // Redirect to product details page
+        window.location.href = `/pages/product-details.html?id=${productId}`;
+      }
     }
 
-    // Event listeners for filters
-    document.addEventListener("DOMContentLoaded", () => {
-      renderProducts(products);
-
-      // Add event listeners to filters
-      document.getElementById('searchInput').addEventListener('input', filterProducts);
-      document.getElementById('categoryFilter').addEventListener('change', filterProducts);
-      document.getElementById('brandFilter').addEventListener('change', filterProducts);
-      document.getElementById('priceFilter').addEventListener('change', filterProducts);
+    // Initialize shop when DOM is loaded
+    let shop;
+    document.addEventListener('DOMContentLoaded', () => {
+      shop = new ShopApp();
     });
 
-    // Button click handlers
-    function toggleWishlist(index) {
-      const button = event.target;
-      button.textContent = button.textContent === '🤍' ? '❤️' : '🤍';
-      console.log('Toggled wishlist for:', filteredProducts[index].title);
-    }
-
-    function viewProduct(index) {
-      console.log('Viewing product:', filteredProducts[index].title);
-      // Add your view product logic here
-      alert(`Viewing details for: ${filteredProducts[index].title}`);
-    }
-
-    function buyProduct(index) {
-      console.log('Buying product:', filteredProducts[index].title);
-      // Add your buy product logic here
-      alert(`Added to cart: ${filteredProducts[index].title}`);
+    function logout() {
+      localStorage.removeItem('currentUser');
+      window.location.href = '/';
     }
   </script>
 

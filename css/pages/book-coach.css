@@ -1,302 +1,858 @@
+/* Professional Coach Booking CSS - Modern Design */
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+/* Reset and Global Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--background-green);
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--background-green);
+  color: var(--foreground);
+  line-height: 1.6;
+}
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+/* Hero Section */
+.hero-section {
+  background: var(--gradient-hero);
+  color: var(--primary-foreground);
+  text-align: center;
+  padding: 4rem 2rem;
+  margin-bottom: 2rem;
+}
 
-        .header {
-           text-align: center;
-            color: white;
-            margin-bottom: 40px;
-            background: var(--gradient-primary);
-            padding: 40px 20px;
-            border-radius: 0;
-            width: 100vw;
-            margin-left: calc(-50vw + 50%);
-            margin-right: calc(-50vw + 50%);
-        }
+.hero-content h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
 
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
+.hero-content p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto;
+}
 
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
+/* Main Coach Container */
+.coach-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
 
-        .search-section {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
+/* Filters Section */
+.filters-section {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border);
+}
 
-        .search-filters {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 2fr;
-            gap: 16px;
-            align-items: end;
-        }
+.filter-container {
+  display: grid;
+  grid-template-columns: 2fr repeat(5, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
 
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
+.search-group {
+  position: relative;
+}
 
-        .filter-group label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
+.search-group i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  z-index: 1;
+}
 
-        .filter-group select,
-        .search-btn {
-            padding: 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            background: white;
-        }
+.search-group input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 2.5rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--input);
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
 
-        .filter-group select:focus {
-            outline: none;
-            border-color: #15951b;
-        }
+.search-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-50);
+}
 
-        .search-btn {
-            background: #15951b;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background 0.2s;
-        }
+.filter-group select {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--input);
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
 
-        .search-btn:hover {
-            background: #3d6b4a;
-        }
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-50);
+}
 
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            color: white;
-        }
+/* Results Section */
+.results-section {
+  margin-bottom: 4rem;
+}
 
-        .results-header h2 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #333;
-        }
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+}
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
+.results-header h2 {
+  color: var(--foreground);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
 
-        .coaches-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 24px;
-        }
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
 
-        .coach-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+.view-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
 
-        .coach-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-        }
+.view-btn:hover,
+.view-btn.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
 
-        .coach-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 16px;
-        }
+/* Coach Grid */
+.coach-grid.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
 
-        .coach-image {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #4a7c59;
-            margin-right: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+.coach-grid.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 
-        .coach-info h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
-        }
+.coach-grid.list-view .coach-card {
+  display: flex;
+  align-items: flex-start;
+  padding: 1.5rem;
+}
 
-        .coach-title {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-        }
+.coach-grid.list-view .coach-image {
+  width: 150px;
+  height: 150px;
+  margin-right: 1.5rem;
+  flex-shrink: 0;
+}
 
-        .coach-meta {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            font-size: 0.85rem;
-            color: #888;
-        }
+.coach-grid.list-view .coach-info {
+  flex: 1;
+}
 
-        .rating {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+/* Coach Cards */
+.coach-card {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
 
-        .star {
-            color: #ffc107;
-        }
+.coach-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-strong);
+}
 
-        .price {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #4a7c59;
-        }
+/* Coach Image */
+.coach-image {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  overflow: hidden;
+  background: var(--muted);
+}
 
-        .location-badge {
-            background: #f1f3f4;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            color: #666;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
+.coach-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
 
-        .coach-description {
-            color: #666;
-            line-height: 1.5;
-            margin: 16px 0;
-            font-size: 0.9rem;
-        }
+.coach-card:hover .coach-image img {
+  transform: scale(1.05);
+}
 
-        .specializations {
-            margin: 16px 0;
-        }
+.coach-actions {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: all 0.3s ease;
+}
 
-        .specializations h4 {
-            font-size: 0.9rem;
-            color: #333;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
+.coach-card:hover .coach-actions {
+  opacity: 1;
+  transform: translateX(0);
+}
 
-        .tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--muted-foreground);
+}
 
-        .tag {
-            background: #e8f5e8;
-            color: #2d5a32;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
+.action-btn:hover {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+  transform: scale(1.1);
+}
 
-        .certifications {
-            margin: 16px 0;
-        }
+.action-btn.favorite-btn.active {
+  background: var(--error);
+  color: var(--error-foreground);
+  border-color: var(--error);
+}
 
-        .cert-tag {
-            background: #fff3cd;
-            color: #856404;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
+/* Coach Info */
+.coach-info {
+  padding: 1.5rem;
+}
 
-        .book-btn {
-            width: 100%;
-            background: #15951b;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.95rem;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background 0.2s;
-        }
+.coach-header {
+  margin-bottom: 1rem;
+}
 
-        .book-btn:hover {
-            background: #3d6b4a;
-        }
+.coach-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
 
-        .no-results {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-            font-size: 1.1rem;
-        }
+.coach-specialization {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 
-        .no-results .icon {
-            font-size: 3rem;
-            margin-bottom: 16px;
-        }
+.coach-meta {
+  margin-bottom: 1rem;
+}
 
-        .no-results h3 {
-            margin-bottom: 8px;
-            color: #333;
-        }
+.coach-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
 
-        @media (max-width: 768px) {
-            .search-filters {
-                grid-template-columns: 1fr;
-            }
-            
-            .coaches-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-        }
+.stars {
+  display: flex;
+  gap: 0.125rem;
+}
+
+.stars i {
+  color: var(--warning);
+  font-size: 0.875rem;
+}
+
+.rating-text {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.coach-details {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.coach-details span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.coach-details i {
+  color: var(--primary);
+}
+
+.coach-bio {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.coach-certifications,
+.coach-availability {
+  margin-bottom: 1rem;
+}
+
+.coach-certifications h4,
+.coach-availability h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.cert-tags,
+.availability-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cert-tag {
+  background: var(--primary-50);
+  color: var(--primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--primary-100);
+}
+
+.availability-tag {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+}
+
+.coach-pricing {
+  margin-bottom: 1.5rem;
+}
+
+.hourly-rate {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Coach Buttons */
+.coach-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-secondary,
+.btn-primary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--secondary-hover);
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-green);
+}
+
+/* Booking Modal */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  max-width: 600px;
+  margin: 2rem auto;
+  box-shadow: var(--shadow-strong);
+  border: 1px solid var(--border);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--gradient-primary);
+  color: var(--primary-foreground);
+}
+
+.modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  color: var(--primary-foreground);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius);
+  transition: background 0.3s ease;
+}
+
+.close-modal:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.coach-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-coach-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.coach-details h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.coach-details p {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.price-info {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Booking Form */
+.booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--input);
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-50);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Booking Summary */
+.booking-summary {
+  background: var(--muted);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.summary-item:last-child {
+  margin-bottom: 0;
+}
+
+.summary-item.total {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary);
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+/* Favorites Button */
+.favorites-button {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 4rem;
+  height: 4rem;
+  background: var(--gradient-primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-strong);
+  transition: all 0.3s ease;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.favorites-button:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-green);
+}
+
+.favorites-button i {
+  font-size: 1.25rem;
+}
+
+#favoritesCount {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  background: var(--error);
+  color: var(--error-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--card);
+}
+
+/* Loading and States */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: var(--muted-foreground);
+}
+
+.loading-spinner i {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.no-results {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--muted-foreground);
+}
+
+.no-results i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.no-results h3 {
+  margin-bottom: 0.5rem;
+}
+
+.error-message {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--error);
+}
+
+.error-message i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+/* Booking Notification */
+.booking-notification {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  background: var(--success);
+  color: var(--success-foreground);
+  padding: 1.5rem 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-strong);
+  z-index: 1001;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  max-width: 400px;
+}
+
+.booking-notification.show {
+  transform: translateX(0);
+}
+
+.notification-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notification-content i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.notification-content h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.notification-content p {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.notification-content small {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .filter-container {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .search-group {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+  
+  .hero-content p {
+    font-size: 1rem;
+  }
+  
+  .coach-container {
+    padding: 0 0.75rem;
+  }
+  
+  .coach-grid.grid-view {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  
+  .coach-grid.list-view .coach-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .coach-grid.list-view .coach-image {
+    width: 100%;
+    height: 200px;
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .results-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .coach-buttons {
+    flex-direction: column;
+  }
+  
+  .favorites-button {
+    bottom: 1rem;
+    right: 1rem;
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  
+  .modal {
+    padding: 1rem;
+  }
+  
+  .modal-content {
+    margin: 1rem auto;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .coach-details {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .booking-notification {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    padding: 2rem 1rem;
+  }
+  
+  .filters-section {
+    padding: 1rem;
+  }
+  
+  .coach-grid.grid-view {
+    grid-template-columns: 1fr;
+  }
+  
+  .coach-info {
+    padding: 1rem;
+  }
+  
+  .view-toggle {
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .coach-summary {
+    flex-direction: column;
+    text-align: center;
+  }
+}
