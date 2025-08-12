@@ -184,47 +184,86 @@
         return [
           {
             id: 1,
-            name: "Professional Tennis Racket",
-            brand: "Wilson",
-            category: "Tennis",
-            price: 199.99,
-            originalPrice: 249.99,
-            discount: 20,
-            rating: 4.8,
-            totalReviews: 142,
+            name: "Badminton Racket",
+            brand: "Li-Ning",
+            category: "Badminton",
+            price: 6500.00,
+            rating: 4.5,
+            totalReviews: 128,
             inStock: true,
-            description: "High-performance tennis racket used by professional players",
-            images: ["tennis_racket_1.jpg"],
+            description: "Smash harder, move faster – engineered for champions",
+            features: ["Flexible", "Lightweight", "Beginner"],
+            images: ["badminton_racket.jpg"],
             status: "Active"
           },
           {
             id: 2,
-            name: "Premium Basketball Shoes",
-            brand: "Nike",
+            name: "Spalding Basketball [Pulse]",
+            brand: "Spalding",
             category: "Basketball",
-            price: 179.99,
-            originalPrice: 199.99,
-            discount: 10,
-            rating: 4.7,
-            totalReviews: 89,
+            price: 2500.00,
+            rating: 4.6,
+            totalReviews: 189,
             inStock: true,
-            description: "Latest basketball shoes with advanced cushioning technology",
-            images: ["basketball_shoes_1.jpg"],
+            description: "Durable leather basketball for indoor and outdoor play",
+            features: ["Size 7", "Indoor/Outdoor", "High Grip"],
+            images: ["basketball_spalding.jpg"],
             status: "Active"
           },
           {
             id: 3,
-            name: "FIFA Official Soccer Ball",
-            brand: "Adidas",
-            category: "Football",
-            price: 49.99,
-            originalPrice: 59.99,
-            discount: 17,
-            rating: 4.9,
-            totalReviews: 234,
+            name: "Original English Willow Cricket Bat",
+            brand: "Stanford",
+            category: "Cricket",
+            price: 125000.00,
+            rating: 4.7,
+            totalReviews: 312,
             inStock: true,
-            description: "Official FIFA World Cup soccer ball",
-            images: ["soccer_ball_1.jpg"],
+            description: "Best Quality Bat for Beginner use",
+            features: ["Weight 1.13kg", "Best Quality", "Leather"],
+            images: ["cricket_bat.jpg"],
+            status: "Active"
+          },
+          {
+            id: 4,
+            name: "Professional Tennis Racket",
+            brand: "Wilson",
+            category: "Tennis",
+            price: 8500.00,
+            rating: 4.8,
+            totalReviews: 95,
+            inStock: true,
+            description: "High-performance racket for competitive play",
+            features: ["Professional", "Carbon Fiber", "Power"],
+            images: ["tennis_racket.jpg"],
+            status: "Active"
+          },
+          {
+            id: 5,
+            name: "Swimming Goggles",
+            brand: "Speedo",
+            category: "Swimming",
+            price: 1500.00,
+            rating: 4.4,
+            totalReviews: 67,
+            inStock: true,
+            description: "Anti-fog swimming goggles for clear vision",
+            features: ["Anti-fog", "UV Protection", "Adjustable"],
+            images: ["swimming_goggles.jpg"],
+            status: "Active"
+          },
+          {
+            id: 6,
+            name: "Volleyball",
+            brand: "Mikasa",
+            category: "Volleyball",
+            price: 3200.00,
+            rating: 4.3,
+            totalReviews: 154,
+            inStock: true,
+            description: "Official size volleyball for competitive matches",
+            features: ["Official Size", "Durable", "Indoor"],
+            images: ["volleyball.jpg"],
             status: "Active"
           }
         ];
@@ -326,31 +365,21 @@
       }
 
       createProductCard(product) {
-        const discountBadge = product.discount ? 
-          `<div class="discount-badge">-${product.discount}%</div>` : '';
-        
-        const originalPriceHTML = product.originalPrice ? 
-          `<span class="original-price">$${product.originalPrice.toFixed(2)}</span>` : '';
-
         return `
           <div class="product-card ${!product.inStock ? 'out-of-stock' : ''}">
-            ${discountBadge}
             <div class="product-image">
               <img src="../assets/images/${product.images[0]}" alt="${product.name}" 
                    onerror="this.src='../assets/images/placeholder.jpg'">
-              <div class="product-actions">
-                <button class="action-btn wishlist-btn" onclick="shop.toggleWishlist(${product.id})">
-                  <i class="far fa-heart"></i>
-                </button>
-                <button class="action-btn quick-view-btn" onclick="shop.quickView(${product.id})">
-                  <i class="fas fa-eye"></i>
-                </button>
-              </div>
             </div>
             
             <div class="product-info">
-              <div class="product-brand">${product.brand}</div>
               <h3 class="product-name">${product.name}</h3>
+              <div class="product-brand">${product.brand}</div>
+              
+              <div class="product-category">
+                <span class="category-tag">${product.category}</span>
+              </div>
+              
               <div class="product-rating">
                 <div class="stars">
                   ${this.generateStars(product.rating)}
@@ -358,22 +387,27 @@
                 <span class="rating-text">${product.rating} (${product.totalReviews})</span>
               </div>
               
+              <div class="product-pricing">
+                <span class="current-price">Rs.${product.price.toFixed(2)}</span>
+              </div>
+              
               <p class="product-description">${product.description}</p>
               
-              <div class="product-pricing">
-                <span class="current-price">$${product.price.toFixed(2)}</span>
-                ${originalPriceHTML}
+              <div class="product-features">
+                ${product.features ? product.features.map(feature => `<span class="feature-tag">${feature}</span>`).join('') : ''}
               </div>
               
               <div class="product-buttons">
+                <button class="btn-wishlist" onclick="shop.toggleWishlist(${product.id})">
+                  <i class="far fa-heart"></i>
+                </button>
                 <button class="btn-secondary" onclick="shop.viewDetails(${product.id})">
-                  <i class="fas fa-info-circle"></i> Details
+                  View Details
                 </button>
                 <button class="btn-primary ${!product.inStock ? 'disabled' : ''}" 
                         onclick="shop.addToCart(${product.id})" 
                         ${!product.inStock ? 'disabled' : ''}>
-                  <i class="fas fa-cart-plus"></i> 
-                  ${product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                  ${product.inStock ? 'Buy Now' : 'Out of Stock'}
                 </button>
               </div>
             </div>
