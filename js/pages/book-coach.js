@@ -44,10 +44,18 @@ class CoachBookingApp {
     }
 
     async loadCoaches() {
-       
-            const response = await fetch('../data/coaches.json');
-            if (!response.ok) throw new Error('Failed to fetch coaches');
-            this.coaches = await response.json();
+        try {
+            // First, check if coaches exist in localStorage
+            const localCoaches = localStorage.getItem('coaches');
+            
+            if (!localCoaches) {
+                // If no coaches in localStorage, load from JSON file and save to localStorage
+                await this.syncCoachesFromJsonToLocalStorage();
+            }
+            
+            // Load coaches from localStorage
+            const storedCoaches = JSON.parse(localStorage.getItem('coaches') || '[]');
+            this.coaches = storedCoaches;
 
             // Filter only active coaches
             this.coaches = this.coaches.filter(coach => coach.status === 'Active');
@@ -55,7 +63,26 @@ class CoachBookingApp {
 
             // Populate filter options
             this.populateFilterOptions();
-         
+            
+        } catch (error) {
+            console.error('Error loading coaches:', error);
+            // Fallback to empty array if both localStorage and JSON fail
+            this.coaches = [];
+            this.filteredCoaches = [];
+        }
+    }
+
+    async syncCoachesFromJsonToLocalStorage() {
+        try {
+            const response = await fetch('../data/coaches.json');
+            if (response.ok) {
+                const jsonCoaches = await response.json();
+                localStorage.setItem('coaches', JSON.stringify(jsonCoaches));
+                console.log('Coaches synced from JSON to localStorage');
+            }
+        } catch (error) {
+            console.error('Failed to sync coaches from JSON:', error);
+        }
     }
 
     populateFilterOptions() {
@@ -430,6 +457,51 @@ class CoachBookingApp {
         const grid = document.getElementById('coachGrid');
         grid.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><p>${message}</p></div>`;
     }
+
+    // Helper functions for admin dashboard to manage coaches in localStorage
+    static addCoachToLocalStorage(newCoach) {
+        const coaches = JSON.parse(localStorage.getItem('coaches') || '[]');
+        // Generate new ID if not provided
+        if (!newCoach.id) {
+            const maxId = coaches.reduce((max, coach) => Math.max(max, coach.id || 0), 0);
+            newCoach.id = maxId + 1;
+        }
+        coaches.push(newCoach);
+        localStorage.setItem('coaches', JSON.stringify(coaches));
+        console.log('Coach added to localStorage:', newCoach);
+        return newCoach;
+    }
+
+    static updateCoachInLocalStorage(updatedCoach) {
+        const coaches = JSON.parse(localStorage.getItem('coaches') || '[]');
+        const index = coaches.findIndex(coach => coach.id === updatedCoach.id);
+        if (index !== -1) {
+            coaches[index] = updatedCoach;
+            localStorage.setItem('coaches', JSON.stringify(coaches));
+            console.log('Coach updated in localStorage:', updatedCoach);
+            return true;
+        }
+        return false;
+    }
+
+    static removeCoachFromLocalStorage(coachId) {
+        const coaches = JSON.parse(localStorage.getItem('coaches') || '[]');
+        const filteredCoaches = coaches.filter(coach => coach.id !== coachId);
+        localStorage.setItem('coaches', JSON.stringify(filteredCoaches));
+        console.log('Coach removed from localStorage:', coachId);
+        return true;
+    }
+
+    static getAllCoachesFromLocalStorage() {
+        return JSON.parse(localStorage.getItem('coaches') || '[]');
+    }
+
+    // Method to refresh the current coach list (useful after admin changes)
+    refreshCoachList() {
+        this.loadCoaches().then(() => {
+            this.renderCoaches();
+        });
+    }
 }
 
 // Initialize coach booking app when DOM is loaded
@@ -437,4 +509,17 @@ let coachApp;
 document.addEventListener('DOMContentLoaded', () => {
     coachApp = new CoachBookingApp();
 });
+
+// Global functions for admin dashboard to manage coaches
+window.CoachManager = {
+    addCoach: (newCoach) => CoachBookingApp.addCoachToLocalStorage(newCoach),
+    updateCoach: (updatedCoach) => CoachBookingApp.updateCoachInLocalStorage(updatedCoach),
+    removeCoach: (coachId) => CoachBookingApp.removeCoachFromLocalStorage(coachId),
+    getAllCoaches: () => CoachBookingApp.getAllCoachesFromLocalStorage(),
+    refreshUI: () => {
+        if (window.coachApp) {
+            window.coachApp.refreshCoachList();
+        }
+    }
+};
 

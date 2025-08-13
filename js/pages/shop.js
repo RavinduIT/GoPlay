@@ -49,11 +49,132 @@ function initializeShopPage() {
       }
 
       async loadProducts() {
-          const response = await fetch('../data/products.json');
-          if (!response.ok) throw new Error('Failed to fetch products');
-          this.products = await response.json();
+        try {
+          // First check if products exist in localStorage
+          const localProducts = localStorage.getItem('products');
+          
+          if (!localProducts) {
+            // If no products in localStorage, sync from JSON file
+            await this.syncProductsFromJsonToLocalStorage();
+          }
+          
+          // Load products from localStorage
+          const storedProducts = JSON.parse(localStorage.getItem('products') || '[]');
+          this.products = storedProducts;
+          
+          // Filter only active products
+          this.products = this.products.filter(product => product.status === 'Active');
           this.filteredProducts = [...this.products];
+          
+        } catch (error) {
+          console.error('Error loading products:', error);
+          // Fallback to empty array if localStorage fails
+          this.products = [];
+          this.filteredProducts = [];
+        }
+      }
+
+      async syncProductsFromJsonToLocalStorage() {
+        try {
+          // Fetch products from JSON file
+          const response = await fetch('../data/products.json');
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const jsonProducts = await response.json();
+          
+          // Transform JSON data to match shop UI format
+          const transformedProducts = jsonProducts.map(product => ({
+            id: product.id,
+            name: product.name,
+            brand: product.brand,
+            category: product.category,
+            price: product.price,
+            rating: product.rating,
+            totalReviews: product.totalReviews,
+            inStock: product.inStock,
+            stock: product.stockQuantity || 0,
+            description: product.description,
+            features: this.extractFeatures(product),
+            images: product.images || ['default_product.jpg'],
+            status: product.status
+          }));
+          
+          // Save to localStorage
+          localStorage.setItem('products', JSON.stringify(transformedProducts));
+          console.log('Products synced from JSON to localStorage:', transformedProducts.length, 'products');
+          
+        } catch (error) {
+          console.error('Error loading products from JSON:', error);
+          // Fallback to hardcoded sample if JSON fails
+          this.syncFallbackProducts();
+        }
+      }
+      
+      extractFeatures(product) {
+        // Extract features from product specifications and tags
+        const features = [];
         
+        if (product.tags && product.tags.length > 0) {
+          // Capitalize first letter of each tag
+          features.push(...product.tags.slice(0, 3).map(tag => 
+            tag.charAt(0).toUpperCase() + tag.slice(1)
+          ));
+        }
+        
+        // Add additional features based on specifications
+        if (product.specifications) {
+          const specs = product.specifications;
+          if (specs.weight) features.push(`Weight: ${specs.weight}`);
+          if (specs.size) features.push(`Size: ${specs.size}`);
+          if (specs.material) features.push(specs.material);
+        }
+        
+        // Ensure we have at least some features
+        if (features.length === 0) {
+          features.push('High Quality', 'Durable', product.category);
+        }
+        
+        return features.slice(0, 3); // Limit to 3 features for UI
+      }
+      
+      syncFallbackProducts() {
+        // Fallback hardcoded products if JSON loading fails
+        const fallbackProducts = [
+          {
+            id: 1,
+            name: "Badminton Racket",
+            brand: "Li-Ning",
+            category: "Badminton",
+            price: 6500.00,
+            rating: 4.5,
+            totalReviews: 128,
+            inStock: true,
+            stock: 25,
+            description: "Smash harder, move faster – engineered for champions",
+            features: ["Flexible", "Lightweight", "Beginner"],
+            images: ["badminton_racket.jpg"],
+            status: "Active"
+          },
+          {
+            id: 2,
+            name: "Professional Tennis Racket",
+            brand: "Wilson",
+            category: "Tennis", 
+            price: 199.99,
+            rating: 4.8,
+            totalReviews: 142,
+            inStock: true,
+            stock: 25,
+            description: "High-performance tennis racket used by professional players",
+            features: ["Professional", "Tournament", "Wilson"],
+            images: ["tennis_racket_1.jpg"],
+            status: "Active"
+          }
+        ];
+        localStorage.setItem('products', JSON.stringify(fallbackProducts));
+        console.log('Fallback products synced to localStorage');
       }
 
       
@@ -382,5 +503,61 @@ function initializeShopPage() {
       shop = new ShopApp();
     });
 
-    
+    // Product management class for admin dashboard integration
+    class ProductManager {
+      static addProductToLocalStorage(newProduct) {
+        const products = JSON.parse(localStorage.getItem('products') || '[]');
+        // Generate new ID if not provided
+        if (!newProduct.id) {
+          const maxId = products.reduce((max, product) => Math.max(max, product.id || 0), 0);
+          newProduct.id = maxId + 1;
+        }
+        products.push(newProduct);
+        localStorage.setItem('products', JSON.stringify(products));
+        console.log('Product added to localStorage:', newProduct);
+        return newProduct;
+      }
+
+      static updateProductInLocalStorage(updatedProduct) {
+        const products = JSON.parse(localStorage.getItem('products') || '[]');
+        const index = products.findIndex(product => product.id === updatedProduct.id);
+        if (index !== -1) {
+          products[index] = updatedProduct;
+          localStorage.setItem('products', JSON.stringify(products));
+          console.log('Product updated in localStorage:', updatedProduct);
+          return true;
+        }
+        return false;
+      }
+
+      static removeProductFromLocalStorage(productId) {
+        const products = JSON.parse(localStorage.getItem('products') || '[]');
+        const filteredProducts = products.filter(product => product.id !== productId);
+        localStorage.setItem('products', JSON.stringify(filteredProducts));
+        console.log('Product removed from localStorage:', productId);
+        return true;
+      }
+
+      static getAllProductsFromLocalStorage() {
+        return JSON.parse(localStorage.getItem('products') || '[]');
+      }
+
+      // Method to refresh the current product list (useful after admin changes)
+      static refreshShopUI() {
+        if (window.shop) {
+          window.shop.loadProducts().then(() => {
+            window.shop.renderProducts();
+          });
+        }
+      }
+    }
+
+    // Global ProductManager for admin dashboard
+    window.ProductManager = {
+      addProduct: (newProduct) => ProductManager.addProductToLocalStorage(newProduct),
+      updateProduct: (updatedProduct) => ProductManager.updateProductInLocalStorage(updatedProduct),
+      removeProduct: (productId) => ProductManager.removeProductFromLocalStorage(productId),
+      getAllProducts: () => ProductManager.getAllProductsFromLocalStorage(),
+      refreshUI: () => ProductManager.refreshShopUI()
+    };
   

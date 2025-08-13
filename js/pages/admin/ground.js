@@ -229,8 +229,8 @@ function createGroundCard(groundData) {
             </div>
         </div>
         <div class="ground-actions">
-            <button class="btn-icon edit-btn" data-tooltip="Edit Ground">✏️</button>
-            <button class="btn-icon delete-btn" data-tooltip="Delete Ground">🗑️</button>
+            <button class="btn-icon edit-btn" data-tooltip="Edit Ground">EDIT</button>
+            <button class="btn-icon delete-btn" data-tooltip="Delete Ground">DELETE</button>
         </div>
     `;
 
