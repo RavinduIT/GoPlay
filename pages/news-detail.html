@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Details - SportHub</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
+    <link rel="stylesheet" href="/css/pages/news-detail.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="SportHub">
+</head>
+
+<body>
+    <!-- Navbar Component -->
+    <div id="navbar-container"></div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading article...</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Article Header -->
+        <article class="article-container" id="articleContainer">
+            <div class="article-header">
+                <nav class="breadcrumb">
+                    <a href="/" class="breadcrumb-link">
+                        <i class="fas fa-home"></i>
+                        Home
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <a href="/pages/news.html" class="breadcrumb-link">News</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current" id="breadcrumbCurrent">Article</span>
+                </nav>
+
+                <div class="article-meta">
+                    <div class="article-category" id="articleCategory">
+                        <i class="fas fa-tag"></i>
+                        <span>Sports</span>
+                    </div>
+                    <div class="article-date" id="articleDate">
+                        <i class="fas fa-calendar"></i>
+                        <time datetime="">January 15, 2024</time>
+                    </div>
+                    <div class="article-read-time" id="articleReadTime">
+                        <i class="fas fa-clock"></i>
+                        <span>5 min read</span>
+                    </div>
+                    <div class="article-views" id="articleViews">
+                        <i class="fas fa-eye"></i>
+                        <span>1,250 views</span>
+                    </div>
+                </div>
+
+                <h1 class="article-title" id="articleTitle">Loading...</h1>
+                
+                <div class="article-summary" id="articleSummary">
+                    Loading article summary...
+                </div>
+
+                <div class="article-author" id="articleAuthor">
+                    <div class="author-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="author-info">
+                        <p class="author-name">Author Name</p>
+                        <p class="author-title">Sports Journalist</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Image -->
+            <div class="article-image-container" id="articleImageContainer">
+                <img class="article-image" id="articleImage" src="" alt="" />
+                <div class="image-caption" id="imageCaption">
+                    Featured image for this article
+                </div>
+            </div>
+
+            <!-- Article Content -->
+            <div class="article-content-wrapper">
+                <div class="article-content" id="articleContent">
+                    <p>Loading article content...</p>
+                </div>
+
+                <!-- Article Tags -->
+                <div class="article-tags" id="articleTags">
+                    <h4>Tags:</h4>
+                    <div class="tags-list">
+                        <!-- Tags will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Share Buttons -->
+                <div class="article-share">
+                    <h4>Share this article:</h4>
+                    <div class="share-buttons">
+                        <button class="share-btn facebook" onclick="shareArticle('facebook')">
+                            <i class="fab fa-facebook-f"></i>
+                            Facebook
+                        </button>
+                        <button class="share-btn twitter" onclick="shareArticle('twitter')">
+                            <i class="fab fa-twitter"></i>
+                            Twitter
+                        </button>
+                        <button class="share-btn linkedin" onclick="shareArticle('linkedin')">
+                            <i class="fab fa-linkedin-in"></i>
+                            LinkedIn
+                        </button>
+                        <button class="share-btn copy" onclick="copyArticleLink()">
+                            <i class="fas fa-link"></i>
+                            Copy Link
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Related Articles -->
+        <section class="related-articles" id="relatedArticles">
+            <div class="container">
+                <h2 class="section-title">
+                    <i class="fas fa-newspaper"></i>
+                    Related Articles
+                </h2>
+                <div class="related-grid" id="relatedGrid">
+                    <!-- Related articles will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter Signup -->
+        <section class="newsletter-section">
+            <div class="container">
+                <div class="newsletter-card">
+                    <div class="newsletter-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="newsletter-content">
+                        <h3>Stay Updated with Sports News</h3>
+                        <p>Get the latest sports news and updates delivered to your inbox.</p>
+                        <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+                            <input 
+                                type="email" 
+                                class="newsletter-input" 
+                                placeholder="Enter your email address"
+                                required
+                            />
+                            <button type="submit" class="newsletter-btn">
+                                <i class="fas fa-paper-plane"></i>
+                                Subscribe
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <div class="toast-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="toast-message" id="toastMessage">
+                Link copied to clipboard!
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/data-utils.js"></script>
+    <script src="/js/pages/news-detail.js"></script>
+    <script src="/js/components/navbar.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('/pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar(); // Initialize navbar behavior
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+    </script>
+</body>
+
+</html>

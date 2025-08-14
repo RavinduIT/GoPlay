@@ -1,4 +1,177 @@
-// Fixed Data utility functions for SportHub application
+// Enhanced Data utilities for loading JSON data files with news support
+class DataUtils {
+    constructor() {
+        this.cache = new Map();
+        this.cacheDuration = 5 * 60 * 1000; // 5 minutes
+    }
+
+    // Generic fetch with error handling and caching
+    async fetchJSON(url) {
+        try {
+            // Check cache first
+            const cached = this.cache.get(url);
+            if (cached && Date.now() - cached.timestamp < this.cacheDuration) {
+                console.log(`Using cached data for ${url}`);
+                return cached.data;
+            }
+
+            console.log(`Fetching data from ${url}`);
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status} for ${url}`);
+            }
+            
+            const data = await response.json();
+            
+            // Cache the data
+            this.cache.set(url, {
+                data: data,
+                timestamp: Date.now()
+            });
+            
+            return data;
+        } catch (error) {
+            console.error(`Error loading ${url}:`, error);
+            throw error;
+        }
+    }
+
+    // Load coaches data
+    async loadCoaches() {
+        return await this.fetchJSON('/data/coaches.json');
+    }
+
+    // Load grounds data
+    async loadGrounds() {
+        const data = await this.fetchJSON('/data/grounds.json');
+        // Handle both formats: direct array or { grounds: [] }
+        return Array.isArray(data) ? data : data.grounds || [];
+    }
+
+    // Load products data
+    async loadProducts() {
+        return await this.fetchJSON('/data/products.json');
+    }
+
+    // Load users data
+    async loadUsers() {
+        return await this.fetchJSON('/data/users.json');
+    }
+
+    // Load applications data
+    async loadApplications() {
+        return await this.fetchJSON('/data/applications.json');
+    }
+
+    // Load activity data
+    async loadActivity() {
+        return await this.fetchJSON('/data/activity.json');
+    }
+
+    // Load news data - NEW
+    async loadNews() {
+        try {
+            const data = await this.fetchJSON('/data/news.json');
+            // Handle both formats: direct array or { news: [] }
+            return Array.isArray(data) ? data : data.news || [];
+        } catch (error) {
+            console.warn('Could not load news.json, trying fallback to localStorage');
+            // Fallback to localStorage for admin-created news
+            const localNews = localStorage.getItem('newsData');
+            if (localNews) {
+                const parsed = JSON.parse(localNews);
+                return parsed.news || [];
+            }
+            return [];
+        }
+    }
+
+    // Load all data concurrently
+    async loadAllData() {
+        try {
+            console.log('Loading all data...');
+            
+            const results = await Promise.allSettled([
+                this.loadCoaches(),
+                this.loadGrounds(), 
+                this.loadProducts(),
+                this.loadUsers(),
+                this.loadApplications(),
+                this.loadActivity(),
+                this.loadNews() // Added news loading
+            ]);
+
+            const [coaches, grounds, products, users, applications, activity, news] = results.map(result => {
+                if (result.status === 'fulfilled') {
+                    return result.value;
+                } else {
+                    console.warn('Failed to load data:', result.reason);
+                    return [];
+                }
+            });
+
+            console.log('Data loaded:', {
+                coaches: coaches.length,
+                grounds: grounds.length,
+                products: products.length,
+                users: users.length,
+                applications: applications.length,
+                activity: activity.length,
+                news: news.length
+            });
+
+            return {
+                coaches,
+                grounds,
+                products,
+                users,
+                applications,
+                activity,
+                news
+            };
+        } catch (error) {
+            console.error('Error loading data:', error);
+            throw error;
+        }
+    }
+
+    // Clear cache
+    clearCache() {
+        this.cache.clear();
+        console.log('Data cache cleared');
+    }
+
+    // Refresh specific data
+    async refreshData(dataType) {
+        const url = `/data/${dataType}.json`;
+        this.cache.delete(url);
+        
+        switch(dataType) {
+            case 'coaches':
+                return await this.loadCoaches();
+            case 'grounds':
+                return await this.loadGrounds();
+            case 'products':
+                return await this.loadProducts();
+            case 'users':
+                return await this.loadUsers();
+            case 'applications':
+                return await this.loadApplications();
+            case 'activity':
+                return await this.loadActivity();
+            case 'news':
+                return await this.loadNews();
+            default:
+                throw new Error(`Unknown data type: ${dataType}`);
+        }
+    }
+}
+
+// Export for use in other files
+window.DataUtils = DataUtils;
+
+// Enhanced Data Manager with news support
 class DataManager {
     constructor() {
         this.data = null;
@@ -14,7 +187,7 @@ class DataManager {
     async loadData() {
         try {
             // Fixed path: from js/ folder, go up one level to reach data/
-            const response = await fetch('../data/data.json');
+            const response = await fetch('/data/data.json');
             if (!response.ok) {
                 throw new Error(`Failed to load data: ${response.status}`);
             }
@@ -45,22 +218,72 @@ class DataManager {
         return this.data;
     }
 
-    // News functions
+    // News functions - ENHANCED
     async getNewsItems() {
+        try {
+            // First try to load from news.json
+            const response = await fetch('/data/news.json');
+            if (response.ok) {
+                const data = await response.json();
+                const newsFromFile = Array.isArray(data) ? data : data.news || [];
+                
+                // Also check localStorage for admin-added news
+                const localNews = localStorage.getItem('newsData');
+                if (localNews) {
+                    const parsed = JSON.parse(localNews);
+                    const newsFromStorage = parsed.news || [];
+                    
+                    // Merge both sources, with localStorage taking priority for duplicates
+                    const allNews = [...newsFromStorage];
+                    newsFromFile.forEach(fileNews => {
+                        if (!allNews.find(localNews => localNews.id === fileNews.id)) {
+                            allNews.push(fileNews);
+                        }
+                    });
+                    
+                    return allNews.sort((a, b) => new Date(b.date || b.publishedAt) - new Date(a.date || a.publishedAt));
+                }
+                
+                return newsFromFile;
+            }
+        } catch (error) {
+            console.warn('Could not load news.json:', error);
+        }
+
+        // Fallback to original data.json or localStorage
+        const localNews = localStorage.getItem('newsData');
+        if (localNews) {
+            const parsed = JSON.parse(localNews);
+            return parsed.news || [];
+        }
+
         const data = await this.ensureDataLoaded();
         return data.newsItems || [];
     }
 
     async getNewsById(id) {
         const newsItems = await this.getNewsItems();
-        return newsItems.find(news => news.id === parseInt(id));
+        return newsItems.find(news => news.id.toString() === id.toString());
     }
 
     async getLatestNews(limit = 6) {
         const newsItems = await this.getNewsItems();
         return newsItems
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .filter(news => news.status === 'published' || !news.status)
+            .sort((a, b) => new Date(b.date || b.publishedAt) - new Date(a.date || a.publishedAt))
             .slice(0, limit);
+    }
+
+    async getNewsByCategory(category) {
+        const newsItems = await this.getNewsItems();
+        return newsItems.filter(news => 
+            news.category && news.category.toLowerCase() === category.toLowerCase()
+        );
+    }
+
+    async getFeaturedNews() {
+        const newsItems = await this.getNewsItems();
+        return newsItems.filter(news => news.featured && (news.status === 'published' || !news.status));
     }
 
     // Venue functions
@@ -242,6 +465,18 @@ class DataManager {
         if (!this.getFromLocalStorage('users') && data.sampleUsers) {
             this.saveToLocalStorage('users', data.sampleUsers);
         }
+
+        // Initialize news data if not exists
+        if (!this.getFromLocalStorage('newsData')) {
+            try {
+                const newsItems = await this.getNewsItems();
+                if (newsItems.length > 0) {
+                    this.saveToLocalStorage('newsData', { news: newsItems });
+                }
+            } catch (error) {
+                console.warn('Could not initialize news data:', error);
+            }
+        }
     }
 
     // REMOVED DUPLICATE AUTH FUNCTIONS
@@ -283,6 +518,45 @@ class DataManager {
         return newBooking;
     }
 
+    // News management functions - NEW
+    async createNews(newsData) {
+        const existingNews = await this.getNewsItems();
+        
+        const newNews = {
+            id: Date.now(),
+            ...newsData,
+            date: new Date().toISOString().split('T')[0],
+            publishedAt: new Date().toISOString(),
+            views: 0
+        };
+        
+        existingNews.unshift(newNews);
+        this.saveToLocalStorage('newsData', { news: existingNews });
+        
+        return newNews;
+    }
+
+    async updateNews(newsId, updatedData) {
+        const existingNews = await this.getNewsItems();
+        const index = existingNews.findIndex(news => news.id.toString() === newsId.toString());
+        
+        if (index !== -1) {
+            existingNews[index] = { ...existingNews[index], ...updatedData };
+            this.saveToLocalStorage('newsData', { news: existingNews });
+            return existingNews[index];
+        }
+        
+        throw new Error('News item not found');
+    }
+
+    async deleteNews(newsId) {
+        const existingNews = await this.getNewsItems();
+        const filteredNews = existingNews.filter(news => news.id.toString() !== newsId.toString());
+        
+        this.saveToLocalStorage('newsData', { news: filteredNews });
+        return true;
+    }
+
     // Utility functions
     async searchAll(query) {
         if (!query || query.trim().length < 2) {
@@ -316,20 +590,22 @@ class DataManager {
             ),
             news: news.filter(article =>
                 article.title?.toLowerCase().includes(searchTerm) ||
-                article.summary?.toLowerCase().includes(searchTerm)
+                article.summary?.toLowerCase().includes(searchTerm) ||
+                article.content?.toLowerCase().includes(searchTerm)
             )
         };
     }
 
     // Get statistics for dashboard
     async getStats() {
-        const [venues, coaches, products, users, groundBookings, coachBookings] = await Promise.all([
+        const [venues, coaches, products, users, groundBookings, coachBookings, news] = await Promise.all([
             this.getVenues(),
             this.getCoaches(),
             this.getProducts(),
             this.getUsers(),
             this.getGroundBookings(),
-            this.getCoachBookings()
+            this.getCoachBookings(),
+            this.getNewsItems()
         ]);
 
         return {
@@ -339,7 +615,11 @@ class DataManager {
             totalUsers: users.length,
             totalGroundBookings: groundBookings.length,
             totalCoachBookings: coachBookings.length,
-            totalBookings: groundBookings.length + coachBookings.length
+            totalBookings: groundBookings.length + coachBookings.length,
+            totalNews: news.length,
+            publishedNews: news.filter(n => n.status === 'published' || !n.status).length,
+            draftNews: news.filter(n => n.status === 'draft').length,
+            totalNewsViews: news.reduce((sum, item) => sum + (item.views || 0), 0)
         };
     }
 }

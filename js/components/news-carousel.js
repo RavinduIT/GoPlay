@@ -1,285 +1,333 @@
-// News Carousel Component
+// Enhanced News Carousel Component
 class NewsCarousel {
     constructor() {
-        this.carousel = document.getElementById('newsCarousel');
+        this.newsContainer = document.getElementById('newsCarousel');
         this.prevBtn = document.getElementById('prevBtn');
         this.nextBtn = document.getElementById('nextBtn');
         this.currentIndex = 0;
-        this.newsData = [];
+        this.newsItems = [];
+        this.itemsPerPage = this.getItemsPerPage();
+        this.autoSlideInterval = null;
+        this.autoSlideDelay = 5000; // 5 seconds
+        
         this.init();
     }
 
     async init() {
-        await this.loadNewsData();
-        this.renderNews();
-        this.setupControls();
-        this.setupAutoScroll();
-    }
-
-    async loadNewsData() {
-        // Sample news data - in a real app, this would come from an API or data file
-        this.newsData = [
-            {
-                id: 1,
-                title: "Local Football Championship Finals This Weekend",
-                excerpt: "The most anticipated match of the season brings together two rival teams...",
-                image: "assets/images/news-1.jpg",
-                date: "2024-03-15",
-                author: "Sports Desk"
-            },
-            {
-                id: 2,
-                title: "New Tennis Academy Opens in Downtown",
-                excerpt: "State-of-the-art facilities and professional coaching now available...",
-                image: "assets/images/news-2.jpg",
-                date: "2024-03-14",
-                author: "Sarah Johnson"
-            },
-            {
-                id: 3,
-                title: "Basketball League Registration Now Open",
-                excerpt: "Join the summer basketball league with teams for all skill levels...",
-                image: "assets/images/news-3.jpg",
-                date: "2024-03-13",
-                author: "Mike Chen"
-            },
-            {
-                id: 4,
-                title: "Swimming Pool Renovation Complete",
-                excerpt: "The community pool reopens with upgraded facilities and new programs...",
-                image: "assets/images/news-4.jpg",
-                date: "2024-03-12",
-                author: "Lisa Wang"
-            },
-            {
-                id: 5,
-                title: "Youth Soccer Camp Registration Open",
-                excerpt: "Professional coaches will train young athletes this summer...",
-                image: "assets/images/news-5.jpg",
-                date: "2024-03-11",
-                author: "David Rodriguez"
-            },
-            {
-                id: 6,
-                title: "Marathon Training Program Starts Next Month",
-                excerpt: "Prepare for the city marathon with our comprehensive training program...",
-                image: "assets/images/news-6.jpg",
-                date: "2024-03-10",
-                author: "Emma Thompson"
-            }
-        ];
-
-        // Try to load from data file if it exists
         try {
-            const response = await fetch('data/data.json');
-            if (response.ok) {
-                const data = await response.json();
-                if (data.news && data.news.length > 0) {
-                    this.newsData = data.news;
-                }
-            }
+            await this.loadNewsData();
+            this.render();
+            this.setupEventListeners();
+            this.startAutoSlide();
         } catch (error) {
-            console.log('Using default news data');
+            console.error('Error initializing news carousel:', error);
+            this.showError();
         }
     }
 
-    renderNews() {
-        if (!this.carousel) return;
+    async loadNewsData() {
+        try {
+            // Try loading from news.json first
+            const response = await fetch('/data/news.json');
+            if (response.ok) {
+                const data = await response.json();
+                this.newsItems = (data.news || [])
+                    .filter(news => news.status === 'published' || !news.status)
+                    .sort((a, b) => new Date(b.date || b.publishedAt) - new Date(a.date || a.publishedAt))
+                    .slice(0, 6); // Get latest 6 news items
+                return;
+            }
+        } catch (error) {
+            console.warn('Could not load news.json:', error);
+        }
 
-        this.carousel.innerHTML = '';
-        
-        this.newsData.forEach((news, index) => {
-            const newsItem = this.createNewsItem(news, index);
-            this.carousel.appendChild(newsItem);
-        });
+        // Fallback to data.json
+        try {
+            const response = await fetch('/data/data.json');
+            if (response.ok) {
+                const data = await response.json();
+                this.newsItems = (data.newsItems || [])
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 6);
+                return;
+            }
+        } catch (error) {
+            console.warn('Could not load data.json:', error);
+        }
+
+        // Final fallback to empty array
+        this.newsItems = [];
     }
 
-    createNewsItem(news, index) {
-        const newsItem = document.createElement('div');
-        newsItem.className = 'news-item';
-        newsItem.dataset.index = index;
+    render() {
+        if (!this.newsContainer) return;
 
-        const formattedDate = this.formatDate(news.date);
+        if (this.newsItems.length === 0) {
+            this.newsContainer.innerHTML = `
+                <div class="news-empty">
+                    <i class="fas fa-newspaper"></i>
+                    <p>No news available at the moment</p>
+                </div>
+            `;
+            return;
+        }
 
-        newsItem.innerHTML = `
-            <div class="news-image">
-                <img src="${news.image}" alt="${news.title}" onerror="this.src='assets/images/placeholder.jpg'">
-            </div>
-            <div class="news-content">
-                <h3 class="news-title">${news.title}</h3>
-                <p class="news-excerpt">${news.excerpt}</p>
-                <div class="news-meta">
-                    <span class="news-date">${formattedDate}</span>
-                    <span class="news-author">By ${news.author}</span>
+        this.newsContainer.innerHTML = this.newsItems.map((news, index) => `
+            <div class="news-item" data-index="${index}">
+                <div class="news-image">
+                    <img 
+                        src="${this.getNewsImage(news)}" 
+                        alt="${news.title}"
+                        onerror="this.src='https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&h=300&fit=crop'"
+                    />
+                    <div class="news-overlay"></div>
+                    <div class="news-category">
+                        <i class="fas fa-tag"></i>
+                        ${news.category || 'Sports'}
+                    </div>
+                </div>
+                <div class="news-content">
+                    <div class="news-meta">
+                        <span class="news-date">
+                            <i class="fas fa-calendar"></i>
+                            ${this.formatDate(news.date || news.publishedAt)}
+                        </span>
+                        <span class="news-read-time">
+                            <i class="fas fa-clock"></i>
+                            ${news.readTime || '5 min read'}
+                        </span>
+                    </div>
+                    <h3 class="news-title">${news.title}</h3>
+                    <p class="news-summary">${this.truncateText(news.summary, 100)}</p>
+                    <div class="news-actions">
+                        <a href="/pages/news-detail.html?id=${news.id}" class="news-read-more">
+                            Read More
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <div class="news-stats">
+                            <span class="news-views">
+                                <i class="fas fa-eye"></i>
+                                ${this.formatViews(news.views || 0)}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        `;
+        `).join('');
 
-        // Add click event to navigate to news details
-        newsItem.addEventListener('click', () => {
-            this.openNewsDetail(news.id);
-        });
-
-        return newsItem;
+        this.updateCarouselPosition();
     }
 
-    formatDate(dateString) {
-        const date = new Date(dateString);
-        const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        return date.toLocaleDateString('en-US', options);
+    getNewsImage(news) {
+        if (news.image) return news.image;
+        if (news.images && news.images.length > 0) return news.images[0];
+        return 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&h=300&fit=crop';
     }
 
-    setupControls() {
+    setupEventListeners() {
         if (this.prevBtn) {
             this.prevBtn.addEventListener('click', () => {
-                this.scrollPrev();
+                this.stopAutoSlide();
+                this.prev();
+                this.startAutoSlide();
             });
         }
 
         if (this.nextBtn) {
             this.nextBtn.addEventListener('click', () => {
-                this.scrollNext();
+                this.stopAutoSlide();
+                this.next();
+                this.startAutoSlide();
             });
         }
 
-        // Add touch/swipe support for mobile
-        this.setupTouchControls();
-        
-        // Add keyboard navigation
-        this.setupKeyboardControls();
-    }
+        // Pause auto-slide on hover
+        if (this.newsContainer) {
+            this.newsContainer.addEventListener('mouseenter', () => {
+                this.stopAutoSlide();
+            });
 
-    setupTouchControls() {
-        if (!this.carousel) return;
+            this.newsContainer.addEventListener('mouseleave', () => {
+                this.startAutoSlide();
+            });
+        }
 
-        let startX = 0;
-        let scrollLeft = 0;
-        let isDown = false;
+        // Handle window resize
+        window.addEventListener('resize', this.debounce(() => {
+            this.itemsPerPage = this.getItemsPerPage();
+            this.updateCarouselPosition();
+        }, 250));
 
-        this.carousel.addEventListener('mousedown', (e) => {
-            isDown = true;
-            startX = e.pageX - this.carousel.offsetLeft;
-            scrollLeft = this.carousel.scrollLeft;
-            this.carousel.style.cursor = 'grabbing';
-        });
-
-        this.carousel.addEventListener('mouseleave', () => {
-            isDown = false;
-            this.carousel.style.cursor = 'grab';
-        });
-
-        this.carousel.addEventListener('mouseup', () => {
-            isDown = false;
-            this.carousel.style.cursor = 'grab';
-        });
-
-        this.carousel.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - this.carousel.offsetLeft;
-            const walk = (x - startX) * 2;
-            this.carousel.scrollLeft = scrollLeft - walk;
-        });
-
-        // Touch events for mobile
-        this.carousel.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].pageX - this.carousel.offsetLeft;
-            scrollLeft = this.carousel.scrollLeft;
-        });
-
-        this.carousel.addEventListener('touchmove', (e) => {
-            const x = e.touches[0].pageX - this.carousel.offsetLeft;
-            const walk = (x - startX) * 2;
-            this.carousel.scrollLeft = scrollLeft - walk;
-        });
-    }
-
-    setupKeyboardControls() {
-        document.addEventListener('keydown', (e) => {
-            if (this.isCarouselInView()) {
-                if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    this.scrollPrev();
-                } else if (e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    this.scrollNext();
-                }
-            }
-        });
-    }
-
-    isCarouselInView() {
-        if (!this.carousel) return false;
-        
-        const rect = this.carousel.getBoundingClientRect();
-        return rect.top < window.innerHeight && rect.bottom > 0;
-    }
-
-    scrollPrev() {
-        if (!this.carousel) return;
-        
-        const itemWidth = this.carousel.querySelector('.news-item').offsetWidth + 24; // 24px gap
-        this.carousel.scrollBy({
-            left: -itemWidth,
-            behavior: 'smooth'
-        });
-    }
-
-    scrollNext() {
-        if (!this.carousel) return;
-        
-        const itemWidth = this.carousel.querySelector('.news-item').offsetWidth + 24; // 24px gap
-        this.carousel.scrollBy({
-            left: itemWidth,
-            behavior: 'smooth'
-        });
-    }
-
-    setupAutoScroll() {
-        // Auto-scroll every 5 seconds
-        setInterval(() => {
-            if (this.isCarouselInView()) {
-                this.scrollNext();
-                
-                // Reset to beginning if at end
-                setTimeout(() => {
-                    if (this.carousel.scrollLeft >= this.carousel.scrollWidth - this.carousel.clientWidth) {
-                        this.carousel.scrollTo({
-                            left: 0,
-                            behavior: 'smooth'
-                        });
+        // Handle click events on news items
+        if (this.newsContainer) {
+            this.newsContainer.addEventListener('click', (e) => {
+                const newsItem = e.target.closest('.news-item');
+                if (newsItem && !e.target.closest('.news-read-more')) {
+                    const index = parseInt(newsItem.dataset.index);
+                    const news = this.newsItems[index];
+                    if (news) {
+                        window.location.href = `/pages/news-detail.html?id=${news.id}`;
                     }
-                }, 500);
+                }
+            });
+        }
+    }
+
+    next() {
+        const maxIndex = Math.max(0, this.newsItems.length - this.itemsPerPage);
+        this.currentIndex = Math.min(this.currentIndex + 1, maxIndex);
+        this.updateCarouselPosition();
+    }
+
+    prev() {
+        this.currentIndex = Math.max(0, this.currentIndex - 1);
+        this.updateCarouselPosition();
+    }
+
+    updateCarouselPosition() {
+        if (!this.newsContainer) return;
+
+        const items = this.newsContainer.querySelectorAll('.news-item');
+        if (items.length === 0) return;
+
+        const itemWidth = items[0].offsetWidth + 32; // Including gap
+        const translateX = -this.currentIndex * itemWidth;
+        
+        this.newsContainer.style.transform = `translateX(${translateX}px)`;
+        this.updateNavigationButtons();
+    }
+
+    updateNavigationButtons() {
+        const maxIndex = Math.max(0, this.newsItems.length - this.itemsPerPage);
+        
+        if (this.prevBtn) {
+            this.prevBtn.disabled = this.currentIndex === 0;
+            this.prevBtn.classList.toggle('disabled', this.currentIndex === 0);
+        }
+
+        if (this.nextBtn) {
+            this.nextBtn.disabled = this.currentIndex >= maxIndex;
+            this.nextBtn.classList.toggle('disabled', this.currentIndex >= maxIndex);
+        }
+    }
+
+    getItemsPerPage() {
+        const width = window.innerWidth;
+        if (width >= 1200) return 3;
+        if (width >= 768) return 2;
+        return 1;
+    }
+
+    startAutoSlide() {
+        this.stopAutoSlide();
+        this.autoSlideInterval = setInterval(() => {
+            const maxIndex = Math.max(0, this.newsItems.length - this.itemsPerPage);
+            if (this.currentIndex >= maxIndex) {
+                this.currentIndex = 0;
+            } else {
+                this.currentIndex++;
             }
-        }, 5000);
+            this.updateCarouselPosition();
+        }, this.autoSlideDelay);
     }
 
-    openNewsDetail(newsId) {
-        // Navigate to news detail page
-        window.location.href = `pages/news-details.html?id=${newsId}`;
+    stopAutoSlide() {
+        if (this.autoSlideInterval) {
+            clearInterval(this.autoSlideInterval);
+            this.autoSlideInterval = null;
+        }
     }
 
-    // Public method to add news item
-    addNewsItem(newsItem) {
-        this.newsData.unshift(newsItem);
-        this.renderNews();
+    showError() {
+        if (!this.newsContainer) return;
+        
+        this.newsContainer.innerHTML = `
+            <div class="news-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Unable to load news at the moment</p>
+                <button onclick="location.reload()" class="retry-btn">
+                    <i class="fas fa-redo"></i>
+                    Retry
+                </button>
+            </div>
+        `;
     }
 
-    // Public method to refresh news
-    async refreshNews() {
-        await this.loadNewsData();
-        this.renderNews();
+    // Utility methods
+    formatDate(dateString) {
+        if (!dateString) return 'Unknown date';
+        
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+            
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch (error) {
+            return dateString;
+        }
+    }
+
+    formatViews(views) {
+        if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`;
+        if (views >= 1000) return `${(views / 1000).toFixed(1)}K`;
+        return views.toString();
+    }
+
+    truncateText(text, maxLength) {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength).trim() + '...';
+    }
+
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Public methods for external control
+    goToSlide(index) {
+        const maxIndex = Math.max(0, this.newsItems.length - this.itemsPerPage);
+        this.currentIndex = Math.max(0, Math.min(index, maxIndex));
+        this.updateCarouselPosition();
+    }
+
+    refresh() {
+        this.init();
+    }
+
+    destroy() {
+        this.stopAutoSlide();
+        if (this.prevBtn) this.prevBtn.removeEventListener('click', this.prev);
+        if (this.nextBtn) this.nextBtn.removeEventListener('click', this.next);
+        window.removeEventListener('resize', this.updateCarouselPosition);
     }
 }
 
-// Initialize news carousel when DOM is loaded
+// Auto-initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('newsCarousel')) {
         window.newsCarousel = new NewsCarousel();
     }
 });
 
-// Export for use in other scripts
+// Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = NewsCarousel;
 }

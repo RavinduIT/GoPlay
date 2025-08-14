@@ -243,7 +243,7 @@ function redirectToHome() {
     try {
         const currentPath = window.location.pathname;
         if (currentPath.includes('/pages/')) {
-            window.location.href = '../index.html';
+            window.location.href = '/index.html';
         } else {
             window.location.href = 'index.html';
         }

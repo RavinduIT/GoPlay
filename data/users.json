@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "name": "John Martinez",
+    "email": "john@email.com",
+    "role": "Player",
+    "status": "Active",
+    "joinDate": "2023-01-15",
+    "avatar": "👨‍💼",
+    "lastActive": "2 hours ago"
+  },
+  {
+    "id": 2,
+    "name": "Sarah Thompson",
+    "email": "sarah@email.com",
+    "role": "Player",
+    "status": "Active",
+    "joinDate": "2023-02-20",
+    "avatar": "👩‍💼",
+    "lastActive": "1 day ago"
+  },
+  {
+    "id": 3,
+    "name": "Mike Johnson",
+    "email": "mike@email.com",
+    "role": "Player",
+    "status": "Pending",
+    "joinDate": "2024-01-10",
+    "avatar": "👨‍🏫",
+    "lastActive": "3 days ago"
+  },
+  {
+    "id": 4,
+    "name": "Lisa Chen",
+    "email": "lisa@email.com",
+    "role": "Player",
+    "status": "Active",
+    "joinDate": "2023-08-05",
+    "avatar": "👩‍🏫",
+    "lastActive": "5 hours ago"
+  },
+  {
+    "id": 5,
+    "name": "David Wilson",
+    "email": "david@email.com",
+    "role": "Player",
+    "status": "Pending",
+    "joinDate": "2024-01-20",
+    "avatar": "👨‍🏫",
+    "lastActive": "1 hour ago"
+  },
+  {
+    "id": 6,
+    "name": "Emma Davis",
+    "email": "emma@email.com",
+    "role": "Player",
+    "status": "Active",
+    "joinDate": "2023-11-15",
+    "avatar": "👩‍💼",
+    "lastActive": "4 hours ago"
+  },
+  {
+    "id": 7,
+    "name": "Robert Brown",
+    "email": "robert@email.com",
+    "role": "Player",
+    "status": "Pending",
+    "joinDate": "2024-01-25",
+    "avatar": "👨‍💼",
+    "lastActive": "2 days ago"
+  }
+]
