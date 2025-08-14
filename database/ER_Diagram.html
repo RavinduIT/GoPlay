@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoPlay Sports Platform - ER Diagram</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 100%;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .mermaid {
+            text-align: center;
+            background: white;
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏀 GoPlay Sports Platform - Database ER Diagram</h1>
+        
+        <div class="controls">
+            <button onclick="downloadDiagram()">📥 Download as PNG</button>
+        </div>
+
+        <div class="mermaid" id="erDiagram">
+erDiagram
+    %% User Management
+    users {
+        int id PK
+        varchar username UK
+        varchar email UK
+        varchar password_hash
+        varchar first_name
+        varchar last_name
+        varchar phone
+        date date_of_birth
+        varchar profile_picture
+        enum user_type
+        enum status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    user_addresses {
+        int id PK
+        int user_id FK
+        varchar street_address
+        varchar city
+        varchar postal_code
+        boolean is_default
+    }
+
+    %% Sports Categories
+    sports_categories {
+        int id PK
+        varchar name UK
+        text description
+        varchar icon
+        boolean is_active
+    }
+
+    %% Coaches
+    coaches {
+        int id PK
+        int user_id FK
+        int sport_category_id FK
+        int experience_years
+        decimal hourly_rate
+        text bio
+        decimal rating
+        enum status
+    }
+
+    coach_reviews {
+        int id PK
+        int coach_id FK
+        int user_id FK
+        int rating
+        text review_text
+    }
+
+    coach_bookings {
+        int id PK
+        int user_id FK
+        int coach_id FK
+        date booking_date
+        decimal total_amount
+        enum status
+        enum payment_status
+    }
+
+    %% Sports Facilities
+    sports_facilities {
+        int id PK
+        int owner_id FK
+        varchar name
+        int sport_category_id FK
+        text address
+        decimal hourly_rate
+        int capacity
+        decimal rating
+        enum status
+    }
+
+    facility_reviews {
+        int id PK
+        int facility_id FK
+        int user_id FK
+        int rating
+        text review_text
+    }
+
+    facility_bookings {
+        int id PK
+        int user_id FK
+        int facility_id FK
+        date booking_date
+        decimal total_amount
+        enum status
+        enum payment_status
+    }
+
+    %% Products
+    product_categories {
+        int id PK
+        varchar name UK
+        text description
+        boolean is_active
+    }
+
+    products {
+        int id PK
+        varchar name
+        varchar sku UK
+        int category_id FK
+        varchar brand
+        decimal price
+        int stock_quantity
+        json specifications
+        enum status
+        decimal rating
+    }
+
+    product_reviews {
+        int id PK
+        int product_id FK
+        int user_id FK
+        int rating
+        text review_text
+        boolean is_verified_purchase
+    }
+
+    shopping_cart {
+        int id PK
+        int user_id FK
+        int product_id FK
+        int quantity
+        decimal price
+    }
+
+    %% Orders
+    orders {
+        int id PK
+        varchar order_number UK
+        int user_id FK
+        decimal total_amount
+        enum status
+        enum payment_status
+    }
+
+    order_items {
+        int id PK
+        int order_id FK
+        int product_id FK
+        varchar item_name
+        int quantity
+        decimal unit_price
+        decimal total_price
+    }
+
+    payments {
+        int id PK
+        int order_id FK
+        varchar transaction_id UK
+        enum payment_method
+        decimal amount
+        enum status
+    }
+
+    %% Notifications
+    notifications {
+        int id PK
+        int user_id FK
+        enum type
+        varchar title
+        text message
+        boolean is_read
+    }
+
+    %% Settings
+    settings {
+        int id PK
+        varchar key_name UK
+        text value
+        enum type
+    }
+
+    %% Core Relationships
+    users ||--o{ user_addresses : has
+    users ||--o{ coaches : becomes
+    users ||--o{ sports_facilities : owns
+    users ||--o{ coach_bookings : makes
+    users ||--o{ facility_bookings : makes
+    users ||--o{ shopping_cart : has
+    users ||--o{ orders : places
+    users ||--o{ notifications : receives
+
+    sports_categories ||--o{ coaches : specializes_in
+    sports_categories ||--o{ sports_facilities : supports
+
+    coaches ||--o{ coach_bookings : receives
+    coaches ||--o{ coach_reviews : gets_reviewed
+
+    sports_facilities ||--o{ facility_bookings : receives
+    sports_facilities ||--o{ facility_reviews : gets_reviewed
+
+    product_categories ||--o{ products : contains
+    products ||--o{ product_reviews : gets_reviewed
+    products ||--o{ shopping_cart : added_to
+    products ||--o{ order_items : included_in
+
+    orders ||--o{ order_items : contains
+    orders ||--o{ payments : processed_by
+
+    coach_bookings ||--o{ coach_reviews : generates
+    facility_bookings ||--o{ facility_reviews : generates
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            erDiagram: {
+                fill: '#f9f9f9',
+                stroke: '#333',
+                fontSize: 12
+            }
+        });
+
+        function downloadDiagram() {
+            // Get the SVG element
+            const svg = document.querySelector('.mermaid svg');
+            if (!svg) {
+                alert('Diagram not loaded yet. Please wait a moment and try again.');
+                return;
+            }
+
+            // Create a canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size based on SVG
+            const rect = svg.getBoundingClientRect();
+            canvas.width = rect.width * 2; // Higher resolution
+            canvas.height = rect.height * 2;
+            ctx.scale(2, 2);
+
+            // Convert SVG to image
+            const data = new XMLSerializer().serializeToString(svg);
+            const img = new Image();
+            
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+                
+                // Download
+                const link = document.createElement('a');
+                link.download = 'goplay-er-diagram.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            };
+            
+            img.src = 'data:image/svg+xml;base64,' + btoa(data);
+        }
+    </script>
+</body>
+</html>
