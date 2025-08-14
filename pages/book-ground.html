@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/pages.css">
     <link rel="stylesheet" href="../css/components/navbar.css">
+    <link rel="stylesheet" href="../css/components/footer.css">
     <link rel="stylesheet" href="../css/pages/ground.css">
 </head>
 <body>
@@ -66,6 +67,9 @@
         </div>
     </div>
 
+    <!-- Footer Component -->
+    <div id="footer-container"></div>
+
     <script src="/js/pages/book-ground.js"></script>
     <script src="/js/components/navbar.js"></script>
     <script>
@@ -75,6 +79,13 @@
             .then(data => {
                 document.getElementById('navbar-container').innerHTML = data;
                 new Navbar(); // Initialize navbar behavior
+            });
+
+        // Load the shared footer dynamically
+        fetch('/pages/components/footer.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('footer-container').innerHTML = data;
             });
 
         // Global logout function
