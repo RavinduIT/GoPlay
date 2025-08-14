@@ -8,7 +8,8 @@ USE goplay_sports_platform;
 -- ======================
 
 -- Insert sample users (password_hash would be properly hashed in real app)
-INSERT INTO users (username, email, password_hash, first_name, last_name, phone, user_type, status) VALUES
+-- Using INSERT IGNORE to prevent duplicate entry errors
+INSERT IGNORE INTO users (username, email, password_hash, first_name, last_name, phone, user_type, status) VALUES
 ('admin', 'admin@goplay.com', '$2y$10$example_hashed_password', 'Admin', 'User', '+94701234567', 'admin', 'active'),
 ('john_doe', 'john@email.com', '$2y$10$example_hashed_password', 'John', 'Doe', '+94701234568', 'customer', 'active'),
 ('jane_smith', 'jane@email.com', '$2y$10$example_hashed_password', 'Jane', 'Smith', '+94701234569', 'customer', 'active'),
@@ -17,7 +18,7 @@ INSERT INTO users (username, email, password_hash, first_name, last_name, phone,
 ('owner_david', 'david@goplay.com', '$2y$10$example_hashed_password', 'David', 'Brown', '+94701234572', 'facility_owner', 'active');
 
 -- Insert sample addresses
-INSERT INTO user_addresses (user_id, address_type, street_address, city, postal_code, is_default) VALUES
+INSERT IGNORE INTO user_addresses (user_id, address_type, street_address, city, postal_code, is_default) VALUES
 (2, 'home', '123 Main Street', 'Colombo', '00100', TRUE),
 (3, 'home', '456 Queen Street', 'Kandy', '20000', TRUE),
 (4, 'home', '789 King Road', 'Colombo', '00300', TRUE),
@@ -28,7 +29,7 @@ INSERT INTO user_addresses (user_id, address_type, street_address, city, postal_
 -- ======================
 
 -- Insert sample coaches
-INSERT INTO coaches (user_id, sport_category_id, experience_years, hourly_rate, bio, specializations, rating, total_reviews, status) VALUES
+INSERT IGNORE INTO coaches (user_id, sport_category_id, experience_years, hourly_rate, bio, specializations, rating, total_reviews, status) VALUES
 (4, 1, 8, 75.00, 'Professional basketball coach with 8 years of experience. Specialized in shooting techniques and defensive strategies.', 'Shooting, Defense, Team Strategy', 4.9, 156, 'active'),
 (5, 2, 12, 85.00, 'Certified tennis instructor with over 12 years of experience. Former professional player with expertise in technique and mental game.', 'Technique, Mental Game, Tournament Preparation', 4.8, 203, 'active');
 
@@ -37,7 +38,7 @@ INSERT INTO coaches (user_id, sport_category_id, experience_years, hourly_rate, 
 -- ======================
 
 -- Insert sample sports facilities
-INSERT INTO sports_facilities (owner_id, name, description, sport_category_id, address, city, postal_code, hourly_rate, capacity, rating, total_reviews, status) VALUES
+INSERT IGNORE INTO sports_facilities (owner_id, name, description, sport_category_id, address, city, postal_code, hourly_rate, capacity, rating, total_reviews, status) VALUES
 (6, 'Elite Basketball Courts', 'Premium indoor basketball courts with professional flooring and lighting', 1, '15 Sports Complex Road', 'Colombo', '00700', 50.00, 20, 4.7, 89, 'active'),
 (6, 'Royal Tennis Club', 'Professional tennis courts with clay and hard court surfaces', 2, '25 Tennis Avenue', 'Colombo', '00300', 60.00, 8, 4.6, 124, 'active'),
 (6, 'Champions Football Ground', 'Full-size football field with natural grass and floodlights', 3, '100 Stadium Road', 'Kandy', '20000', 80.00, 50, 4.8, 67, 'active');
@@ -47,7 +48,7 @@ INSERT INTO sports_facilities (owner_id, name, description, sport_category_id, a
 -- ======================
 
 -- Insert product categories
-INSERT INTO product_categories (name, description, is_active) VALUES
+INSERT IGNORE INTO product_categories (name, description, is_active) VALUES
 ('Rackets', 'Tennis, Badminton, and other racket sports equipment', TRUE),
 ('Balls', 'Sports balls for various games', TRUE),
 ('Footwear', 'Sports shoes and athletic footwear', TRUE),
@@ -55,7 +56,7 @@ INSERT INTO product_categories (name, description, is_active) VALUES
 ('Accessories', 'Sports accessories and gear', TRUE);
 
 -- Insert sample products (matching your existing JSON data)
-INSERT INTO products (name, sku, description, category_id, brand, price, stock_quantity, specifications, features, images, status, rating, total_reviews) VALUES
+INSERT IGNORE INTO products (name, sku, description, category_id, brand, price, stock_quantity, specifications, features, images, status, rating, total_reviews) VALUES
 ('Professional Tennis Racket', 'TNS-001', 'High-performance tennis racket used by professional players. Perfect balance of power and control.', 1, 'Wilson', 199.99, 25, '{"weight": "315g", "headSize": "97 sq in", "stringPattern": "16x19", "balance": "31.5cm"}', '["Professional", "Tournament", "Wilson"]', '["tennis_racket_1.jpg", "tennis_racket_2.jpg"]', 'active', 4.8, 142),
 
 ('Premium Basketball Shoes', 'BSK-002', 'Latest basketball shoes with advanced cushioning and support technology.', 3, 'Nike', 179.99, 48, '{"sizes": ["8", "9", "10", "11", "12"], "colors": ["Black/Red", "White/Blue"], "material": "Synthetic Leather"}', '["Basketball", "Nike", "Shoes"]', '["basketball_shoes_1.jpg", "basketball_shoes_2.jpg"]', 'active', 4.7, 89),
@@ -77,13 +78,13 @@ INSERT INTO products (name, sku, description, category_id, brand, price, stock_q
 -- ======================
 
 -- Insert sample coach bookings
-INSERT INTO coach_bookings (user_id, coach_id, booking_date, start_time, end_time, duration_hours, session_type, total_amount, status, payment_status) VALUES
+INSERT IGNORE INTO coach_bookings (user_id, coach_id, booking_date, start_time, end_time, duration_hours, session_type, total_amount, status, payment_status) VALUES
 (2, 1, '2024-03-15', '14:00:00', '16:00:00', 2.0, 'individual', 150.00, 'confirmed', 'paid'),
 (3, 2, '2024-03-16', '10:00:00', '11:30:00', 1.5, 'individual', 127.50, 'confirmed', 'paid'),
 (2, 1, '2024-03-20', '15:00:00', '16:00:00', 1.0, 'assessment', 75.00, 'pending', 'pending');
 
 -- Insert sample facility bookings
-INSERT INTO facility_bookings (user_id, facility_id, booking_date, start_time, end_time, duration_hours, total_amount, status, payment_status) VALUES
+INSERT IGNORE INTO facility_bookings (user_id, facility_id, booking_date, start_time, end_time, duration_hours, total_amount, status, payment_status) VALUES
 (2, 1, '2024-03-18', '18:00:00', '20:00:00', 2.0, 100.00, 'confirmed', 'paid'),
 (3, 2, '2024-03-19', '16:00:00', '18:00:00', 2.0, 120.00, 'confirmed', 'paid');
 
@@ -92,13 +93,13 @@ INSERT INTO facility_bookings (user_id, facility_id, booking_date, start_time, e
 -- ======================
 
 -- Insert sample orders
-INSERT INTO orders (order_number, user_id, order_type, subtotal, tax_amount, total_amount, status, payment_status, payment_method) VALUES
+INSERT IGNORE INTO orders (order_number, user_id, order_type, subtotal, tax_amount, total_amount, status, payment_status, payment_method) VALUES
 ('GP-2024-001', 2, 'product', 249.98, 20.99, 270.97, 'delivered', 'paid', 'card'),
 ('GP-2024-002', 3, 'product', 129.99, 10.92, 140.91, 'processing', 'paid', 'paypal'),
 ('GP-2024-003', 2, 'service', 150.00, 12.60, 162.60, 'completed', 'paid', 'card');
 
 -- Insert sample order items
-INSERT INTO order_items (order_id, product_id, item_name, item_description, quantity, unit_price, total_price) VALUES
+INSERT IGNORE INTO order_items (order_id, product_id, item_name, item_description, quantity, unit_price, total_price) VALUES
 (1, 1, 'Professional Tennis Racket', 'Wilson Pro Staff 97', 1, 199.99, 199.99),
 (1, 5, 'Swimming Goggles Pro', 'Speedo Fastskin3', 1, 49.99, 49.99),
 (2, 4, 'Badminton Racket Set', 'Yonex Arcsaber 11 Set', 1, 129.99, 129.99);
@@ -108,12 +109,12 @@ INSERT INTO order_items (order_id, product_id, item_name, item_description, quan
 -- ======================
 
 -- Insert sample coach reviews
-INSERT INTO coach_reviews (coach_id, user_id, booking_id, rating, review_text) VALUES
+INSERT IGNORE INTO coach_reviews (coach_id, user_id, booking_id, rating, review_text) VALUES
 (1, 2, 1, 5, 'Excellent coach! Michael really helped improve my shooting technique. Highly recommend!'),
 (2, 3, 2, 5, 'Sarah is amazing! Her teaching style is perfect and she really understands the mental aspect of tennis.');
 
 -- Insert sample facility reviews
-INSERT INTO facility_reviews (facility_id, user_id, booking_id, rating, review_text) VALUES
+INSERT IGNORE INTO facility_reviews (facility_id, user_id, booking_id, rating, review_text) VALUES
 (1, 2, 1, 5, 'Great facilities! Clean courts with excellent lighting. Perfect for evening games.'),
 (2, 3, 2, 4, 'Nice tennis courts but could use some maintenance on court 2. Overall good experience.');
 
