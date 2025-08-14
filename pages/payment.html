@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - GoPlay</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/components/navbar.css">
+    <link rel="stylesheet" href="../css/components/footer.css">
+    <link rel="stylesheet" href="../css/pages/payment.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar Component -->
+    <div id="navbar-container"></div>
+
+    <!-- Payment Hero Section -->
+    <section class="payment-hero">
+        <div class="container">
+            <h1><i class="fas fa-credit-card"></i> Secure Payment</h1>
+            <p>Complete your booking with our secure payment system</p>
+        </div>
+    </section>
+
+    <!-- Payment Container -->
+    <div class="payment-container">
+        <div class="container">
+            <div class="payment-wrapper">
+                
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h2><i class="fas fa-receipt"></i> Order Summary</h2>
+                    
+                    <div class="order-item">
+                        <div class="item-image">
+                            <img src="../assets/images/placeholder.jpg" alt="Order Item">
+                        </div>
+                        <div class="item-details">
+                            <h4 id="orderItemName">Basketball Court Booking</h4>
+                            <p id="orderItemDescription">Premium court at Sports Complex</p>
+                            <p class="item-date"><i class="fas fa-calendar"></i> <span id="orderDate">March 15, 2024</span></p>
+                            <p class="item-time"><i class="fas fa-clock"></i> <span id="orderTime">2:00 PM - 4:00 PM</span></p>
+                        </div>
+                        <div class="item-price">
+                            <span id="orderItemPrice">$50.00</span>
+                        </div>
+                    </div>
+
+                    <div class="order-breakdown">
+                        <div class="breakdown-item">
+                            <span>Subtotal</span>
+                            <span id="subtotal">$50.00</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Service Fee</span>
+                            <span id="serviceFee">$2.50</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Tax</span>
+                            <span id="tax">$4.20</span>
+                        </div>
+                        <div class="breakdown-item total">
+                            <span>Total</span>
+                            <span id="totalAmount">$56.70</span>
+                        </div>
+                    </div>
+
+                    <div class="security-badges">
+                        <div class="security-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>SSL Secured</span>
+                        </div>
+                        <div class="security-item">
+                            <i class="fas fa-lock"></i>
+                            <span>256-bit Encryption</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Form -->
+                <div class="payment-form-container">
+                    <h2><i class="fas fa-payment"></i> Payment Details</h2>
+                    
+                    <!-- Payment Methods -->
+                    <div class="payment-methods">
+                        <h3>Select Payment Method</h3>
+                        <div class="payment-options">
+                            <div class="payment-option active" data-method="card">
+                                <input type="radio" id="card" name="payment-method" value="card" checked>
+                                <label for="card">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Credit/Debit Card</span>
+                                </label>
+                            </div>
+                            <div class="payment-option" data-method="paypal">
+                                <input type="radio" id="paypal" name="payment-method" value="paypal">
+                                <label for="paypal">
+                                    <i class="fab fa-paypal"></i>
+                                    <span>PayPal</span>
+                                </label>
+                            </div>
+                            <div class="payment-option" data-method="bank">
+                                <input type="radio" id="bank" name="payment-method" value="bank">
+                                <label for="bank">
+                                    <i class="fas fa-university"></i>
+                                    <span>Bank Transfer</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Payment Form -->
+                    <form id="paymentForm" class="payment-form">
+                        <div class="form-section card-section">
+                            <div class="form-group">
+                                <label for="cardName">Cardholder Name</label>
+                                <input type="text" id="cardName" placeholder="John Doe" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="cardNumber">Card Number</label>
+                                <div class="card-input-wrapper">
+                                    <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                                    <div class="card-icons">
+                                        <i class="fab fa-cc-visa"></i>
+                                        <i class="fab fa-cc-mastercard"></i>
+                                        <i class="fab fa-cc-amex"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="expiryDate">Expiry Date</label>
+                                    <input type="text" id="expiryDate" placeholder="MM/YY" maxlength="5" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cvv">CVV</label>
+                                    <input type="text" id="cvv" placeholder="123" maxlength="4" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Billing Address -->
+                        <div class="form-section">
+                            <h3>Billing Address</h3>
+                            <div class="form-group">
+                                <label for="billingAddress">Street Address</label>
+                                <input type="text" id="billingAddress" placeholder="123 Main Street" required>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="billingCity">City</label>
+                                    <input type="text" id="billingCity" placeholder="Colombo" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="billingZip">Postal Code</label>
+                                    <input type="text" id="billingZip" placeholder="00100" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="billingCountry">Country</label>
+                                <select id="billingCountry" required>
+                                    <option value="">Select Country</option>
+                                    <option value="LK">Sri Lanka</option>
+                                    <option value="IN">India</option>
+                                    <option value="US">United States</option>
+                                    <option value="GB">United Kingdom</option>
+                                    <option value="AU">Australia</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Agreement -->
+                        <div class="form-section">
+                            <div class="agreement">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="termsAgreement" required>
+                                    <span class="checkmark"></span>
+                                    I agree to the <a href="/pages/terms.html">Terms of Service</a> and <a href="/pages/privacy.html">Privacy Policy</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Payment Button -->
+                        <div class="payment-actions">
+                            <button type="button" class="btn-secondary" onclick="goBack()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <button type="submit" class="btn-primary payment-btn">
+                                <i class="fas fa-lock"></i> Pay $<span id="payAmount">56.70</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- PayPal Section (Hidden by default) -->
+                    <div id="paypalSection" class="payment-section" style="display: none;">
+                        <div class="paypal-container">
+                            <p>You will be redirected to PayPal to complete your payment securely.</p>
+                            <button type="button" class="btn-paypal">
+                                <i class="fab fa-paypal"></i> Continue with PayPal
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bank Transfer Section (Hidden by default) -->
+                    <div id="bankSection" class="payment-section" style="display: none;">
+                        <div class="bank-container">
+                            <h4>Bank Transfer Details</h4>
+                            <div class="bank-details">
+                                <p><strong>Bank:</strong> Commercial Bank of Ceylon</p>
+                                <p><strong>Account Number:</strong> 8001234567</p>
+                                <p><strong>Account Name:</strong> GoPlay Sports Platform</p>
+                                <p><strong>Branch:</strong> Colombo 03</p>
+                                <p><strong>Reference:</strong> <span id="bankReference">GP-2024-001</span></p>
+                            </div>
+                            <button type="button" class="btn-primary">
+                                <i class="fas fa-copy"></i> Copy Bank Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Component -->
+    <div id="footer-container"></div>
+
+    <!-- Payment Processing Modal -->
+    <div id="processingModal" class="modal">
+        <div class="modal-content">
+            <div class="processing-content">
+                <div class="spinner"></div>
+                <h3>Processing Payment...</h3>
+                <p>Please don't close or refresh this page</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/components/navbar.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/pages/payment.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('/pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar(); // Initialize navbar behavior
+            });
+
+        // Load the shared footer dynamically
+        fetch('/pages/components/footer.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('footer-container').innerHTML = data;
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+
+        // Go back function
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
