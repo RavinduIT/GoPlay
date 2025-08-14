@@ -7,6 +7,7 @@
     <title>SportHub - Your Ultimate Sports Hub</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/components/navbar.css">
+    <link rel="stylesheet" href="css/components/footer.css">
     <link rel="stylesheet" href="css/pages/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -169,6 +170,9 @@
         </section>
     </main>
 
+    <!-- Footer Component -->
+    <div id="footer-container"></div>
+
     <script src="js/components/news-carousel.js"></script>
     <script src="js/pages/index.js"></script>
     <script src="js/auth.js"></script>
@@ -180,6 +184,13 @@
             .then(data => {
                 document.getElementById('navbar-container').innerHTML = data;
                 new Navbar(); // Initialize navbar behavior
+            });
+
+        // Load the shared footer dynamically
+        fetch('pages/components/footer.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('footer-container').innerHTML = data;
             });
 
         // Global logout function
