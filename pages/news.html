@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports News - SportHub</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/components/navbar.css">
+    <link rel="stylesheet" href="../css/pages/news.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <div id="navbar-container"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-background"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">Sports <span class="hero-highlight">News</span></h1>
+                <p class="hero-description">Stay updated with the latest sports news and updates</p>
+            </div>
+        </section>
+
+        <!-- News Content -->
+        <div class="container news-container">
+            <!-- Filters and Search -->
+            <div class="news-controls">
+                <div class="search-filter">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search news..." class="search-input">
+                        <button class="search-btn" onclick="searchNews()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <select id="categoryFilter" class="filter-select" onchange="filterNews()">
+                            <option value="">All Categories</option>
+                        </select>
+                        
+                        <select id="sortFilter" class="filter-select" onchange="sortNews()">
+                            <option value="date-desc">Latest First</option>
+                            <option value="date-asc">Oldest First</option>
+                            <option value="views-desc">Most Viewed</option>
+                            <option value="title-asc">Title A-Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="view-controls">
+                    <button class="view-btn active" data-view="grid" onclick="changeView('grid')">
+                        <i class="fas fa-th"></i>
+                        Grid
+                    </button>
+                    <button class="view-btn" data-view="list" onclick="changeView('list')">
+                        <i class="fas fa-list"></i>
+                        List
+                    </button>
+                </div>
+            </div>
+
+            <!-- Featured News -->
+            <section class="featured-news" id="featuredNews">
+                <h2 class="section-title">Featured News</h2>
+                <div class="featured-news-grid">
+                    <!-- Featured news will be loaded here -->
+                </div>
+            </section>
+
+            <!-- All News -->
+            <section class="all-news">
+                <div class="section-header">
+                    <h2 class="section-title">All News</h2>
+                    <div class="news-count">
+                        <span id="newsCount">0</span> articles found
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading" class="loading-container">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading news...</p>
+                    </div>
+                </div>
+
+                <!-- News Grid -->
+                <div id="newsGrid" class="news-grid grid-view" style="display: none;">
+                    <!-- News items will be loaded here -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-newspaper"></i>
+                    <h3>No news found</h3>
+                    <p>Try adjusting your search or filter criteria</p>
+                    <button class="btn primary" onclick="clearFilters()">
+                        <i class="fas fa-refresh"></i>
+                        Show All News
+                    </button>
+                </div>
+
+                <!-- Load More Button -->
+                <div class="load-more-container" id="loadMoreContainer" style="display: none;">
+                    <button class="btn secondary" id="loadMoreBtn" onclick="loadMoreNews()">
+                        <i class="fas fa-plus"></i>
+                        Load More News
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../js/data-utils.js"></script>
+    <script src="../js/pages/news.js"></script>
+    <script src="../js/components/navbar.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('../pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar();
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>

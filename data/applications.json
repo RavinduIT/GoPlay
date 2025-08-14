@@ -1,0 +1,94 @@
+[
+  {
+    "id": "app1",
+    "type": "coach",
+    "status": "pending",
+    "submittedDate": "2024-01-15",
+    "personalInfo": {
+      "name": "Alex Rodriguez",
+      "email": "alex@email.com",
+      "phone": "+1234567890",
+      "location": "New York"
+    },
+    "businessInfo": {
+      "businessName": "Pro Tennis Academy",
+      "experience": "5 years",
+      "description": "Specialized in tennis coaching for beginners and advanced players"
+    },
+    "documents": {
+      "photos": ["photo1.jpg", "photo2.jpg"],
+      "certificates": ["cert1.pdf"],
+      "idCard": true
+    }
+  },
+  {
+    "id": "app2",
+    "type": "shop",
+    "status": "approved",
+    "submittedDate": "2024-01-10",
+    "reviewDate": "2024-01-12",
+    "reviewedBy": "Admin",
+    "personalInfo": {
+      "name": "Maria Garcia",
+      "email": "maria@email.com",
+      "phone": "+1234567891",
+      "location": "California"
+    },
+    "businessInfo": {
+      "businessName": "Sports Equipment Pro",
+      "experience": "8 years",
+      "description": "Premium sports equipment and accessories"
+    },
+    "documents": {
+      "photos": ["shop1.jpg", "shop2.jpg"],
+      "certificates": ["business_license.pdf"],
+      "idCard": true
+    }
+  },
+  {
+    "id": "app3",
+    "type": "ground",
+    "status": "pending",
+    "submittedDate": "2024-01-18",
+    "personalInfo": {
+      "name": "James Wilson",
+      "email": "james@email.com",
+      "phone": "+1234567892",
+      "location": "Texas"
+    },
+    "businessInfo": {
+      "businessName": "Elite Sports Complex",
+      "experience": "10 years",
+      "description": "Multi-sport facility with premium amenities"
+    },
+    "documents": {
+      "photos": ["facility1.jpg", "facility2.jpg", "facility3.jpg"],
+      "certificates": ["facility_license.pdf"],
+      "idCard": true
+    }
+  },
+  {
+    "id": "app4",
+    "type": "coach",
+    "status": "rejected",
+    "submittedDate": "2024-01-05",
+    "reviewDate": "2024-01-08",
+    "reviewedBy": "Admin",
+    "personalInfo": {
+      "name": "Robert Taylor",
+      "email": "robert@email.com",
+      "phone": "+1234567893",
+      "location": "Florida"
+    },
+    "businessInfo": {
+      "businessName": "Taylor Coaching Services",
+      "experience": "2 years",
+      "description": "Personal fitness and sports coaching"
+    },
+    "documents": {
+      "photos": ["coach1.jpg"],
+      "certificates": [],
+      "idCard": true
+    }
+  }
+]

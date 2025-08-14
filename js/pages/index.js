@@ -1,4 +1,3 @@
-// Fixed Home Page JavaScript
 class HomePage {
     constructor() {
         this.venuesGrid = document.getElementById('venuesGrid');

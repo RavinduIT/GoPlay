@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/css/pages/admin.css">
     <link rel="stylesheet" href="/css/components/navbar.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin/admin-news.css">
 </head>
 
 <body>
@@ -66,11 +67,11 @@
             <div class="stat-card">
                 <div class="stat-content">
                     <div class="stat-icon accent">
-                        <i class="fas fa-user-check"></i>
+                        <i class="fas fa-newspaper"></i>
                     </div>
                     <div class="stat-info">
-                        <p class="stat-number" id="active-coaches">0</p>
-                        <p class="stat-label">Active Coaches</p>
+                        <p class="stat-number" id="total-news-count">0</p>
+                        <p class="stat-label">News Articles</p>
                     </div>
                 </div>
             </div>
@@ -82,6 +83,10 @@
                 <button class="tab-trigger active" data-tab="users">
                     <i class="fas fa-users"></i>
                     User Management
+                </button>
+                <button class="tab-trigger" data-tab="news">
+                    <i class="fas fa-newspaper"></i>
+                    News Management
                 </button>
                 <button class="tab-trigger" data-tab="applications">
                     <i class="fas fa-file-text"></i>
@@ -150,7 +155,7 @@
                     <div class="card-header">
                         <h3 class="card-title">
                             <i class="fas fa-users"></i>
-                            Regular Users (<span id="regular-users-count">7</span>)
+                            Regular Users (<span id="regular-users-count">0</span>)
                         </h3>
                     </div>
                     <div class="card-content" id="regular-users-list">
@@ -167,25 +172,73 @@
                         </h3>
                     </div>
                     <div class="card-content">
-                        <button class="action-button primary" onclick="showNotificationDialog()">
+                        <button class="action-button primary" onclick="admin.showNotificationDialog()">
                             <i class="fas fa-bell"></i>
                             Send System Notification
                         </button>
-                        <button class="action-button secondary" onclick="exportData()">
+                        <button class="action-button secondary" onclick="admin.exportData()">
                             <i class="fas fa-download"></i>
                             Export Complete Data
                         </button>
-                        <button class="action-button secondary" onclick="generateReports()">
+                        <button class="action-button secondary" onclick="admin.generateReports()">
                             <i class="fas fa-file-text"></i>
                             Generate Analytics Report
                         </button>
-                        <button class="action-button danger" onclick="toggleMaintenanceMode()" id="maintenance-btn">
+                        <button class="action-button danger" onclick="admin.toggleMaintenanceMode()" id="maintenance-btn">
                             <i class="fas fa-exclamation-triangle"></i>
                             Enter Maintenance Mode
                         </button>
                         <div class="maintenance-warning" id="maintenance-warning" style="display: none;">
                             <p class="warning-text">⚠️ System is in Maintenance Mode</p>
                             <p class="warning-subtext">New registrations are disabled</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- News Management Tab -->
+            <div class="tab-content" id="news-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 class="card-title">
+                                <i class="fas fa-newspaper"></i>
+                                News Articles Management
+                            </h3>
+                            <button class="btn primary" id="add-news-btn">
+                                <i class="fas fa-plus"></i>
+                                Add Article
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- News Stats -->
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <i class="fas fa-newspaper"></i>
+                            <div class="stat-number" id="total-news-count">0</div>
+                            <div class="stat-label">Total Articles</div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-eye"></i>
+                            <div class="stat-number" id="published-news-count">0</div>
+                            <div class="stat-label">Published</div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-edit"></i>
+                            <div class="stat-number" id="draft-news-count">0</div>
+                            <div class="stat-label">Drafts</div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-chart-line"></i>
+                            <div class="stat-number" id="total-news-views">0</div>
+                            <div class="stat-label">Total Views</div>
+                        </div>
+                    </div>
+
+                    <div class="card-content">
+                        <div class="news-grid" id="news-grid">
+                            <!-- News cards will be loaded here -->
                         </div>
                     </div>
                 </div>
@@ -234,19 +287,19 @@
                             </h3>
                         </div>
                         <div class="card-content">
-                            <button class="setting-button" onclick="showToast('General Settings would open here')">
+                            <button class="setting-button" onclick="admin.showToast('General Settings would open here')">
                                 <i class="fas fa-cog"></i>
                                 General Settings
                             </button>
-                            <button class="setting-button" onclick="showToast('Security Settings would open here')">
+                            <button class="setting-button" onclick="admin.showToast('Security Settings would open here')">
                                 <i class="fas fa-shield-alt"></i>
                                 Security Settings
                             </button>
-                            <button class="setting-button" onclick="showToast('User Permissions would open here')">
+                            <button class="setting-button" onclick="admin.showToast('User Permissions would open here')">
                                 <i class="fas fa-users"></i>
                                 User Permissions
                             </button>
-                            <button class="setting-button" onclick="showToast('Analytics Settings would open here')">
+                            <button class="setting-button" onclick="admin.showToast('Analytics Settings would open here')">
                                 <i class="fas fa-chart-bar"></i>
                                 Analytics Settings
                             </button>
@@ -263,7 +316,7 @@
                         <div class="card-content">
                             <p style="margin-bottom: 1rem; color: #718096;">Toggle maintenance mode to restrict user
                                 access during updates.</p>
-                            <button class="action-button danger" onclick="toggleMaintenanceMode()">
+                            <button class="action-button danger" onclick="admin.toggleMaintenanceMode()">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 Toggle Maintenance Mode
                             </button>
@@ -274,12 +327,101 @@
         </div>
     </div>
 
+    <!-- News Modal -->
+    <div class="modal large" id="news-modal">
+        <div class="modal-content news-modal">
+            <div class="modal-header">
+                <h3 id="news-modal-title">Add News Article</h3>
+                <button class="modal-close" onclick="adminNews.closeModal('news-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="news-form" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="news-title">Article Title *</label>
+                            <input type="text" id="news-title" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="news-category">Category</label>
+                            <select id="news-category" name="category">
+                                <option value="Sports">Sports</option>
+                                <option value="Football">Football</option>
+                                <option value="Basketball">Basketball</option>
+                                <option value="Tennis">Tennis</option>
+                                <option value="Olympics">Olympics</option>
+                                <option value="Youth Sports">Youth Sports</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Health & Fitness">Health & Fitness</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="news-summary">Article Summary *</label>
+                        <textarea id="news-summary" name="summary" required placeholder="Brief description of the article..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="news-content">Article Content *</label>
+                        <textarea id="news-content" name="content" required placeholder="Full article content..." style="min-height: 200px;"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="news-author">Author</label>
+                            <input type="text" id="news-author" name="author" placeholder="Author name">
+                        </div>
+                        <div class="form-group">
+                            <label for="news-tags">Tags (comma separated)</label>
+                            <input type="text" id="news-tags" name="tags" placeholder="sports, news, tournament">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="news-status">Status</label>
+                            <select id="news-status" name="status">
+                                <option value="published">Published</option>
+                                <option value="draft">Draft</option>
+                                <option value="scheduled">Scheduled</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="news-featured" name="featured">
+                                <label for="news-featured">Featured Article</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="news-images">Article Images</label>
+                        <input type="file" id="news-images" name="images" multiple accept="image/*">
+                        <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
+                            Select multiple images. First image will be used as the main article image.
+                        </small>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn secondary" onclick="adminNews.closeModal('news-modal')">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn primary">
+                            <i class="fas fa-save"></i>
+                            Create Article
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Dialog -->
     <div class="modal" id="notification-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Send System Notification</h3>
-                <button class="modal-close" onclick="closeModal('notification-modal')">&times;</button>
+                <button class="modal-close" onclick="admin.closeModal('notification-modal')">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -293,8 +435,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn secondary" onclick="closeModal('notification-modal')">Cancel</button>
-                <button class="btn primary" onclick="sendNotification()">Send Notification</button>
+                <button class="btn secondary" onclick="admin.closeModal('notification-modal')">Cancel</button>
+                <button class="btn primary" onclick="admin.sendNotification()">Send Notification</button>
             </div>
         </div>
     </div>
@@ -304,14 +446,14 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Service Provider Application Review</h3>
-                <button class="modal-close" onclick="closeModal('application-modal')">&times;</button>
+                <button class="modal-close" onclick="admin.closeModal('application-modal')">&times;</button>
             </div>
             <div class="modal-body" id="application-modal-body">
                 <!-- Dynamic content will be inserted here -->
             </div>
             <div class="modal-footer">
-                <button class="btn danger" onclick="rejectApplication()">Reject Application</button>
-                <button class="btn success" onclick="approveApplication()">Approve Application</button>
+                <button class="btn danger" onclick="admin.rejectApplication()">Reject Application</button>
+                <button class="btn success" onclick="admin.approveApplication()">Approve Application</button>
             </div>
         </div>
     </div>
@@ -320,12 +462,16 @@
     <div class="toast" id="toast">
         <div class="toast-content">
             <span id="toast-message"></span>
-            <button class="toast-close" onclick="hideToast()">&times;</button>
+            <button class="toast-close" onclick="admin.hideToast()">&times;</button>
         </div>
     </div>
 
+    <!-- Load Scripts -->
+    <script src="/js/data-utils.js"></script>
     <script src="/js/pages/admin/admin.js"></script>
+    <script src="/js/pages/admin/admin-news.js"></script>
     <script src="/js/components/navbar.js"></script>
+    
     <script>
         // Load the shared navbar dynamically
         fetch('/pages/components/navbar.html')

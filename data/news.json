@@ -1,0 +1,130 @@
+{
+  "news": [
+    {
+      "id": 1,
+      "title": "World Cup 2024 Preparations Begin",
+      "slug": "world-cup-2024-preparations-begin",
+      "summary": "Teams gear up for the biggest tournament of the year with intensive training sessions and strategic planning.",
+      "content": "The 2024 World Cup is just around the corner, and teams from around the globe are intensifying their preparations. With less than six months to go, national coaches are finalizing their squads and implementing rigorous training regimens. The tournament, set to be held across multiple venues, promises to be the most competitive yet. Teams have been analyzing opponent strategies, working on fitness levels, and perfecting their game plans. Several breakthrough players have emerged this season, adding an exciting dynamic to the upcoming competition. Training camps have been established in various locations, with teams focusing on both individual skill development and team cohesion. The anticipation among fans is building as ticket sales have already broken records.",
+      "author": "John Sports Reporter",
+      "date": "2024-01-15",
+      "publishedAt": "2024-01-15T10:00:00Z",
+      "category": "Football",
+      "tags": ["World Cup", "Football", "Tournament", "Training"],
+      "image": "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=400&fit=crop",
+      "images": [
+        "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop"
+      ],
+      "featured": true,
+      "status": "published",
+      "views": 1250,
+      "readTime": "5 min read"
+    },
+    {
+      "id": 2,
+      "title": "Tennis Championship Finals Set for This Weekend",
+      "slug": "tennis-championship-finals-weekend",
+      "summary": "Epic showdown at Wimbledon this weekend as top players compete for the championship title.",
+      "content": "This weekend marks the climax of what has been an extraordinary tennis season. The finals will feature some of the most talented players of this generation, each bringing their unique style and determination to the court. The semi-finals saw stunning upsets and incredible displays of skill, setting the stage for what promises to be an unforgettable finale. Weather conditions are expected to be perfect, with clear skies and mild temperatures ideal for outdoor play. The defending champion faces a formidable challenger who has shown exceptional form throughout the tournament. Ticket holders are in for a treat as both players have demonstrated remarkable consistency and power in their previous matches. The championship has attracted viewers from around the world, with broadcast rights extending to over 150 countries.",
+      "author": "Sarah Tennis Expert",
+      "date": "2024-01-14",
+      "publishedAt": "2024-01-14T14:30:00Z",
+      "category": "Tennis",
+      "tags": ["Tennis", "Championship", "Wimbledon", "Finals"],
+      "image": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=400&fit=crop",
+      "images": [
+        "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=400&fit=crop"
+      ],
+      "featured": true,
+      "status": "published",
+      "views": 980,
+      "readTime": "4 min read"
+    },
+    {
+      "id": 3,
+      "title": "Basketball League Season Kicks Off with Spectacular Opening",
+      "slug": "basketball-league-season-spectacular-opening",
+      "summary": "New season brings exciting matchups and emerging talent as teams prepare for an action-packed year.",
+      "content": "The new basketball season has officially begun with a spectacular opening ceremony that showcased the league's commitment to entertainment and athletic excellence. This year's roster includes several new acquisitions and promising rookies who are expected to make significant impacts. The opening games demonstrated the high level of competition fans can expect throughout the season. Several teams have restructured their playing strategies, incorporating new offensive and defensive schemes that promise to make games more dynamic and unpredictable. The league has also introduced new technologies for enhanced fan experience, including better camera angles and real-time statistics. Attendance figures for opening night exceeded expectations, with several venues reporting sold-out crowds. The energy in the arenas was palpable as fans welcomed back their favorite teams and players after the off-season break.",
+      "author": "Mike Basketball Analyst",
+      "date": "2024-01-13",
+      "publishedAt": "2024-01-13T18:00:00Z",
+      "category": "Basketball",
+      "tags": ["Basketball", "League", "Season Opening", "Rookies"],
+      "image": "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=400&fit=crop",
+      "images": [
+        "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?w=800&h=400&fit=crop"
+      ],
+      "featured": false,
+      "status": "published",
+      "views": 756,
+      "readTime": "3 min read"
+    },
+    {
+      "id": 4,
+      "title": "New Olympic Training Facilities Open to Athletes",
+      "slug": "olympic-training-facilities-open-athletes",
+      "summary": "State-of-the-art facilities ready for athletes with cutting-edge equipment and world-class amenities.",
+      "content": "A new era in athletic training has begun with the opening of revolutionary Olympic training facilities that set new standards for sports preparation. These facilities feature the latest in sports science technology, including advanced biomechanics labs, altitude simulation chambers, and recovery centers equipped with cryotherapy and hydrotherapy options. The complex spans over 200 acres and includes specialized training areas for various Olympic sports. Athletes from around the world have already begun utilizing these facilities, praising the comprehensive approach to training and recovery. The design incorporates sustainable practices and environmentally friendly technologies, making it a model for future sports facilities. Nutrition centers staffed by world-renowned sports dietitians provide customized meal plans for optimal performance. The facility also includes accommodation for visiting athletes and coaching staff, creating a complete training ecosystem.",
+      "author": "Dr. Amanda Sports Scientist",
+      "date": "2024-01-12",
+      "publishedAt": "2024-01-12T09:15:00Z",
+      "category": "Olympics",
+      "tags": ["Olympics", "Training", "Facilities", "Technology"],
+      "image": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=400&fit=crop",
+      "images": [
+        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=400&fit=crop"
+      ],
+      "featured": false,
+      "status": "published",
+      "views": 543,
+      "readTime": "6 min read"
+    },
+    {
+      "id": 5,
+      "title": "Youth Sports Programs Launch Nationwide Initiative",
+      "slug": "youth-sports-programs-nationwide-initiative",
+      "summary": "Inspiring the next generation of athletes through comprehensive youth development programs.",
+      "content": "A groundbreaking nationwide initiative has been launched to provide comprehensive sports programs for youth across the country. This program aims to make sports accessible to children from all backgrounds, focusing on skill development, teamwork, and healthy lifestyle habits. The initiative includes partnerships with schools, community centers, and local sports clubs to create a network of opportunities for young athletes. Professional coaches and former athletes serve as mentors, providing guidance both on and off the field. The program emphasizes inclusion and diversity, ensuring that children with disabilities and from underserved communities have equal access to quality sports instruction. Equipment donation drives and scholarship programs help remove financial barriers that might prevent participation. Early results show increased physical fitness levels and improved academic performance among participants. The program also includes educational components about nutrition, mental health, and leadership development.",
+      "author": "Lisa Youth Coordinator",
+      "date": "2024-01-11",
+      "publishedAt": "2024-01-11T11:45:00Z",
+      "category": "Youth Sports",
+      "tags": ["Youth", "Programs", "Development", "Community"],
+      "image": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=400&fit=crop",
+      "images": [
+        "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1594736797933-d0200ba2fe65?w=800&h=400&fit=crop"
+      ],
+      "featured": false,
+      "status": "published",
+      "views": 432,
+      "readTime": "4 min read"
+    },
+    {
+      "id": 6,
+      "title": "AI Revolution Transforms Sports Training Methods",
+      "slug": "ai-revolution-sports-training-methods",
+      "summary": "Artificial intelligence revolutionizes training methods worldwide with data-driven insights and personalized coaching.",
+      "content": "The sports world is experiencing a technological revolution as artificial intelligence becomes increasingly integrated into training methodologies. Advanced AI systems now analyze player performance in real-time, providing coaches with unprecedented insights into technique, stamina, and potential improvements. Machine learning algorithms process vast amounts of data from wearable devices, video analysis, and biomechanical sensors to create personalized training programs for individual athletes. Virtual reality training environments allow athletes to practice in simulated game scenarios, improving decision-making skills without physical strain. Predictive analytics help prevent injuries by identifying patterns that suggest overexertion or poor form. Professional teams across various sports are investing heavily in AI technology, recognizing its potential to provide competitive advantages. The technology is also becoming more accessible to amateur athletes through smartphone apps and affordable wearable devices. Sports scientists predict that AI will continue to evolve, potentially revolutionizing how we understand human athletic performance.",
+      "author": "Dr. Robert Tech Specialist",
+      "date": "2024-01-10",
+      "publishedAt": "2024-01-10T16:20:00Z",
+      "category": "Technology",
+      "tags": ["AI", "Technology", "Training", "Innovation"],
+      "image": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&h=400&fit=crop",
+      "images": [
+        "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop"
+      ],
+      "featured": false,
+      "status": "published",
+      "views": 678,
+      "readTime": "7 min read"
+    }
+  ]
+}
