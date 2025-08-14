@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>GoPlay ER Diagram</title>
+    <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: white;
+            font-family: Arial, sans-serif;
+        }
+        #diagram {
+            width: 100%;
+            text-align: center;
+        }
+        .mermaid {
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="diagram">
+        <div class="mermaid">
+erDiagram
+    USERS {
+        int id PK
+        varchar username UK
+        varchar email UK
+        varchar password_hash
+        varchar first_name
+        varchar last_name
+        varchar phone
+        date date_of_birth
+        varchar profile_picture
+        enum user_type
+        enum status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    USER_ADDRESSES {
+        int id PK
+        int user_id FK
+        enum address_type
+        varchar street_address
+        varchar city
+        varchar state
+        varchar postal_code
+        varchar country
+        boolean is_default
+        timestamp created_at
+    }
+
+    SPORTS_CATEGORIES {
+        int id PK
+        varchar name UK
+        text description
+        varchar icon
+        varchar image
+        boolean is_active
+        timestamp created_at
+    }
+
+    COACHES {
+        int id PK
+        int user_id FK
+        int sport_category_id FK
+        int experience_years
+        decimal hourly_rate
+        text bio
+        text specializations
+        text certifications
+        decimal rating
+        int total_reviews
+        int total_sessions
+        json availability_schedule
+        varchar location
+        enum status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    COACH_REVIEWS {
+        int id PK
+        int coach_id FK
+        int user_id FK
+        int booking_id FK
+        int rating
+        text review_text
+        timestamp created_at
+    }
+
+    COACH_BOOKINGS {
+        int id PK
+        int user_id FK
+        int coach_id FK
+        date booking_date
+        time start_time
+        time end_time
+        decimal duration_hours
+        enum session_type
+        decimal total_amount
+        text special_requests
+        enum status
+        enum payment_status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SPORTS_FACILITIES {
+        int id PK
+        int owner_id FK
+        varchar name
+        text description
+        int sport_category_id FK
+        text address
+        varchar city
+        varchar state
+        varchar postal_code
+        varchar country
+        decimal latitude
+        decimal longitude
+        decimal hourly_rate
+        int capacity
+        json amenities
+        json images
+        text rules
+        decimal rating
+        int total_reviews
+        enum status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    FACILITY_REVIEWS {
+        int id PK
+        int facility_id FK
+        int user_id FK
+        int booking_id FK
+        int rating
+        text review_text
+        timestamp created_at
+    }
+
+    FACILITY_BOOKINGS {
+        int id PK
+        int user_id FK
+        int facility_id FK
+        date booking_date
+        time start_time
+        time end_time
+        decimal duration_hours
+        decimal total_amount
+        text special_requests
+        enum status
+        enum payment_status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PRODUCT_CATEGORIES {
+        int id PK
+        varchar name UK
+        int parent_id FK
+        text description
+        varchar image
+        boolean is_active
+        timestamp created_at
+    }
+
+    PRODUCTS {
+        int id PK
+        varchar name
+        varchar sku UK
+        text description
+        int category_id FK
+        varchar brand
+        decimal price
+        decimal compare_price
+        decimal cost_price
+        int stock_quantity
+        int min_stock_level
+        decimal weight
+        varchar dimensions
+        json specifications
+        json features
+        json images
+        json tags
+        enum status
+        decimal rating
+        int total_reviews
+        int total_sales
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PRODUCT_REVIEWS {
+        int id PK
+        int product_id FK
+        int user_id FK
+        int order_id FK
+        int rating
+        varchar title
+        text review_text
+        json images
+        boolean is_verified_purchase
+        timestamp created_at
+    }
+
+    SHOPPING_CART {
+        int id PK
+        int user_id FK
+        int product_id FK
+        int quantity
+        decimal price
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ORDERS {
+        int id PK
+        varchar order_number UK
+        int user_id FK
+        enum order_type
+        decimal subtotal
+        decimal tax_amount
+        decimal shipping_amount
+        decimal discount_amount
+        decimal total_amount
+        varchar currency
+        enum status
+        enum payment_status
+        enum payment_method
+        json shipping_address
+        json billing_address
+        text notes
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ORDER_ITEMS {
+        int id PK
+        int order_id FK
+        int product_id FK
+        int coach_booking_id FK
+        int facility_booking_id FK
+        varchar item_name
+        text item_description
+        int quantity
+        decimal unit_price
+        decimal total_price
+        timestamp created_at
+    }
+
+    PAYMENTS {
+        int id PK
+        int order_id FK
+        varchar transaction_id UK
+        enum payment_method
+        decimal amount
+        varchar currency
+        enum status
+        json gateway_response
+        timestamp processed_at
+        timestamp created_at
+    }
+
+    NOTIFICATIONS {
+        int id PK
+        int user_id FK
+        enum type
+        varchar title
+        text message
+        json data
+        boolean is_read
+        timestamp created_at
+    }
+
+    SETTINGS {
+        int id PK
+        varchar key_name UK
+        text value
+        text description
+        enum type
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    USERS ||--o{ USER_ADDRESSES : "has addresses"
+    USERS ||--o{ COACHES : "becomes coach"
+    USERS ||--o{ SPORTS_FACILITIES : "owns facilities"
+    USERS ||--o{ COACH_BOOKINGS : "books coaches"
+    USERS ||--o{ FACILITY_BOOKINGS : "books facilities"
+    USERS ||--o{ COACH_REVIEWS : "reviews coaches"
+    USERS ||--o{ FACILITY_REVIEWS : "reviews facilities"
+    USERS ||--o{ PRODUCT_REVIEWS : "reviews products"
+    USERS ||--o{ SHOPPING_CART : "has cart items"
+    USERS ||--o{ ORDERS : "places orders"
+    USERS ||--o{ NOTIFICATIONS : "receives notifications"
+
+    SPORTS_CATEGORIES ||--o{ COACHES : "specializes in"
+    SPORTS_CATEGORIES ||--o{ SPORTS_FACILITIES : "supports sport"
+
+    COACHES ||--o{ COACH_BOOKINGS : "receives bookings"
+    COACHES ||--o{ COACH_REVIEWS : "gets reviewed"
+    COACH_BOOKINGS ||--o{ COACH_REVIEWS : "generates review"
+
+    SPORTS_FACILITIES ||--o{ FACILITY_BOOKINGS : "receives bookings"
+    SPORTS_FACILITIES ||--o{ FACILITY_REVIEWS : "gets reviewed"
+    FACILITY_BOOKINGS ||--o{ FACILITY_REVIEWS : "generates review"
+
+    PRODUCT_CATEGORIES ||--o{ PRODUCT_CATEGORIES : "has subcategories"
+    PRODUCT_CATEGORIES ||--o{ PRODUCTS : "contains products"
+    PRODUCTS ||--o{ PRODUCT_REVIEWS : "gets reviewed"
+    PRODUCTS ||--o{ SHOPPING_CART : "added to cart"
+    PRODUCTS ||--o{ ORDER_ITEMS : "included in order"
+
+    ORDERS ||--o{ ORDER_ITEMS : "contains items"
+    ORDERS ||--o{ PAYMENTS : "processed by"
+    ORDERS ||--o{ PRODUCT_REVIEWS : "enables reviews"
+
+    COACH_BOOKINGS ||--o{ ORDER_ITEMS : "can be ordered"
+    FACILITY_BOOKINGS ||--o{ ORDER_ITEMS : "can be ordered"
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default'
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoPlay Complete ER Diagram</title>
+    <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .btn.secondary {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+        #diagram {
+            margin: 30px 0;
+            padding: 30px;
+            background: #fafafa;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            overflow-x: auto;
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .stat {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .instructions {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .method {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 5px;
+        }
+        @media print {
+            body { background: white; }
+            .container { box-shadow: none; }
+            .controls, .instructions { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏀 GoPlay Sports Platform</h1>
+        <div class="subtitle">Complete Database Entity Relationship Diagram</div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number">15</div>
+                <div class="stat-label">Tables</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">25+</div>
+                <div class="stat-label">Relationships</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Modules</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="downloadSVG()">📥 Download SVG</button>
+            <button class="btn" onclick="downloadPNG()">📥 Download PNG</button>
+            <button class="btn secondary" onclick="window.print()">🖨️ Print/PDF</button>
+            <button class="btn secondary" onclick="copyToClipboard()">📋 Copy Code</button>
+        </div>
+
+        <div class="instructions">
+            <h3>📥 Download Options:</h3>
+            <div class="method"><strong>Method 1:</strong> Click "Download PNG" button above</div>
+            <div class="method"><strong>Method 2:</strong> Right-click diagram → "Save image as..."</div>
+            <div class="method"><strong>Method 3:</strong> Click "Print/PDF" → Save as PDF</div>
+            <div class="method"><strong>Method 4:</strong> Screenshot tool (Cmd+Shift+4 on Mac)</div>
+        </div>
+
+        <div id="diagram">
+            <div class="mermaid">
+erDiagram
+    %% === USER MANAGEMENT ===
+    USERS {
+        int id PK
+        varchar username UK
+        varchar email UK
+        varchar password_hash
+        varchar first_name
+        varchar last_name
+        varchar phone
+        date date_of_birth
+        varchar profile_picture
+        enum user_type
+        enum status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    USER_ADDRESSES {
+        int id PK
+        int user_id FK
+        enum address_type
+        varchar street_address
+        varchar city
+        varchar state
+        varchar postal_code
+        varchar country
+        boolean is_default
+        timestamp created_at
+    }
+
+    %% === SPORTS CATEGORIES ===
+    SPORTS_CATEGORIES {
+        int id PK
+        varchar name UK
+        text description
+        varchar icon
+        varchar image
+        boolean is_active
+        timestamp created_at
+    }
+
+    %% === COACHES SYSTEM ===
+    COACHES {
+        int id PK
+        int user_id FK
+        int sport_category_id FK
+        int experience_years
+        decimal hourly_rate
+        text bio
+        text specializations
+        text certifications
+        decimal rating
+        int total_reviews
+        int total_sessions
+        json availability_schedule
+        varchar location
+        enum status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    COACH_REVIEWS {
+        int id PK
+        int coach_id FK
+        int user_id FK
+        int booking_id FK
+        int rating
+        text review_text
+        timestamp created_at
+    }
+
+    COACH_BOOKINGS {
+        int id PK
+        int user_id FK
+        int coach_id FK
+        date booking_date
+        time start_time
+        time end_time
+        decimal duration_hours
+        enum session_type
+        decimal total_amount
+        text special_requests
+        enum status
+        enum payment_status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% === FACILITIES SYSTEM ===
+    SPORTS_FACILITIES {
+        int id PK
+        int owner_id FK
+        varchar name
+        text description
+        int sport_category_id FK
+        text address
+        varchar city
+        varchar state
+        varchar postal_code
+        varchar country
+        decimal latitude
+        decimal longitude
+        decimal hourly_rate
+        int capacity
+        json amenities
+        json images
+        text rules
+        decimal rating
+        int total_reviews
+        enum status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    FACILITY_REVIEWS {
+        int id PK
+        int facility_id FK
+        int user_id FK
+        int booking_id FK
+        int rating
+        text review_text
+        timestamp created_at
+    }
+
+    FACILITY_BOOKINGS {
+        int id PK
+        int user_id FK
+        int facility_id FK
+        date booking_date
+        time start_time
+        time end_time
+        decimal duration_hours
+        decimal total_amount
+        text special_requests
+        enum status
+        enum payment_status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% === PRODUCTS & E-COMMERCE ===
+    PRODUCT_CATEGORIES {
+        int id PK
+        varchar name UK
+        int parent_id FK
+        text description
+        varchar image
+        boolean is_active
+        timestamp created_at
+    }
+
+    PRODUCTS {
+        int id PK
+        varchar name
+        varchar sku UK
+        text description
+        int category_id FK
+        varchar brand
+        decimal price
+        decimal compare_price
+        decimal cost_price
+        int stock_quantity
+        int min_stock_level
+        decimal weight
+        varchar dimensions
+        json specifications
+        json features
+        json images
+        json tags
+        enum status
+        decimal rating
+        int total_reviews
+        int total_sales
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PRODUCT_REVIEWS {
+        int id PK
+        int product_id FK
+        int user_id FK
+        int order_id FK
+        int rating
+        varchar title
+        text review_text
+        json images
+        boolean is_verified_purchase
+        timestamp created_at
+    }
+
+    SHOPPING_CART {
+        int id PK
+        int user_id FK
+        int product_id FK
+        int quantity
+        decimal price
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% === ORDERS & PAYMENTS ===
+    ORDERS {
+        int id PK
+        varchar order_number UK
+        int user_id FK
+        enum order_type
+        decimal subtotal
+        decimal tax_amount
+        decimal shipping_amount
+        decimal discount_amount
+        decimal total_amount
+        varchar currency
+        enum status
+        enum payment_status
+        enum payment_method
+        json shipping_address
+        json billing_address
+        text notes
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ORDER_ITEMS {
+        int id PK
+        int order_id FK
+        int product_id FK
+        int coach_booking_id FK
+        int facility_booking_id FK
+        varchar item_name
+        text item_description
+        int quantity
+        decimal unit_price
+        decimal total_price
+        timestamp created_at
+    }
+
+    PAYMENTS {
+        int id PK
+        int order_id FK
+        varchar transaction_id UK
+        enum payment_method
+        decimal amount
+        varchar currency
+        enum status
+        json gateway_response
+        timestamp processed_at
+        timestamp created_at
+    }
+
+    %% === NOTIFICATIONS & SETTINGS ===
+    NOTIFICATIONS {
+        int id PK
+        int user_id FK
+        enum type
+        varchar title
+        text message
+        json data
+        boolean is_read
+        timestamp created_at
+    }
+
+    SETTINGS {
+        int id PK
+        varchar key_name UK
+        text value
+        text description
+        enum type
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% === PRIMARY RELATIONSHIPS ===
+    USERS ||--o{ USER_ADDRESSES : "has addresses"
+    USERS ||--o{ COACHES : "becomes coach"
+    USERS ||--o{ SPORTS_FACILITIES : "owns facilities"
+    USERS ||--o{ COACH_BOOKINGS : "books coaches"
+    USERS ||--o{ FACILITY_BOOKINGS : "books facilities"
+    USERS ||--o{ COACH_REVIEWS : "reviews coaches"
+    USERS ||--o{ FACILITY_REVIEWS : "reviews facilities"
+    USERS ||--o{ PRODUCT_REVIEWS : "reviews products"
+    USERS ||--o{ SHOPPING_CART : "has cart"
+    USERS ||--o{ ORDERS : "places orders"
+    USERS ||--o{ NOTIFICATIONS : "receives notifications"
+
+    %% === SPORTS RELATIONSHIPS ===
+    SPORTS_CATEGORIES ||--o{ COACHES : "specializes in"
+    SPORTS_CATEGORIES ||--o{ SPORTS_FACILITIES : "supports sport"
+
+    %% === COACH RELATIONSHIPS ===
+    COACHES ||--o{ COACH_BOOKINGS : "receives bookings"
+    COACHES ||--o{ COACH_REVIEWS : "gets reviewed"
+    COACH_BOOKINGS ||--o{ COACH_REVIEWS : "generates review"
+
+    %% === FACILITY RELATIONSHIPS ===
+    SPORTS_FACILITIES ||--o{ FACILITY_BOOKINGS : "receives bookings"
+    SPORTS_FACILITIES ||--o{ FACILITY_REVIEWS : "gets reviewed"
+    FACILITY_BOOKINGS ||--o{ FACILITY_REVIEWS : "generates review"
+
+    %% === PRODUCT RELATIONSHIPS ===
+    PRODUCT_CATEGORIES ||--o{ PRODUCT_CATEGORIES : "has subcategories"
+    PRODUCT_CATEGORIES ||--o{ PRODUCTS : "contains products"
+    PRODUCTS ||--o{ PRODUCT_REVIEWS : "gets reviewed"
+    PRODUCTS ||--o{ SHOPPING_CART : "added to cart"
+    PRODUCTS ||--o{ ORDER_ITEMS : "included in order"
+
+    %% === ORDER RELATIONSHIPS ===
+    ORDERS ||--o{ ORDER_ITEMS : "contains items"
+    ORDERS ||--o{ PAYMENTS : "processed by payment"
+    ORDERS ||--o{ PRODUCT_REVIEWS : "enables reviews"
+
+    %% === BOOKING ORDER RELATIONSHIPS ===
+    COACH_BOOKINGS ||--o{ ORDER_ITEMS : "can be ordered"
+    FACILITY_BOOKINGS ||--o{ ORDER_ITEMS : "can be ordered"
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; color: #666;">
+            <p><strong>GoPlay Sports Platform Database</strong> - Complete ER Diagram</p>
+            <p>15 Tables • 8 Modules • Full Relationship Mapping</p>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#f9f9f9',
+                primaryTextColor: '#000',
+                primaryBorderColor: '#333',
+                lineColor: '#333',
+                sectionBkgColor: '#f0f0f0',
+                altSectionBkgColor: '#ffffff',
+                gridColor: '#cccccc',
+                secondaryColor: '#006100',
+                tertiaryColor: '#fff'
+            },
+            er: {
+                diagramPadding: 20,
+                layoutDirection: 'TB',
+                minEntityWidth: 100,
+                minEntityHeight: 75,
+                entityPadding: 15,
+                stroke: '#333333',
+                fill: '#f9f9f9',
+                fontSize: 12
+            }
+        });
+
+        function downloadSVG() {
+            setTimeout(() => {
+                const svg = document.querySelector('#diagram svg');
+                if (!svg) {
+                    alert('Please wait for diagram to load completely');
+                    return;
+                }
+                
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const blob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'goplay-complete-er-diagram.svg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 2000);
+        }
+
+        function downloadPNG() {
+            setTimeout(() => {
+                const svg = document.querySelector('#diagram svg');
+                if (!svg) {
+                    alert('Please wait for diagram to load completely');
+                    return;
+                }
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const svgData = new XMLSerializer().serializeToString(svg);
+                
+                // Get SVG dimensions
+                const svgRect = svg.getBoundingClientRect();
+                canvas.width = svgRect.width * 2; // Higher resolution
+                canvas.height = svgRect.height * 2;
+                ctx.scale(2, 2);
+
+                const img = new Image();
+                img.onload = function() {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, svgRect.width, svgRect.height);
+                    
+                    const a = document.createElement('a');
+                    a.href = canvas.toDataURL('image/png');
+                    a.download = 'goplay-complete-er-diagram.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+                
+                img.onerror = function() {
+                    alert('PNG conversion failed. Try the SVG download instead.');
+                };
+                
+                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+            }, 2000);
+        }
+
+        function copyToClipboard() {
+            const mermaidCode = document.querySelector('.mermaid').textContent;
+            navigator.clipboard.writeText(mermaidCode).then(() => {
+                alert('Mermaid code copied to clipboard! Paste it at https://mermaid.live/');
+            }).catch(() => {
+                alert('Copy failed. Please select and copy the code manually.');
+            });
+        }
+
+        // Auto-load message
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('✅ Complete ER Diagram loaded with all 15 tables!');
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
