@@ -68,7 +68,6 @@ function initializeShopPage() {
 
         // View toggle listeners
         document.getElementById('gridView').addEventListener('click', () => this.setView('grid'));
-        document.getElementById('listView').addEventListener('click', () => this.setView('list'));
 
         // Cart listeners
         document.getElementById('cartButton').addEventListener('click', () => this.toggleCart());
@@ -219,20 +218,12 @@ function initializeShopPage() {
       }
 
       setView(viewType) {
-        this.currentView = viewType;
+        this.currentView = 'grid';
         const grid = document.getElementById('productGrid');
         const gridBtn = document.getElementById('gridView');
-        const listBtn = document.getElementById('listView');
 
-        if (viewType === 'grid') {
-          grid.className = 'product-grid grid-view';
-          gridBtn.classList.add('active');
-          listBtn.classList.remove('active');
-        } else {
-          grid.className = 'product-grid list-view';
-          listBtn.classList.add('active');
-          gridBtn.classList.remove('active');
-        }
+        grid.className = 'product-grid grid-view';
+        gridBtn.classList.add('active');
         
         this.renderProducts();
       }
