@@ -117,7 +117,7 @@
         <div class="cart-total">
           <strong>Total: $<span id="cartTotal">0.00</span></strong>
         </div>
-        <button class="checkout-btn">
+        <button class="checkout-btn" onclick="proceedToCheckout()">
           <i class="fas fa-credit-card"></i> Checkout
         </button>
       </div>
@@ -147,6 +147,33 @@
         function logout() {
             localStorage.removeItem('currentUser');
             window.location.href = '/';
+        }
+
+        // Checkout function to redirect to payment page
+        function proceedToCheckout() {
+            const cartItems = shop ? shop.cart : [];
+            
+            if (cartItems.length === 0) {
+                alert('Your cart is empty. Add some items before checkout.');
+                return;
+            }
+
+            // Calculate total
+            const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            // Store cart data for payment page
+            localStorage.setItem('checkoutCart', JSON.stringify(cartItems));
+            localStorage.setItem('checkoutTotal', total.toString());
+            
+            // Redirect to payment page with cart info
+            const firstItem = cartItems[0];
+            const params = new URLSearchParams({
+                item: cartItems.length > 1 ? `${cartItems.length} Sports Items` : firstItem.name,
+                description: cartItems.length > 1 ? `Shopping cart with ${cartItems.length} items` : firstItem.description || 'Sports equipment',
+                price: total.toFixed(2)
+            });
+            
+            window.location.href = `/pages/payment.html?${params.toString()}`;
         }
     </script>
   
