@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - SportHub</title>
+    <link rel="stylesheet" href="/frontend/css/main.css">
+    <link rel="stylesheet" href="/frontend/css/pages/profile.css">
+    <link rel="stylesheet" href="/frontend/css/components/navbar.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navbar Component -->
+    <div id="navbar-container"></div>
+
+    <!-- Profile Page Content -->
+    <div class="profile-page">
+        <!-- Hero Section -->
+        <div class="profile-hero">
+            <div class="container">
+                <div class="profile-hero-content">
+                    <div class="profile-avatar-section">
+                        <div class="avatar-wrapper">
+                            <img id="profileImage" src="https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=400&h=400&fit=crop&crop=faces" alt="Profile" class="profile-avatar">
+                            <button class="avatar-upload-btn" id="avatarUploadBtn" title="Upload profile picture">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <h1 id="profileName">Loading...</h1>
+                        <div class="profile-details">
+                            <div class="detail-item">
+                                <i class="fas fa-envelope"></i>
+                                <span id="profileEmail">Loading...</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span id="profileLocation">Loading...</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span id="profileJoinDate">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="profile-role">
+                            <span class="badge" id="profileRole">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container profile-content">
+            <div class="profile-grid">
+                <!-- Profile Information Card -->
+                <div class="profile-main">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-user"></i>
+                                Profile Information
+                            </h2>
+                            <button class="btn btn-outline" id="editProfileBtn">
+                                <i class="fas fa-edit"></i>
+                                Edit Profile
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <form id="profileForm">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="inputName">Full Name</label>
+                                        <input type="text" id="inputName" class="form-input" disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputEmail">Email</label>
+                                        <input type="email" id="inputEmail" class="form-input" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="inputPhone">Phone Number</label>
+                                        <input type="tel" id="inputPhone" class="form-input" disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputLocation">Location</label>
+                                        <input type="text" id="inputLocation" class="form-input" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="inputRole">Role</label>
+                                    <select id="inputRole" class="form-select" disabled>
+                                        <option value="Player">Player</option>
+                                        <option value="Coach">Coach</option>
+                                        <option value="Shop Owner">Shop Owner</option>
+                                        <option value="Complex Owner">Complex Owner</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="inputBio">Bio</label>
+                                    <textarea id="inputBio" class="form-textarea" rows="4" disabled placeholder="Tell us about yourself..."></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Favorite Sports</label>
+                                    <div class="sports-container">
+                                        <div id="sportsDisplay" class="sports-badges"></div>
+                                        <div id="addSportSection" class="add-sport-section" style="display: none;">
+                                            <input type="text" id="newSportInput" class="form-input small" placeholder="Enter sport name">
+                                            <button type="button" class="btn btn-primary small" id="addSportBtn">Add</button>
+                                            <button type="button" class="btn btn-outline small" id="cancelSportBtn">Cancel</button>
+                                        </div>
+                                        <button type="button" class="btn btn-outline small" id="showAddSportBtn" style="display: none;">
+                                            <i class="fas fa-plus"></i> Add Sport
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions" id="formActions" style="display: none;">
+                                    <button type="button" class="btn btn-primary" id="saveProfileBtn">
+                                        <i class="fas fa-save"></i>
+                                        Save Changes
+                                    </button>
+                                    <button type="button" class="btn btn-outline" id="cancelEditBtn">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="profile-sidebar">
+                    <!-- Quick Stats Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Stats</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="stats-list">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Bookings:</span>
+                                    <span class="stat-value">12</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">This Month:</span>
+                                    <span class="stat-value">3</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Spent:</span>
+                                    <span class="stat-value stat-highlight">$520</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Favorite Sport:</span>
+                                    <span class="stat-value">Football</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Bookings Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Bookings</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="recentBookings">
+                                <div class="booking-item">
+                                    <div class="booking-header">
+                                        <div>
+                                            <div class="booking-name">City Sports Complex</div>
+                                            <div class="booking-type">Ground</div>
+                                        </div>
+                                        <span class="booking-status status-completed">Completed</span>
+                                    </div>
+                                    <div class="booking-footer">
+                                        <span>2024-01-15 • 14:00-16:00</span>
+                                        <span class="booking-amount">$50</span>
+                                    </div>
+                                </div>
+
+                                <div class="booking-item">
+                                    <div class="booking-header">
+                                        <div>
+                                            <div class="booking-name">Sarah Thompson - Tennis</div>
+                                            <div class="booking-type">Coach</div>
+                                        </div>
+                                        <span class="booking-status status-completed">Completed</span>
+                                    </div>
+                                    <div class="booking-footer">
+                                        <span>2024-01-10 • 10:00-11:00</span>
+                                        <span class="booking-amount">$60</span>
+                                    </div>
+                                </div>
+
+                                <div class="booking-item">
+                                    <div class="booking-header">
+                                        <div>
+                                            <div class="booking-name">Basketball Arena Pro</div>
+                                            <div class="booking-type">Ground</div>
+                                        </div>
+                                        <span class="booking-status status-upcoming">Upcoming</span>
+                                    </div>
+                                    <div class="booking-footer">
+                                        <span>2024-01-20 • 18:00-20:00</span>
+                                        <span class="booking-amount">$40</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;">
+                                View All Bookings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/frontend/js/pages/profile.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="/frontend/js/components/navbar.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('/frontend/pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar(); // Initialize navbar behavior
+            });
+
+        // Load the shared footer dynamically
+        fetch('/frontend/pages/components/footer.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('footer-container').innerHTML = data;
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+
+        // Go back function
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
