@@ -120,7 +120,7 @@
     <script src="../js/components/navbar.js"></script>
     <script>
         // Load the shared navbar dynamically
-        fetch('../pages/components/navbar.html')
+        fetch('/frontend/pages/components/navbar.html')
             .then(res => res.text())
             .then(data => {
                 document.getElementById('navbar-container').innerHTML = data;
