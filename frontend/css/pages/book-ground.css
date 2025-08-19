@@ -162,7 +162,6 @@
 .search-section {
     background: var(--background-white);
     box-shadow: var(--shadow-light);
-    position: sticky;
     top: 70px;
     z-index: 100;
     border-bottom: 1px solid var(--border-color);
