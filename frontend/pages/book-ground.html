@@ -70,11 +70,11 @@
     <!-- Footer Component -->
     <div id="footer-container"></div>
 
-    <script src="/js/pages/book-ground.js"></script>
-    <script src="/js/components/navbar.js"></script>
+    <script src="/frontend/js/pages/book-ground.js"></script>
+    <script src="/frontend/js/components/navbar.js"></script>
     <script>
         // Load the shared navbar dynamically
-        fetch('/pages/components/navbar.html')
+        fetch('/frontend/pages/components/navbar.html')
             .then(res => res.text())
             .then(data => {
                 document.getElementById('navbar-container').innerHTML = data;
@@ -82,7 +82,7 @@
             });
 
         // Load the shared footer dynamically
-        fetch('/pages/components/footer.html')
+        fetch('/frontend/pages/components/footer.html')
             .then(res => res.text())
             .then(data => {
                 document.getElementById('footer-container').innerHTML = data;
