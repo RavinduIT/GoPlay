@@ -18,7 +18,7 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
-            <h1>Ground Admin Dashboard</h1>
+            <h1>Ground Owner Dashboard</h1>
             <p>Manage your sports facilities and bookings</p>
         </div>
     </section>
@@ -298,7 +298,7 @@
     <script src="../../js/components/navbar.js"></script>
     <script>
         // Load the shared navbar dynamically
-        fetch('/pages/components/navbar.html')
+        fetch('/frontend/pages/components/navbar.html')
             .then(res => res.text())
             .then(data => {
                 document.getElementById('navbar-container').innerHTML = data;
