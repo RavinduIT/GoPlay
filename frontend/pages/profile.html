@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - SportHub</title>
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/pages/profile.css">
-    <link rel="stylesheet" href="/css/components/navbar.css">
+    <link rel="stylesheet" href="/frontend/css/main.css">
+    <link rel="stylesheet" href="/frontend/css/pages/profile.css">
+    <link rel="stylesheet" href="/frontend/css/components/navbar.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -225,12 +225,12 @@
         </div>
     </div>
 
-    <script src="/js/pages/profile.js"></script>
+    <script src="/frontend/js/pages/profile.js"></script>
     <script src="../js/auth.js"></script>
-    <script src="/js/components/navbar.js"></script>
+    <script src="/frontend/js/components/navbar.js"></script>
     <script>
         // Load the shared navbar dynamically
-        fetch('/pages/components/navbar.html')
+        fetch('/frontend/pages/components/navbar.html')
             .then(res => res.text())
             .then(data => {
                 document.getElementById('navbar-container').innerHTML = data;
@@ -238,7 +238,7 @@
             });
 
         // Load the shared footer dynamically
-        fetch('/pages/components/footer.html')
+        fetch('/frontend/pages/components/footer.html')
             .then(res => res.text())
             .then(data => {
                 document.getElementById('footer-container').innerHTML = data;

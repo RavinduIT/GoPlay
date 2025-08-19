@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/pages.css">
-    <link rel="stylesheet" href="/css/components/navbar.css">
+    <link rel="stylesheet" href="/frontend/css/components/navbar.css">
 </head>
 <body>
     <div id="navbar-container"></div>
@@ -19,10 +19,10 @@
     <script src="../js/utils.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/pages/my-bookings.js"></script>
-    <script src="/js/components/navbar.js"></script>
+    <script src="/frontend/js/components/navbar.js"></script>
     <script>
         // Load the shared navbar dynamically
-        fetch('/pages/components/navbar.html')
+        fetch('/frontend/pages/components/navbar.html')
             .then(res => res.text())
             .then(data => {
                 document.getElementById('navbar-container').innerHTML = data;
