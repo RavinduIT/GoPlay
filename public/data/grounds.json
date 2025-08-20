@@ -1,0 +1,170 @@
+{
+  "grounds": [
+    {
+      "id": 1,
+      "name": "City Football Complex",
+      "location": "Colombo 05",
+      "sport": "football",
+      "price": 1500,
+      "rating": 4.8,
+      "reviews": 120,
+      "image": "/public/assets/images/grounds/football-complex.jpg",
+      "features": ["Floodlights", "Parking", "Changing Rooms", "Equipment Rental"],
+      "description": "Premium football ground with professional-grade turf and modern facilities.",
+      "availability": {
+        "monday": ["06:00-22:00"],
+        "tuesday": ["06:00-22:00"],
+        "wednesday": ["06:00-22:00"],
+        "thursday": ["06:00-22:00"],
+        "friday": ["06:00-22:00"],
+        "saturday": ["06:00-22:00"],
+        "sunday": ["06:00-22:00"]
+      },
+      "coordinates": {
+        "lat": 6.9271,
+        "lng": 79.8612
+      }
+    },
+    {
+      "id": 2,
+      "name": "Elite Tennis Courts",
+      "location": "Kandy",
+      "sport": "tennis",
+      "price": 2000,
+      "rating": 4.5,
+      "reviews": 89,
+      "image": "/public/assets/images/grounds/tennis-court.jpg",
+      "features": ["Clay Court", "Equipment Rental", "Coaching Available", "Air Conditioning"],
+      "description": "Professional tennis courts with clay surface and coaching facilities.",
+      "availability": {
+        "monday": ["07:00-21:00"],
+        "tuesday": ["07:00-21:00"],
+        "wednesday": ["07:00-21:00"],
+        "thursday": ["07:00-21:00"],
+        "friday": ["07:00-21:00"],
+        "saturday": ["07:00-21:00"],
+        "sunday": ["07:00-21:00"]
+      },
+      "coordinates": {
+        "lat": 7.2906,
+        "lng": 80.6337
+      }
+    },
+    {
+      "id": 3,
+      "name": "Urban Basketball Arena",
+      "location": "Galle",
+      "sport": "basketball",
+      "price": 1200,
+      "rating": 4.9,
+      "reviews": 156,
+      "image": "/public/assets/images/grounds/basketball-court.jpg",
+      "features": ["Indoor", "Air Conditioning", "Spectator Seating", "Sound System"],
+      "description": "Modern indoor basketball court with professional lighting and seating.",
+      "availability": {
+        "monday": ["08:00-22:00"],
+        "tuesday": ["08:00-22:00"],
+        "wednesday": ["08:00-22:00"],
+        "thursday": ["08:00-22:00"],
+        "friday": ["08:00-22:00"],
+        "saturday": ["08:00-22:00"],
+        "sunday": ["08:00-22:00"]
+      },
+      "coordinates": {
+        "lat": 6.0535,
+        "lng": 80.2210
+      }
+    },
+    {
+      "id": 4,
+      "name": "Premium Cricket Ground",
+      "location": "Colombo 03",
+      "sport": "cricket",
+      "price": 2500,
+      "rating": 4.7,
+      "reviews": 98,
+      "image": "/public/assets/images/grounds/cricket-ground.jpg",
+      "features": ["Professional Pitch", "Pavilion", "Equipment Storage", "Scoreboard"],
+      "description": "Full-size cricket ground with professional pitch and pavilion facilities.",
+      "availability": {
+        "monday": ["06:00-18:00"],
+        "tuesday": ["06:00-18:00"],
+        "wednesday": ["06:00-18:00"],
+        "thursday": ["06:00-18:00"],
+        "friday": ["06:00-18:00"],
+        "saturday": ["06:00-18:00"],
+        "sunday": ["06:00-18:00"]
+      },
+      "coordinates": {
+        "lat": 6.9147,
+        "lng": 79.8557
+      }
+    },
+    {
+      "id": 5,
+      "name": "Badminton Sports Center",
+      "location": "Negombo",
+      "sport": "badminton",
+      "price": 800,
+      "rating": 4.6,
+      "reviews": 75,
+      "image": "/public/assets/images/grounds/badminton-court.jpg",
+      "features": ["Multiple Courts", "Air Conditioning", "Equipment Rental", "Parking"],
+      "description": "Multi-court badminton facility with professional-grade flooring.",
+      "availability": {
+        "monday": ["07:00-21:00"],
+        "tuesday": ["07:00-21:00"],
+        "wednesday": ["07:00-21:00"],
+        "thursday": ["07:00-21:00"],
+        "friday": ["07:00-21:00"],
+        "saturday": ["07:00-21:00"],
+        "sunday": ["07:00-21:00"]
+      },
+      "coordinates": {
+        "lat": 7.2084,
+        "lng": 79.8380
+      }
+    },
+    {
+      "id": 6,
+      "name": "Aquatic Sports Complex",
+      "location": "Colombo 07",
+      "sport": "swimming",
+      "price": 1800,
+      "rating": 4.8,
+      "reviews": 134,
+      "image": "/public/assets/images/grounds/swimming-pool.jpg",
+      "features": ["Olympic Pool", "Diving Board", "Locker Rooms", "Poolside Cafe"],
+      "description": "Olympic-size swimming pool with diving facilities and modern amenities.",
+      "availability": {
+        "monday": ["05:00-22:00"],
+        "tuesday": ["05:00-22:00"],
+        "wednesday": ["05:00-22:00"],
+        "thursday": ["05:00-22:00"],
+        "friday": ["05:00-22:00"],
+        "saturday": ["05:00-22:00"],
+        "sunday": ["05:00-22:00"]
+      },
+      "coordinates": {
+        "lat": 6.9147,
+        "lng": 79.8757
+      }
+    }
+  ],
+  "locations": [
+    {"value": "colombo-03", "label": "Colombo 03"},
+    {"value": "colombo-05", "label": "Colombo 05"},
+    {"value": "colombo-07", "label": "Colombo 07"},
+    {"value": "kandy", "label": "Kandy"},
+    {"value": "galle", "label": "Galle"},
+    {"value": "negombo", "label": "Negombo"}
+  ],
+  "sports": [
+    {"value": "football", "label": "Football", "icon": "⚽"},
+    {"value": "tennis", "label": "Tennis", "icon": "🎾"},
+    {"value": "basketball", "label": "Basketball", "icon": "🏀"},
+    {"value": "cricket", "label": "Cricket", "icon": "🏏"},
+    {"value": "badminton", "label": "Badminton", "icon": "🏸"},
+    {"value": "swimming", "label": "Swimming", "icon": "🏊"}
+  ]
+}

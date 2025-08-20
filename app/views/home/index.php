@@ -5,178 +5,204 @@ $additionalCSS = ['/public/css/pages/index.css'];
 $additionalJS = ['/public/js/pages/index.js'];
 ?>
 
-<!-- Hero Section -->
-<section class="hero">
-    <div class="hero-background">
-        <img src="/public/assets/images/hero-background.jpg" alt="Sports Background" class="hero-bg-img">
-        <div class="hero-overlay"></div>
-    </div>
-    <div class="hero-content">
-        <div class="container">
-            <h1 class="hero-title">Welcome to GoPlay</h1>
-            <p class="hero-subtitle">Your Premier Sports Booking Platform</p>
-            <p class="hero-description">
-                Book sports facilities, hire professional coaches, and shop for quality equipment - all in one place.
-            </p>
-            <div class="hero-buttons">
-                <a href="/grounds" class="btn btn-primary btn-large">Book Facilities</a>
-                <a href="/coaches" class="btn btn-outline btn-large">Find Coaches</a>
-            </div>
-        </div>
-    </div>
-</section>
+<link rel="stylesheet" href="/public/css/pages/index.css">
+<!DOCTYPE html>
+<html lang="en">
 
-<!-- Features Section -->
-<section class="features">
-    <div class="container">
-        <h2 class="section-title">Why Choose GoPlay?</h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <img src="/public/assets/images/feature-booking.jpg" alt="Easy Booking">
-                </div>
-                <h3>Easy Booking</h3>
-                <p>Book sports facilities with just a few clicks. Real-time availability and instant confirmation.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <img src="/public/assets/images/feature-coaching.jpg" alt="Professional Coaches">
-                </div>
-                <h3>Professional Coaches</h3>
-                <p>Connect with certified and experienced coaches for personalized training sessions.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <img src="/public/assets/images/feature-equipment.jpg" alt="Quality Equipment">
-                </div>
-                <h3>Quality Equipment</h3>
-                <p>Shop for premium sports equipment and gear from trusted brands.</p>
-            </div>
-        </div>
-    </div>
-</section>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOPLAY - Your Ultimate GOPLAY</title>
+  
+</head>
 
-<!-- Services Section -->
-<section class="services">
-    <div class="container">
-        <h2 class="section-title">Our Services</h2>
-        <div class="services-grid">
-            <div class="service-item">
-                <div class="service-content">
-                    <h3>Facility Booking</h3>
-                    <p>Reserve courts, fields, and sports complexes for your games and training sessions.</p>
-                    <ul>
-                        <li>Real-time availability</li>
-                        <li>Flexible timing</li>
-                        <li>Competitive rates</li>
-                        <li>Easy cancellation</li>
-                    </ul>
-                    <a href="/grounds" class="btn btn-primary">Book Now</a>
-                </div>
-            </div>
-            <div class="service-item">
-                <div class="service-content">
-                    <h3>Coach Hiring</h3>
-                    <p>Find and hire qualified coaches for individual or group training sessions.</p>
-                    <ul>
-                        <li>Certified professionals</li>
-                        <li>Various sports disciplines</li>
-                        <li>Flexible scheduling</li>
-                        <li>Skill-based matching</li>
-                    </ul>
-                    <a href="/coaches" class="btn btn-primary">Find Coach</a>
-                </div>
-            </div>
-            <div class="service-item">
-                <div class="service-content">
-                    <h3>Equipment Shop</h3>
-                    <p>Purchase high-quality sports equipment, apparel, and accessories.</p>
-                    <ul>
-                        <li>Premium brands</li>
-                        <li>Competitive prices</li>
-                        <li>Fast delivery</li>
-                        <li>Quality guarantee</li>
-                    </ul>
-                    <a href="/shop" class="btn btn-primary">Shop Now</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<body>
+    <!-- Navbar Component -->
+    <div id="navbar-container"></div>
 
-<!-- Statistics Section -->
-<section class="stats">
-    <div class="container">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-number">500+</div>
-                <div class="stat-label">Sports Facilities</div>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-background"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Your Ultimate <span class="hero-highlight">GOPLAY</span>
+                </h1>
+                <p class="hero-description">
+                    Book grounds, hire coaches, buy equipment, and stay updated with the latest sports news
+                </p>
+                <div class="hero-buttons">
+                    <a href="/pages/book-ground.html" class="hero-btn primary">
+                        <i class="fas fa-calendar"></i>
+                        Book Now
+                    </a>
+                    <a href="/pages/shop.html" class="hero-btn secondary">
+                        Explore Sports
+                    </a>
+                </div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">200+</div>
-                <div class="stat-label">Professional Coaches</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">10,000+</div>
-                <div class="stat-label">Happy Customers</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">50,000+</div>
-                <div class="stat-label">Successful Bookings</div>
-            </div>
-        </div>
-    </div>
-</section>
+        </section>
 
-<!-- Latest News Section -->
-<section class="latest-news">
-    <div class="container">
-        <h2 class="section-title">Latest News</h2>
-        <div class="news-grid">
-            <div class="news-card">
-                <img src="/public/assets/images/news-1.jpg" alt="News 1" class="news-image">
-                <div class="news-content">
-                    <div class="news-date">March 15, 2024</div>
-                    <h3 class="news-title">New Sports Complex Opens in Colombo</h3>
-                    <p class="news-excerpt">State-of-the-art facility with multiple courts and modern amenities now available for booking.</p>
-                    <a href="/news/1" class="news-link">Read More</a>
+        <!-- Features Section -->
+        <section class="features-section">
+            <div class="features-background"></div>
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        Everything You Need for <span class="title-highlight">Sports</span>
+                    </h2>
+                    <p class="section-description">
+                        From booking world-class facilities to finding expert coaches and premium equipment
+                    </p>
                 </div>
-            </div>
-            <div class="news-card">
-                <img src="/public/assets/images/news-2.jpg" alt="News 2" class="news-image">
-                <div class="news-content">
-                    <div class="news-date">March 12, 2024</div>
-                    <h3 class="news-title">Professional Tennis Coach Joins GoPlay</h3>
-                    <p class="news-excerpt">Former national player now offering training sessions through our platform.</p>
-                    <a href="/news/2" class="news-link">Read More</a>
-                </div>
-            </div>
-            <div class="news-card">
-                <img src="/public/assets/images/news-3.jpg" alt="News 3" class="news-image">
-                <div class="news-content">
-                    <div class="news-date">March 10, 2024</div>
-                    <h3 class="news-title">Spring Sports Equipment Sale</h3>
-                    <p class="news-excerpt">Get up to 30% off on selected sports equipment and apparel this month.</p>
-                    <a href="/news/3" class="news-link">Read More</a>
-                </div>
-            </div>
-        </div>
-        <div class="news-cta">
-            <a href="/news" class="btn btn-outline">View All News</a>
-        </div>
-    </div>
-</section>
 
-<!-- CTA Section -->
-<section class="cta">
-    <div class="container">
-        <div class="cta-content">
-            <h2>Ready to Get Started?</h2>
-            <p>Join thousands of sports enthusiasts who trust GoPlay for their sporting needs.</p>
-            <div class="cta-buttons">
-                <a href="/signup" class="btn btn-primary btn-large">Join Now</a>
-                <a href="/contact" class="btn btn-outline btn-large">Contact Us</a>
+                <div class="features-grid">
+                    <div class="feature-card" data-feature="booking">
+                        <div class="feature-image">
+                            <img src="assets/images/feature-booking.jpg" alt="Book Sports Grounds" />
+                            <div class="feature-overlay"></div>
+                            <div class="feature-stats">500+ Venues</div>
+                        </div>
+                        <div class="feature-header">
+                            <div class="feature-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <h3 class="feature-title">Book Sports Grounds</h3>
+                        </div>
+                        <div class="feature-content">
+                            <p class="feature-description">
+                                Reserve courts, fields, and complexes for your games
+                            </p>
+                            <a href="pages/book-ground.html" class="feature-btn">
+                                Get Started
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="feature-card" data-feature="coaching">
+                        <div class="feature-image">
+                            <img src="assets/images/feature-coaching.jpg" alt="Hire Professional Coaches" />
+                            <div class="feature-overlay"></div>
+                            <div class="feature-stats">200+ Coaches</div>
+                        </div>
+                        <div class="feature-header">
+                            <div class="feature-icon accent">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h3 class="feature-title">Hire Professional Coaches</h3>
+                        </div>
+                        <div class="feature-content">
+                            <p class="feature-description">
+                                Train with certified coaches for all sports
+                            </p>
+                            <a href="pages/book-coach.html" class="feature-btn">
+                                Get Started
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="feature-card" data-feature="equipment">
+                        <div class="feature-image">
+                            <img src="assets/images/feature-equipment.jpg" alt="Sports Equipment Shop" />
+                            <div class="feature-overlay"></div>
+                            <div class="feature-stats">1000+ Products</div>
+                        </div>
+                        <div class="feature-header">
+                            <div class="feature-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h3 class="feature-title">Sports Equipment Shop</h3>
+                        </div>
+                        <div class="feature-content">
+                            <p class="feature-description">
+                                Buy quality gear from trusted brands
+                            </p>
+                            <a href="pages/shop.html" class="feature-btn">
+                                Get Started
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</section>
+        </section>
+
+        <!-- News Section -->
+        <section class="news-section">
+            <div class="news-background"></div>
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        Latest <span class="title-highlight">Sports News</span>
+                    </h2>
+                    <p class="section-description">
+                        Stay updated with the latest happenings in the sports world
+                    </p>
+                </div>
+                <div class="news-container">
+                    <div class="news-carousel" id="newsCarousel">
+                        <!-- News items will be loaded here -->
+                    </div>
+                    <div class="carousel-controls">
+                        <button class="carousel-btn prev" id="prevBtn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="carousel-btn next" id="nextBtn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular Venues -->
+        <section class="venues-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        Popular <span class="title-highlight">Venues</span>
+                    </h2>
+                    <p class="section-description">
+                        Book your favorite sports facilities at premium locations
+                    </p>
+                </div>
+
+                <div class="venues-grid" id="venuesGrid">
+                    <!-- Venues will be loaded here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Component -->
+    <div id="footer-container"></div>
+
+    <script src="js/components/news-carousel.js"></script>
+    <script src="js/pages/index.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/components/navbar.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar(); // Initialize navbar behavior
+            });
+
+        // Load the shared footer dynamically
+        fetch('pages/components/footer.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('footer-container').innerHTML = data;
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+    </script>
+</body>
+
+</html>
