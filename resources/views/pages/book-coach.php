@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Professional Coaches - SportHub</title>
+    <link rel="stylesheet" href="/frontend/css/main.css">
+    <link rel="stylesheet" href="/frontend/css/components/navbar.css">
+    <link rel="stylesheet" href="/frontend/css/components/footer.css">
+    <link rel="stylesheet" href="/frontend/css/pages/book-coach.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navbar Component -->
+    <div id="navbar-container"></div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>Train with Elite Coaches</h1>
+            <p>Connect with certified sports professionals and elevate your performance to the next level</p>
+        </div>
+    </section>
+
+    <main class="coach-container">
+        <!-- Filters Section -->
+        <section class="filters-section">
+            <div class="filter-container">
+                <div class="search-group">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search coaches, sports, locations..." />
+                </div>
+                
+                <div class="filter-group">
+                    <select id="sportFilter">
+                        <option value="">All Sports</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <select id="locationFilter">
+                        <option value="">All Locations</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <select id="priceFilter">
+                        <option value="">Price Range</option>
+                        <option value="0-50">$0 - $50/hr</option>
+                        <option value="50-70">$50 - $70/hr</option>
+                        <option value="70+">$70+/hr</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <select id="ratingFilter">
+                        <option value="">All Ratings</option>
+                        <option value="4.5">4.5+ Stars</option>
+                        <option value="4.0">4.0+ Stars</option>
+                        <option value="3.5">3.5+ Stars</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <select id="sortFilter">
+                        <option value="rating-desc">Highest Rated</option>
+                        <option value="name-asc">Name A-Z</option>
+                        <option value="price-asc">Price Low to High</option>
+                        <option value="price-desc">Price High to Low</option>
+                        <option value="experience-desc">Most Experienced</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-section">
+            <div class="results-header">
+                <h2 id="coachCount">Loading coaches...</h2>
+                <div class="view-toggle">
+                    <button id="gridView" class="view-btn active"><i class="fas fa-th"></i></button>
+                    <button id="listView" class="view-btn"><i class="fas fa-list"></i></button>
+                </div>
+            </div>
+            
+            <div id="coachGrid" class="coach-grid grid-view"></div>
+            <div id="loadingSpinner" class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading coaches...</p>
+            </div>
+            <div id="noResults" class="no-results" style="display: none;">
+                <i class="fas fa-user-times"></i>
+                <h3>No coaches found</h3>
+                <p>Try adjusting your search criteria or browse all coaches</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-alt"></i> Book Coaching Session</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="coach-summary">
+                    <img id="modalCoachImage" src="" alt="Coach" class="modal-coach-image">
+                    <div class="coach-details">
+                        <h4 id="modalCoachName"></h4>
+                        <p id="modalCoachSpecialization"></p>
+                        <p class="price-info">$<span id="modalCoachRate"></span>/hour</p>
+                    </div>
+                </div>
+                
+                <form id="bookingForm" class="booking-form">
+                    <div class="form-group">
+                        <label for="sessionDate">Preferred Date</label>
+                        <input type="date" id="sessionDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sessionTime">Preferred Time</label>
+                        <select id="sessionTime" required>
+                            <option value="">Select time</option>
+                            <option value="09:00">9:00 AM</option>
+                            <option value="10:00">10:00 AM</option>
+                            <option value="11:00">11:00 AM</option>
+                            <option value="14:00">2:00 PM</option>
+                            <option value="15:00">3:00 PM</option>
+                            <option value="16:00">4:00 PM</option>
+                            <option value="17:00">5:00 PM</option>
+                            <option value="18:00">6:00 PM</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sessionDuration">Duration</label>
+                        <select id="sessionDuration" required>
+                            <option value="1">1 hour</option>
+                            <option value="2">2 hours</option>
+                            <option value="3">3 hours</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sessionType">Session Type</label>
+                        <select id="sessionType" required>
+                            <option value="individual">Individual Training</option>
+                            <option value="group">Group Session</option>
+                            <option value="assessment">Skills Assessment</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="specialRequests">Special Requests (Optional)</label>
+                        <textarea id="specialRequests" rows="3" placeholder="Any specific focus areas or requirements..."></textarea>
+                    </div>
+                    
+                    <div class="booking-summary">
+                        <div class="summary-item">
+                            <span>Duration:</span>
+                            <span id="summaryDuration">1 hour</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Rate:</span>
+                            <span>$<span id="summaryRate">50</span>/hour</span>
+                        </div>
+                        <div class="summary-item total">
+                            <span>Total:</span>
+                            <span>$<span id="summaryTotal">50</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="cancelBooking">Cancel</button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-credit-card"></i> Confirm Booking
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Component -->
+    <div id="footer-container"></div>
+
+    <script src="/js/components/navbar.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/pages/book-coach.js"></script>
+    <script>
+        // Load the shared navbar dynamically
+        fetch('/frontend/pages/components/navbar.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                new Navbar(); // Initialize navbar behavior
+            });
+
+        // Load the shared footer dynamically
+        fetch('/frontend/pages/components/footer.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('footer-container').innerHTML = data;
+            });
+
+        // Global logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/';
+        }
+    </script>
+  </body>
+  </html>
+    
+    

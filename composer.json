@@ -1,0 +1,73 @@
+{
+    "name": "goplay/sports-platform",
+    "description": "Professional sports facility booking and coaching platform built with MVC architecture",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Your Name",
+            "email": "your.email@example.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "firebase/php-jwt": "^6.8",
+        "phpmailer/phpmailer": "^6.8",
+        "monolog/monolog": "^3.4",
+        "vlucas/phpdotenv": "^5.5",
+        "stripe/stripe-php": "^10.17"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.2",
+        "squizlabs/php_codesniffer": "^3.7",
+        "friendsofphp/php-cs-fixer": "^3.21",
+        "phpstan/phpstan": "^1.10",
+        "mockery/mockery": "^1.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Tests\\": "tests/"
+        },
+        "files": [
+            "app/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "lint": "phpcs --standard=PSR2 app/",
+        "lint:fix": "phpcbf --standard=PSR2 app/",
+        "analyse": "phpstan analyse app/",
+        "post-autoload-dump": [
+            "@php artisan clear-compiled",
+            "@php artisan optimize"
+        ],
+        "serve": "php -S localhost:8000 -t public",
+        "migrate": "php artisan migrate",
+        "seed": "php artisan seed"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.0-dev"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

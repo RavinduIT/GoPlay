@@ -1,0 +1,20 @@
+/* Responsive design styles */
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    /* Add mobile-specific styles */
+}
+
+/* Tablet styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Add tablet-specific styles */
+}
+
+/* Desktop styles */
+@media (min-width: 1025px) {
+    /* Add desktop-specific styles */
+}
