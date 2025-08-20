@@ -3,7 +3,7 @@ $title = 'Book Ground - GoPlay Sports Platform';
 $additionalCSS = ['/public/css/pages/book-ground.css'];
 $additionalJS = ['/public/js/pages/book-ground.js'];
 ?>
-
+<link rel="stylesheet" href="/public/css/pages/book-ground.css">
 <div class="page-header">
     <div class="container">
         <h1>Book Sports Ground</h1>
