@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/public/css/pages/components/navbar.css">
 <nav class="navbar">
     <div class="nav-container">
         <!-- Logo -->
@@ -66,7 +67,7 @@
 <!-- Mobile Menu -->
 <div class="mobile-menu">
     <ul class="mobile-nav-menu">
-        <li><a href="/">Home</a></li>
+        <li><a href="app/views/home/index.php">Home</a></li>
         <li><a href="/grounds">Book Ground</a></li>
         <li><a href="/coaches">Book Coach</a></li>
         <li><a href="/shop">Shop</a></li>
