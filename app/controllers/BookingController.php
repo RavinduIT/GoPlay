@@ -33,7 +33,7 @@ class BookingController extends BaseController
      */
     public function groundDetails(Request $request): Response
     {
-        $id = $request->getParam('id');
+        $id = $request->getQuery('id');
         return $this->view('booking/ground-details', ['id' => $id]);
     }
 
