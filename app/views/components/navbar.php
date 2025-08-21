@@ -33,24 +33,30 @@
             <?php if (isset($_SESSION['user'])): ?>
                 <div class="user-dropdown">
                     <button class="user-btn">
+                        <img src="<?= $_SESSION['user']['avatar'] ?? '/public/assets/images/default-avatar.png' ?>" 
+                             alt="Profile" class="user-avatar">
                         <span><?= $_SESSION['user']['name'] ?? 'User' ?></span>
-                        <i class="dropdown-icon">▼</i>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
                     </button>
                     <div class="dropdown-content">
-                        <a href="/profile">Profile</a>
-                        <a href="/my-bookings">My Bookings</a>
-                        <a href="/cart">Cart</a>
+                        <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                        <a href="/my-bookings"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+                        <a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a>
                         <?php if (($_SESSION['user']['role'] ?? '') === 'admin'): ?>
-                            <a href="/admin">Admin Panel</a>
+                            <a href="/admin"><i class="fas fa-cog"></i> Admin Panel</a>
                         <?php endif; ?>
                         <hr>
-                        <a href="/logout">Logout</a>
+                        <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>
             <?php else: ?>
                 <div class="auth-buttons">
-                    <a href="/app/views/auth/login.php" class="btn btn-outline">Login</a>
-                    <a href="/app/views/auth/signup.php" class="btn btn-primary">Sign Up</a>
+                    <a href="/login" class="btn btn-outline">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="/signup" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Sign Up
+                    </a>
                 </div>
             <?php endif; ?>
         </div>
@@ -67,8 +73,8 @@
 <!-- Mobile Menu -->
 <div class="mobile-menu">
     <ul class="mobile-nav-menu">
-        <li><a href="app/views/home/index.php">Home</a></li>
-        <li><a href="/grounds">Book Ground</a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/book-ground">Book Ground</a></li>
         <li><a href="/coaches">Book Coach</a></li>
         <li><a href="/shop">Shop</a></li>
         <li><a href="/news">News</a></li>

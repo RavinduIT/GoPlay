@@ -4,73 +4,112 @@ $additionalCSS = ['/public/css/pages/login.css'];
 $additionalJS = ['/public/js/pages/login.js'];
 ?>
 <link rel="stylesheet" href="public/css/pages/login.css">
-
-    <div class="login-container">
-        <div class="card">
-            <div class="card-header">
-                <div class="icon-container">
-                    <div class="icon-wrapper">
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                        </svg>
+<div class="auth-container">
+    <div class="auth-wrapper">
+        <!-- Left Side - Branding -->
+        <div class="auth-brand">
+            <div class="brand-content">
+                <img src="/public/assets/images/logo.jpeg" alt="GoPlay" class="brand-logo">
+                <h1 class="brand-title">GoPlay</h1>
+                <p class="brand-subtitle">Your Premier Sports Booking Platform</p>
+                <div class="brand-features">
+                    <div class="feature-item">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Easy Booking</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-users"></i>
+                        <span>Expert Coaches</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-trophy"></i>
+                        <span>Premium Facilities</span>
                     </div>
                 </div>
-                <h1 class="card-title">Welcome Back</h1>
-                <p class="card-description">Sign in to your account to continue</p>
             </div>
+        </div>
+        
+        <!-- Right Side - Login Form -->
+        <div class="auth-form-section">
+            <div class="auth-form-container">
+                <div class="auth-header">
+                    <h2 class="auth-title">Welcome Back</h2>
+                    <p class="auth-subtitle">Sign in to your account to continue booking</p>
+                </div>
             
-            <div class="card-content">
-                <form id="loginForm" class="form">
+                
+                <form id="loginForm" class="auth-form">
                     <div class="form-group">
-                        <label for="email" class="label">Email</label>
-                        <div class="input-container">
-                            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                            </svg>
+                        <label for="email" class="form-label">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
                             <input
                                 type="email"
                                 id="email"
-                                class="input"
-                                placeholder="Enter your email"
+                                class="form-input"
+                                placeholder="Enter your email address"
                                 required
                             />
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="password" class="label">Password</label>
-                        <div class="input-container">
-                            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
                             <input
                                 type="password"
                                 id="password"
-                                class="input"
+                                class="form-input"
                                 placeholder="Enter your password"
                                 required
                             />
+                            <button type="button" class="password-toggle" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="password-eye"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <button type="submit" class="button" id="submitBtn">
-                        Login
+                    <div class="form-options">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="remember" class="checkbox">
+                            <span class="checkbox-label">Remember me</span>
+                        </label>
+                        <a href="/forgot-password" class="forgot-link">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span class="btn-text">Sign In</span>
+                        <i class="fas fa-arrow-right btn-icon"></i>
                     </button>
                 </form>
 
-                <div class="footer-text">
-                    <p>
+                <div class="auth-footer">
+                    <p class="auth-footer-text">
                         Don't have an account? 
-                        <a href="signup.html" class="link">Sign up</a>
+                        <a href="/signup" class="auth-link">Create Account</a>
                     </p>
+                </div>
+                
+                <div class="social-login">
+                    <div class="divider">
+                        <span>or continue with</span>
+                    </div>
+                    <div class="social-buttons">
+                        <button class="social-btn google-btn">
+                            <i class="fab fa-google"></i>
+                            Google
+                        </button>
+                        <button class="social-btn facebook-btn">
+                            <i class="fab fa-facebook-f"></i>
+                            Facebook
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Toast Container -->
-    <div id="toastContainer" class="toast-container"></div>
-    
-    <!-- IMPORTANT: Load auth.js FIRST -->
-    <script src="../js/auth.js"></script>
-    <script src="../js/pages/login.js"></script>
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container"></div>
