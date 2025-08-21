@@ -12,13 +12,13 @@
         <!-- Navigation Menu -->
         <ul class="nav-menu">
             <li class="nav-item">
-                <a href="/" class="nav-link">Home</a>
+                <a href="/app/views/home/index.php" class="nav-link">Home</a>
             </li>
             <li class="nav-item">
                 <a href="/app/views/booking/book-ground.php" class="nav-link">Book Ground</a>
             </li>
             <li class="nav-item">
-                <a href="/coaches" class="nav-link">Book Coach</a>
+                <a href="/app/views/booking/book-coach.php" class="nav-link">Book Coach</a>
             </li>
             <li class="nav-item">
                 <a href="/app/views/shop/shop.php" class="nav-link">Shop</a>
@@ -75,7 +75,7 @@
     <ul class="mobile-nav-menu">
         <li><a href="/">Home</a></li>
         <li><a href="/book-ground">Book Ground</a></li>
-        <li><a href="/coaches">Book Coach</a></li>
+        <li><a href="/book-coach">Book Coach</a></li>
         <li><a href="/shop">Shop</a></li>
         <li><a href="/news">News</a></li>
         <?php if (isset($_SESSION['user'])): ?>

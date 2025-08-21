@@ -578,12 +578,13 @@ $additionalJS = ['/public/js/pages/index.js'];
                     Book grounds, hire coaches, buy equipment, and stay updated with the latest sports news
                 </p>
                 <div class="hero-buttons">
-                    <a href="/pages/book-ground.html" class="hero-btn primary">
+                    <a href="/book-ground" class="hero-btn primary">
                         <i class="fas fa-calendar"></i>
                         Book Now
                     </a>
-                    <a href="/pages/shop.html" class="hero-btn secondary">
-                        Explore Sports
+                    <a href="/shop" class="hero-btn secondary">
+                        <i class="fas fa-shopping-cart"></i>
+                        Shop Equipment
                     </a>
                 </div>
             </div>
@@ -619,7 +620,7 @@ $additionalJS = ['/public/js/pages/index.js'];
                             <p class="feature-description">
                                 Reserve courts, fields, and complexes for your games
                             </p>
-                            <a href="pages/book-ground.html" class="feature-btn">
+                            <a href="/book-ground" class="feature-btn">
                                 Get Started
                             </a>
                         </div>
@@ -641,7 +642,7 @@ $additionalJS = ['/public/js/pages/index.js'];
                             <p class="feature-description">
                                 Train with certified coaches for all sports
                             </p>
-                            <a href="pages/book-coach.html" class="feature-btn">
+                            <a href="/book-coach" class="feature-btn">
                                 Get Started
                             </a>
                         </div>
@@ -663,7 +664,7 @@ $additionalJS = ['/public/js/pages/index.js'];
                             <p class="feature-description">
                                 Buy quality gear from trusted brands
                             </p>
-                            <a href="pages/shop.html" class="feature-btn">
+                            <a href="/shop" class="feature-btn">
                                 Get Started
                             </a>
                         </div>
@@ -728,18 +729,27 @@ $additionalJS = ['/public/js/pages/index.js'];
     <script src="js/components/navbar.js"></script>
     <script>
         // Load the shared navbar dynamically
-        fetch('pages/components/navbar.html')
+        fetch('/app/views/components/navbar.php')
             .then(res => res.text())
             .then(data => {
                 document.getElementById('navbar-container').innerHTML = data;
-                new Navbar(); // Initialize navbar behavior
+                if (typeof Navbar !== 'undefined') {
+                    new Navbar(); // Initialize navbar behavior
+                }
             });
 
         // Load the shared footer dynamically
-        fetch('pages/components/footer.html')
+        fetch('/app/views/components/footer.php')
             .then(res => res.text())
             .then(data => {
                 document.getElementById('footer-container').innerHTML = data;
+            })
+            .catch(() => {
+                document.getElementById('footer-container').innerHTML = `
+                    <footer style="background: var(--text-primary); color: white; padding: 2rem 0; text-align: center; margin-top: 3rem;">
+                        <p>&copy; 2024 GoPlay Sports Platform. All rights reserved.</p>
+                    </footer>
+                `;
             });
 
         // Global logout function
