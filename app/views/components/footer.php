@@ -32,24 +32,15 @@
             <div class="footer-section">
                 <h4>Services</h4>
                 <ul class="footer-links">
-                    <li><a href="/grounds">Facility Booking</a></li>
-                    <li><a href="/coaches">Coach Hiring</a></li>
-                    <li><a href="/shop">Equipment Sales</a></li>
-                    <li><a href="/tournaments">Tournaments</a></li>
-                    <li><a href="/memberships">Memberships</a></li>
+                    <li><a href="/app/views/booking/book-ground.php">book ground</a></li>
+                    <li><a href="/coaches">boook coach</a></li>
+                    <li><a href="/shop">shoop</a></li>
+                     <li><a href="/shop">news</a></li>
+                    
                 </ul>
             </div>
             
-            <div class="footer-section">
-                <h4>Support</h4>
-                <ul class="footer-links">
-                    <li><a href="/contact">Contact Us</a></li>
-                    <li><a href="/help">Help Center</a></li>
-                    <li><a href="/faq">FAQ</a></li>
-                    <li><a href="/terms">Terms of Service</a></li>
-                    <li><a href="/privacy">Privacy Policy</a></li>
-                </ul>
-            </div>
+           
             
             <div class="footer-section">
                 <h4>Contact Info</h4>
@@ -62,16 +53,7 @@
         </div>
         
         <!-- Footer Bottom -->
-        <div class="footer-bottom">
-            <div class="footer-bottom-content">
-                <p>&copy; <?= date('Y') ?> GoPlay Sports Platform. All rights reserved.</p>
-                <div class="footer-bottom-links">
-                    <a href="/terms">Terms</a>
-                    <a href="/privacy">Privacy</a>
-                    <a href="/cookies">Cookies</a>
-                </div>
-            </div>
-        </div>
+        
     </div>
 </footer>
 
