@@ -59,6 +59,10 @@ try {
     $router->get('/book-coach', 'BookingController@bookCoach');
     $router->get('/coaches', 'CoachController@index');
     $router->get('/shop', 'ProductController@index');
+    $router->get('/api/products', 'ProductController@getProducts');
+    $router->get('/api/categories', 'ProductController@getCategories');
+    $router->get('/api/products/search', 'ProductController@search');
+    $router->get('/product/{id}', 'ProductController@show');
     $router->get('/news', 'NewsController@index');
     $router->get('/payment', 'PaymentController@payment');
     $router->get('/payment/success', 'PaymentController@success');
