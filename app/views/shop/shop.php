@@ -760,35 +760,8 @@ $additionalJS = [];
             <!-- Categories Section -->
             <div class="categories-section">
                 <h2>Shop by Category</h2>
-                <div class="categories-grid">
-                    <a href="#" class="category-item" data-category="football">
-                        <div class="category-icon">Ω</div>
-                        <div class="category-name">Football</div>
-                    </a>
-                    <a href="#" class="category-item" data-category="tennis">
-                        <div class="category-icon"><æ</div>
-                        <div class="category-name">Tennis</div>
-                    </a>
-                    <a href="#" class="category-item" data-category="basketball">
-                        <div class="category-icon"><¿</div>
-                        <div class="category-name">Basketball</div>
-                    </a>
-                    <a href="#" class="category-item" data-category="cricket">
-                        <div class="category-icon"><œ</div>
-                        <div class="category-name">Cricket</div>
-                    </a>
-                    <a href="#" class="category-item" data-category="badminton">
-                        <div class="category-icon"><¯</div>
-                        <div class="category-name">Badminton</div>
-                    </a>
-                    <a href="#" class="category-item" data-category="swimming">
-                        <div class="category-icon">< </div>
-                        <div class="category-name">Swimming</div>
-                    </a>
-                    <a href="#" class="category-item" data-category="fitness">
-                        <div class="category-icon">=™</div>
-                        <div class="category-name">Fitness</div>
-                    </a>
+                <div class="categories-grid" id="categories-grid">
+                    <!-- Categories will be loaded dynamically -->
                 </div>
             </div>
 
@@ -844,113 +817,15 @@ $additionalJS = [];
     </div>
 
     <script>
-        // Sample product data
-        const products = [
-            {
-                id: 1,
-                name: "Professional Football",
-                category: "football",
-                price: 3500,
-                originalPrice: 4000,
-                description: "FIFA approved professional football for matches and training",
-                rating: 4.8,
-                reviews: 124,
-                image: "/images/football.jpg",
-                badge: "sale",
-                inStock: true
-            },
-            {
-                id: 2,
-                name: "Tennis Racket Pro",
-                category: "tennis",
-                price: 15000,
-                originalPrice: null,
-                description: "Lightweight carbon fiber tennis racket for professional play",
-                rating: 4.9,
-                reviews: 89,
-                image: "/images/tennis-racket.jpg",
-                badge: "new",
-                inStock: true
-            },
-            {
-                id: 3,
-                name: "Basketball Shoes",
-                category: "basketball",
-                price: 12000,
-                originalPrice: 15000,
-                description: "High-performance basketball shoes with superior grip",
-                rating: 4.7,
-                reviews: 156,
-                image: "/images/basketball-shoes.jpg",
-                badge: "sale",
-                inStock: true
-            },
-            {
-                id: 4,
-                name: "Cricket Bat",
-                category: "cricket",
-                price: 8500,
-                originalPrice: null,
-                description: "Premium willow cricket bat for professional players",
-                rating: 4.6,
-                reviews: 73,
-                image: "/images/cricket-bat.jpg",
-                badge: null,
-                inStock: true
-            },
-            {
-                id: 5,
-                name: "Badminton Set",
-                category: "badminton",
-                price: 5500,
-                originalPrice: 6500,
-                description: "Complete badminton set with 2 rackets and shuttlecocks",
-                rating: 4.5,
-                reviews: 92,
-                image: "/images/badminton-set.jpg",
-                badge: "sale",
-                inStock: true
-            },
-            {
-                id: 6,
-                name: "Swimming Goggles",
-                category: "swimming",
-                price: 2000,
-                originalPrice: null,
-                description: "Anti-fog swimming goggles with UV protection",
-                rating: 4.8,
-                reviews: 234,
-                image: "/images/swimming-goggles.jpg",
-                badge: "new",
-                inStock: true
-            },
-            {
-                id: 7,
-                name: "Fitness Dumbbells",
-                category: "fitness",
-                price: 7500,
-                originalPrice: 9000,
-                description: "Adjustable dumbbells set for home fitness training",
-                rating: 4.7,
-                reviews: 167,
-                image: "/images/dumbbells.jpg",
-                badge: "sale",
-                inStock: true
-            },
-            {
-                id: 8,
-                name: "Yoga Mat",
-                category: "fitness",
-                price: 2500,
-                originalPrice: null,
-                description: "Non-slip premium yoga mat for all types of exercise",
-                rating: 4.9,
-                reviews: 298,
-                image: "/images/yoga-mat.jpg",
-                badge: null,
-                inStock: true
-            }
-        ];
+        // Products and categories data from PHP backend
+        let products = <?php echo json_encode($products ?? []); ?>;
+        let categories = <?php echo json_encode($categories ?? []); ?>;
+        let featuredProducts = <?php echo json_encode($featuredProducts ?? []); ?>;
+        let currentFilters = <?php echo json_encode($currentFilters ?? []); ?>;
+        
+        // Error handling
+        const hasError = <?php echo json_encode(isset($error)); ?>;
+        const errorMessage = <?php echo json_encode($error ?? ''); ?>;
 
         // Shopping cart
         let cart = [];
@@ -984,7 +859,22 @@ $additionalJS = [];
         function renderProducts(productsToRender = products) {
             const grid = document.getElementById('products-grid');
             
-            if (productsToRender.length === 0) {
+            // Handle error state
+            if (hasError) {
+                grid.innerHTML = `
+                    <div class="loading-state">
+                        <div style="font-size: 4rem; color: var(--danger-color); margin-bottom: 1rem;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3>Error Loading Products</h3>
+                        <p>${errorMessage}</p>
+                        <button class="btn-primary" onclick="location.reload()">Retry</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (!productsToRender || productsToRender.length === 0) {
                 grid.innerHTML = `
                     <div class="loading-state">
                         <div style="font-size: 4rem; color: var(--text-light); margin-bottom: 1rem;">
@@ -999,15 +889,30 @@ $additionalJS = [];
 
             const productCards = productsToRender.map(product => {
                 const stars = generateStars(product.rating);
-                const discountPercent = product.originalPrice 
-                    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+                const discountPercent = product.original_price 
+                    ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
                     : 0;
+
+                // Determine badge
+                let badge = '';
+                let badgeClass = '';
+                if (product.original_price && discountPercent > 0) {
+                    badge = `${discountPercent}% OFF`;
+                    badgeClass = 'sale';
+                } else if (product.is_featured) {
+                    badge = 'FEATURED';
+                    badgeClass = 'new';
+                }
+
+                // Get category info
+                const categorySlug = product.category_slug || 'general';
+                const categoryName = product.category_name || 'General';
 
                 return `
                     <div class="product-card">
                         <div class="product-image">
-                            ${product.badge ? `<div class="product-badge ${product.badge}">${product.badge === 'sale' ? `${discountPercent}% OFF` : 'NEW'}</div>` : ''}
-                            <div class="product-icon">${getCategoryIcon(product.category)}</div>
+                            ${badge ? `<div class="product-badge ${badgeClass}">${badge}</div>` : ''}
+                            <div class="product-icon">${getCategoryIcon(categorySlug)}</div>
                             <div class="product-overlay">
                                 <button class="quick-view-btn" onclick="viewProduct(${product.id})">
                                     <i class="fas fa-eye"></i>
@@ -1016,26 +921,26 @@ $additionalJS = [];
                             </div>
                         </div>
                         <div class="product-content">
-                            <div class="product-category">${product.category.toUpperCase()}</div>
+                            <div class="product-category">${categoryName.toUpperCase()}</div>
                             <h3 class="product-name">${product.name}</h3>
-                            <p class="product-description">${product.description}</p>
+                            <p class="product-description">${product.short_description || product.description}</p>
                             <div class="product-rating">
                                 <div class="stars">${stars}</div>
-                                <span class="rating-text">(${product.reviews} reviews)</span>
+                                <span class="rating-text">(${product.review_count} reviews)</span>
                             </div>
                             <div class="product-price">
-                                <span class="price-current">LKR ${product.price.toLocaleString()}</span>
-                                ${product.originalPrice ? `<span class="price-original">LKR ${product.originalPrice.toLocaleString()}</span>` : ''}
-                                ${product.badge === 'sale' ? `<span class="price-discount">${discountPercent}% OFF</span>` : ''}
+                                <span class="price-current">LKR ${parseFloat(product.price).toLocaleString()}</span>
+                                ${product.original_price ? `<span class="price-original">LKR ${parseFloat(product.original_price).toLocaleString()}</span>` : ''}
+                                ${discountPercent > 0 ? `<span class="price-discount">${discountPercent}% OFF</span>` : ''}
                             </div>
                             <div class="product-actions">
                                 <button class="btn-outline" onclick="addToWishlist(${product.id})">
                                     <i class="fas fa-heart"></i>
                                     Wishlist
                                 </button>
-                                <button class="btn-primary" onclick="addToCart(${product.id})">
+                                <button class="btn-primary" onclick="addToCart(${product.id})" ${product.stock_quantity <= 0 ? 'disabled' : ''}>
                                     <i class="fas fa-cart-plus"></i>
-                                    Add to Cart
+                                    ${product.stock_quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
                                 </button>
                             </div>
                         </div>
@@ -1068,18 +973,52 @@ $additionalJS = [];
             return stars;
         }
 
+        // Render categories
+        function renderCategories() {
+            const grid = document.getElementById('categories-grid');
+            
+            if (!categories || categories.length === 0) {
+                grid.innerHTML = '<p>No categories available</p>';
+                return;
+            }
+
+            const categoryItems = categories.map(category => {
+                return `
+                    <a href="#" class="category-item" data-category="${category.slug}" onclick="filterByCategory('${category.slug}')">
+                        <div class="category-icon">${category.icon || 'üèüÔ∏è'}</div>
+                        <div class="category-name">${category.name}</div>
+                        <div class="category-count">${category.product_count || 0} items</div>
+                    </a>
+                `;
+            }).join('');
+
+            grid.innerHTML = categoryItems;
+        }
+
+        // Filter products by category
+        function filterByCategory(categorySlug) {
+            if (categorySlug === 'all' || !categorySlug) {
+                renderProducts(products);
+            } else {
+                const filteredProducts = products.filter(product => 
+                    product.category_slug === categorySlug
+                );
+                renderProducts(filteredProducts);
+            }
+        }
+
         // Get category icon
         function getCategoryIcon(category) {
             const icons = {
-                'football': 'Ω',
-                'tennis': '<æ',
-                'basketball': '<¿',
-                'cricket': '<œ',
-                'badminton': '<¯',
-                'swimming': '< ',
-                'fitness': '=™'
+                'football': 'ÔøΩ',
+                'tennis': '<ÔøΩ',
+                'basketball': '<ÔøΩ',
+                'cricket': '<ÔøΩ',
+                'badminton': '<ÔøΩ',
+                'swimming': '<ÔøΩ',
+                'fitness': '=ÔøΩ'
             };
-            return icons[category] || '<ﬂ';
+            return icons[category] || '<ÔøΩ';
         }
 
         // Add to cart
@@ -1155,7 +1094,14 @@ $additionalJS = [];
         document.addEventListener('DOMContentLoaded', function() {
             loadNavbar();
             loadFooter();
-            setTimeout(renderProducts, 1000); // Simulate loading
+            
+            // Render categories and products from database
+            if (!hasError) {
+                renderCategories();
+                renderProducts();
+            } else {
+                renderProducts(); // Will show error state
+            }
         });
     </script>
 </body>
