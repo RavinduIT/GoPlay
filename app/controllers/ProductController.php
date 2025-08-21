@@ -17,7 +17,7 @@ class ProductController extends BaseController
      */
     public function index(Request $request): Response
     {
-        return $this->view('shop/index');
+        return $this->view('shop/shop');
     }
 
     /**

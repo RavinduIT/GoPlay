@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
             // Load footer
-            fetch('/app/views/components/footer.php/footer.html')
+            fetch('/app/views/components/footer.php')
                 .then(res => res.text())
                 .then(data => {
                     document.getElementById('footer-container').innerHTML = data;
@@ -261,7 +261,7 @@ class GroundBookingApp {
                         
                         <div class="facility-actions">
                             <button class="btn-outline" onclick="viewDetails(${ground.id})">
-                                <a href="/ground-details.php">View Details</a>
+                                View Details
                             </button>
                             <button class="btn-primary" onclick="bookNow(${ground.id})">
                                 Book Now
