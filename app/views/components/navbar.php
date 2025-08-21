@@ -21,7 +21,7 @@
                 <a href="/coaches" class="nav-link">Book Coach</a>
             </li>
             <li class="nav-item">
-                <a href="/shop" class="nav-link">Shop</a>
+                <a href="/app/views/shop/shop.php" class="nav-link">Shop</a>
             </li>
             <li class="nav-item">
                 <a href="/news" class="nav-link">News</a>
