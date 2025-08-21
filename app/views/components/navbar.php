@@ -15,7 +15,7 @@
                 <a href="/" class="nav-link">Home</a>
             </li>
             <li class="nav-item">
-                <a href="/grounds" class="nav-link">Book Ground</a>
+                <a href="/app/views/booking/book-ground.php" class="nav-link">Book Ground</a>
             </li>
             <li class="nav-item">
                 <a href="/coaches" class="nav-link">Book Coach</a>
@@ -49,8 +49,8 @@
                 </div>
             <?php else: ?>
                 <div class="auth-buttons">
-                    <a href="/login" class="btn btn-outline">Login</a>
-                    <a href="/signup" class="btn btn-primary">Sign Up</a>
+                    <a href="/app/views/auth/login.php" class="btn btn-outline">Login</a>
+                    <a href="/app/views/auth/signup.php" class="btn btn-primary">Sign Up</a>
                 </div>
             <?php endif; ?>
         </div>
