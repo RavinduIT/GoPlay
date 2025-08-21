@@ -56,6 +56,7 @@ try {
     $router->get('/signup', 'AuthController@signup');
     $router->get('/book-ground', 'BookingController@bookGround');
     $router->get('/ground-details', 'BookingController@groundDetails');
+    $router->get('/book-coach', 'BookingController@bookCoach');
     $router->get('/coaches', 'CoachController@index');
     $router->get('/shop', 'ProductController@index');
     $router->get('/news', 'NewsController@index');

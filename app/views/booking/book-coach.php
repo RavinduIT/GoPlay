@@ -1,7 +1,7 @@
 <?php 
-$title = 'Book Ground - GoPlay Sports Platform';
-$additionalCSS = ['/public/css/pages/book-ground.css'];
-$additionalJS = ['/public/js/pages/book-ground.js'];
+$title = 'Book Coach - GoPlay Sports Platform';
+$additionalCSS = [];
+$additionalJS = [];
 ?>
 
 <!DOCTYPE html>
@@ -13,7 +13,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* Professional Book Ground Page Styles */
+        /* Unified Design System */
         :root {
             --primary-color: #28a745;
             --primary-dark: #218838;
@@ -45,14 +45,14 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
             line-height: 1.6;
             color: var(--text-primary);
-        }
-
-        .book-ground-container {
-            min-height: 100vh;
             background: var(--background-light);
         }
 
-        /* Professional Header Section */
+        .book-coach-container {
+            min-height: 100vh;
+        }
+
+        /* Header Section */
         .page-header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
@@ -250,20 +250,11 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             transform: translateY(-2px);
         }
 
-        /* Main Layout */
-        .main-layout {
+        /* Main Content */
+        .main-content {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-        }
-
-        .content-area {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
         }
 
         .results-header {
@@ -274,6 +265,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             padding: 2rem;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow-light);
+            margin-bottom: 2rem;
         }
 
         .results-header h2 {
@@ -295,14 +287,14 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             cursor: pointer;
         }
 
-        /* Facilities Grid */
-        .facilities-grid {
+        /* Coaches Grid */
+        .coaches-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 2rem;
         }
 
-        .facility-card {
+        .coach-card {
             background: var(--background-white);
             border-radius: var(--border-radius);
             overflow: hidden;
@@ -311,28 +303,33 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             cursor: pointer;
         }
 
-        .facility-card:hover {
+        .coach-card:hover {
             transform: translateY(-8px);
             box-shadow: var(--shadow-heavy);
         }
 
-        .facility-image {
-            height: 200px;
-            background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-color) 100%);
+        .coach-header {
             position: relative;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-color) 100%);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .coach-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--background-white);
+            margin: 0 auto 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 4rem;
-            overflow: hidden;
+            font-size: 3rem;
+            color: var(--primary-color);
+            box-shadow: var(--shadow-medium);
         }
 
-        .facility-icon {
-            font-size: 4rem;
-            opacity: 0.8;
-        }
-
-        .facility-badge {
+        .coach-badge {
             position: absolute;
             top: 1rem;
             right: 1rem;
@@ -344,65 +341,92 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             display: flex;
             align-items: center;
             gap: 0.25rem;
+            font-size: 0.9rem;
         }
 
-        .facility-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: var(--transition);
+        .coach-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
         }
 
-        .facility-card:hover .facility-overlay {
-            opacity: 1;
-        }
-
-        .view-on-map-btn {
-            background: var(--background-white);
-            color: var(--primary-color);
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: var(--border-radius);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .view-on-map-btn:hover {
+        .coach-specialization {
+            display: inline-block;
             background: var(--primary-color);
             color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
 
-        .facility-content {
+        .coach-content {
             padding: 2rem;
         }
 
-        .facility-header {
+        .coach-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .info-item i {
+            width: 16px;
+            color: var(--primary-color);
+        }
+
+        .coach-bio {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .coach-specialties {
+            margin-bottom: 1.5rem;
+        }
+
+        .specialties-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .specialty-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .specialty-tag {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .coach-footer {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
         }
 
-        .facility-name {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0;
-        }
-
-        .facility-price {
-            text-align: right;
+        .coach-price {
+            text-align: left;
         }
 
         .price-amount {
@@ -416,82 +440,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             color: var(--text-secondary);
         }
 
-        .facility-location {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-
-        .facility-sports {
-            margin-bottom: 1rem;
-        }
-
-        .sport-tag {
-            display: inline-block;
-            background: var(--primary-light);
-            color: var(--primary-dark);
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .facility-features {
-            margin-bottom: 1.5rem;
-        }
-
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
-        }
-
-        .feature-item i {
-            color: var(--primary-color);
-            width: 16px;
-        }
-
-        .more-features {
-            color: var(--text-light);
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
-        }
-
-        .facility-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .facility-rating {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .stars {
-            display: flex;
-            gap: 2px;
-        }
-
-        .stars i {
-            color: var(--warning-color);
-            font-size: 0.9rem;
-        }
-
-        .rating-text {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .facility-actions {
+        .coach-actions {
             display: flex;
             gap: 0.75rem;
         }
@@ -506,6 +455,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             cursor: pointer;
             transition: var(--transition);
             text-decoration: none;
+            font-size: 0.9rem;
         }
 
         .btn-outline:hover {
@@ -513,7 +463,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             color: white;
         }
 
-        .facility-actions .btn-primary {
+        .coach-actions .btn-primary {
             padding: 0.5rem 1rem;
             background: var(--primary-color);
             color: white;
@@ -522,15 +472,16 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
+            font-size: 0.9rem;
         }
 
-        .facility-actions .btn-primary:hover {
+        .coach-actions .btn-primary:hover {
             background: var(--primary-dark);
             transform: translateY(-1px);
         }
 
-        /* Loading and Empty States */
-        .loading-state, .empty-state {
+        /* Loading State */
+        .loading-state {
             text-align: center;
             padding: 4rem 2rem;
             color: var(--text-secondary);
@@ -540,58 +491,6 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             font-size: 2rem;
             color: var(--primary-color);
             margin-bottom: 1rem;
-        }
-
-        .empty-icon {
-            font-size: 4rem;
-            color: var(--text-light);
-            margin-bottom: 1rem;
-        }
-
-        /* Map Sidebar */
-        .map-sidebar {
-            background: var(--background-white);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-light);
-            overflow: hidden;
-            transition: var(--transition);
-        }
-
-        .map-sidebar.hidden {
-            display: none;
-        }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            background: var(--primary-color);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .close-map-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 50%;
-            transition: var(--transition);
-        }
-
-        .close-map-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .map-container {
-            height: 400px;
-            background: var(--background-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
         }
 
         /* Responsive Design */
@@ -615,7 +514,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                 flex-direction: column;
             }
 
-            .facilities-grid {
+            .coaches-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -624,10 +523,14 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                 gap: 1rem;
                 text-align: center;
             }
+
+            .coach-info {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 480px) {
-            .main-layout {
+            .main-content {
                 padding: 1rem;
             }
 
@@ -635,12 +538,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                 padding: 1rem;
             }
 
-            .facility-header {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .facility-actions {
+            .coach-actions {
                 flex-direction: column;
             }
         }
@@ -648,63 +546,54 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
 </head>
 
 <body>
-    <div class="book-ground-container">
+    <div class="book-coach-container">
         <!-- Navbar Component -->
         <div id="navbar-container"></div>
 
-        <!-- Professional Header Section -->
+        <!-- Header Section -->
         <div class="page-header">
             <div class="header-content">
                 <div class="header-text">
-                    <h1>Book Sports Facilities</h1>
-                    <p>Find and reserve premium sports facilities across Sri Lanka</p>
+                    <h1>Book Professional Coaches</h1>
+                    <p>Train with certified coaches and improve your sports skills</p>
                     <div class="header-stats">
                         <div class="stat-item">
-                            <span class="stat-number">50+</span>
-                            <span class="stat-label">Facilities</span>
+                            <span class="stat-number">100+</span>
+                            <span class="stat-label">Coaches</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">24/7</span>
-                            <span class="stat-label">Booking</span>
+                            <span class="stat-number">15+</span>
+                            <span class="stat-label">Sports</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">5★</span>
-                            <span class="stat-label">Rated</span>
+                            <span class="stat-number">4.9★</span>
+                            <span class="stat-label">Rating</span>
                         </div>
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-primary" onclick="getCurrentLocation()">
-                        <i class="fas fa-location-arrow"></i>
-                        Find Near Me
+                    <button class="btn-primary">
+                        <i class="fas fa-calendar"></i>
+                        Schedule Session
                     </button>
-                    <button class="btn-secondary" onclick="toggleMapView()">
-                        <i class="fas fa-map"></i>
-                        <span id="map-toggle-text">Show Map</span>
+                    <button class="btn-secondary">
+                        <i class="fas fa-video"></i>
+                        Online Coaching
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Search Bar -->
+        <!-- Search Section -->
         <div class="search-section">
             <div class="search-container">
                 <div class="search-bar">
                     <div class="search-input-group">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="search-grounds" placeholder="Search facilities by name, sport, or location..." class="search-input">
+                        <input type="text" id="search-coaches" placeholder="Search coaches by name, sport, or expertise..." class="search-input">
                     </div>
                     <div class="filter-group">
-                        <select id="location" class="filter-select">
-                            <option value="">All Locations</option>
-                            <option value="colombo-3">Colombo 3</option>
-                            <option value="colombo-5">Colombo 5</option>
-                            <option value="colombo-7">Colombo 7</option>
-                            <option value="kandy">Kandy</option>
-                            <option value="galle">Galle</option>
-                            <option value="negombo">Negombo</option>
-                        </select>
-                        <select id="sport-type" class="filter-select">
+                        <select id="sport-filter" class="filter-select">
                             <option value="">All Sports</option>
                             <option value="football">Football</option>
                             <option value="tennis">Tennis</option>
@@ -713,14 +602,20 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                             <option value="badminton">Badminton</option>
                             <option value="swimming">Swimming</option>
                         </select>
-                        <select id="price-range" class="filter-select">
+                        <select id="experience-filter" class="filter-select">
+                            <option value="">Any Experience</option>
+                            <option value="1-3">1-3 Years</option>
+                            <option value="3-5">3-5 Years</option>
+                            <option value="5+">5+ Years</option>
+                        </select>
+                        <select id="price-filter" class="filter-select">
                             <option value="">Any Price</option>
-                            <option value="0-1000">LKR 0 - 1,000</option>
-                            <option value="1000-2000">LKR 1,000 - 2,000</option>
-                            <option value="2000+">LKR 2,000+</option>
+                            <option value="0-2000">LKR 0 - 2,000</option>
+                            <option value="2000-4000">LKR 2,000 - 4,000</option>
+                            <option value="4000+">LKR 4,000+</option>
                         </select>
                     </div>
-                    <button class="search-btn" onclick="searchFacilities()">
+                    <button class="search-btn">
                         <i class="fas fa-search"></i>
                         Search
                     </button>
@@ -728,51 +623,30 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             </div>
         </div>
 
-        <!-- Main Content Layout -->
-        <div class="main-layout">
-            <!-- Sidebar with Map (Initially Hidden) -->
-            <div id="map-sidebar" class="map-sidebar hidden">
-                <div class="sidebar-header">
-                    <h3>Facility Locations</h3>
-                    <button class="close-map-btn" onclick="toggleMapView()">
-                        <i class="fas fa-times"></i>
-                    </button>
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="results-header">
+                <div class="results-info">
+                    <h2>Professional Sports Coaches</h2>
+                    <p class="results-subtitle">Choose from our certified and experienced coaches</p>
                 </div>
-                <div class="map-container">
-                    <div>
-                        <i class="fas fa-map-marker-alt" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
-                        <p>Interactive map coming soon</p>
-                    </div>
+                <div class="sort-controls">
+                    <select class="sort-select">
+                        <option value="rating">Sort by Rating</option>
+                        <option value="experience">Sort by Experience</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- Main Content Area -->
-            <div class="content-area">
-                <!-- Results Header -->
-                <div class="results-header">
-                    <div class="results-info">
-                        <h2 id="results-count">Loading Facilities...</h2>
-                        <p class="results-subtitle">Choose from our top-rated sports facilities</p>
+            <div class="coaches-grid" id="coaches-grid">
+                <!-- Coach cards will be dynamically loaded here -->
+                <div class="loading-state">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
                     </div>
-                    <div class="sort-controls">
-                        <select id="sort-by" class="sort-select" onchange="sortFacilities()">
-                            <option value="rating">Sort by Rating</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Facilities Grid -->
-                <div class="facilities-container">
-                    <div class="facilities-grid" id="facilities-grid">
-                        <div class="loading-state">
-                            <div class="loading-spinner">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </div>
-                            <p>Loading premium facilities...</p>
-                        </div>
-                    </div>
+                    <p>Loading professional coaches...</p>
                 </div>
             </div>
         </div>
@@ -782,6 +656,88 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
     </div>
 
     <script>
+        // Sample coach data
+        const coaches = [
+            {
+                id: 1,
+                name: "Sanath Fernando",
+                sport: "Cricket",
+                experience: "8 years",
+                rating: 4.9,
+                reviews: 156,
+                price: 3500,
+                location: "Colombo",
+                bio: "Former national team player with extensive coaching experience in cricket fundamentals and advanced techniques.",
+                specialties: ["Batting", "Bowling", "Fielding", "Mental Training"],
+                certifications: ["Level 3 Cricket Coach", "Sports Psychology"]
+            },
+            {
+                id: 2,
+                name: "Priya Wijesinghe",
+                sport: "Tennis",
+                experience: "6 years",
+                rating: 4.8,
+                reviews: 89,
+                price: 4000,
+                location: "Kandy",
+                bio: "Professional tennis coach specializing in junior development and competitive training programs.",
+                specialties: ["Technique", "Strategy", "Match Play", "Fitness"],
+                certifications: ["ITF Certified", "Youth Development"]
+            },
+            {
+                id: 3,
+                name: "Kamal Silva",
+                sport: "Football",
+                experience: "10 years",
+                rating: 4.7,
+                reviews: 203,
+                price: 2800,
+                location: "Galle",
+                bio: "Former professional footballer now dedicated to developing the next generation of players.",
+                specialties: ["Technical Skills", "Tactical Awareness", "Physical Conditioning"],
+                certifications: ["UEFA B License", "Strength & Conditioning"]
+            },
+            {
+                id: 4,
+                name: "Niluka Perera",
+                sport: "Swimming",
+                experience: "5 years",
+                rating: 4.9,
+                reviews: 92,
+                price: 3200,
+                location: "Colombo",
+                bio: "Olympic swimmer turned coach, specializing in competitive swimming and stroke technique.",
+                specialties: ["Stroke Technique", "Endurance", "Competition Prep"],
+                certifications: ["Swim Coach Level 2", "Water Safety"]
+            },
+            {
+                id: 5,
+                name: "Ravi Mendis",
+                sport: "Basketball",
+                experience: "7 years",
+                rating: 4.6,
+                reviews: 134,
+                price: 3000,
+                location: "Negombo",
+                bio: "Basketball coach with focus on fundamental skills and team play development.",
+                specialties: ["Shooting", "Defense", "Team Strategy", "Youth Development"],
+                certifications: ["FIBA Certified", "Youth Basketball"]
+            },
+            {
+                id: 6,
+                name: "Chamini De Silva",
+                sport: "Badminton",
+                experience: "4 years",
+                rating: 4.8,
+                reviews: 67,
+                price: 2500,
+                location: "Kandy",
+                bio: "Former national badminton player with expertise in competitive training and technique refinement.",
+                specialties: ["Technique", "Footwork", "Game Strategy", "Mental Preparation"],
+                certifications: ["BWF Certified", "Sports Nutrition"]
+            }
+        ];
+
         // Load navbar component
         function loadNavbar() {
             fetch('/app/views/components/navbar.php')
@@ -807,12 +763,117 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                 });
         }
 
-        // Initialize components
+        // Render coaches
+        function renderCoaches() {
+            const grid = document.getElementById('coaches-grid');
+            
+            const coachCards = coaches.map(coach => {
+                const stars = generateStars(coach.rating);
+                const specialtyTags = coach.specialties.map(specialty => 
+                    `<span class="specialty-tag">${specialty}</span>`
+                ).join('');
+
+                return `
+                    <div class="coach-card">
+                        <div class="coach-header">
+                            <div class="coach-badge">
+                                <i class="fas fa-star"></i>
+                                ${coach.rating}
+                            </div>
+                            <div class="coach-avatar">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <h3 class="coach-name">${coach.name}</h3>
+                            <span class="coach-specialization">${coach.sport} Coach</span>
+                        </div>
+                        <div class="coach-content">
+                            <div class="coach-info">
+                                <div class="info-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>${coach.location}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>${coach.experience}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>${coach.reviews} students</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-star"></i>
+                                    <span>${stars}</span>
+                                </div>
+                            </div>
+                            <p class="coach-bio">${coach.bio}</p>
+                            <div class="coach-specialties">
+                                <div class="specialties-title">Specializations:</div>
+                                <div class="specialty-tags">
+                                    ${specialtyTags}
+                                </div>
+                            </div>
+                            <div class="coach-footer">
+                                <div class="coach-price">
+                                    <div class="price-amount">LKR ${coach.price.toLocaleString()}</div>
+                                    <div class="price-period">per session</div>
+                                </div>
+                                <div class="coach-actions">
+                                    <button class="btn-outline" onclick="viewProfile(${coach.id})">
+                                        View Profile
+                                    </button>
+                                    <button class="btn-primary" onclick="bookSession(${coach.id})">
+                                        Book Session
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            grid.innerHTML = coachCards;
+        }
+
+        // Generate star rating HTML
+        function generateStars(rating) {
+            let stars = '';
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 !== 0;
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star" style="color: var(--warning-color);"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt" style="color: var(--warning-color);"></i>';
+            }
+            
+            const remainingStars = 5 - Math.ceil(rating);
+            for (let i = 0; i < remainingStars; i++) {
+                stars += '<i class="far fa-star" style="color: var(--warning-color);"></i>';
+            }
+            
+            return stars;
+        }
+
+        // Coach action functions
+        function viewProfile(coachId) {
+            console.log('View profile for coach:', coachId);
+            // Implement profile view
+        }
+
+        function bookSession(coachId) {
+            console.log('Book session with coach:', coachId);
+            // Redirect to booking page
+            window.location.href = `/payment?coach_id=${coachId}`;
+        }
+
+        // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             loadNavbar();
             loadFooter();
+            setTimeout(renderCoaches, 1000); // Simulate loading
         });
     </script>
-    <script src="/public/js/pages/book-ground.js"></script>
 </body>
 </html>
