@@ -261,7 +261,7 @@ class GroundBookingApp {
                         
                         <div class="facility-actions">
                             <button class="btn-outline" onclick="viewDetails(${ground.id})">
-                                View Details
+                                <a href="/ground-details.php">View Details</a>
                             </button>
                             <button class="btn-primary" onclick="bookNow(${ground.id})">
                                 Book Now
@@ -396,10 +396,11 @@ function clearAllFilters() {
 }
 
 function viewDetails(groundId) {
-    console.log('View details for ground:', groundId);
-    // Implement view details functionality
-    // Could redirect to details page or show modal
-    window.location.href = `/ground/${groundId}`;
+    console.log('View details clicked for ground ID:', groundId);
+    const url = `/ground-details?id=${groundId}`;
+    console.log('Redirecting to:', url);
+    // Redirect to ground details page
+    window.location.href = url;
 }
 
 function bookNow(groundId) {

@@ -10,12 +10,7 @@
                 <p class="footer-description">
                     Your premier destination for sports facility booking, coach hiring, and equipment shopping.
                 </p>
-                <div class="social-links">
-                    <a href="#" class="social-link">Facebook</a>
-                    <a href="#" class="social-link">Twitter</a>
-                    <a href="#" class="social-link">Instagram</a>
-                    <a href="#" class="social-link">LinkedIn</a>
-                </div>
+               
             </div>
             
             <div class="footer-section">

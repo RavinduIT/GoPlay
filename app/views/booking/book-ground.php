@@ -127,7 +127,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                             <div class="loading-spinner">
                                 <i class="fas fa-spinner fa-spin"></i>
                             </div>
-                            <p>Loading premium facilities...</p>
+                            <p>Loading facilities...</p>
                         </div>
                     </div>
                 </div>
