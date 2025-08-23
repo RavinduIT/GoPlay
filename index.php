@@ -53,7 +53,17 @@ try {
     // Define routes
     $router->get('/', 'HomeController@index');
     $router->get('/login', 'AuthController@login');
+    $router->post('/auth/login', 'AuthController@handleLogin');
     $router->get('/signup', 'AuthController@signup');
+    $router->post('/auth/register', 'AuthController@handleRegister');
+    $router->post('/auth/logout', 'AuthController@logout');
+    $router->get('/auth/check', 'AuthController@checkAuth');
+    
+    // Dashboard routes
+    $router->get('/admin/dashboard', 'AdminController@dashboard');
+    $router->get('/ground-owner/dashboard', 'GroundOwnerController@dashboard');
+    $router->get('/coach/dashboard', 'CoachController@dashboard');
+    $router->get('/shop-owner/dashboard', 'ShopOwnerController@dashboard');
     $router->get('/book-ground', 'BookingController@bookGround');
     $router->get('/ground-details', 'BookingController@groundDetails');
     $router->get('/book-coach', 'BookingController@bookCoach');
