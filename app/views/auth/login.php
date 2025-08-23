@@ -3,7 +3,7 @@ $title = 'Login - GoPlay Sports Platform';
 $additionalCSS = ['/public/css/pages/login.css'];
 $additionalJS = ['/public/js/pages/login.js'];
 ?>
-<link rel="stylesheet" href="public/css/pages/login.css">
+<link rel="stylesheet" href="/public/css/pages/login.css">
 <div class="auth-container">
     <div class="auth-wrapper">
         <!-- Left Side - Branding -->
@@ -113,3 +113,4 @@ $additionalJS = ['/public/js/pages/login.js'];
 
 <!-- Toast Container -->
 <div id="toastContainer" class="toast-container"></div>
+<script src="/public/js/pages/login.js"></script>

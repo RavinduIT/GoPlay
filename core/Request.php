@@ -9,12 +9,19 @@ class Request
     private array $query;
     private array $body;
     private array $headers;
+    private static ?string $rawInput = null;
     
     public function __construct()
     {
         $this->method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $this->uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
         $this->query = $_GET;
+        
+        // Cache raw input on first read
+        if (self::$rawInput === null) {
+            self::$rawInput = file_get_contents('php://input');
+        }
+        
         $this->body = $this->parseBody();
         $this->headers = $this->parseHeaders();
     }
@@ -29,7 +36,7 @@ class Request
         return $this->uri;
     }
     
-    public function getQuery(string $key = null, $default = null)
+    public function getQuery(?string $key = null, $default = null)
     {
         if ($key === null) {
             return $this->query;
@@ -38,7 +45,7 @@ class Request
         return $this->query[$key] ?? $default;
     }
     
-    public function getBody(string $key = null, $default = null)
+    public function getBody(?string $key = null, $default = null)
     {
         if ($key === null) {
             return $this->body;
@@ -67,7 +74,8 @@ class Request
         $contentType = $this->getHeader('content-type') ?? '';
         
         if (strpos($contentType, 'application/json') !== false) {
-            return json_decode(file_get_contents('php://input'), true) ?: [];
+            $decoded = json_decode(self::$rawInput, true);
+            return $decoded ?: [];
         }
         
         return $_POST;

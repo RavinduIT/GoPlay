@@ -1,149 +1,299 @@
-<div class="min-h-screen bg-gray-100">
-    <!-- Admin Header -->
-    <header class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-gray-800">GoPlay Admin Dashboard</h1>
-                <div class="flex items-center space-x-4">
-                    <span class="text-gray-600">Welcome, Admin</span>
-                    <img src="/public/assets/images/admin-avatar.jpg" alt="Admin" class="w-8 h-8 rounded-full">
-                </div>
+<link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
+<div class="admin-dashboard">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>GoPlay Admin</span>
             </div>
-        </div>
-    </header>
-    
-    <div class="max-w-7xl mx-auto px-4 py-8">
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center">
-                    <div class="bg-blue-100 p-3 rounded-lg">
-                        <i class="fas fa-calendar-alt text-blue-600 text-2xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-sm font-medium text-gray-500">Total Bookings</h3>
-                        <p class="text-2xl font-bold text-gray-900">1,247</p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <span class="text-green-600 text-sm font-medium">↗ 12% from last month</span>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center">
-                    <div class="bg-green-100 p-3 rounded-lg">
-                        <i class="fas fa-rupee-sign text-green-600 text-2xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-sm font-medium text-gray-500">Revenue</h3>
-                        <p class="text-2xl font-bold text-gray-900">₹2,34,567</p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <span class="text-green-600 text-sm font-medium">↗ 8% from last month</span>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center">
-                    <div class="bg-purple-100 p-3 rounded-lg">
-                        <i class="fas fa-users text-purple-600 text-2xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-sm font-medium text-gray-500">Active Users</h3>
-                        <p class="text-2xl font-bold text-gray-900">892</p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <span class="text-green-600 text-sm font-medium">↗ 15% from last month</span>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center">
-                    <div class="bg-orange-100 p-3 rounded-lg">
-                        <i class="fas fa-map-marker-alt text-orange-600 text-2xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-sm font-medium text-gray-500">Active Grounds</h3>
-                        <p class="text-2xl font-bold text-gray-900">45</p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <span class="text-green-600 text-sm font-medium">↗ 3 new this month</span>
-                </div>
-            </div>
+            <button class="sidebar-toggle mobile-only" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         
-        <!-- Charts and Recent Activity -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Revenue Chart -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-semibold mb-4">Revenue Trend</h3>
-                <div class="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <span class="text-gray-500">Chart Placeholder - Revenue over time</span>
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="active">
+                    <a href="/admin/dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/users">
+                        <i class="fas fa-users"></i>
+                        <span>Users</span>
+                        <span class="badge">892</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/bookings">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Bookings</span>
+                        <span class="badge">1,247</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/grounds">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Grounds</span>
+                        <span class="badge">45</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/coaches">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Coaches</span>
+                        <span class="badge">23</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/shop">
+                        <i class="fas fa-store"></i>
+                        <span>Shop</span>
+                        <span class="badge">156</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/orders">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Orders</span>
+                        <span class="badge new">12</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/payments">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payments</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/analytics">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-divider"></li>
+                <li>
+                    <a href="/admin/settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/logout" class="logout-link">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <!-- Top Header -->
+        <header class="admin-header">
+            <div class="header-left">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">Dashboard Overview</h1>
+            </div>
+            <div class="header-right">
+                <div class="header-notifications">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">5</span>
+                    </button>
+                </div>
+                <div class="admin-profile">
+                    <div class="profile-info">
+                        <span class="profile-name">John Smith</span>
+                        <span class="profile-role">Super Admin</span>
+                    </div>
+                    <img src="/public/assets/images/admin-avatar.jpg" alt="Admin" class="profile-avatar">
+                    <button class="profile-dropdown">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
                 </div>
             </div>
-            
-            <!-- Recent Bookings -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-semibold mb-4">Recent Bookings</h3>
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between py-3 border-b">
-                        <div>
-                            <p class="font-medium">Football Ground A</p>
-                            <p class="text-sm text-gray-600">John Doe - 2 hours</p>
-                        </div>
-                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">Confirmed</span>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-calendar-alt"></i>
                     </div>
-                    
-                    <div class="flex items-center justify-between py-3 border-b">
-                        <div>
-                            <p class="font-medium">Cricket Ground B</p>
-                            <p class="text-sm text-gray-600">Jane Smith - 3 hours</p>
+                    <div class="stat-content">
+                        <h3>Total Bookings</h3>
+                        <p class="stat-number">1,247</p>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>12% from last month</span>
                         </div>
-                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-sm">Pending</span>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3 border-b">
-                        <div>
-                            <p class="font-medium">Tennis Court 1</p>
-                            <p class="text-sm text-gray-600">Mike Johnson - 1 hour</p>
-                        </div>
-                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">Confirmed</span>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <a href="/admin/bookings" class="text-blue-600 hover:text-blue-800 font-medium">View All Bookings →</a>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Revenue</h3>
+                        <p class="stat-number">Rs.34,567</p>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>8% from last month</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Active Users</h3>
+                        <p class="stat-number">892</p>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>15% from last month</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Active Grounds</h3>
+                        <p class="stat-number">45</p>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>3 new this month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Revenue Chart -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Revenue Trend</h3>
+                        <div class="card-actions">
+                            <select class="time-filter">
+                                <option>Last 7 days</option>
+                                <option>Last 30 days</option>
+                                <option>Last 90 days</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Bookings -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Recent Bookings</h3>
+                        <a href="/admin/bookings" class="view-all">View All</a>
+                    </div>
+                    <div class="booking-list">
+                        <div class="booking-item">
+                            <div class="booking-info">
+                                <h4>Football Ground A</h4>
+                                <p>John Doe - 2 hours</p>
+                                <span class="booking-time">2 hours ago</span>
+                            </div>
+                            <span class="status-badge confirmed">Confirmed</span>
+                        </div>
+                        <div class="booking-item">
+                            <div class="booking-info">
+                                <h4>Cricket Ground B</h4>
+                                <p>Jane Smith - 3 hours</p>
+                                <span class="booking-time">4 hours ago</span>
+                            </div>
+                            <span class="status-badge pending">Pending</span>
+                        </div>
+                        <div class="booking-item">
+                            <div class="booking-info">
+                                <h4>Tennis Court 1</h4>
+                                <p>Mike Johnson - 1 hour</p>
+                                <span class="booking-time">6 hours ago</span>
+                            </div>
+                            <span class="status-badge confirmed">Confirmed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="/admin/grounds/create" class="action-btn blue">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Add Ground</span>
+                        </a>
+                        <a href="/admin/coaches/create" class="action-btn green">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Add Coach</span>
+                        </a>
+                        <a href="/admin/products/create" class="action-btn purple">
+                            <i class="fas fa-box"></i>
+                            <span>Add Product</span>
+                        </a>
+                        <a href="/admin/news/create" class="action-btn orange">
+                            <i class="fas fa-newspaper"></i>
+                            <span>Add News</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Recent Orders</h3>
+                        <a href="/admin/orders" class="view-all">View All</a>
+                    </div>
+                    <div class="order-list">
+                        <div class="order-item">
+                            <div class="order-info">
+                                <h4>Order #ORD-1001</h4>
+                                <p>Kavinda Ranasighe</p>
+                                <span class="order-amount">₹3,450</span>
+                            </div>
+                            <span class="status-badge processing">Processing</span>
+                        </div>
+                        <div class="order-item">
+                            <div class="order-info">
+                                <h4>Order #ORD-1002</h4>
+                                <p>Sanduni Rajapakse</p>
+                                <span class="order-amount">₹1,850</span>
+                            </div>
+                            <span class="status-badge completed">Completed</span>
+                        </div>
+                        <div class="order-item">
+                            <div class="order-info">
+                                <h4>Order #ORD-1003</h4>
+                                <p>Dilan Wijesinghe</p>
+                                <span class="order-amount">₹2,100</span>
+                            </div>
+                            <span class="status-badge shipped">Shipped</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Quick Actions -->
-        <div class="mt-8">
-            <h3 class="text-lg font-semibold mb-6">Quick Actions</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <a href="/admin/grounds" class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <i class="fas fa-plus-circle text-blue-600 text-3xl mb-3"></i>
-                    <p class="font-medium">Add Ground</p>
-                </a>
-                
-                <a href="/admin/coaches" class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <i class="fas fa-user-plus text-green-600 text-3xl mb-3"></i>
-                    <p class="font-medium">Add Coach</p>
-                </a>
-                
-                <a href="/admin/news" class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <i class="fas fa-newspaper text-purple-600 text-3xl mb-3"></i>
-                    <p class="font-medium">Add News</p>
-                </a>
-                
-                <a href="/admin/shop" class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <i class="fas fa-shopping-bag text-orange-600 text-3xl mb-3"></i>
-                    <p class="font-medium">Manage Shop</p>
-                </a>
-            </div>
-        </div>
-    </div>
+    </main>
 </div>
