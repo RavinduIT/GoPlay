@@ -1,7 +1,7 @@
 -- GoPlay Shop Database Tables
 -- Execute this script in your MySQL database
 
-USE goplay_db;
+USE goplay_sports_platform;
 
 -- Create categories table
 CREATE TABLE IF NOT EXISTS categories (

@@ -10,50 +10,41 @@ class Product extends BaseModel
     
     protected array $fillable = [
         'name',
-        'slug',
-        'description',
-        'short_description',
-        'category_id',
-        'price',
-        'original_price',
-        'discount_percentage',
         'sku',
+        'description',
+        'category_id',
+        'brand',
+        'price',
+        'compare_price',
+        'cost_price',
         'stock_quantity',
         'min_stock_level',
         'weight',
         'dimensions',
-        'brand',
-        'model',
-        'color',
-        'size',
-        'material',
-        'image_url',
-        'gallery',
-        'features',
         'specifications',
+        'features',
+        'images',
+        'tags',
+        'status',
         'rating',
-        'review_count',
-        'is_featured',
-        'is_active',
-        'meta_title',
-        'meta_description',
-        'meta_keywords'
+        'total_reviews',
+        'total_sales'
     ];
     
     protected array $casts = [
         'price' => 'float',
-        'original_price' => 'float',
-        'discount_percentage' => 'int',
+        'compare_price' => 'float',
+        'cost_price' => 'float',
         'stock_quantity' => 'int',
         'min_stock_level' => 'int',
         'weight' => 'float',
         'rating' => 'float',
-        'review_count' => 'int',
-        'is_featured' => 'bool',
-        'is_active' => 'bool',
-        'gallery' => 'array',
+        'total_reviews' => 'int',
+        'total_sales' => 'int',
+        'specifications' => 'array',
         'features' => 'array',
-        'specifications' => 'array'
+        'images' => 'array',
+        'tags' => 'array'
     ];
     
     /**
@@ -64,7 +55,7 @@ class Product extends BaseModel
         $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug 
                 FROM {$this->table} p 
                 LEFT JOIN categories c ON p.category_id = c.id 
-                WHERE p.is_active = 1";
+                WHERE p.status = 'active'";
         
         $params = [];
         
@@ -94,9 +85,9 @@ class Product extends BaseModel
             $params[] = $filters['max_price'];
         }
         
-        // Add featured filter
+        // Add featured filter  
         if (!empty($filters['featured'])) {
-            $sql .= " AND p.is_featured = 1";
+            $sql .= " AND p.rating >= 4.5";
         }
         
         // Add sorting
@@ -106,7 +97,7 @@ class Product extends BaseModel
             'rating' => 'p.rating DESC',
             'newest' => 'p.created_at DESC',
             'name' => 'p.name ASC',
-            'featured' => 'p.is_featured DESC, p.rating DESC'
+            'featured' => 'p.rating DESC, p.created_at DESC'
         ];
         
         $sort = $filters['sort'] ?? 'featured';
@@ -134,7 +125,7 @@ class Product extends BaseModel
     /**
      * Get products by category
      */
-    public function getProductsByCategory(string $categorySlug, int $limit = null): array
+    public function getProductsByCategory(string $categorySlug, ?int $limit = null): array
     {
         $filters = ['category' => $categorySlug];
         if ($limit) {
@@ -160,7 +151,7 @@ class Product extends BaseModel
         $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug 
                 FROM {$this->table} p 
                 LEFT JOIN categories c ON p.category_id = c.id 
-                WHERE p.id = ? AND p.is_active = 1";
+                WHERE p.id = ? AND p.status = 'active'";
         
         $result = $this->db->query($sql, [$id])->fetch();
         return $result ? $this->castAttributes($result) : null;
@@ -174,7 +165,7 @@ class Product extends BaseModel
         $sql = "SELECT p.*, c.name as category_name 
                 FROM {$this->table} p 
                 LEFT JOIN categories c ON p.category_id = c.id 
-                WHERE p.category_id = ? AND p.id != ? AND p.is_active = 1 
+                WHERE p.category_id = ? AND p.id != ? AND p.status = 'active' 
                 ORDER BY p.rating DESC, p.created_at DESC 
                 LIMIT ?";
         
@@ -244,7 +235,7 @@ class Product extends BaseModel
     public function getLowStockProducts(): array
     {
         $sql = "SELECT * FROM {$this->table} 
-                WHERE stock_quantity <= min_stock_level AND is_active = 1 
+                WHERE stock_quantity <= min_stock_level AND status = 'active' 
                 ORDER BY stock_quantity ASC";
         
         $results = $this->query($sql)->fetchAll();
@@ -258,7 +249,7 @@ class Product extends BaseModel
     {
         $sql = "SELECT c.*, COUNT(p.id) as product_count 
                 FROM categories c 
-                LEFT JOIN {$this->table} p ON c.id = p.category_id AND p.is_active = 1 
+                LEFT JOIN {$this->table} p ON c.id = p.category_id AND p.status = 'active' 
                 GROUP BY c.id 
                 ORDER BY c.name ASC";
         

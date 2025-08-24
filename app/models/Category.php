@@ -41,7 +41,7 @@ class Category extends BaseModel
     {
         $sql = "SELECT c.*, COUNT(p.id) as product_count 
                 FROM {$this->table} c 
-                LEFT JOIN products p ON c.id = p.category_id AND p.is_active = 1 
+                LEFT JOIN products p ON c.id = p.category_id AND p.status = 'active' 
                 GROUP BY c.id 
                 ORDER BY c.name ASC";
         

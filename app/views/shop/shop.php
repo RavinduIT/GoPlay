@@ -982,12 +982,22 @@ $additionalJS = [];
                 return;
             }
 
-            const categoryItems = categories.map(category => {
+            // Filter out categories with 0 products
+            const categoriesWithProducts = categories.filter(category => 
+                category.product_count && category.product_count > 0
+            );
+
+            if (categoriesWithProducts.length === 0) {
+                grid.innerHTML = '<p>No categories with products available</p>';
+                return;
+            }
+
+            const categoryItems = categoriesWithProducts.map(category => {
                 return `
                     <a href="#" class="category-item" data-category="${category.slug}" onclick="filterByCategory('${category.slug}')">
                         <div class="category-icon">${category.icon || '🏟️'}</div>
                         <div class="category-name">${category.name}</div>
-                        <div class="category-count">${category.product_count || 0} items</div>
+                        <div class="category-count">${category.product_count} items</div>
                     </a>
                 `;
             }).join('');
