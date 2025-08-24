@@ -14,34 +14,24 @@ class User extends BaseModel
     protected string $table = 'users';
     
     protected array $fillable = [
-        'name',
+        'username',
         'email',
+        'password_hash',
+        'first_name',
+        'last_name',
         'phone',
-        'password',
-        'role',
-        'avatar',
         'date_of_birth',
-        'gender',
-        'address',
-        'city',
-        'state',
-        'country',
-        'postal_code',
-        'preferences',
-        'status',
-        'email_verified_at',
-        'last_login_at'
+        'profile_picture',
+        'user_type',
+        'status'
     ];
 
     protected array $hidden = [
-        'password'
+        'password_hash'
     ];
 
     protected array $casts = [
-        'date_of_birth' => 'date',
-        'preferences' => 'array',
-        'email_verified_at' => 'datetime',
-        'last_login_at' => 'datetime'
+        'date_of_birth' => 'date'
     ];
 
     /**
@@ -85,11 +75,12 @@ class User extends BaseModel
     }
 
     /**
-     * Update last login
+     * Update last login (disabled - no last_login column in database)
      */
     public function updateLastLogin(int $userId): bool
     {
-        return $this->update($userId, ['last_login_at' => date('Y-m-d H:i:s')]);
+        // Note: No last_login column exists in users table
+        return true;
     }
 
     /**
