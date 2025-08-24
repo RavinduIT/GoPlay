@@ -71,40 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    function addDemoCredentialsHelper() {
-        const authFormContainer = document.querySelector('.auth-form-container');
-        
-        const demoSection = document.createElement('div');
-        demoSection.className = 'demo-credentials';
-        demoSection.innerHTML = `
-            <div class="demo-header">
-                <h4>Demo Credentials</h4>
-                <p>Use these credentials to test different roles:</p>
-            </div>
-            <div class="demo-roles">
-                <button type="button" class="demo-btn" data-role="admin" data-email="admin1@goplay.lk" data-password="password123">Admin</button>
-                <button type="button" class="demo-btn" data-role="ground_owner" data-email="groundowner1@goplay.lk" data-password="password123">Ground Owner</button>
-                <button type="button" class="demo-btn" data-role="coach" data-email="coach1@goplay.lk" data-password="password123">Coach</button>
-                <button type="button" class="demo-btn" data-role="shop_owner" data-email="shopowner1@goplay.lk" data-password="password123">Shop Owner</button>
-                <button type="button" class="demo-btn" data-role="user" data-email="user1@goplay.lk" data-password="password123">User</button>
-            </div>
-        `;
-
-        // Add event listeners for demo buttons
-        demoSection.addEventListener('click', function(e) {
-            if (e.target.classList.contains('demo-btn')) {
-                const email = e.target.getAttribute('data-email');
-                const password = e.target.getAttribute('data-password');
-                
-                emailInput.value = email;
-                passwordInput.value = password;
-            }
-        });
-
-        // Insert before the social login section
-        const socialLogin = document.querySelector('.social-login');
-        authFormContainer.insertBefore(demoSection, socialLogin);
-    }
+   
 
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
