@@ -91,21 +91,7 @@ $additionalJS = ['/public/js/pages/login.js'];
                     </p>
                 </div>
                 
-                <div class="social-login">
-                    <div class="divider">
-                        <span>or continue with</span>
-                    </div>
-                    <div class="social-buttons">
-                        <button class="social-btn google-btn">
-                            <i class="fab fa-google"></i>
-                            Google
-                        </button>
-                        <button class="social-btn facebook-btn">
-                            <i class="fab fa-facebook-f"></i>
-                            Facebook
-                        </button>
-                    </div>
-                </div>
+                
             </div>
         </div>
     </div>
