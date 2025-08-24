@@ -4,9 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
 
-    // Add demo credentials helper
-    addDemoCredentialsHelper();
-
     // Handle form submission
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -83,16 +80,51 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
 
-        const container = document.getElementById('toastContainer');
+        // Create toast container if it doesn't exist
+        let container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                max-width: 400px;
+            `;
+            document.body.appendChild(container);
+        }
+        
+        // Add inline styles for toast
+        toast.style.cssText = `
+            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+            color: white;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        `;
+        
         container.appendChild(toast);
 
         // Trigger animation
-        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+        }, 100);
 
         // Remove after 5 seconds
         setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => container.removeChild(toast), 300);
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (container.contains(toast)) {
+                    container.removeChild(toast);
+                }
+            }, 300);
         }, 5000);
     }
 });
