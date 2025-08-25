@@ -434,12 +434,19 @@ CREATE INDEX idx_notifications_type ON notifications(type);
 -- Insert Sample Users for Each Role (5 users per role)
 INSERT INTO users (username, email, password_hash, first_name, last_name, phone, user_type, status) VALUES
 
--- Admin Users (1)
+-- Admin Users (5)
 ('admin1', 'admin1@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'John', 'Smith', '+94771234501', 'admin', 'active'),
-
+('admin2', 'admin2@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Sarah', 'Johnson', '+94771234502', 'admin', 'active'),
+('admin3', 'admin3@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Michael', 'Brown', '+94771234503', 'admin', 'active'),
+('admin4', 'admin4@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Emma', 'Davis', '+94771234504', 'admin', 'active'),
+('admin5', 'admin5@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'David', 'Wilson', '+94771234505', 'admin', 'active'),
 
 -- Ground Owner Users (5)
 ('groundowner1', 'groundowner1@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Rajesh', 'Perera', '+94771234511', 'ground_owner', 'active'),
+('groundowner2', 'groundowner2@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Nimal', 'Silva', '+94771234512', 'ground_owner', 'active'),
+('groundowner3', 'groundowner3@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Kamal', 'Fernando', '+94771234513', 'ground_owner', 'active'),
+('groundowner4', 'groundowner4@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Sunil', 'Jayawardena', '+94771234514', 'ground_owner', 'active'),
+('groundowner5', 'groundowner5@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Chamara', 'Wickramasinghe', '+94771234515', 'ground_owner', 'active'),
 
 -- Coach Users (5)
 ('coach1', 'coach1@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Lasith', 'Malinga', '+94771234521', 'coach', 'active'),
@@ -448,10 +455,18 @@ INSERT INTO users (username, email, password_hash, first_name, last_name, phone,
 ('coach4', 'coach4@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Chaminda', 'Vaas', '+94771234524', 'coach', 'active'),
 ('coach5', 'coach5@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Muttiah', 'Muralitharan', '+94771234525', 'coach', 'active'),
 
--- Shop Owner User
+-- Shop Owner Users (5)
 ('shopowner1', 'shopowner1@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Rohan', 'Gunaratne', '+94771234531', 'shop_owner', 'active'),
+('shopowner2', 'shopowner2@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Priya', 'Mendis', '+94771234532', 'shop_owner', 'active'),
+('shopowner3', 'shopowner3@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Asanka', 'Ratnasinghe', '+94771234533', 'shop_owner', 'active'),
+('shopowner4', 'shopowner4@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Kumari', 'Dissanayake', '+94771234534', 'shop_owner', 'active'),
+('shopowner5', 'shopowner5@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Ruwan', 'Senanayake', '+94771234535', 'shop_owner', 'active'),
 
--- Regular User
-('user1', 'user1@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Kavinda', 'Ranasighe', '+94771234541', 'user', 'active');
+-- Regular Users (5)
+('user1', 'user1@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Kavinda', 'Ranasighe', '+94771234541', 'user', 'active'),
+('user2', 'user2@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Sanduni', 'Rajapakse', '+94771234542', 'user', 'active'),
+('user3', 'user3@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Dilan', 'Wijesinghe', '+94771234543', 'user', 'active'),
+('user4', 'user4@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JGq1UPc9kB3zK9fP1wN4', 'Tharushi', 'Amarasinghe', '+94771234544', 'user', 'active'),
+('user5', 'user5@goplay.lk', '$argon2id$v=19$m=65536,t=4,p=3$SGVsbG9Xb3JsZA$nqsz3OBGzR7w8JiZXHnZxw8JGq1UPc9kB3zK9fP1wN4', 'Janith', 'Kodithuwakku', '+94771234545', 'user', 'active');
 
 COMMIT;
