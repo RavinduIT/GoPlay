@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
 <?php 
 $title = 'Shop Owner Dashboard - GoPlay';
 $additionalCSS = ['/public/css/pages/shop-owner-dashboard.css'];
@@ -117,8 +118,8 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
         <div class="dashboard-content">
             <!-- Stats Cards -->
             <div class="stats-grid">
-                <div class="stat-card revenue">
-                    <div class="stat-icon">
+                <div class="stat-card">
+                    <div class="stat-icon purple">
                         <i class="fas fa-rupee-sign"></i>
                     </div>
                     <div class="stat-content">
@@ -131,8 +132,8 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                     </div>
                 </div>
 
-                <div class="stat-card orders">
-                    <div class="stat-icon">
+                <div class="stat-card">
+                    <div class="stat-icon green">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
                     <div class="stat-content">
@@ -145,8 +146,8 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                     </div>
                 </div>
 
-                <div class="stat-card products">
-                    <div class="stat-icon">
+                <div class="stat-card">
+                    <div class="stat-icon orange">
                         <i class="fas fa-box"></i>
                     </div>
                     <div class="stat-content">
@@ -159,8 +160,8 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                     </div>
                 </div>
 
-                <div class="stat-card customers">
-                    <div class="stat-icon">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-content">
@@ -177,7 +178,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
             <!-- Main Dashboard Grid -->
             <div class="dashboard-grid">
                 <!-- Sales Overview -->
-                <div class="dashboard-card sales-overview">
+                <div class="dashboard-card">
                     <div class="card-header">
                         <h3>Sales Overview</h3>
                         <div class="card-actions">
