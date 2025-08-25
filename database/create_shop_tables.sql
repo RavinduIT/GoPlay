@@ -1,6 +1,7 @@
 -- GoPlay Shop Database Tables (Updated to match actual database structure)
 -- Execute this script in your MySQL database
 
+
 USE goplay_sports_platform;
 
 -- Create categories table (matches actual structure)
@@ -20,26 +21,24 @@ CREATE TABLE IF NOT EXISTS categories (
 -- stock_quantity, min_stock_level, weight, dimensions, specifications, features,
 -- images, tags, status, rating, total_reviews, total_sales, created_at, updated_at
 
--- Create product_reviews table
+-- Create product_reviews table (matches actual structure)
 CREATE TABLE IF NOT EXISTS product_reviews (
     id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT NOT NULL,
-    user_id INT,
-    reviewer_name VARCHAR(100),
-    reviewer_email VARCHAR(255),
-    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
-    title VARCHAR(255),
+    user_id INT NOT NULL,
+    order_id INT,
+    rating INT NOT NULL,
+    title VARCHAR(200),
     review_text TEXT,
-    is_verified_purchase BOOLEAN DEFAULT FALSE,
-    is_approved BOOLEAN DEFAULT FALSE,
-    helpful_count INT DEFAULT 0,
+    images JSON,
+    is_verified_purchase TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_product (product_id),
-    INDEX idx_rating (rating),
-    INDEX idx_approved (is_approved)
+    INDEX idx_user (user_id),
+    INDEX idx_rating (rating)
 );
 
 -- Create product_images table
@@ -208,13 +207,34 @@ ON DUPLICATE KEY UPDATE
     rating = VALUES(rating),
     total_reviews = VALUES(total_reviews);
 
--- Insert sample product reviews
-INSERT INTO product_reviews (product_id, reviewer_name, reviewer_email, rating, title, review_text, is_approved) VALUES
-(1, 'Rajesh Kumar', 'rajesh@example.com', 5, 'Excellent Football', 'Great quality football, perfect for our local matches. Highly recommended!', TRUE),
-(1, 'Priya Sharma', 'priya@example.com', 4, 'Good Quality', 'Nice football but a bit expensive. Overall satisfied with the purchase.', TRUE),
-(3, 'Arjun Patel', 'arjun@example.com', 5, 'Amazing Racket', 'This racket has improved my game significantly. Worth every rupee!', TRUE),
-(5, 'Deepika Singh', 'deepika@example.com', 5, 'Perfect Basketball', 'Great bounce and grip. Using it for 6 months now, still in excellent condition.', TRUE),
-(7, 'Rohit Mehta', 'rohit@example.com', 4, 'Good Cricket Bat', 'Nice willow bat with good balance. Recommended for serious players.', TRUE);
+-- Insert sample product reviews (using actual user IDs from database)
+INSERT INTO product_reviews (product_id, user_id, rating, title, review_text, is_verified_purchase) VALUES
+-- Football reviews (user IDs 21-25 are regular users)
+(1, 21, 5, 'Excellent Quality Football', 'Great quality football, perfect for our local matches. Highly recommended! Using it for 3 months now.', 1),
+(1, 22, 4, 'Good but pricey', 'Nice football but a bit expensive. Overall satisfied with the purchase. Good for practice sessions.', 1),
+(2, 23, 4, 'Great training equipment', 'These cones are very useful for football training. Bright colors make them easy to spot.', 1),
+
+-- Tennis reviews  
+(3, 21, 5, 'Best racket ever!', 'This racket has improved my game significantly. Perfect weight and balance. Worth every rupee!', 1),
+(4, 24, 5, 'Professional quality balls', 'Excellent bounce and durability. Perfect for tournament play. Highly recommend for serious players.', 1),
+
+-- Basketball reviews
+(5, 23, 5, 'Perfect basketball', 'Great bounce and grip. Using it for 6 months now, still in excellent condition. Perfect for outdoor courts.', 1),
+(6, 25, 4, 'Comfortable shoes', 'Good basketball shoes with excellent grip. A bit expensive but worth the investment for serious players.', 1),
+
+-- Cricket reviews
+(7, 24, 4, 'Great cricket bat', 'Nice willow bat with good balance. Perfect for club level cricket. Recommended for intermediate players.', 1),
+(8, 21, 5, 'Quality cricket balls', 'Excellent leather balls with traditional stitching. Perfect for practice and match play.', 1),
+
+-- Badminton reviews
+(9, 22, 4, 'Good starter set', 'Perfect set for beginners. Rackets are lightweight and shuttlecocks included. Great value for money.', 1),
+(10, 25, 5, 'Tournament quality', 'Professional grade shuttlecocks with consistent flight. Perfect for competitive play.', 1)
+
+ON DUPLICATE KEY UPDATE
+    rating = VALUES(rating),
+    title = VALUES(title),
+    review_text = VALUES(review_text),
+    is_verified_purchase = VALUES(is_verified_purchase);
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
