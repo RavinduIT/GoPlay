@@ -1,8 +1,8 @@
 <link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
 <?php 
-$title = 'Shop Products - GoPlay';
+$title = 'Inventory - GoPlay';
 $additionalCSS = ['/public/css/pages/shop-owner-dashboard.css'];
-$additionalJS = ['/public/js/pages/shop-owner-products.js'];
+$additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
 ?>
 
 <div class="shop-owner-dashboard">
@@ -21,14 +21,14 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
       <nav class="sidebar-nav">
           <ul>
               <li><a href="dashboard.php"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
-              <li class="active"><a href="products.php"><i class="fas fa-box"></i><span>Products</span><span class="badge">156</span></a></li>
-              <li><a href="orders.php"><i class="fas fa-shopping-cart"></i><span>Orders</span><span class="badge new">12</span></a></li>
-              <li><a href="Inventory.php"><i class="fas fa-warehouse"></i><span>Inventory</span><span class="badge warning">5</span></a></li>
-              <li><a href="sales.php"><i class="fas fa-chart-line"></i><span>Sales</span></a></li>
+              <li><a href="products.php"><i class="fas fa-box"></i><span>Products</span><span class="badge">156</span></a></li>
+              <li><a href="/shop-owner/orders"><i class="fas fa-shopping-cart"></i><span>Orders</span><span class="badge new">12</span></a></li>
+              <li class="active"><a href="Inventory.php"><i class="fas fa-warehouse"></i><span>Inventory</span><span class="badge warning">5</span></a></li>
+              <li><a href="/shop-owner/sales"><i class="fas fa-chart-line"></i><span>Sales</span></a></li>
               <li><a href="/shop-owner/customers"><i class="fas fa-users"></i><span>Customers</span><span class="badge">234</span></a></li>
-              <li><a href="reviews.php"><i class="fas fa-star"></i><span>Reviews</span><span class="badge">45</span></a></li>
+              <li><a href="/shop-owner/reviews"><i class="fas fa-star"></i><span>Reviews</span><span class="badge">45</span></a></li>
               <li class="nav-divider"></li>
-              <li><a href="profile.php"><i class="fas fa-user"></i><span>Profile</span></a></li>
+              <li><a href="/shop-owner/profile"><i class="fas fa-user"></i><span>Profile</span></a></li>
               <li><a href="/logout" class="logout-link"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></li>
           </ul>
       </nav>
@@ -37,10 +37,10 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
   <!-- Main Content -->
   <main class="dashboard-content">
     <header class="products-header">
-      <h1>Products</h1>
+      <h1>Inventory</h1>
       <div class="products-search">
-        <input type="text" placeholder="Search products...">
-        <button>+ Add Product</button>
+        <input type="text" placeholder="Search inventory...">
+        <button>+ Add Stock</button>
       </div>
     </header>
 
@@ -50,10 +50,10 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
           <tr>
             <th>Product</th>
             <th>SKU</th>
-            <th>Stock</th>
-            <th>Price</th>
+            <th>Available Stock</th>
+            <th>Reorder Level</th>
             <th>Status</th>
-            <th>Brand</th>
+            <th>Last Updated</th>
             <th colspan="2" style="width:140px;"></th>
           </tr>
         </thead>
@@ -62,21 +62,21 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
             <td>Football</td>
             <td>FB-001</td>
             <td><span class="stock-chip">25</span></td>
-            <td>₹1200</td>
-            <td><span style="color:green;">Active</span></td>
-            <td>Nike</td>
-            <td class="action-links"><a href="#">Edit</a></td>
-            <td class="action-links-delete"><a href="#">Delete</a></td>
+            <td>10</td>
+            <td><span style="color:green;">In Stock</span></td>
+            <td>2025-08-25</td>
+            <td class="action-links"><a href="#">Update</a></td>
+            <td class="action-links-delete"><a href="#">Remove</a></td>
           </tr>
           <tr>
             <td>Basketball</td>
             <td>BB-014</td>
-            <td><span class="stock-chip stock-low">10</span></td>
-            <td>₹1450</td>
-            <td><span style="color:orange;">Draft</span></td>
-            <td>Puma</td>
-            <td class="action-links"><a href="#">Edit</a></td>
-            <td class="action-links-delete"><a href="#">Delete</a></td>
+            <td><span class="stock-chip stock-low">8</span></td>
+            <td>12</td>
+            <td><span style="color:orange;">Low Stock</span></td>
+            <td>2025-08-20</td>
+            <td class="action-links"><a href="#">Update</a></td>
+            <td class="action-links-delete"><a href="#">Remove</a></td>
           </tr>
         </tbody>
       </table>
@@ -85,7 +85,7 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
 </div>
 
 <style>
-/* Dashboard Layout */
+/* Reuse Products page styles */
 .shop-owner-dashboard {
   display: flex;
   min-height: 100vh;
@@ -171,7 +171,7 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
 }
 
 .action-links a {
-  padding: .25rem 2rem;
+  padding: .25rem 1.5rem;
   border-radius: 5px;
   margin-right: .5rem;
   text-decoration: none;
@@ -180,18 +180,11 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
 }
 
 .action-links-delete a {
-  padding: .25rem 2rem;
+  padding: .25rem 1.5rem;
   border-radius: 5px;
   margin-right: .5rem;
   text-decoration: none;
   background: #b60909ff;
   color: #ffffffff;
 }
-
-.action-links a :hover {
-  text-decoration: underline;
-}
-
-
-
 </style>
