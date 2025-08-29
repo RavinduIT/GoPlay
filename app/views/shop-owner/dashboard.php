@@ -61,7 +61,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                     </a>
                 </li>
                 <li>
-                    <a href="/shop-owner/reviews">
+                    <a href="reviews.php">
                         <i class="fas fa-star"></i>
                         <span>Reviews</span>
                         <span class="badge">45</span>
