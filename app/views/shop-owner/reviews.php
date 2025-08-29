@@ -52,10 +52,9 @@ $additionalJS = [];
       <!-- Example Review Card -->
       <div class="review-card">
         <div class="review-header">
-          <span class="reviewer-name">John Doe</span>
-          <span class="review-rating">
+          <span class="reviewer-name">John Doe</span></div>
+        <div class="review-rating">
             ★★★★☆
-          </span>
         </div>
         <div class="review-comment">
           Great product! Delivery was fast and the quality exceeded my expectations.
@@ -64,10 +63,9 @@ $additionalJS = [];
 
       <div class="review-card">
         <div class="review-header">
-          <span class="reviewer-name">Jane Smith</span>
-          <span class="review-rating">
+          <span class="reviewer-name">Jane Smith</span></div>
+        <div class="review-rating">
             ★★★★★
-          </span>
         </div>
         <div class="review-comment">
           Excellent customer service and the product works perfectly. Highly recommend!
@@ -76,11 +74,11 @@ $additionalJS = [];
 
       <div class="review-card">
         <div class="review-header">
-          <span class="reviewer-name">Alex Johnson</span>
-          <span class="review-rating">
+          <span class="reviewer-name">Alex Johnson</span></div>
+        <div class="review-rating">
             ★★★☆☆
-          </span>
         </div>
+        
         <div class="review-comment">
           Product is okay, but packaging could be improved.
         </div>
@@ -95,6 +93,7 @@ $additionalJS = [];
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-left: 280px;
 }
 
 /* Horizontal Review Card */
@@ -102,16 +101,17 @@ $additionalJS = [];
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 15px 20px;
+  padding: 30px 600px 30px 20px;
   box-shadow: 0 1px 2px rgba(0,0,0,.05);
 }
 
 .review-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  
+  align-items:left;
   margin-bottom: 8px;
 }
+
 
 .reviewer-name {
   font-weight: bold;
@@ -126,6 +126,6 @@ $additionalJS = [];
 .review-comment {
   font-size: 0.95rem;
   color: #374151;
-  line-height: 1.4;
+
 }
 </style>
