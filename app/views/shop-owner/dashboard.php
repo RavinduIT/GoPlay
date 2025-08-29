@@ -27,7 +27,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                     </a>
                 </li>
                 <li>
-                    <a href="/shop-owner/products">
+                    <a href="products.php">
                         <i class="fas fa-box"></i>
                         <span>Products</span>
                         <span class="badge">156</span>
@@ -41,7 +41,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                     </a>
                 </li>
                 <li>
-                    <a href="/shop-owner/inventory">
+                    <a href="Inventory.php">
                         <i class="fas fa-warehouse"></i>
                         <span>Inventory</span>
                         <span class="badge warning">5</span>
