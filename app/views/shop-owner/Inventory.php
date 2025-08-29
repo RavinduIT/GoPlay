@@ -26,7 +26,7 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
               <li class="active"><a href="Inventory.php"><i class="fas fa-warehouse"></i><span>Inventory</span><span class="badge warning">5</span></a></li>
               <li><a href="/shop-owner/sales"><i class="fas fa-chart-line"></i><span>Sales</span></a></li>
               <li><a href="/shop-owner/customers"><i class="fas fa-users"></i><span>Customers</span><span class="badge">234</span></a></li>
-              <li><a href="/shop-owner/reviews"><i class="fas fa-star"></i><span>Reviews</span><span class="badge">45</span></a></li>
+              <li><a href="reviews.php"><i class="fas fa-star"></i><span>Reviews</span><span class="badge">45</span></a></li>
               <li class="nav-divider"></li>
               <li><a href="/shop-owner/profile"><i class="fas fa-user"></i><span>Profile</span></a></li>
               <li><a href="/logout" class="logout-link"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></li>
