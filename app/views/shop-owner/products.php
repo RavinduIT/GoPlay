@@ -38,48 +38,58 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
   <main class="dashboard-content">
     <header class="products-header">
       <h1>Products</h1>
+    </header>
+
+    <!-- Search + Add Container -->
+    <div class="products-actions-container">
       <div class="products-search">
         <input type="text" placeholder="Search products...">
         <button>+ Add Product</button>
       </div>
-    </header>
+    </div>
 
-    <section class="content">
-      <table class="products-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>SKU</th>
-            <th>Stock</th>
-            <th>Price</th>
-            <th>Status</th>
-            <th>Brand</th>
-            <th colspan="2" style="width:140px;"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Football</td>
-            <td>FB-001</td>
-            <td><span class="stock-chip">25</span></td>
-            <td>₹1200</td>
-            <td><span style="color:green;">Active</span></td>
-            <td>Nike</td>
-            <td class="action-links"><a href="#">Edit</a></td>
-            <td class="action-links-delete"><a href="#">Delete</a></td>
-          </tr>
-          <tr>
-            <td>Basketball</td>
-            <td>BB-014</td>
-            <td><span class="stock-chip stock-low">10</span></td>
-            <td>₹1450</td>
-            <td><span style="color:orange;">Draft</span></td>
-            <td>Puma</td>
-            <td class="action-links"><a href="#">Edit</a></td>
-            <td class="action-links-delete"><a href="#">Delete</a></td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Product Cards -->
+    <section class="products-cards">
+      <!-- Header Card -->
+      <div class="product-card header-card">
+        <div>Product</div>
+        <div>SKU</div>
+        <div>Stock</div>
+        <div>Price</div>
+        <div>Status</div>
+        <div>Brand</div>
+        <div>Last Updated</div>
+        <div class="col-actions">Actions</div>
+      </div>
+
+      <!-- Example Data Cards -->
+      <div class="product-card">
+        <div>Football</div>
+        <div>FB-001</div>
+        <div><span class="stock-chip">25</span></div>
+        <div>₹1200</div>
+        <div><span style="color:green;">Active</span></div>
+        <div>Nike</div>
+        <div>2025-08-28</div>
+        <div class="card-actions">
+          <a href="#" class="edit-btn">Edit</a>
+          <a href="#" class="delete-btn">Delete</a>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div>Basketball</div>
+        <div>BB-014</div>
+        <div><span class="stock-chip stock-low">10</span></div>
+        <div>₹1450</div>
+        <div><span style="color:orange;">Draft</span></div>
+        <div>Puma</div>
+        <div>2025-08-27</div>
+        <div class="card-actions">
+          <a href="#" class="edit-btn">Edit</a>
+          <a href="#" class="delete-btn">Delete</a>
+        </div>
+      </div>
     </section>
   </main>
 </div>
@@ -113,15 +123,29 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Search + Add Container */
+.products-actions-container {
+  background: white;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  padding: 15px 20px;
   margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .products-search {
   display: flex;
   gap: 1rem;
+  width: 100%;
 }
 
 .products-search input {
+  flex: 1;
   padding: .55rem .75rem;
   border: 1px solid #e3e3e3;
   border-radius: 6px;
@@ -136,24 +160,28 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
   cursor: pointer;
 }
 
-/* Table */
-.products-table {
-  width: 100%;
-  border-collapse: collapse;
+/* Cards Layout */
+.products-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.col-actions {
+  display: flex; justify-content: center; gap: 8px;
+}
+.product-card {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  align-items: center;
   background: white;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.products-table th,
-.products-table td {
   padding: 12px 15px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
 }
 
-.products-table th {
-  background: #efeeeeff;
+.header-card {
+  background: #f7f7f7ff;
   font-weight: bold;
 }
 
@@ -170,28 +198,25 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
   color: #d93025;
 }
 
-.action-links a {
-  padding: .25rem 2rem;
+.card-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.edit-btn, .delete-btn {
+  padding: .3rem .9rem;
   border-radius: 5px;
-  margin-right: .5rem;
   text-decoration: none;
+  font-size: .85rem;
+  color: white;
+  gap: 0.5em;
+}
+
+.edit-btn {
   background: #0fa930ff;
-  color: #ffffffff;
 }
 
-.action-links-delete a {
-  padding: .25rem 2rem;
-  border-radius: 5px;
-  margin-right: .5rem;
-  text-decoration: none;
+.delete-btn {
   background: #b60909ff;
-  color: #ffffffff;
 }
-
-.action-links a :hover {
-  text-decoration: underline;
-}
-
-
-
 </style>
