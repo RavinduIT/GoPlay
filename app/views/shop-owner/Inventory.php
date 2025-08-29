@@ -38,153 +38,158 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
   <main class="dashboard-content">
     <header class="products-header">
       <h1>Inventory</h1>
-      <div class="products-search">
-        <input type="text" placeholder="Search inventory...">
-        <button>+ Add Stock</button>
-      </div>
     </header>
 
+    <!-- 🔹 Search + Add Product Container -->
+    <section class="search-add-container">
+      <div class="products-search">
+        <input type="text" placeholder="Search inventory...">
+        <button class="btn-add">+ Add Product</button>
+      </div>
+    </section>
+
+    <!-- Inventory Cards (Header row + rows) -->
     <section class="content">
-      <table class="products-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>SKU</th>
-            <th>Available Stock</th>
-            <th>Reorder Level</th>
-            <th>Status</th>
-            <th>Last Updated</th>
-            <th colspan="2" style="width:140px;"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Football</td>
-            <td>FB-001</td>
-            <td><span class="stock-chip">25</span></td>
-            <td>10</td>
-            <td><span style="color:green;">In Stock</span></td>
-            <td>2025-08-25</td>
-            <td class="action-links"><a href="#">Update</a></td>
-            <td class="action-links-delete"><a href="#">Remove</a></td>
-          </tr>
-          <tr>
-            <td>Basketball</td>
-            <td>BB-014</td>
-            <td><span class="stock-chip stock-low">8</span></td>
-            <td>12</td>
-            <td><span style="color:orange;">Low Stock</span></td>
-            <td>2025-08-20</td>
-            <td class="action-links"><a href="#">Update</a></td>
-            <td class="action-links-delete"><a href="#">Remove</a></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="inventory-list">
+
+        <!-- Header Card (column titles) -->
+        <div class="inventory-card inventory-header-card">
+          <div class="col-product">Product</div>
+          <div class="col-sku">SKU</div>
+          <div class="col-stock">Available Stock</div>
+          <div class="col-reorder">Reorder Level</div>
+          <div class="col-status">Status</div>
+          <div class="col-updated">Last Updated</div>
+          <div class="col-actions">Actions</div>
+        </div>
+
+        <!-- Item Card 1 -->
+        <div class="inventory-card inventory-item-card">
+          <div class="col-product">Football</div>
+          <div class="col-sku">FB-001</div>
+          <div class="col-stock"><span class="stock-chip">25</span></div>
+          <div class="col-reorder">10</div>
+          <div class="col-status"><span class="status-badge in-stock">In Stock</span></div>
+          <div class="col-updated">2025-08-25</div>
+          <div class="col-actions">
+            <a href="#" class="btn-update">Update</a>
+            <a href="#" class="btn-delete">Remove</a>
+          </div>
+        </div>
+
+        <!-- Item Card 2 -->
+        <div class="inventory-card inventory-item-card">
+          <div class="col-product">Basketball</div>
+          <div class="col-sku">BB-014</div>
+          <div class="col-stock"><span class="stock-chip stock-low">8</span></div>
+          <div class="col-reorder">12</div>
+          <div class="col-status"><span class="status-badge low-stock">Low Stock</span></div>
+          <div class="col-updated">2025-08-20</div>
+          <div class="col-actions">
+            <a href="#" class="btn-update">Update</a>
+            <a href="#" class="btn-delete">Remove</a>
+          </div>
+        </div>
+
+      </div>
     </section>
   </main>
 </div>
 
 <style>
-/* Reuse Products page styles */
-.shop-owner-dashboard {
-  display: flex;
-  min-height: 100vh;
-}
-
+/* ----- Layout base (unchanged) ----- */
+.shop-owner-dashboard { display: flex; min-height: 100vh; }
 .dashboard-sidebar {
-  width: 240px;
-  background: #1e293b;
-  color: white;
-  position: fixed;
-  top:0;
-  left:0;
-  bottom:0;
+  width: 240px; background: #1e293b; color: #fff;
+  position: fixed; top: 0; left: 0; bottom: 0;
 }
-
-.dashboard-content {
-  flex: 1;
-  margin-left:240px;
-  padding: 20px;
-  background: #f9f9f9;
-}
+.dashboard-content { flex: 1; margin-left: 240px; padding: 20px; background: #f9f9f9; }
 
 /* Header */
-.products-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.products-header { margin-bottom: 1rem; }
+
+/* 🔹 Search + Add Product container */
+.search-add-container {
+  background: #fff;
+  border: 1px solid #e3e3e3;
+  border-radius: 10px;
+  padding: 16px;
   margin-bottom: 1.5rem;
 }
-
-.products-search {
-  display: flex;
-  gap: 1rem;
-}
-
+.products-search { display: flex; gap: 1rem; }
 .products-search input {
+  flex: 1;
   padding: .55rem .75rem;
   border: 1px solid #e3e3e3;
   border-radius: 6px;
 }
-
-.products-search button {
-  padding: .55rem .9rem;
+.products-search .btn-add {
+  padding: .55rem 1rem;
   border: none;
   border-radius: 6px;
-  background: #0fa930ff;
-  color: white;
+  background: #0fa930;
+  color: #fff;
+  font-weight: 600;
   cursor: pointer;
 }
+.products-search .btn-add:hover { background: #0d8f2b; }
 
-/* Table */
-.products-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
+/* ----- Inventory cards ----- */
+.inventory-list { display: flex; flex-direction: column; gap: 10px; }
+
+.inventory-card {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.2fr 1.2fr 1fr 1.2fr 1.3fr;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e3e3e3;
+  border-radius: 10px;
+  padding: 14px 16px;
 }
 
-.products-table th,
-.products-table td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
-}
+.inventory-header-card { background: #f7f7f7ff; font-weight: 700; }
+.inventory-card > div { text-align: center; }
+.inventory-card .col-product { text-align: left; }
 
-.products-table th {
-  background: #efeeeeff;
-  font-weight: bold;
-}
-
+/* Chips / badges */
 .stock-chip {
   padding: .25rem .8rem;
   border-radius: 999px;
   font-size: .85rem;
   background: #eef7ff;
   color: #0b6bd3;
+  display: inline-block;
 }
+.stock-low { background: #fff2f0; color: #d93025; }
 
-.stock-low {
-  background: #fff2f0;
-  color: #d93025;
+.status-badge { font-weight: 600; font-size: .9rem; }
+.status-badge.in-stock { color: #0fa930; }
+.status-badge.low-stock { color: #ff8b00; }
+
+/* Actions */
+.col-actions {
+  display: flex; justify-content: center; gap: 8px;
 }
-
-.action-links a {
-  padding: .25rem 1.5rem;
-  border-radius: 5px;
-  margin-right: .5rem;
-  text-decoration: none;
-  background: #0fa930ff;
-  color: #ffffffff;
+.btn-update, .btn-delete {
+  padding: 6px 12px; border-radius: 6px; text-decoration: none;
+  font-size: .85rem; font-weight: 600; color: #fff;
 }
+.btn-update { background: #0fa930; }
+.btn-delete { background: #b60909; }
 
-.action-links-delete a {
-  padding: .25rem 1.5rem;
-  border-radius: 5px;
-  margin-right: .5rem;
-  text-decoration: none;
-  background: #b60909ff;
-  color: #ffffffff;
+/* Responsive */
+@media (max-width: 920px) {
+  .inventory-card {
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    row-gap: 8px;
+  }
+  .inventory-card .col-status { order: 5; }
+  .inventory-card .col-updated { order: 6; }
+  .inventory-card .col-actions { order: 7; justify-content: flex-start; }
+}
+@media (max-width: 600px) {
+  .inventory-card { grid-template-columns: 1fr 1fr; }
+  .inventory-card .col-product { grid-column: 1 / -1; }
 }
 </style>
