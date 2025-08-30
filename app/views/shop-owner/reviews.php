@@ -1,131 +1,142 @@
-<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
 <?php 
-$title = 'Shop Reviews - GoPlay';
-$additionalCSS = ['/public/css/pages/shop-owner-dashboard.css'];
-$additionalJS = [];
+$title = 'Reviews - GoPlay';
 ?>
 
 <div class="shop-owner-dashboard">
-  <!-- Sidebar -->
-  <aside class="dashboard-sidebar" id="dashboardSidebar">
-      <div class="sidebar-header">
-          <div class="logo">
-              <i class="fas fa-store"></i>
-              <span>Shop Manager</span>
-          </div>
-          <button class="sidebar-toggle mobile-only" onclick="toggleSidebar()">
-              <i class="fas fa-times"></i>
-          </button>
-      </div>
 
-      <nav class="sidebar-nav">
-          <ul>
-              <li><a href="dashboard.php"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
-              <li><a href="products.php"><i class="fas fa-box"></i><span>Products</span></a></li>
-              <li><a href="orders.php"><i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>
-              <li><a href="inventory.php"><i class="fas fa-warehouse"></i><span>Inventory</span></a></li>
-              <li><a href="sales.php"><i class="fas fa-chart-line"></i><span>Sales</span></a></li>
-              <li><a href="/shop-owner/customers"><i class="fas fa-users"></i><span>Customers</span></a></li>
-              <li class="active"><a href="reviews.php"><i class="fas fa-star"></i><span>Reviews</span><span class="badge">45</span></a></li>
-              <li class="nav-divider"></li>
-              <li><a href="profile.php"><i class="fas fa-user"></i><span>Profile</span></a></li>
-              <li><a href="/logout" class="logout-link"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></li>
-          </ul>
-      </nav>
-  </aside>
+  <!-- Sidebar include -->
+  <?php include 'sidebar.php'; ?>
 
   <!-- Main Content -->
   <main class="dashboard-content">
-    <header class="products-header">
+    <header class="reviews-header">
       <h1>Customer Reviews</h1>
     </header>
 
-    <!-- Search Container -->
-    <div class="products-actions-container">
-      <div class="products-search">
-        <input type="text" placeholder="Search reviews...">
-      </div>
-    </div>
+    <!-- Reviews List -->
+    <section class="reviews-list">
 
-    <!-- Reviews Cards -->
-    <section class="reviews-cards">
-      <!-- Example Review Card -->
+      <!-- Review Card 1 -->
       <div class="review-card">
-        <div class="review-header">
-          <span class="reviewer-name">John Doe</span></div>
-        <div class="review-rating">
+        <div class="review-info">
+          <h3 class="reviewer-name">John Doe</h3>
+          <div class="review-rating">
             ★★★★☆
+          </div>
+          <p>  Product Name: Football<span style="margin-left: 50px;"> Product ID:600#</p>
+          <p class="review-comment">
+            Great quality football! Really durable and worth the price.
+          </p>
         </div>
-        <div class="review-comment">
-          Great product! Delivery was fast and the quality exceeded my expectations.
-        </div>
-      </div>
-
-      <div class="review-card">
-        <div class="review-header">
-          <span class="reviewer-name">Jane Smith</span></div>
-        <div class="review-rating">
-            ★★★★★
-        </div>
-        <div class="review-comment">
-          Excellent customer service and the product works perfectly. Highly recommend!
+        <div class="review-actions">
+          <button class="btn-delete">Delete</button>
         </div>
       </div>
 
+      <!-- Review Card 2 -->
       <div class="review-card">
-        <div class="review-header">
-          <span class="reviewer-name">Alex Johnson</span></div>
-        <div class="review-rating">
+        <div class="review-info">
+          <h3 class="reviewer-name">Emily Smith</h3>
+          <div class="review-rating">
             ★★★☆☆
+          </div>
+          <p>  Product Name: Cricket Bat<span style="margin-left: 50px;"> Product ID:300#</p>
+          <p class="review-comment">
+            Product is good, but delivery was delayed by 2 days.
+          </p>
         </div>
-        
-        <div class="review-comment">
-          Product is okay, but packaging could be improved.
+        <div class="review-actions">
+          <button class="btn-delete">Delete</button>
         </div>
       </div>
+
+      <!-- Review Card 3 -->
+      <div class="review-card">
+        <div class="review-info">
+          <h3 class="reviewer-name">Michael Lee</h3>
+          <div class="review-rating">
+            ★★★★★
+          </div>
+          <p>  Product Name: Basketball<span style="margin-left: 50px;"> Product ID:7800#</p>
+          <p class="review-comment">
+            Excellent basketball! Perfect grip and fast delivery.
+          </p>
+        </div>
+        <div class="review-actions">
+          <button class="btn-delete">Delete</button>
+        </div>
+      </div>
+
     </section>
   </main>
 </div>
 
 <style>
-/* Reviews Page Layout */
-.reviews-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-left: 280px;
-}
+/* ---- Layout base ---- */
+.shop-owner-dashboard { display: flex; min-height: 100vh; }
+.dashboard-content { flex: 1; margin-left: 280px; padding: 20px; background: #f9f9f9; }
 
-/* Horizontal Review Card */
+/* Header */
+.reviews-header { margin-bottom: 1rem; }
+
+/* ---- Reviews List ---- */
+.reviews-list { display: flex; flex-direction: column; gap: 15px; }
+
 .review-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 30px 600px 30px 20px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.05);
-}
-
-.review-header {
   display: flex;
-  
-  align-items:left;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #fff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #e3e3e3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
+.review-info {
+  max-width: 80%;
+}
 
 .reviewer-name {
-  font-weight: bold;
-  font-size: 1rem;
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #222;
 }
 
 .review-rating {
-  color: #f59e0b; /* Amber stars */
   font-size: 1rem;
+  color: #f39c12; /* Gold stars */
+  margin-bottom: 6px;
 }
 
 .review-comment {
-  font-size: 0.95rem;
-  color: #374151;
+  margin: 0;
+  font-size: .95rem;
+  color: #555;
+}
 
+/* Actions */
+.review-actions {
+  display: flex;
+  align-items: center;
+}
+.btn-delete {
+  background: #d93025;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: .9rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn-delete:hover { background: #b82018; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .review-card { flex-direction: column; align-items: flex-start; }
+  .review-info { max-width: 100%; margin-bottom: 12px; }
+  .review-actions { align-self: flex-end; }
 }
 </style>
