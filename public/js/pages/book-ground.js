@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('footer-container').innerHTML = data;
                 });
         }
-// Book Ground JavaScript - Connects to JSON data
+/* Book Ground JavaScript - Connects to JSON data
 class GroundBookingApp {
     constructor() {
         this.grounds = [];
@@ -382,7 +382,7 @@ class GroundBookingApp {
         return this.grounds.find(ground => ground.id == id);
     }
 }
-
+*/
 // Global functions for button events
 function searchFacilities() {
     // This is handled by the input event listener

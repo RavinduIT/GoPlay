@@ -41,7 +41,10 @@ class Router
         $uri = $request->getUri();
         
         foreach ($this->routes as $route) {
-            if ($route['method'] === $method && $this->matchPath($route['path'], $uri)) {
+            $params = [];
+            if ($route['method'] === $method && $this->matchPath($route['path'], $uri, $params)) {
+                // Set the route parameters in the request
+                $request->setRouteParams($params);
                 return $this->callHandler($route['handler'], $request);
             }
         }
@@ -49,12 +52,26 @@ class Router
         return $this->notFound();
     }
     
-    private function matchPath(string $pattern, string $uri): bool
+    private function matchPath(string $pattern, string $uri, array &$params = []): bool
     {
+        // Extract parameter names from the pattern
+        $paramNames = [];
+        preg_match_all('/\{([^}]+)\}/', $pattern, $matches);
+        $paramNames = $matches[1];
+        
+        // Convert pattern to regex
         $pattern = preg_replace('/\{([^}]+)\}/', '([^/]+)', $pattern);
         $pattern = '#^' . $pattern . '$#';
         
-        return preg_match($pattern, $uri);
+        // Match the URI against the pattern
+        if (preg_match($pattern, $uri, $matches)) {
+            // Extract parameter values
+            array_shift($matches); // Remove full match
+            $params = array_combine($paramNames, $matches) ?: [];
+            return true;
+        }
+        
+        return false;
     }
     
     private function callHandler($handler, Request $request): Response
