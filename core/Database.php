@@ -27,12 +27,13 @@ class Database
     private function connect(): void
     {
         $host = $_ENV['DB_HOST'] ?? 'localhost';
+        $port = $_ENV['DB_PORT'] ?? '3306';
         $dbname = $_ENV['DB_NAME'] ?? 'goplay_sports_platform';
         $username = $_ENV['DB_USER'] ?? 'root';
         $password = $_ENV['DB_PASS'] ?? '';
         $charset = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
         
-        $dsn = "mysql:host={$host};dbname={$dbname};charset={$charset}";
+        $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset={$charset}";
         
         try {
             $this->connection = new PDO($dsn, $username, $password, [
