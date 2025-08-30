@@ -13,6 +13,12 @@ $title = 'Orders - GoPlay';
       <h1>Orders</h1>
     </header>
 
+    <div class="orders-actions-container">
+      <div class="orders-search">
+        <input type="text" placeholder="Search Orders...">
+      </div>
+    </div>
+
     <!-- Orders List -->
     <section class="orders-list">
 
@@ -149,5 +155,38 @@ $title = 'Orders - GoPlay';
   .order-card { flex-direction: column; align-items: flex-start; }
   .order-info { max-width: 100%; margin-bottom: 12px; }
   .order-actions { flex-direction: row; gap: 10px; align-self: flex-end; }
+}
+
+.orders-actions-container {
+  background: white;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.orders-search {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+}
+
+.orders-search input {
+  flex: 1;
+  padding: .55rem .75rem;
+  border: 1px solid #e3e3e3;
+  border-radius: 6px;
+}
+
+.orders-search button {
+  padding: .55rem .9rem;
+  border: none;
+  border-radius: 6px;
+  background: #0fa930ff;
+  color: white;
+  cursor: pointer;
 }
 </style>
