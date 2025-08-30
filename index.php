@@ -127,6 +127,16 @@ try {
     $router->get('/api/shop-owner/analytics', 'ShopOwnerController@getAnalytics');
     $router->get('/api/shop-owner/categories', 'ShopOwnerController@getCategories');
     
+    // Debug routes
+    $router->get('/debug', function() {
+        require_once 'debug.php';
+        return new Core\Response('');
+    });
+    $router->get('/debug-shop', function() {
+        require_once 'debug_shop.php';
+        return new Core\Response('');
+    });
+    
     // Run the application
     $app->run();
     
