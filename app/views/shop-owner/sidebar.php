@@ -24,7 +24,7 @@ $additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
                 </a>
             </li>
             <li>
-                <a href="products.php">
+                <a href="/shop-owner/products">
                     <i class="fas fa-box"></i>
                     <span>Products</span>
                     <span class="badge">156</span>
@@ -38,7 +38,7 @@ $additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
                 </a>
             </li>
             <li>
-                <a href="inventory.php">
+                <a href="/shop-owner/inventory">
                     <i class="fas fa-warehouse"></i>
                     <span>Inventory</span>
                     <span class="badge warning">5</span>
@@ -58,7 +58,7 @@ $additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
                 </a>
             </li>
             <li>
-                <a href="reviews.php">
+                <a href="/shop-owner/reviews">
                     <i class="fas fa-star"></i>
                     <span>Reviews</span>
                     <span class="badge">45</span>
