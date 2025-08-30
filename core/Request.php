@@ -9,6 +9,7 @@ class Request
     private array $query;
     private array $body;
     private array $headers;
+    private array $routeParams = [];
     private static ?string $rawInput = null;
     
     public function __construct()
@@ -93,5 +94,32 @@ class Request
         }
         
         return $headers;
+    }
+    
+    public function setRouteParams(array $params): void
+    {
+        $this->routeParams = $params;
+    }
+    
+    public function getParam(string $name, $default = null)
+    {
+        return $this->routeParams[$name] ?? $default;
+    }
+    
+    public function getRouteParams(): array
+    {
+        return $this->routeParams;
+    }
+    
+    public function getJsonBody(): array
+    {
+        $contentType = $this->getHeader('content-type') ?? '';
+        
+        if (strpos($contentType, 'application/json') !== false) {
+            $decoded = json_decode(self::$rawInput, true);
+            return $decoded ?: [];
+        }
+        
+        return [];
     }
 }

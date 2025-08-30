@@ -5,75 +5,8 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
 ?>
 
 <div class="ground-owner-dashboard">
-    <!-- Sidebar -->
-    <aside class="dashboard-sidebar" id="dashboardSidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>Ground Manager</span>
-            </div>
-            <button class="sidebar-toggle mobile-only" onclick="toggleSidebar()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <ul>
-                <li class="active">
-                    <a href="/ground-owner/dashboard">
-                        <i class="fas fa-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/ground-owner/grounds">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>My Grounds</span>
-                        <span class="badge">3</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/ground-owner/bookings">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Bookings</span>
-                        <span class="badge new">12</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/ground-owner/earnings">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Earnings</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/ground-owner/reviews">
-                        <i class="fas fa-star"></i>
-                        <span>Reviews</span>
-                        <span class="badge">23</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/ground-owner/availability">
-                        <i class="fas fa-clock"></i>
-                        <span>Availability</span>
-                    </a>
-                </li>
-                <li class="nav-divider"></li>
-                <li>
-                    <a href="/ground-owner/profile">
-                        <i class="fas fa-user"></i>
-                        <span>Profile</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/logout" class="logout-link">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </aside>
+    <!-- Include Sidebar -->
+    <?php include __DIR__ . '/sidebar.php'; ?>
 
     <!-- Main Content -->
     <main class="dashboard-main">

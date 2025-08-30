@@ -697,21 +697,25 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                     <div class="filter-group">
                         <select id="location" class="filter-select">
                             <option value="">All Locations</option>
-                            <option value="colombo-3">Colombo 3</option>
-                            <option value="colombo-5">Colombo 5</option>
-                            <option value="colombo-7">Colombo 7</option>
-                            <option value="kandy">Kandy</option>
-                            <option value="galle">Galle</option>
-                            <option value="negombo">Negombo</option>
+                            <?php if (isset($cities) && is_array($cities)): ?>
+                                <?php foreach ($cities as $city): ?>
+                                    <option value="<?php echo htmlspecialchars($city); ?>"
+                                        <?php echo (isset($currentFilters['city']) && $currentFilters['city'] === $city) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($city); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </select>
                         <select id="sport-type" class="filter-select">
                             <option value="">All Sports</option>
-                            <option value="football">Football</option>
-                            <option value="tennis">Tennis</option>
-                            <option value="basketball">Basketball</option>
-                            <option value="cricket">Cricket</option>
-                            <option value="badminton">Badminton</option>
-                            <option value="swimming">Swimming</option>
+                            <?php if (isset($categories) && is_array($categories)): ?>
+                                <?php foreach ($categories as $category): ?>
+                                    <option value="<?php echo $category['id']; ?>"
+                                        <?php echo (isset($currentFilters['sport_category']) && $currentFilters['sport_category'] == $category['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </select>
                         <select id="price-range" class="filter-select">
                             <option value="">Any Price</option>
@@ -751,7 +755,16 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                 <!-- Results Header -->
                 <div class="results-header">
                     <div class="results-info">
-                        <h2 id="results-count">Loading Facilities...</h2>
+                        <h2 id="results-count">
+                            <?php 
+                            if (isset($facilities) && is_array($facilities)) {
+                                $count = count($facilities);
+                                echo "{$count} Premium Facilit" . ($count === 1 ? 'y' : 'ies') . " Available";
+                            } else {
+                                echo "Loading Facilities...";
+                            }
+                            ?>
+                        </h2>
                         <p class="results-subtitle">Choose from our top-rated sports facilities</p>
                     </div>
                     <div class="sort-controls">
@@ -766,12 +779,114 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                 <!-- Facilities Grid -->
                 <div class="facilities-container">
                     <div class="facilities-grid" id="facilities-grid">
-                        <div class="loading-state">
-                            <div class="loading-spinner">
-                                <i class="fas fa-spinner fa-spin"></i>
+                        <?php if (isset($error)): ?>
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <h3>Error Loading Facilities</h3>
+                                <p><?php echo htmlspecialchars($error); ?></p>
+                                <button class="btn-primary" onclick="location.reload()">Retry</button>
                             </div>
-                            <p>Loading premium facilities...</p>
-                        </div>
+                        <?php elseif (empty($facilities)): ?>
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <h3>No facilities found</h3>
+                                <p>No sports facilities are currently available. Please check back later.</p>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($facilities as $facility): ?>
+                                <div class="facility-card" data-ground-id="<?php echo $facility['id']; ?>">
+                                    <div class="facility-image">
+                                        <div class="facility-icon">
+                                            <i class="<?php echo $facility['category_icon'] ?? 'fas fa-sports'; ?>"></i>
+                                        </div>
+                                        <div class="facility-badge">
+                                            <i class="fas fa-star"></i>
+                                            <?php echo number_format($facility['rating'] ?? 0, 1); ?>
+                                        </div>
+                                        <div class="facility-overlay">
+                                            <button class="view-on-map-btn" onclick="viewOnMap(<?php echo $facility['id']; ?>)">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                View on Map
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="facility-content">
+                                        <div class="facility-header">
+                                            <h3 class="facility-name"><?php echo htmlspecialchars($facility['name']); ?></h3>
+                                            <div class="facility-price">
+                                                <div class="price-amount">LKR <?php echo number_format($facility['hourly_rate']); ?></div>
+                                                <div class="price-period">per hour</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="facility-location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <?php echo htmlspecialchars($facility['city']); ?>
+                                        </div>
+                                        
+                                        <div class="facility-sports">
+                                            <span class="sport-tag"><?php echo htmlspecialchars($facility['category_name'] ?? 'Sports'); ?></span>
+                                        </div>
+                                        
+                                        <div class="facility-features">
+                                            <?php if (!empty($facility['amenities'])): ?>
+                                                <?php 
+                                                $amenities = is_string($facility['amenities']) ? json_decode($facility['amenities'], true) : $facility['amenities'];
+                                                $amenities = $amenities ?? [];
+                                                $displayAmenities = array_slice($amenities, 0, 3);
+                                                ?>
+                                                <?php foreach ($displayAmenities as $amenity): ?>
+                                                    <div class="feature-item">
+                                                        <i class="fas fa-check"></i>
+                                                        <?php echo ucfirst(str_replace('_', ' ', $amenity)); ?>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                                <?php if (count($amenities) > 3): ?>
+                                                    <div class="more-features">+<?php echo count($amenities) - 3; ?> more features</div>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                        
+                                        <div class="facility-footer">
+                                            <div class="facility-rating">
+                                                <div class="stars">
+                                                    <?php 
+                                                    $rating = $facility['rating'] ?? 0;
+                                                    $fullStars = floor($rating);
+                                                    $hasHalfStar = $rating - $fullStars >= 0.5;
+                                                    
+                                                    for ($i = 0; $i < $fullStars; $i++) {
+                                                        echo '<i class="fas fa-star"></i>';
+                                                    }
+                                                    if ($hasHalfStar) {
+                                                        echo '<i class="fas fa-star-half-alt"></i>';
+                                                    }
+                                                    $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0);
+                                                    for ($i = 0; $i < $emptyStars; $i++) {
+                                                        echo '<i class="far fa-star"></i>';
+                                                    }
+                                                    ?>
+                                                </div>
+                                                <span class="rating-text">(<?php echo $facility['total_reviews'] ?? 0; ?> reviews)</span>
+                                            </div>
+                                            
+                                            <div class="facility-actions">
+                                                <button class="btn-outline" onclick="viewDetails(<?php echo $facility['id']; ?>)">
+                                                    View Details
+                                                </button>
+                                                <button class="btn-primary" onclick="bookNow(<?php echo $facility['id']; ?>)">
+                                                    Book Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

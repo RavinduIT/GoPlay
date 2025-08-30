@@ -2,8 +2,10 @@
 
 namespace App\Controllers;
 
-use App\Core\Request;
-use App\Core\Response;
+use Core\Request;
+use Core\Response;
+use App\Models\SportsFacility;
+use App\Models\SportsCategory;
 
 /**
  * Booking Controller
@@ -12,12 +14,72 @@ use App\Core\Response;
  */
 class BookingController extends BaseController
 {
+    private ?SportsFacility $facilityModel = null;
+    private ?SportsCategory $categoryModel = null;
+    
+    private function getFacilityModel(): SportsFacility
+    {
+        if ($this->facilityModel === null) {
+            $this->facilityModel = new SportsFacility();
+        }
+        return $this->facilityModel;
+    }
+    
+    private function getCategoryModel(): SportsCategory
+    {
+        if ($this->categoryModel === null) {
+            $this->categoryModel = new SportsCategory();
+        }
+        return $this->categoryModel;
+    }
+    
     /**
-     * Display booking form for ground
+     * Display booking form for ground with available facilities
      */
     public function bookGround(Request $request): Response
     {
-        return $this->view('booking/book-ground');
+        try {
+            // Get filter parameters
+            $filters = [
+                'sport_category' => $request->getQuery('sport'),
+                'city' => $request->getQuery('city'),
+                'min_rate' => $request->getQuery('min_rate'),
+                'max_rate' => $request->getQuery('max_rate'),
+                'date' => $request->getQuery('date'),
+                'time' => $request->getQuery('time')
+            ];
+            
+            // Remove empty filters
+            $filters = array_filter($filters, fn($value) => $value !== null && $value !== '');
+            
+            // Get available sports facilities
+            $facilities = $this->getFacilityModel()->getAvailableFacilities($filters);
+            
+            // Get sports categories for filters
+            $categories = $this->getCategoryModel()->getAllActive();
+            
+            // Get unique cities for filter dropdown
+            $cities = $this->getFacilityModel()->getUniqueCities();
+            
+            return $this->view('booking/book-ground', [
+                'facilities' => $facilities,
+                'categories' => $categories,
+                'cities' => $cities,
+                'currentFilters' => $filters
+            ]);
+            
+        } catch (\Exception $e) {
+            // Log error and show fallback
+            error_log("Book ground page error: " . $e->getMessage());
+            
+            return $this->view('booking/book-ground', [
+                'facilities' => [],
+                'categories' => [],
+                'cities' => [],
+                'currentFilters' => [],
+                'error' => 'Unable to load facilities. Please try again later.'
+            ]);
+        }
     }
 
     /**

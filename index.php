@@ -64,6 +64,24 @@ try {
     $router->get('/ground-owner/dashboard', 'GroundOwnerController@dashboard');
     $router->get('/coach/dashboard', 'CoachController@dashboard');
     $router->get('/shop-owner/dashboard', 'ShopOwnerController@dashboard');
+    
+    // Ground Owner page routes
+    $router->get('/ground-owner/grounds', 'GroundOwnerController@groundsPage');
+    $router->get('/ground-owner/bookings', 'GroundOwnerController@bookingsPage');
+    $router->get('/ground-owner/earnings', 'GroundOwnerController@earningsPage');
+    $router->get('/ground-owner/reviews', 'GroundOwnerController@reviewsPage');
+    $router->get('/ground-owner/schedule', 'GroundOwnerController@schedulePage');
+    $router->get('/ground-owner/maintenance', 'GroundOwnerController@maintenancePage');
+    $router->get('/ground-owner/profile', 'GroundOwnerController@profilePage');
+    $router->get('/ground-owner/settings', 'GroundOwnerController@settingsPage');
+    
+    // Ground Owner API routes
+    $router->get('/api/ground-owner/grounds', 'GroundOwnerController@getGrounds');
+    $router->post('/api/ground-owner/grounds', 'GroundOwnerController@createGround');
+    $router->get('/api/ground-owner/grounds/{id}', 'GroundOwnerController@getGround');
+    $router->put('/api/ground-owner/grounds/{id}', 'GroundOwnerController@updateGround');
+    $router->delete('/api/ground-owner/grounds/{id}', 'GroundOwnerController@deleteGround');
+    $router->get('/api/ground-owner/categories', 'GroundOwnerController@getSportsCategories');
     $router->get('/book-ground', 'BookingController@bookGround');
     $router->get('/ground-details', 'BookingController@groundDetails');
     $router->get('/book-coach', 'BookingController@bookCoach');
