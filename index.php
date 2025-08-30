@@ -77,6 +77,22 @@ try {
     $router->get('/payment', 'PaymentController@payment');
     $router->get('/payment/success', 'PaymentController@success');
     
+    // Shop Owner API endpoints
+    $router->get('/api/shop-owner/dashboard', 'ShopOwnerController@getDashboardStats');
+    $router->get('/api/shop-owner/products', 'ShopOwnerController@getProducts');
+    $router->post('/api/shop-owner/products', 'ShopOwnerController@createProduct');
+    $router->get('/api/shop-owner/products/{id}', 'ShopOwnerController@getProduct');
+    $router->put('/api/shop-owner/products/{id}', 'ShopOwnerController@updateProduct');
+    $router->delete('/api/shop-owner/products/{id}', 'ShopOwnerController@deleteProduct');
+    $router->post('/api/shop-owner/products/{id}/upload-images', 'ShopOwnerController@uploadProductImages');
+    $router->get('/api/shop-owner/orders', 'ShopOwnerController@getOrders');
+    $router->get('/api/shop-owner/orders/{id}', 'ShopOwnerController@getOrder');
+    $router->put('/api/shop-owner/orders/{id}/status', 'ShopOwnerController@updateOrderStatus');
+    $router->get('/api/shop-owner/inventory', 'ShopOwnerController@getInventory');
+    $router->put('/api/shop-owner/inventory/{id}', 'ShopOwnerController@updateStock');
+    $router->get('/api/shop-owner/analytics', 'ShopOwnerController@getAnalytics');
+    $router->get('/api/shop-owner/categories', 'ShopOwnerController@getCategories');
+    
     // Run the application
     $app->run();
     
