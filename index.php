@@ -77,6 +77,22 @@ try {
     $router->get('/payment', 'PaymentController@payment');
     $router->get('/payment/success', 'PaymentController@success');
     
+    // Shop Owner page routes
+    $router->get('/shop-owner/products', 'ShopOwnerController@productsPage');
+    $router->get('/shop-owner/inventory', 'ShopOwnerController@inventoryPage');
+    $router->get('/shop-owner/orders', 'ShopOwnerController@ordersPage');
+    $router->get('/shop-owner/reviews', 'ShopOwnerController@reviewsPage');
+    $router->get('/shop-owner/profile', 'ShopOwnerController@profilePage');
+    
+    // Redirect old .php URLs to new routes
+    $router->get('/shop-owner/products.php', 'ShopOwnerController@productsPage');
+    $router->get('/shop-owner/inventory.php', 'ShopOwnerController@inventoryPage');
+    $router->get('/shop-owner/Inventory.php', 'ShopOwnerController@inventoryPage');
+    $router->get('/shop-owner/orders.php', 'ShopOwnerController@ordersPage');
+    $router->get('/shop-owner/reviews.php', 'ShopOwnerController@reviewsPage');
+    $router->get('/shop-owner/profile.php', 'ShopOwnerController@profilePage');
+    $router->get('/shop-owner/dashboard.php', 'ShopOwnerController@dashboard');
+    
     // Shop Owner API endpoints
     $router->get('/api/shop-owner/dashboard', 'ShopOwnerController@getDashboardStats');
     $router->get('/api/shop-owner/products', 'ShopOwnerController@getProducts');

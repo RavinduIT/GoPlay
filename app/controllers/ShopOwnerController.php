@@ -52,6 +52,51 @@ class ShopOwnerController extends BaseController
         return $this->view('shop-owner/dashboard');
     }
     
+    public function productsPage(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        return $this->view('shop-owner/products');
+    }
+    
+    public function inventoryPage(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        return $this->view('shop-owner/Inventory');
+    }
+    
+    public function ordersPage(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        return $this->view('shop-owner/orders');
+    }
+    
+    public function reviewsPage(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        return $this->view('shop-owner/reviews');
+    }
+    
+    public function profilePage(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        return $this->view('shop-owner/profile');
+    }
+    
     public function getDashboardStats(Request $request): Response
     {
         if (!$this->checkShopOwnerAuth()) {
