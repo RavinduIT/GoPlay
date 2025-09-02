@@ -1,9 +1,13 @@
-<?php 
-$title = 'Login - GoPlay Sports Platform';
-$additionalCSS = ['/public/css/pages/login.css'];
-$additionalJS = ['/public/js/pages/login.js'];
-?>
-<link rel="stylesheet" href="/public/css/pages/login.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - GoPlay Sports Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/public/css/pages/login.css">
+</head>
+<body>
 <div class="auth-container">
     <div class="auth-wrapper">
         <!-- Left Side - Branding -->
@@ -100,3 +104,5 @@ $additionalJS = ['/public/js/pages/login.js'];
 <!-- Toast Container -->
 <div id="toastContainer" class="toast-container"></div>
 <script src="/public/js/pages/login.js"></script>
+</body>
+</html>
