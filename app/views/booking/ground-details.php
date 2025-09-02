@@ -7,13 +7,7 @@ $additionalJS = [];
 $groundId = $_GET['id'] ?? 1;
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($title); ?></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         /* CSS Custom Properties */
@@ -476,11 +470,7 @@ $groundId = $_GET['id'] ?? 1;
             margin-bottom: 2rem;
         }
     </style>
-</head>
-
-<body>
-    <!-- Include Navbar -->
-    <div id="navbar-container"></div>
+<!-- Ground Details Content -->
 
     <!-- Breadcrumb -->
     <div class="breadcrumb">
@@ -803,20 +793,8 @@ $groundId = $_GET['id'] ?? 1;
             }
         }
 
-        // Load navbar component
-        function loadNavbar() {
-            fetch('/app/views/components/navbar.php')
-                .then(res => res.text())
-                .then(data => {
-                    document.getElementById('navbar-container').innerHTML = data;
-                });
-        }
-
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            loadNavbar();
             loadGroundData();
         });
     </script>
-</body>
-</html>

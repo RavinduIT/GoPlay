@@ -562,8 +562,6 @@ $additionalJS = ['/public/js/pages/index.js'];
         }
     </style>
 
-    <!-- Navbar Component -->
-    <div id="navbar-container"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -720,37 +718,11 @@ $additionalJS = ['/public/js/pages/index.js'];
         </section>
     </main>
 
-    <!-- Footer Component -->
-    <div id="footer-container"></div>
-
     <script src="js/components/news-carousel.js"></script>
     <script src="js/pages/index.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/components/navbar.js"></script>
     <script>
-        // Load the shared navbar dynamically
-        fetch('/app/views/components/navbar.php')
-            .then(res => res.text())
-            .then(data => {
-                document.getElementById('navbar-container').innerHTML = data;
-                if (typeof Navbar !== 'undefined') {
-                    new Navbar(); // Initialize navbar behavior
-                }
-            });
-
-        // Load the shared footer dynamically
-        fetch('/app/views/components/footer.php')
-            .then(res => res.text())
-            .then(data => {
-                document.getElementById('footer-container').innerHTML = data;
-            })
-            .catch(() => {
-                document.getElementById('footer-container').innerHTML = `
-                    <footer style="background: var(--text-primary); color: white; padding: 2rem 0; text-align: center; margin-top: 3rem;">
-                        <p>&copy; 2024 GoPlay Sports Platform. All rights reserved.</p>
-                    </footer>
-                `;
-            });
 
         // Global logout function
         function logout() {
