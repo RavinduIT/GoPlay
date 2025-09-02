@@ -4,13 +4,7 @@ $additionalCSS = ['/public/css/pages/book-ground.css'];
 $additionalJS = ['/public/js/pages/book-ground.js'];
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($title); ?></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         /* Professional Book Ground Page Styles */
@@ -645,12 +639,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             }
         }
     </style>
-</head>
-
-<body>
-    <div class="book-ground-container">
-        <!-- Navbar Component -->
-        <div id="navbar-container"></div>
+<div class="book-ground-container">
 
         <!-- Professional Header Section -->
         <div class="page-header">
@@ -892,42 +881,6 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             </div>
         </div>
 
-        <!-- Footer Component -->
-        <div id="footer-container"></div>
-    </div>
+</div>
 
-    <script>
-        // Load navbar component
-        function loadNavbar() {
-            fetch('/app/views/components/navbar.php')
-                .then(res => res.text())
-                .then(data => {
-                    document.getElementById('navbar-container').innerHTML = data;
-                });
-        }
-
-        // Load footer component  
-        function loadFooter() {
-            fetch('/app/views/components/footer.php')
-                .then(res => res.text())
-                .then(data => {
-                    document.getElementById('footer-container').innerHTML = data;
-                })
-                .catch(() => {
-                    document.getElementById('footer-container').innerHTML = `
-                        <footer style="background: var(--text-primary); color: white; padding: 2rem 0; text-align: center; margin-top: 3rem;">
-                            <p>&copy; 2024 GoPlay Sports Platform. All rights reserved.</p>
-                        </footer>
-                    `;
-                });
-        }
-
-        // Initialize components
-        document.addEventListener('DOMContentLoaded', function() {
-            loadNavbar();
-            loadFooter();
-        });
-    </script>
-    <script src="/public/js/pages/book-ground.js"></script>
-</body>
-</html>
+<script src="/public/js/pages/book-ground.js"></script>

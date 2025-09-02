@@ -12,16 +12,16 @@
         <!-- Navigation Menu -->
         <ul class="nav-menu">
             <li class="nav-item">
-                <a href="/app/views/home/index.php" class="nav-link">Home</a>
+                <a href="/" class="nav-link">Home</a>
             </li>
             <li class="nav-item">
-                <a href="/app/views/booking/book-ground.php" class="nav-link">Book Ground</a>
+                <a href="/book-ground" class="nav-link">Book Ground</a>
             </li>
             <li class="nav-item">
-                <a href="/app/views/booking/book-coach.php" class="nav-link">Book Coach</a>
+                <a href="/book-coach" class="nav-link">Book Coach</a>
             </li>
             <li class="nav-item">
-                <a href="/app/views/shop/shop.php" class="nav-link">Shop</a>
+                <a href="/shop" class="nav-link">Shop</a>
             </li>
             <li class="nav-item">
                 <a href="/news" class="nav-link">News</a>
