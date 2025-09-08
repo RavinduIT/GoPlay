@@ -9,11 +9,11 @@ $additionalJS = [];
     <style>
         /* Unified Design System */
         :root {
-            --primary-color: #28a745;
-            --primary-dark: #218838;
-            --primary-light: #d4edda;
-            --secondary-color: #20c997;
-            --accent-color: #007bff;
+            --primary-color: #2563eb;
+            --primary-dark: #64748b;
+            --primary-light: #f1f5f9;
+            --secondary-color: #0891b2;
+            --accent-color: #0891b2;
             --warning-color: #ffc107;
             --danger-color: #dc3545;
             --text-primary: #2c3e50;
@@ -48,28 +48,12 @@ $additionalJS = [];
 
         /* Header Section */
         .page-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: #1e3a8a;
             color: white;
             position: relative;
             overflow: hidden;
         }
 
-        .page-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0,10 Q25,0 50,10 T100,10 V20 H0 Z" fill="rgba(255,255,255,0.1)"/></svg>') repeat-x;
-            background-size: 200px 20px;
-            animation: wave 20s linear infinite;
-        }
-
-        @keyframes wave {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-200px); }
-        }
 
         .header-content {
             max-width: 1200px;

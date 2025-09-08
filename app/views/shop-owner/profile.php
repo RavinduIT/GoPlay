@@ -140,7 +140,7 @@ $title = 'Profile - GoPlay';
   text-align: center;
 }
 .btn-edit {
-  background: #28a745;
+  background: #2563eb;
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -149,7 +149,7 @@ $title = 'Profile - GoPlay';
   cursor: pointer;
   font-weight: 600;
 }
-.btn-edit:hover { background: #218838; }
+.btn-edit:hover { background: #64748b; }
 
 /* Responsive */
 @media (max-width: 768px) {
