@@ -13,16 +13,7 @@
                
             </div>
             
-            <div class="footer-section">
-                <h4>Quick Links</h4>
-                <ul class="footer-links">
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/book-ground">Book Ground</a></li>
-                    <li><a href="/book-coach">Book Coach</a></li>
-                    <li><a href="/shop">Shop</a></li>
-                    <li><a href="/news">News</a></li>
-                </ul>
-            </div>
+            
             
             <div class="footer-section">
                 <h4>Services</h4>
@@ -46,17 +37,7 @@
             </div>
         </div>
         
-        <!-- Footer Bottom -->
-        <div class="footer-bottom">
-            <div class="footer-bottom-content">
-                <p>&copy; 2024 GoPlay Sports Platform. All rights reserved.</p>
-                <div class="footer-bottom-links">
-                    <a href="/privacy">Privacy Policy</a>
-                    <a href="/terms">Terms of Service</a>
-                    <a href="/contact">Contact Us</a>
-                </div>
-            </div>
-        </div>
+        
     </div>
 </footer>
 
