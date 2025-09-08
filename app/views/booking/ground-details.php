@@ -12,10 +12,10 @@ $groundId = $_GET['id'] ?? 1;
     <style>
         /* CSS Custom Properties */
         :root {
-            --primary-color: #2563eb;
-            --primary-dark: #64748b;
-            --primary-light: #f1f5f9;
-            --secondary-color: #0891b2;
+            --primary-color: #28a745;
+            --primary-dark: #218838;
+            --primary-light: #d4edda;
+            --secondary-color: #20c997;
             --accent-color: #ffc107;
             --text-primary: #2c3e50;
             --text-secondary: #6c757d;
