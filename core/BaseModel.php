@@ -25,7 +25,8 @@ abstract class BaseModel
     public function findAll(): array
     {
         $sql = "SELECT * FROM {$this->table}";
-        $results = $this->query($sql);
+        $statement = $this->query($sql);
+        $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
         return array_map([$this, 'castAttributes'], $results);
     }
     
@@ -40,7 +41,8 @@ abstract class BaseModel
         }
         
         $sql = "SELECT * FROM {$this->table} WHERE " . implode(' AND ', $wheres);
-        $results = $this->query($sql, $params);
+        $statement = $this->query($sql, $params);
+        $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
         return array_map([$this, 'castAttributes'], $results);
     }
     
