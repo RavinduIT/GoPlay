@@ -88,7 +88,7 @@ class NewsController extends BaseController
     }
 
     /**
-     * Display specific news article
+     * Display specific news article - FIXED VERSION
      */
     public function show(Request $request): Response
     {
@@ -110,18 +110,27 @@ class NewsController extends BaseController
                 ]);
             }
 
-            // Increment view count
-            $this->incrementViews($news['id']);
+            // FIXED: Increment view count using the model method
+            $this->newsModel->incrementViews($news['id']);
+            
+            // Update the news array with incremented views for display
+            $news['views'] = ($news['views'] ?? 0) + 1;
 
             // Get related news
             $relatedNews = $this->newsModel->getRelated($news['id'], 4);
 
             // Get author information
-            $author = $this->getUserById($news['author_id']);
+            $author = null;
+            if (!empty($news['author_id'])) {
+                $author = $this->getUserById($news['author_id']);
+            }
 
-            // Format published date
+            // Format published date and calculate reading time
             $news['formatted_date'] = $this->formatPublishedDate($news['published_at']);
             $news['reading_time'] = $this->calculateReadingTime($news['content']);
+
+            // Track reading session (for analytics)
+            $this->trackReadingSession($news['id']);
 
             $data = [
                 'news' => $news,
@@ -136,6 +145,26 @@ class NewsController extends BaseController
             return $this->view('errors.500', [
                 'error' => 'Unable to load news article. Please try again later.'
             ]);
+        }
+    }
+
+    /**
+     * Get user information by ID
+     */
+    private function getUserById(?int $userId): ?array
+    {
+        if (!$userId) {
+            return null;
+        }
+        
+        try {
+            $sql = "SELECT id, first_name, last_name, profile_picture FROM users WHERE id = ?";
+            $db = \Core\Database::getInstance();
+            $result = $db->query($sql, [$userId])->fetchAll(\PDO::FETCH_ASSOC);
+            return $result[0] ?? null;
+        } catch (\Exception $e) {
+            error_log("Failed to get user: " . $e->getMessage());
+            return null;
         }
     }
 
@@ -222,11 +251,33 @@ class NewsController extends BaseController
     }
 
     /**
+     * Get trending news endpoint
+     */
+    public function trending(Request $request): Response
+    {
+        try {
+            $limit = min(20, max(1, (int)$request->getParam('limit', 10)));
+            $trending = $this->newsModel->getTrending($limit);
+
+            return $this->json([
+                'success' => true,
+                'trending' => $trending
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Trending news error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'error' => 'Unable to load trending news'
+            ], 500);
+        }
+    }
+
+    /**
      * Get news categories for filtering
      */
     private function getNewsCategories(): array
     {
-        // This could be from a database table, but for now using static categories
         return [
             'all' => 'All Sports',
             'Cricket' => 'Cricket',
@@ -239,38 +290,26 @@ class NewsController extends BaseController
     }
 
     /**
-     * Increment news view count
+     * Track reading session for analytics
      */
-    private function incrementViews(int $newsId): void
+    private function trackReadingSession(int $newsId): void
     {
         try {
-            // Simple implementation - could be improved with Redis/caching
-            $currentNews = $this->newsModel->find($newsId);
-            if ($currentNews) {
-                $this->newsModel->update($newsId, [
-                    'views' => ($currentNews['views'] ?? 0) + 1
-                ]);
-            }
+            // You can expand this to track reading time, user sessions, etc.
+            // For now, we'll just log the reading session
+            $sessionData = [
+                'news_id' => $newsId,
+                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+                'timestamp' => date('Y-m-d H:i:s'),
+                'referer' => $_SERVER['HTTP_REFERER'] ?? null
+            ];
+            
+            // Log to file or database for analytics
+            error_log("Reading session: " . json_encode($sessionData));
+            
         } catch (\Exception $e) {
-            // Log but don't fail the request
-            error_log("Failed to increment views: " . $e->getMessage());
-        }
-    }
-
-    /**
-     * Get user information by ID
-     */
-    private function getUserById(int $userId): ?array
-    {
-        try {
-            // This would typically use a User model
-            $sql = "SELECT id, first_name, last_name, profile_picture FROM users WHERE id = ?";
-            $db = \Core\Database::getInstance();
-            $result = $db->query($sql, [$userId])->fetchAll(\PDO::FETCH_ASSOC);
-            return $result[0] ?? null;
-        } catch (\Exception $e) {
-            error_log("Failed to get user: " . $e->getMessage());
-            return null;
+            error_log("Failed to track reading session: " . $e->getMessage());
         }
     }
 
@@ -296,7 +335,7 @@ class NewsController extends BaseController
             return date('M j, Y', $publishedTime);
         }
     }
-
+    
     /**
      * Calculate estimated reading time
      */

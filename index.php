@@ -126,6 +126,13 @@ try {
     $router->put('/api/shop-owner/inventory/{id}', 'ShopOwnerController@updateStock');
     $router->get('/api/shop-owner/analytics', 'ShopOwnerController@getAnalytics');
     $router->get('/api/shop-owner/categories', 'ShopOwnerController@getCategories');
+
+    //News model methods
+    // Add these news routes after your existing news route
+$router->get('/news', 'NewsController@index');
+$router->get('/news/search', 'NewsController@search');
+$router->get('/news/load-more', 'NewsController@loadMore');
+$router->get('/news/{slug}', 'NewsController@show'); // This is the missing route!
     
     /* Debug routes
     $router->get('/debug', function() {

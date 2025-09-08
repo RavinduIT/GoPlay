@@ -25,11 +25,14 @@ class News extends BaseModel
         'status',
         'published_at',
         'meta_title',
-        'meta_description'
+        'meta_description',
+        'views',           // ADDED: Allow views to be updated
+        'last_viewed_at'   // ADDED: Track when article was last viewed
     ];
 
     protected array $casts = [
         'published_at' => 'datetime',
+        'last_viewed_at' => 'datetime',  // ADDED: Cast last viewed time
         'tags' => 'array'
     ];
 
@@ -167,5 +170,57 @@ class News extends BaseModel
         
         $results = $this->query($sql, [$authorId])->fetchAll(\PDO::FETCH_ASSOC);
         return array_map([$this, 'castAttributes'], $results);
+    }
+
+    /**
+     * Increment view count for a news article
+     */
+    public function incrementViews(int $newsId): bool
+    {
+        try {
+            $sql = "UPDATE {$this->table} 
+                    SET views = COALESCE(views, 0) + 1, 
+                        last_viewed_at = NOW() 
+                    WHERE id = ?";
+            
+            $stmt = $this->query($sql, [$newsId]);
+            return $stmt->rowCount() > 0;
+        } catch (\Exception $e) {
+            error_log("Failed to increment views for news ID {$newsId}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get trending news (based on recent views and engagement)
+     */
+    public function getTrending(int $limit = 5): array
+    {
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE status = 'published' 
+                AND published_at <= NOW()
+                AND published_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                ORDER BY views DESC, published_at DESC 
+                LIMIT ?";
+        
+        $results = $this->query($sql, [$limit])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
+    }
+
+    /**
+     * Get news statistics
+     */
+    public function getStatistics(): array
+    {
+        $sql = "SELECT 
+                    COUNT(*) as total_articles,
+                    SUM(views) as total_views,
+                    AVG(views) as avg_views_per_article,
+                    COUNT(CASE WHEN status = 'published' THEN 1 END) as published_articles,
+                    COUNT(CASE WHEN status = 'draft' THEN 1 END) as draft_articles
+                FROM {$this->table}";
+        
+        $result = $this->queryFirst($sql);
+        return $result ?: [];
     }
 }
