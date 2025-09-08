@@ -25,7 +25,7 @@ class AuthController extends BaseController
      */
     public function login(Request $request): Response
     {
-        return $this->viewWithoutLayout('auth/login');
+        return $this->view('auth/login');
     }
 
     /**
@@ -33,7 +33,7 @@ class AuthController extends BaseController
      */
     public function signup(Request $request): Response
     {
-        return $this->viewWithoutLayout('auth/signup');
+        return $this->view('auth/signup');
     }
 
     /**
