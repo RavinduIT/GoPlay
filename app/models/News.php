@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Core\BaseModel;
+
 /**
  * News Model
  * 
@@ -36,10 +38,13 @@ class News extends BaseModel
      */
     public function getPublished(): array
     {
-        return $this->where([
-            'status' => 'published',
-            'published_at <=' => date('Y-m-d H:i:s')
-        ]);
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE status = 'published' 
+                AND published_at <= NOW()
+                ORDER BY published_at DESC";
+        
+        $results = $this->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
     }
 
     /**
@@ -54,7 +59,8 @@ class News extends BaseModel
                 ORDER BY published_at DESC 
                 LIMIT ?";
         
-        return $this->query($sql, [$limit]);
+        $results = $this->query($sql, [$limit])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
     }
 
     /**
@@ -62,10 +68,14 @@ class News extends BaseModel
      */
     public function getByCategory(string $category): array
     {
-        return $this->where([
-            'category' => $category,
-            'status' => 'published'
-        ]);
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE category = ? 
+                AND status = 'published'
+                AND published_at <= NOW()
+                ORDER BY published_at DESC";
+        
+        $results = $this->query($sql, [$category])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
     }
 
     /**
@@ -73,7 +83,9 @@ class News extends BaseModel
      */
     public function getBySlug(string $slug): ?array
     {
-        return $this->where(['slug' => $slug])[0] ?? null;
+        $sql = "SELECT * FROM {$this->table} WHERE slug = ?";
+        $result = $this->queryFirst($sql, [$slug]);
+        return $result ? $this->castAttributes($result) : null;
     }
 
     /**
@@ -83,10 +95,13 @@ class News extends BaseModel
     {
         $sql = "SELECT * FROM {$this->table} 
                 WHERE status = 'published'
+                AND published_at <= NOW()
                 AND (title LIKE ? OR content LIKE ? OR excerpt LIKE ?)
                 ORDER BY published_at DESC";
         
-        return $this->query($sql, ["%{$query}%", "%{$query}%", "%{$query}%"]);
+        $searchTerm = "%{$query}%";
+        $results = $this->query($sql, [$searchTerm, $searchTerm, $searchTerm])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
     }
 
     /**
@@ -100,7 +115,8 @@ class News extends BaseModel
                 ORDER BY published_at DESC 
                 LIMIT ?";
         
-        return $this->query($sql, [$limit]);
+        $results = $this->query($sql, [$limit])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
     }
 
     /**
@@ -114,15 +130,42 @@ class News extends BaseModel
         $sql = "SELECT * FROM {$this->table} 
                 WHERE id != ? 
                 AND status = 'published'
-                AND (category = ? OR tags LIKE ?)
+                AND published_at <= NOW()
+                AND category = ?
                 ORDER BY published_at DESC 
                 LIMIT ?";
         
-        return $this->query($sql, [
-            $newsId, 
-            $news['category'], 
-            '%' . ($news['tags'][0] ?? '') . '%',
-            $limit
-        ]);
+        $results = $this->query($sql, [$newsId, $news['category'], $limit])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
+    }
+
+    /**
+     * Get popular news (by views)
+     */
+    public function getPopular(int $limit = 5): array
+    {
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE status = 'published' 
+                AND published_at <= NOW()
+                ORDER BY views DESC, published_at DESC 
+                LIMIT ?";
+        
+        $results = $this->query($sql, [$limit])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
+    }
+
+    /**
+     * Get news by author
+     */
+    public function getByAuthor(int $authorId): array
+    {
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE author_id = ? 
+                AND status = 'published'
+                AND published_at <= NOW()
+                ORDER BY published_at DESC";
+        
+        $results = $this->query($sql, [$authorId])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
     }
 }
