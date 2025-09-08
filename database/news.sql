@@ -1,118 +1,132 @@
--- Add this to your schema.sql file after the existing tables
-
 -- ======================
--- NEWS SYSTEM
+-- NEWS TRACKING UPDATES
 -- ======================
 
--- News Categories Table
-CREATE TABLE news_categories (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    slug VARCHAR(100) NOT NULL UNIQUE,
-    description TEXT,
-    color VARCHAR(7) DEFAULT '#3B82F6',
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Add the missing last_viewed_at column to your existing news table
+ALTER TABLE news 
+ADD COLUMN IF NOT EXISTS last_viewed_at TIMESTAMP NULL DEFAULT NULL 
+AFTER views;
 
--- Insert Default News Categories
-INSERT INTO news_categories (name, slug, description, color) VALUES
-('Cricket', 'cricket', 'Cricket news and updates', '#10B981'),
-('Football', 'football', 'Football news and match reports', '#F59E0B'),
-('Basketball', 'basketball', 'Basketball games and tournaments', '#8B5CF6'),
-('Tennis', 'tennis', 'Tennis tournaments and player news', '#EF4444'),
-('Swimming', 'swimming', 'Swimming competitions and records', '#06B6D4'),
-('General Sports', 'general-sports', 'General sports news and updates', '#6B7280');
+-- Update existing news articles to set views to random values if they are NULL or 0
+-- This makes the data more realistic for testing
+UPDATE news SET views = FLOOR(RAND() * 1500) + 100 WHERE views = 0 OR views IS NULL;
 
--- News Table
-CREATE TABLE news (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    title VARCHAR(255) NOT NULL,
-    slug VARCHAR(255) NOT NULL UNIQUE,
-    content LONGTEXT NOT NULL,
-    excerpt TEXT,
-    featured_image VARCHAR(255),
-    category VARCHAR(100) DEFAULT 'General Sports',
-    tags JSON,
-    author_id INT NOT NULL,
-    status ENUM('draft', 'published', 'archived') DEFAULT 'draft',
-    published_at TIMESTAMP NULL,
-    views INT DEFAULT 0,
-    meta_title VARCHAR(255),
-    meta_description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
-);
+-- Add indexes for better performance on views and analytics queries
+CREATE INDEX IF NOT EXISTS idx_news_views_published ON news(views DESC, published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_news_last_viewed ON news(last_viewed_at);
+CREATE INDEX IF NOT EXISTS idx_news_trending ON news(published_at DESC, views DESC);
 
--- News Comments Table
-CREATE TABLE news_comments (
+-- Create analytics tracking table for detailed user engagement
+CREATE TABLE IF NOT EXISTS news_analytics (
     id INT PRIMARY KEY AUTO_INCREMENT,
     news_id INT NOT NULL,
-    user_id INT NOT NULL,
-    parent_id INT NULL,
-    comment TEXT NOT NULL,
-    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    user_id INT NULL,
+    session_id VARCHAR(255) NULL,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    referer VARCHAR(255),
+    time_spent_seconds INT DEFAULT 0,
+    scroll_percentage DECIMAL(5,2) DEFAULT 0.00,
+    device_type ENUM('desktop', 'mobile', 'tablet') DEFAULT 'desktop',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (news_id) REFERENCES news(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (parent_id) REFERENCES news_comments(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_analytics_news_date (news_id, created_at),
+    INDEX idx_analytics_user (user_id),
+    INDEX idx_analytics_session (session_id)
 );
 
--- News Indexes for Performance
-CREATE INDEX idx_news_slug ON news(slug);
-CREATE INDEX idx_news_category ON news(category);
-CREATE INDEX idx_news_status ON news(status);
-CREATE INDEX idx_news_published ON news(published_at);
-CREATE INDEX idx_news_author ON news(author_id);
-CREATE INDEX idx_news_views ON news(views);
+-- Create a view for popular news with time-based weighting
+CREATE OR REPLACE VIEW popular_news AS
+SELECT 
+    n.*,
+    COALESCE(n.views, 0) as view_count,
+    CASE 
+        WHEN n.published_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN COALESCE(n.views, 0) * 1.5
+        WHEN n.published_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN COALESCE(n.views, 0) * 1.2
+        ELSE COALESCE(n.views, 0)
+    END as weighted_popularity_score
+FROM news n
+WHERE n.status = 'published' 
+AND n.published_at <= NOW()
+ORDER BY weighted_popularity_score DESC;
 
--- Insert Sample News Data
-INSERT INTO news (title, slug, content, excerpt, featured_image, category, tags, author_id, status, published_at, views) VALUES
+-- Insert additional sample news data with varied view counts and recent dates
+INSERT IGNORE INTO news (title, slug, content, excerpt, featured_image, category, tags, author_id, status, published_at, views) VALUES
 
-('Sri Lankan Cricket Team Wins Asia Cup 2024', 
- 'sri-lankan-cricket-team-wins-asia-cup-2024',
- 'In a thrilling final at the Dubai International Cricket Stadium, the Sri Lankan cricket team defeated India by 23 runs to claim the Asia Cup 2024 title. The victory comes after a spectacular batting performance led by captain Dasun Shanaka, who scored an unbeaten 89 runs in the final.\n\nThe match began with Sri Lanka winning the toss and electing to bat first. The opening partnership between Pathum Nissanka and Kusal Mendis laid a solid foundation, adding 76 runs for the first wicket. Nissanka played a composed innings of 45 runs before being dismissed by Jasprit Bumrah.\n\nThe middle order, anchored by Shanaka and supported by Charith Asalanka (67 not out), propelled Sri Lanka to a commanding total of 314/6 in their allotted 50 overs. The innings was marked by aggressive stroke play and intelligent running between the wickets.\n\nIndia''s chase got off to a shaky start, losing both openers within the first 10 overs. Despite a valiant effort by Virat Kohli (78) and KL Rahul (65), the Indian team fell short of the target, finishing at 291/8.\n\nThe Sri Lankan bowling attack, led by Wanindu Hasaranga (3/54) and Maheesh Theekshana (2/48), maintained consistent pressure throughout India''s innings. The victory marks Sri Lanka''s first Asia Cup title since 2014.',
- 'Sri Lankan cricket team defeats India by 23 runs to claim Asia Cup 2024 title in a thrilling final at Dubai.',
- '/public/assets/images/news/cricket-asia-cup.jpg',
- 'Cricket',
- '["Asia Cup", "Sri Lanka", "Cricket", "Final", "Victory"]',
- 11, 'published', '2024-09-07 14:30:00', 1250),
-
-('Premier League Football Season Kicks Off with Spectacular Matches',
- 'premier-league-football-season-kicks-off',
- 'The 2024-25 Premier League season has begun with a bang, featuring some of the most exciting opening weekend matches in recent memory. Manchester City started their title defense with a convincing 3-0 victory over Chelsea at Stamford Bridge, while Arsenal showcased their attacking prowess with a 4-1 win against Newcastle United.\n\nCity''s dominance was evident from the first whistle, with Erling Haaland opening the scoring in the 15th minute with a trademark finish. The Norwegian striker''s partnership with Kevin De Bruyne continues to flourish, as evidenced by the Belgian''s assist for the opening goal.\n\nPhil Foden doubled City''s lead just before halftime with a stunning curled effort from outside the box. The young midfielder''s development under Pep Guardiola has been remarkable, and he looks set for another outstanding season.\n\nArsenal''s victory over Newcastle was equally impressive, with new signing Kai Havertz scoring twice on his debut. The German forward''s movement in the box caused constant problems for the Newcastle defense, and his clinical finishing proved the difference.\n\nOther notable results from the opening weekend include Liverpool''s narrow 2-1 victory over Brighton, Tottenham''s dramatic 3-2 win against Brentford, and Manchester United''s solid 1-0 triumph over Wolves.\n\nThe early evidence suggests this could be one of the most competitive Premier League seasons in years, with several teams making significant improvements to their squads during the summer transfer window.',
- 'The 2024-25 Premier League season opens with thrilling matches as Manchester City and Arsenal secure convincing victories.',
- '/public/assets/images/news/premier-league.jpg',
+('Local Football Championship Final This Weekend', 
+ 'local-football-championship-final-weekend',
+ 'The much-anticipated local football championship final is set to take place this weekend at the Central Sports Stadium. Two powerhouse teams, City Lions and Valley Eagles, will clash in what promises to be an electrifying match.\n\nBoth teams have shown exceptional performance throughout the season. City Lions, led by captain Marcus Johnson, have maintained an undefeated streak in their last 8 matches. Their offensive strategy and quick ball movement have been the key to their success.\n\nValley Eagles, on the other hand, have demonstrated remarkable defensive capabilities. Their goalkeeper, Sarah Martinez, has kept 12 clean sheets this season, making her one of the most reliable players in the league.\n\nThe match is scheduled for Saturday at 3:00 PM, with gates opening at 2:00 PM. Tickets are still available at the stadium box office and online. Expected attendance is over 15,000 spectators.\n\nBoth teams have been training intensively for this final showdown. City Lions coach Mike Thompson stated, "We have prepared extensively for this match. Our players are in peak condition and ready to give their absolute best."\n\nValley Eagles coach Jennifer Adams echoed similar sentiments, "This final represents everything we have worked for this season. We are confident in our abilities and excited to compete at the highest level."',
+ 'City Lions face Valley Eagles in this weekend\'s championship final at Central Sports Stadium.',
+ '/public/assets/images/news/football-championship.jpg',
  'Football',
- '["Premier League", "Football", "Manchester City", "Arsenal", "Opening Weekend"]',
- 11, 'published', '2024-09-06 16:45:00', 890),
+ '["Championship", "Final", "City Lions", "Valley Eagles", "Local Football"]',
+ 11, 'published', '2024-09-08 10:30:00', 342),
 
-('Tennis Grand Slam Update: US Open Semifinals Set',
- 'tennis-us-open-semifinals-set',
- 'The US Open tennis tournament has reached the semifinal stage with some surprising results and outstanding performances from both established stars and rising talents. The men''s semifinals will feature defending champion Novak Djokovic against young sensation Carlos Alcaraz, while Daniil Medvedev faces off against Stefanos Tsitsipas.\n\nDjokovic''s path to the semifinals hasn''t been without challenges. The Serbian star had to dig deep in his quarterfinal match against Alexander Zverev, winning in four sets after dropping the second set. His experience and mental fortitude were crucial in the decisive moments.\n\nAlcaraz, the 20-year-old Spanish phenom, continued his impressive form with a straight-sets victory over Jannik Sinner in the quarterfinals. The young player''s combination of power, speed, and court craft has been mesmerizing fans throughout the tournament.\n\nOn the women''s side, the semifinals will showcase defending champion Coco Gauff against former world number one Aryna Sabalenka, while Iga Swiatek takes on Madison Keys in what promises to be an exciting American showdown.\n\nGauff''s journey to the semifinals has been particularly impressive, as she hasn''t dropped a set throughout the tournament. The young American''s serving has improved significantly since last year, and her confidence on home soil is evident.\n\nSwiatek, the current world number one, faced a tough challenge in her quarterfinal against Jessica Pegula but managed to secure victory in three sets. The Polish player''s consistency and mental toughness continue to set her apart from the field.\n\nThe semifinals promise to deliver high-quality tennis, with each match potentially going the distance. The tournament has already provided numerous memorable moments and the final weekend looks set to add to that legacy.',
- 'US Open tennis semifinals are set with exciting matchups featuring Djokovic, Alcaraz, Gauff, and Swiatek.',
- '/public/assets/images/news/us-open-tennis.jpg',
+('Tennis Academy Opens New Training Facility',
+ 'tennis-academy-opens-new-training-facility',
+ 'The prestigious Coastal Tennis Academy has officially opened its state-of-the-art training facility, featuring six indoor courts, advanced ball machines, and video analysis technology.\n\nThe new facility spans 25,000 square feet and includes modern amenities such as a fitness center, physiotherapy room, and player lounge. The academy aims to provide world-class training opportunities for players of all skill levels.\n\nDuring the opening ceremony, academy director Robert Chen highlighted the facility\'s commitment to developing tennis talent in the region. "This new facility represents our dedication to excellence in tennis education and training," he said.\n\nThe facility features courts with three different surface types: hard court, clay court, and grass court simulators. This variety allows players to experience and adapt to different playing conditions they might encounter in tournaments.\n\nProfessional coaching staff includes former ATP and WTA players who bring decades of competitive experience. The academy offers programs for juniors, adults, and competitive players looking to improve their rankings.\n\nRegistration for programs is now open, with special introductory rates available for the first month. The academy also plans to host regional tournaments throughout the year.',
+ 'Coastal Tennis Academy unveils new 25,000 sq ft training facility with six indoor courts and modern amenities.',
+ '/public/assets/images/news/tennis-academy.jpg',
  'Tennis',
- '["Tennis", "US Open", "Djokovic", "Alcaraz", "Gauff", "Semifinals"]',
- 12, 'published', '2024-09-05 12:20:00', 756),
+ '["Tennis", "Academy", "Training", "Facility", "Coaching"]',
+ 12, 'published', '2024-09-08 08:15:00', 156),
 
-('Basketball World Championship Finals Preview',
- 'basketball-world-championship-finals-preview',
- 'The FIBA Basketball World Championship reaches its climax this weekend as the United States faces Serbia in what promises to be an epic final. Both teams have shown exceptional form throughout the tournament, setting up a mouth-watering conclusion to three weeks of outstanding basketball.\n\nTeam USA, led by Anthony Edwards and Paolo Banchero, has been dominant throughout the competition. Their victory over Germany in the semifinals showcased the depth and talent in their roster, with contributions coming from multiple players at crucial moments.\n\nEdwards, in particular, has been a revelation in this tournament. The Minnesota Timberwolves guard has averaged 24.5 points per game while shooting an impressive 47% from three-point range. His explosive athleticism and improved decision-making have made him the standout performer for the Americans.\n\nSerbia''s path to the final has been equally impressive. The team, anchored by Denver Nuggets superstar Nikola Jokic, defeated Spain 95-86 in their semifinal. Jokic''s unique skill set and basketball IQ have been instrumental in Serbia''s success, averaging a near triple-double throughout the tournament.\n\nThe supporting cast around Jokic has been exceptional, with Bogdan Bogdanovic providing crucial scoring from the perimeter and Aleksa Avramovic orchestrating the offense with precision. The team''s chemistry and understanding of international basketball rules have given them an edge against more talented opponents.\n\nThe final promises to be a fascinating tactical battle between two contrasting styles. USA''s athleticism and individual talent will be pitted against Serbia''s team cohesion and tactical discipline.\n\nHistory suggests this could be one of the closest World Championship finals in recent memory, with both teams possessing the firepower to claim the title.',
- 'USA and Serbia set for epic FIBA Basketball World Championship final showdown this weekend.',
- '/public/assets/images/news/basketball-world-championship.jpg',
+('Basketball League MVP Awards Announced',
+ 'basketball-league-mvp-awards-announced',
+ 'The Regional Basketball League has announced its Most Valuable Player awards for the 2024 season, with Thunder Hawks point guard Alex Rodriguez taking home the top honor.\n\nRodriguez averaged 28.5 points, 8.2 assists, and 6.1 rebounds per game throughout the regular season, leading the Thunder Hawks to a league-best 24-6 record. His clutch performances in critical games earned him recognition from coaches and fans alike.\n\n"Alex has been exceptional this season," said Thunder Hawks coach Maria Santos. "His leadership on and off the court has been instrumental in our team\'s success. This award is well-deserved."\n\nThe Defensive Player of the Year award went to Storm Eagles center David Kim, who averaged 2.8 blocks and 11.3 rebounds per game. Kim\'s presence in the paint was a game-changer for the Eagles throughout the season.\n\nRookie of the Year honors were claimed by Lightning Bolts forward Jessica Walsh, who made an immediate impact after joining from college basketball. Walsh averaged 18.2 points per game and was named to the All-Star team.\n\nThe awards ceremony will take place next Friday at the Grand Sports Hall, with all award recipients and their families invited to attend.',
+ 'Thunder Hawks\' Alex Rodriguez wins Regional Basketball League MVP award for outstanding 2024 season performance.',
+ '/public/assets/images/news/basketball-mvp.jpg',
  'Basketball',
- '["Basketball", "World Championship", "USA", "Serbia", "Final", "FIBA"]',
- 13, 'published', '2024-09-04 18:15:00', 623),
+ '["Basketball", "MVP", "Awards", "Rodriguez", "Thunder Hawks"]',
+ 13, 'published', '2024-09-07 16:20:00', 287),
 
-('Swimming World Records Broken at Commonwealth Games',
- 'swimming-world-records-commonwealth-games',
- 'The Commonwealth Games swimming competition has witnessed history in the making, with three world records broken on a single extraordinary evening at the Sandwell Aquatics Centre. The performances have elevated the profile of the Games and showcased the incredible depth of swimming talent across the Commonwealth nations.\n\nThe evening began with Australia''s Emma McKeon breaking the women''s 100m freestyle world record, clocking an incredible 51.71 seconds. McKeon''s performance was a masterclass in sprint swimming, with perfect technique and an explosive finish that left the crowd in stunned silence before erupting in celebration.\n\nCanada''s Summer McIntosh followed with another world record in the women''s 400m individual medley, touching the wall in 4:24.38. The 17-year-old''s performance was remarkable for its consistency across all four strokes, demonstrating the complete skillset that has made her one of swimming''s brightest prospects.\n\nThe third world record came in the men''s 4x100m freestyle relay, where the Australian team of Kyle Chalmers, Zac Stubblety-Cook, Matthew Temple, and Elijah Winnington combined for a time of 3:08.24. The relay was a showcase of Australian swimming depth, with each swimmer posting split times that would have been competitive in individual events.\n\nEngland''s Adam Peaty, competing in his home nation, delivered one of the most emotionally charged performances of the Games. The breaststroke specialist won gold in the 100m breaststroke, his first major title since returning from mental health struggles. His victory lap was met with thunderous applause from the packed venue.\n\nThe swimming competition has already exceeded expectations for both performance levels and attendance, with many sessions sold out. The Commonwealth Games continue to prove their importance as a stepping stone for swimmers preparing for the Paris Olympics next year.',
- 'Three world records fall on extraordinary night at Commonwealth Games swimming competition.',
- '/public/assets/images/news/swimming-commonwealth.jpg',
+('Swimming Pool Renovation Project Completed',
+ 'swimming-pool-renovation-project-completed',
+ 'The city\'s main aquatic center has completed its comprehensive renovation project, reopening with Olympic-standard facilities and enhanced accessibility features.\n\nThe six-month renovation included installation of a new filtration system, LED underwater lighting, and updated starting blocks that meet international competition standards. The project cost $2.3 million and was funded through a combination of city budget allocation and community fundraising efforts.\n\nNew features include a dedicated warm-up pool, expanded seating capacity for 800 spectators, and improved locker room facilities. The center now also offers full accessibility compliance with wheelchair-accessible pool lifts and specialized changing areas.\n\nAquatic center director Lisa Park expressed excitement about the improvements: "These upgrades will allow us to host regional and national swimming competitions while continuing to serve our community swimming programs."\n\nThe renovation also included environmental improvements such as solar heating panels and water recycling systems that will reduce operational costs by an estimated 30%.\n\nSwimming programs for all ages will resume next week, with registration now open online. The center plans to host its first major competition in November with the Regional Masters Swimming Championship.',
+ 'City aquatic center reopens after $2.3M renovation with Olympic-standard facilities and enhanced accessibility.',
+ '/public/assets/images/news/swimming-renovation.jpg',
  'Swimming',
- '["Swimming", "Commonwealth Games", "World Records", "McKeon", "McIntosh"]',
- 14, 'published', '2024-09-03 20:45:00', 445);
+ '["Swimming", "Renovation", "Aquatic Center", "Olympic Standard", "Accessibility"]',
+ 14, 'published', '2024-09-06 11:45:00', 198),
+
+('Cricket Club Youth Development Program Launch',
+ 'cricket-club-youth-development-program-launch',
+ 'The Metropolitan Cricket Club has launched an ambitious youth development program aimed at nurturing the next generation of cricket talent in the region.\n\nThe program will provide structured coaching for players aged 8-18, with specialized training sessions focusing on batting, bowling, fielding, and mental preparation. Professional coaches with international playing experience will lead the sessions.\n\n"We believe in identifying and developing young talent early," said club president James Morrison. "This program will provide pathways for promising players to progress from grassroots level to potential professional careers."\n\nThe program includes weekly training sessions, competitive matches against other clubs, and educational workshops covering nutrition, fitness, and sports psychology. Scholarships are available for talented players who demonstrate financial need.\n\nRegistration for the program is open until the end of the month, with sessions beginning in October. The club has partnered with local schools to identify potential participants and ensure the program reaches deserving young athletes.\n\nThe youth development initiative is part of the club\'s broader community engagement strategy, which also includes coaching clinics in underserved areas and equipment donation programs.',
+ 'Metropolitan Cricket Club launches comprehensive youth development program for players aged 8-18.',
+ '/public/assets/images/news/cricket-youth.jpg',
+ 'Cricket',
+ '["Cricket", "Youth", "Development", "Program", "Coaching"]',
+ 11, 'published', '2024-09-05 14:30:00', 224),
+
+('Sports Medicine Conference Highlights Latest Research',
+ 'sports-medicine-conference-highlights-research',
+ 'The Annual International Sports Medicine Conference concluded yesterday with groundbreaking presentations on injury prevention and athletic performance enhancement.\n\nOver 500 medical professionals, coaches, and researchers gathered to discuss the latest developments in sports science. Key topics included concussion management protocols, rehabilitation techniques for ACL injuries, and nutrition strategies for endurance athletes.\n\nDr. Sarah Williams from the Sports Research Institute presented findings on a new treatment protocol that reduces ACL rehabilitation time by 25%. "Early intervention with specific movement patterns shows remarkable promise in accelerating recovery," she explained.\n\nAnother highlight was research on sleep optimization for athletic performance. Studies showed that athletes following structured sleep protocols improved their performance metrics by an average of 12%.\n\nThe conference also featured workshops on mental health support for athletes, with emphasis on creating supportive environments that prioritize both physical and psychological wellbeing.\n\nNext year\'s conference is scheduled to take place in March, with a focus on youth sports development and long-term athlete health.',
+ 'International Sports Medicine Conference showcases breakthrough research in injury prevention and performance enhancement.',
+ '/public/assets/images/news/sports-medicine.jpg',
+ 'General Sports',
+ '["Sports Medicine", "Research", "Conference", "Injury Prevention", "Performance"]',
+ 12, 'published', '2024-09-04 09:20:00', 167);
+
+-- Update some existing articles with recent last_viewed_at timestamps
+UPDATE news SET last_viewed_at = DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 24) HOUR) WHERE views > 500;
+UPDATE news SET last_viewed_at = DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 7) DAY) WHERE views BETWEEN 200 AND 500;
+
+-- Insert some sample analytics data (optional - for testing)
+INSERT IGNORE INTO news_analytics (news_id, session_id, ip_address, time_spent_seconds, scroll_percentage, device_type) 
+SELECT 
+    id,
+    CONCAT('session_', FLOOR(RAND() * 10000)),
+    CONCAT('192.168.1.', FLOOR(RAND() * 254) + 1),
+    FLOOR(RAND() * 300) + 30,
+    ROUND(RAND() * 100, 2),
+    CASE FLOOR(RAND() * 3)
+        WHEN 0 THEN 'desktop'
+        WHEN 1 THEN 'mobile'
+        ELSE 'tablet'
+    END
+FROM news 
+WHERE status = 'published' 
+LIMIT 20;
 
 COMMIT;
