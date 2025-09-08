@@ -46,4 +46,22 @@ abstract class BaseController
         $response->setHeader('Location', $url);
         return $response;
     }
+    
+    protected function viewWithoutLayout(string $view, array $data = []): Response
+    {
+        extract($data);
+        
+        ob_start();
+        
+        $viewFile = APP_PATH . '/views/' . str_replace('.', '/', $view) . '.php';
+        
+        if (!file_exists($viewFile)) {
+            throw new \Exception("View file not found: {$viewFile}");
+        }
+        
+        include $viewFile;
+        $content = ob_get_clean();
+        
+        return new Response($content);
+    }
 }

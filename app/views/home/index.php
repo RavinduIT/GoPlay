@@ -10,10 +10,10 @@ $additionalJS = ['/public/js/pages/index.js'];
     <style>
         /* CSS Custom Properties */
         :root {
-            --primary-color: #28a745;
-            --primary-dark: #218838;
-            --primary-light: #d4edda;
-            --secondary-color: #20c997;
+            --primary-color: #2563eb;
+            --primary-dark: #64748b;
+            --primary-light: #f1f5f9;
+            --secondary-color: #0891b2;
             --accent-color: #ffc107;
             --text-primary: #2c3e50;
             --text-secondary: #6c757d;
@@ -66,41 +66,23 @@ $additionalJS = ['/public/js/pages/index.js'];
 
         /* Hero Section */
         .hero-section {
-            min-height: 100vh;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        }
-
-        .hero-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            opacity: 0.3;
-            z-index: 1;
+            background: #1e3a8a;
+            color: white;
+            padding: 4rem 0;
         }
 
         .hero-content {
             text-align: center;
-            color: var(--text-white);
-            z-index: 2;
-            position: relative;
+            color: white;
             max-width: 800px;
+            margin: 0 auto;
             padding: 0 2rem;
         }
 
         .hero-title {
-            font-size: 4rem;
+            font-size: 3rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
-            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            animation: fadeInUp 1s ease-out;
         }
 
         .hero-highlight {
@@ -115,7 +97,6 @@ $additionalJS = ['/public/js/pages/index.js'];
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
-            animation: fadeInUp 1s ease-out 0.2s both;
         }
 
         .hero-buttons {
@@ -123,7 +104,6 @@ $additionalJS = ['/public/js/pages/index.js'];
             gap: 1.5rem;
             justify-content: center;
             flex-wrap: wrap;
-            animation: fadeInUp 1s ease-out 0.4s both;
         }
 
         .hero-btn {
@@ -567,7 +547,6 @@ $additionalJS = ['/public/js/pages/index.js'];
     <main class="main-content">
         <!-- Hero Section -->
         <section class="hero-section">
-            <div class="hero-background"></div>
             <div class="hero-content">
                 <h1 class="hero-title">
                     Your Ultimate GOPLAY

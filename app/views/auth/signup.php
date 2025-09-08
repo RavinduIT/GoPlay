@@ -1,9 +1,13 @@
-<?php 
-$title = 'Sign Up - GoPlay Sports Platform';
-$additionalCSS = ['/public/css/pages/signup.css'];
-$additionalJS = ['/public/js/pages/signup.js'];
-?>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - GoPlay Sports Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/public/css/pages/signup.css">
+</head>
+<body>
 <div class="auth-container">
     <div class="auth-wrapper">
         <!-- Left Side - Branding -->
@@ -150,14 +154,7 @@ $additionalJS = ['/public/js/pages/signup.js'];
                         </label>
                     </div>
                     
-                    <div class="form-group">
-                        <label class="checkbox-wrapper">
-                            <input type="checkbox" id="newsletter" class="checkbox">
-                            <span class="checkbox-label">
-                                Subscribe to our newsletter for updates and promotions
-                            </span>
-                        </label>
-                    </div>
+                   
 
                     <button type="submit" class="submit-btn" id="submitBtn">
                         <span class="btn-text">Create Account</span>
@@ -172,21 +169,7 @@ $additionalJS = ['/public/js/pages/signup.js'];
                     </p>
                 </div>
                 
-                <div class="social-login">
-                    <div class="divider">
-                        <span>or sign up with</span>
-                    </div>
-                    <div class="social-buttons">
-                        <button class="social-btn google-btn">
-                            <i class="fab fa-google"></i>
-                            Google
-                        </button>
-                        <button class="social-btn facebook-btn">
-                            <i class="fab fa-facebook-f"></i>
-                            Facebook
-                        </button>
-                    </div>
-                </div>
+               
             </div>
         </div>
     </div>
@@ -327,3 +310,5 @@ function showToast(message, type = 'info') {
     }, 4000);
 }
 </script>
+</body>
+</html>
