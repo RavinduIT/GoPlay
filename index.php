@@ -91,6 +91,11 @@ try {
     $router->get('/api/coach/sidebar-stats', 'CoachController@getSidebarStats');
     $router->get('/api/coach/notifications/count', 'CoachController@getNotificationsCount');
     
+    // Public Coach API routes (for booking)
+    $router->get('/api/coaches', 'CoachController@getCoachesForBooking');
+    $router->get('/api/coaches/{id}', 'CoachController@getCoachDetails');
+    $router->get('/api/sports-categories', 'CoachController@getSportsCategories');
+    
     // Ground Owner page routes
     $router->get('/ground-owner/grounds', 'GroundOwnerController@groundsPage');
     $router->get('/ground-owner/bookings', 'GroundOwnerController@bookingsPage');

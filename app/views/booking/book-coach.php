@@ -568,12 +568,7 @@ $additionalJS = [];
                     <div class="filter-group">
                         <select id="sport-filter" class="filter-select">
                             <option value="">All Sports</option>
-                            <option value="football">Football</option>
-                            <option value="tennis">Tennis</option>
-                            <option value="basketball">Basketball</option>
-                            <option value="cricket">Cricket</option>
-                            <option value="badminton">Badminton</option>
-                            <option value="swimming">Swimming</option>
+                            <!-- Sports options will be loaded dynamically -->
                         </select>
                         <select id="experience-filter" class="filter-select">
                             <option value="">Any Experience</option>
@@ -627,96 +622,127 @@ $additionalJS = [];
 </div>
 
     <script>
-        // Sample coach data
-        const coaches = [
-            {
-                id: 1,
-                name: "Sanath Fernando",
-                sport: "Cricket",
-                experience: "8 years",
-                rating: 4.9,
-                reviews: 156,
-                price: 3500,
-                location: "Colombo",
-                bio: "Former national team player with extensive coaching experience in cricket fundamentals and advanced techniques.",
-                specialties: ["Batting", "Bowling", "Fielding", "Mental Training"],
-                certifications: ["Level 3 Cricket Coach", "Sports Psychology"]
-            },
-            {
-                id: 2,
-                name: "Priya Wijesinghe",
-                sport: "Tennis",
-                experience: "6 years",
-                rating: 4.8,
-                reviews: 89,
-                price: 4000,
-                location: "Kandy",
-                bio: "Professional tennis coach specializing in junior development and competitive training programs.",
-                specialties: ["Technique", "Strategy", "Match Play", "Fitness"],
-                certifications: ["ITF Certified", "Youth Development"]
-            },
-            {
-                id: 3,
-                name: "Kamal Silva",
-                sport: "Football",
-                experience: "10 years",
-                rating: 4.7,
-                reviews: 203,
-                price: 2800,
-                location: "Galle",
-                bio: "Former professional footballer now dedicated to developing the next generation of players.",
-                specialties: ["Technical Skills", "Tactical Awareness", "Physical Conditioning"],
-                certifications: ["UEFA B License", "Strength & Conditioning"]
-            },
-            {
-                id: 4,
-                name: "Niluka Perera",
-                sport: "Swimming",
-                experience: "5 years",
-                rating: 4.9,
-                reviews: 92,
-                price: 3200,
-                location: "Colombo",
-                bio: "Olympic swimmer turned coach, specializing in competitive swimming and stroke technique.",
-                specialties: ["Stroke Technique", "Endurance", "Competition Prep"],
-                certifications: ["Swim Coach Level 2", "Water Safety"]
-            },
-            {
-                id: 5,
-                name: "Ravi Mendis",
-                sport: "Basketball",
-                experience: "7 years",
-                rating: 4.6,
-                reviews: 134,
-                price: 3000,
-                location: "Negombo",
-                bio: "Basketball coach with focus on fundamental skills and team play development.",
-                specialties: ["Shooting", "Defense", "Team Strategy", "Youth Development"],
-                certifications: ["FIBA Certified", "Youth Basketball"]
-            },
-            {
-                id: 6,
-                name: "Chamini De Silva",
-                sport: "Badminton",
-                experience: "4 years",
-                rating: 4.8,
-                reviews: 67,
-                price: 2500,
-                location: "Kandy",
-                bio: "Former national badminton player with expertise in competitive training and technique refinement.",
-                specialties: ["Technique", "Footwork", "Game Strategy", "Mental Preparation"],
-                certifications: ["BWF Certified", "Sports Nutrition"]
-            }
-        ];
+        // Global variables
+        let allCoaches = [];
+        let filteredCoaches = [];
+        let sportsCategories = [];
 
+        
+        // Load sports categories for filter dropdown
+        async function loadSportsCategories() {
+            try {
+                const response = await fetch('/api/sports-categories');
+                const data = await response.json();
+                
+                if (data.success) {
+                    sportsCategories = data.categories;
+                    const sportFilter = document.getElementById('sport-filter');
+                    
+                    // Clear existing options (keep "All Sports")
+                    sportFilter.innerHTML = '<option value="">All Sports</option>';
+                    
+                    // Add categories to dropdown
+                    data.categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.name;
+                        option.textContent = category.name;
+                        sportFilter.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading sports categories:', error);
+            }
+        }
+        
+        // Load coaches from database
+        async function loadCoaches(params = {}) {
+            try {
+                showLoading();
+                
+                // Build query string
+                const queryParams = new URLSearchParams();
+                if (params.search) queryParams.set('search', params.search);
+                if (params.sport) queryParams.set('sport', params.sport);
+                if (params.experience) queryParams.set('experience', params.experience);
+                if (params.price) queryParams.set('price', params.price);
+                if (params.sort) queryParams.set('sort', params.sort);
+                
+                const response = await fetch(`/api/coaches?${queryParams.toString()}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allCoaches = data.coaches;
+                    filteredCoaches = data.coaches;
+                    renderCoaches(filteredCoaches);
+                    updateResultsCount(data.total);
+                } else {
+                    showError('Failed to load coaches: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error loading coaches:', error);
+                showError('Failed to load coaches. Please try again.');
+            }
+        }
+        
+        // Show loading state
+        function showLoading() {
+            const grid = document.getElementById('coaches-grid');
+            grid.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p>Loading professional coaches...</p>
+                </div>
+            `;
+        }
+        
+        // Show error state
+        function showError(message) {
+            const grid = document.getElementById('coaches-grid');
+            grid.innerHTML = `
+                <div class="loading-state">
+                    <div style="color: var(--danger-color); margin-bottom: 1rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <p>${message}</p>
+                    <button onclick="loadCoaches()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Update results count
+        function updateResultsCount(count) {
+            const subtitle = document.querySelector('.results-subtitle');
+            if (subtitle) {
+                subtitle.textContent = `${count} coaches available`;
+            }
+        }
 
         // Render coaches
-        function renderCoaches() {
+        function renderCoaches(coaches) {
             const grid = document.getElementById('coaches-grid');
+            
+            if (!coaches || coaches.length === 0) {
+                grid.innerHTML = `
+                    <div class="loading-state">
+                        <div style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <p>No coaches found matching your criteria.</p>
+                        <button onclick="clearFilters()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            Clear Filters
+                        </button>
+                    </div>
+                `;
+                return;
+            }
             
             const coachCards = coaches.map(coach => {
                 const stars = generateStars(coach.rating);
-                const specialtyTags = coach.specialties.map(specialty => 
+                const specialtyTags = (coach.specialties || []).map(specialty => 
                     `<span class="specialty-tag">${specialty}</span>`
                 ).join('');
 
@@ -728,7 +754,10 @@ $additionalJS = [];
                                 ${coach.rating}
                             </div>
                             <div class="coach-avatar">
-                                <i class="fas fa-user-tie"></i>
+                                ${coach.profile_picture ? 
+                                    `<img src="${coach.profile_picture}" alt="${coach.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` :
+                                    '<i class="fas fa-user-tie"></i>'
+                                }
                             </div>
                             <h3 class="coach-name">${coach.name}</h3>
                             <span class="coach-specialization">${coach.sport} Coach</span>
@@ -737,7 +766,7 @@ $additionalJS = [];
                             <div class="coach-info">
                                 <div class="info-item">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <span>${coach.location}</span>
+                                    <span>${coach.location || 'Location not specified'}</span>
                                 </div>
                                 <div class="info-item">
                                     <i class="fas fa-clock"></i>
@@ -745,23 +774,25 @@ $additionalJS = [];
                                 </div>
                                 <div class="info-item">
                                     <i class="fas fa-users"></i>
-                                    <span>${coach.reviews} students</span>
+                                    <span>${coach.reviews} reviews</span>
                                 </div>
                                 <div class="info-item">
                                     <i class="fas fa-star"></i>
                                     <span>${stars}</span>
                                 </div>
                             </div>
-                            <p class="coach-bio">${coach.bio}</p>
+                            <p class="coach-bio">${coach.bio || 'No bio available.'}</p>
+                            ${specialtyTags ? `
                             <div class="coach-specialties">
                                 <div class="specialties-title">Specializations:</div>
                                 <div class="specialty-tags">
                                     ${specialtyTags}
                                 </div>
                             </div>
+                            ` : ''}
                             <div class="coach-footer">
                                 <div class="coach-price">
-                                    <div class="price-amount">LKR ${coach.price.toLocaleString()}</div>
+                                    <div class="price-amount">LKR ${parseFloat(coach.price).toLocaleString()}</div>
                                     <div class="price-period">per session</div>
                                 </div>
                                 <div class="coach-actions">
@@ -802,11 +833,40 @@ $additionalJS = [];
             
             return stars;
         }
+        
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('search-coaches').value = '';
+            document.getElementById('sport-filter').value = '';
+            document.getElementById('experience-filter').value = '';
+            document.getElementById('price-filter').value = '';
+            document.querySelector('.sort-select').value = 'rating';
+            loadCoaches();
+        }
+        
+        // Search and filter coaches
+        function searchCoaches() {
+            const searchQuery = document.getElementById('search-coaches').value;
+            const sport = document.getElementById('sport-filter').value;
+            const experience = document.getElementById('experience-filter').value;
+            const price = document.getElementById('price-filter').value;
+            const sort = document.querySelector('.sort-select').value;
+            
+            const params = {};
+            if (searchQuery) params.search = searchQuery;
+            if (sport) params.sport = sport;
+            if (experience) params.experience = experience;
+            if (price) params.price = price;
+            if (sort) params.sort = sort;
+            
+            loadCoaches(params);
+        }
 
         // Coach action functions
         function viewProfile(coachId) {
             console.log('View profile for coach:', coachId);
-            // Implement profile view
+            // You can implement a modal or redirect to profile page
+            window.open(`/coach/profile?id=${coachId}`, '_blank');
         }
 
         function bookSession(coachId) {
@@ -814,9 +874,40 @@ $additionalJS = [];
             // Redirect to booking page
             window.location.href = `/payment?coach_id=${coachId}`;
         }
-
-        // Initialize page
+        
+        // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(renderCoaches, 1000); // Simulate loading
+            // Load initial data
+            loadSportsCategories();
+            loadCoaches();
+            
+            // Set up event listeners
+            const searchBtn = document.querySelector('.search-btn');
+            const searchInput = document.getElementById('search-coaches');
+            const sportFilter = document.getElementById('sport-filter');
+            const experienceFilter = document.getElementById('experience-filter');
+            const priceFilter = document.getElementById('price-filter');
+            const sortSelect = document.querySelector('.sort-select');
+            
+            // Search button click
+            if (searchBtn) {
+                searchBtn.addEventListener('click', searchCoaches);
+            }
+            
+            // Enter key in search input
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchCoaches();
+                    }
+                });
+            }
+            
+            // Filter changes
+            [sportFilter, experienceFilter, priceFilter, sortSelect].forEach(element => {
+                if (element) {
+                    element.addEventListener('change', searchCoaches);
+                }
+            });
         });
     </script>
