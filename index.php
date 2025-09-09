@@ -65,6 +65,32 @@ try {
     $router->get('/coach/dashboard', 'CoachController@dashboard');
     $router->get('/shop-owner/dashboard', 'ShopOwnerController@dashboard');
     
+    // Coach page routes
+    $router->get('/coach/profile', 'CoachController@profilePage');
+    $router->get('/coach/sessions', 'CoachController@sessionsPage');
+    $router->get('/coach/clients', 'CoachController@clientsPage');
+    $router->get('/coach/programs', 'CoachController@programsPage');
+    $router->get('/coach/assessments', 'CoachController@assessmentsPage');
+    $router->get('/coach/earnings', 'CoachController@earningsPage');
+    $router->get('/coach/availability', 'CoachController@availabilityPage');
+    $router->get('/coach/reviews', 'CoachController@reviewsPage');
+    $router->get('/coach/resources', 'CoachController@resourcesPage');
+    $router->get('/coach/notifications', 'CoachController@notificationsPage');
+    $router->get('/coach/settings', 'CoachController@settingsPage');
+    $router->get('/coach/help', 'CoachController@helpPage');
+    
+    // Coach API routes
+    $router->get('/api/coach/dashboard', 'CoachController@getDashboardData');
+    $router->get('/api/coach/profile', 'CoachController@getProfile');
+    $router->put('/api/coach/profile', 'CoachController@updateProfile');
+    $router->post('/api/coach/profile/avatar', 'CoachController@uploadAvatar');
+    $router->get('/api/coach/sessions', 'CoachController@getSessions');
+    $router->post('/api/coach/sessions', 'CoachController@createSession');
+    $router->get('/api/coach/clients', 'CoachController@getClients');
+    $router->post('/api/coach/clients', 'CoachController@createClient');
+    $router->get('/api/coach/sidebar-stats', 'CoachController@getSidebarStats');
+    $router->get('/api/coach/notifications/count', 'CoachController@getNotificationsCount');
+    
     // Ground Owner page routes
     $router->get('/ground-owner/grounds', 'GroundOwnerController@groundsPage');
     $router->get('/ground-owner/bookings', 'GroundOwnerController@bookingsPage');
