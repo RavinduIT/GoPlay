@@ -164,6 +164,32 @@ $router->get('/news', 'NewsController@index');
 $router->get('/news/search', 'NewsController@search');
 $router->get('/news/load-more', 'NewsController@loadMore');
 $router->get('/news/{slug}', 'NewsController@show'); // This is the missing route!
+
+    // USER PROFILE ROUTES - Add these to your existing routes in index.php
+    
+    // User profile routes (ESSENTIAL - ADD THESE)
+    $router->get('/user/profile', 'UserController@profile');
+    $router->get('/profile', 'UserController@profile'); // Alternative route
+    $router->get('/dashboard', 'UserController@dashboard'); // User dashboard
+    
+    // User API routes
+    $router->get('/api/user/profile', 'UserController@getProfile');
+    $router->put('/api/user/profile', 'UserController@updateProfile');
+    $router->post('/api/user/avatar', 'UserController@uploadAvatar');
+    $router->post('/api/user/change-password', 'UserController@changePassword');
+    $router->get('/api/user/bookings', 'UserController@getBookings');
+    $router->get('/api/user/orders', 'UserController@getOrders');
+    
+    // Additional user routes
+    $router->get('/my-bookings', 'UserController@myBookings');
+    $router->get('/my-orders', 'UserController@myOrders');
+    $router->get('/cart', 'UserController@cart');
+    $router->get('/notifications', 'UserController@notifications');
+    $router->get('/settings', 'UserController@settings');
+    
+    // LOGOUT ROUTE FIX - Make sure this exists (should already be there)
+    $router->post('/auth/logout', 'AuthController@logout');
+    $router->get('/logout', 'AuthController@logout'); // Add GET version as fallback
     
     /* Debug routes
     $router->get('/debug', function() {
