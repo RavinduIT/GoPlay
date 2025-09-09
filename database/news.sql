@@ -2,19 +2,40 @@
 -- NEWS TRACKING UPDATES
 -- ======================
 
--- Add the missing last_viewed_at column to your existing news table
-ALTER TABLE news 
-ADD COLUMN IF NOT EXISTS last_viewed_at TIMESTAMP NULL DEFAULT NULL 
-AFTER views;
+USE goplay_sports_platform;
+
+-- Create news table if it doesn't exist
+CREATE TABLE IF NOT EXISTS news (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    content LONGTEXT NOT NULL,
+    excerpt TEXT,
+    featured_image VARCHAR(255),
+    category VARCHAR(100) DEFAULT 'General',
+    tags JSON,
+    author_id INT,
+    status ENUM('draft', 'published', 'archived') DEFAULT 'draft',
+    views INT DEFAULT 0,
+    last_viewed_at TIMESTAMP NULL DEFAULT NULL,
+    published_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_news_status (status),
+    INDEX idx_news_category (category),
+    INDEX idx_news_published (published_at),
+    INDEX idx_news_slug (slug),
+    INDEX idx_news_views_published (views DESC, published_at DESC),
+    INDEX idx_news_last_viewed (last_viewed_at),
+    INDEX idx_news_trending (published_at DESC, views DESC)
+);
 
 -- Update existing news articles to set views to random values if they are NULL or 0
 -- This makes the data more realistic for testing
 UPDATE news SET views = FLOOR(RAND() * 1500) + 100 WHERE views = 0 OR views IS NULL;
 
--- Add indexes for better performance on views and analytics queries
-CREATE INDEX IF NOT EXISTS idx_news_views_published ON news(views DESC, published_at DESC);
-CREATE INDEX IF NOT EXISTS idx_news_last_viewed ON news(last_viewed_at);
-CREATE INDEX IF NOT EXISTS idx_news_trending ON news(published_at DESC, views DESC);
+-- Add indexes for better performance on views and analytics queries (will be created with table above)
 
 -- Create analytics tracking table for detailed user engagement
 CREATE TABLE IF NOT EXISTS news_analytics (
