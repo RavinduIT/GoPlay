@@ -106,9 +106,9 @@ if (userBtn) {
 </script>
 <style>
     :root {
-    --primary-color: #28a745;
-    --primary-dark: #218838;
-    --primary-light: #d4edda;
+    --primary-color: #2563eb;
+    --primary-dark: #64748b;
+    --primary-light: #f1f5f9;
     --text-primary: #2c3e50;
     --text-secondary: #6c757d;
     --text-light: #adb5bd;
