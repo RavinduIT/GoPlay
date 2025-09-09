@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use Core\Request;
 use Core\Response;
+use App\Models\Coach;
 
 /**
  * Coach Controller
@@ -492,5 +493,157 @@ class CoachController extends BaseController
             'message' => 'Avatar uploaded successfully',
             'avatarUrl' => '/public/assets/images/coach-avatar-new.jpg'
         ]);
+    }
+
+    /**
+     * Get all available coaches for booking
+     */
+    public function getCoachesForBooking(Request $request): Response
+    {
+        try {
+            $coachModel = new Coach();
+            
+            // Get query parameters
+            $searchQuery = $request->getQuery('search') ?? '';
+            $sport = $request->getQuery('sport') ?? '';
+            $experience = $request->getQuery('experience') ?? '';
+            $price = $request->getQuery('price') ?? '';
+            $sortBy = $request->getQuery('sort') ?? 'rating';
+            
+            // Prepare filters
+            $filters = [];
+            if (!empty($sport)) {
+                $filters['sport'] = $sport;
+            }
+            if (!empty($experience)) {
+                $filters['experience'] = $experience;
+            }
+            if (!empty($price)) {
+                $filters['price'] = $price;
+            }
+            
+            // Get coaches based on search and filters
+            if (!empty($searchQuery) || !empty($filters)) {
+                $coaches = $coachModel->search($searchQuery, $filters);
+            } else {
+                $coaches = $coachModel->getAvailable();
+            }
+            
+            // Format coaches data for the UI
+            $formattedCoaches = [];
+            foreach ($coaches as $coach) {
+                $formattedCoaches[] = [
+                    'id' => $coach['id'],
+                    'name' => $coach['first_name'] . ' ' . $coach['last_name'],
+                    'sport' => $coach['sport_name'] ?? 'General',
+                    'experience' => $coach['experience_years'] . ' years',
+                    'rating' => round($coach['rating'], 1),
+                    'reviews' => $coach['total_reviews'],
+                    'price' => $coach['hourly_rate'],
+                    'location' => $coach['location'],
+                    'bio' => $coach['bio'],
+                    'specialties' => !empty($coach['specializations']) ? explode(', ', $coach['specializations']) : [],
+                    'certifications' => !empty($coach['certifications']) ? explode(', ', $coach['certifications']) : [],
+                    'profile_picture' => $coach['profile_picture'] ?? null
+                ];
+            }
+            
+            return $this->json([
+                'success' => true,
+                'coaches' => $formattedCoaches,
+                'total' => count($formattedCoaches)
+            ]);
+            
+        } catch (Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Failed to fetch coaches',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Get sports categories for filter dropdown
+     */
+    public function getSportsCategories(Request $request): Response
+    {
+        try {
+            $coachModel = new Coach();
+            $categories = $coachModel->getSportsCategories();
+            
+            return $this->json([
+                'success' => true,
+                'categories' => $categories
+            ]);
+            
+        } catch (Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Failed to fetch sports categories',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Get single coach details
+     */
+    public function getCoachDetails(Request $request): Response
+    {
+        try {
+            $id = $request->getParam('id'); // This is correct for route params like /api/coaches/{id}
+            if (!$id) {
+                return $this->json(['error' => 'Coach ID is required'], 400);
+            }
+            
+            $coachModel = new Coach();
+            $coach = $coachModel->getWithDetails((int)$id);
+            
+            if (!$coach) {
+                return $this->json(['error' => 'Coach not found'], 404);
+            }
+            
+            // Get reviews for this coach
+            $reviews = $coachModel->getReviews((int)$id);
+            
+            $formattedCoach = [
+                'id' => $coach['id'],
+                'name' => $coach['first_name'] . ' ' . $coach['last_name'],
+                'email' => $coach['email'],
+                'phone' => $coach['phone'],
+                'sport' => $coach['sport_name'] ?? 'General',
+                'experience' => $coach['experience_years'] . ' years',
+                'rating' => round($coach['rating'], 1),
+                'reviews' => $coach['total_reviews'],
+                'price' => $coach['hourly_rate'],
+                'location' => $coach['location'],
+                'bio' => $coach['bio'],
+                'specialties' => !empty($coach['specializations']) ? explode(', ', $coach['specializations']) : [],
+                'certifications' => !empty($coach['certifications']) ? explode(', ', $coach['certifications']) : [],
+                'profile_picture' => $coach['profile_picture'] ?? null,
+                'total_sessions' => $coach['total_sessions'],
+                'reviews_list' => array_map(function($review) {
+                    return [
+                        'rating' => $review['rating'],
+                        'review_text' => $review['review_text'],
+                        'reviewer_name' => $review['first_name'] . ' ' . $review['last_name'],
+                        'created_at' => $review['created_at']
+                    ];
+                }, $reviews)
+            ];
+            
+            return $this->json([
+                'success' => true,
+                'coach' => $formattedCoach
+            ]);
+            
+        } catch (Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Failed to fetch coach details',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

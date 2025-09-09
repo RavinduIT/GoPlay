@@ -15,44 +15,75 @@ class Coach extends BaseModel
     
     protected array $fillable = [
         'user_id',
-        'sport_specialization',
+        'sport_category_id',
         'experience_years',
-        'certification',
         'hourly_rate',
-        'availability',
-        'description',
-        'skills',
-        'languages',
-        'location',
+        'bio',
+        'specializations',
+        'certifications',
         'rating',
+        'total_reviews',
         'total_sessions',
+        'availability_schedule',
+        'location',
         'status'
     ];
 
     protected array $casts = [
         'experience_years' => 'int',
         'hourly_rate' => 'float',
-        'availability' => 'array',
-        'skills' => 'array',
-        'languages' => 'array',
+        'availability_schedule' => 'array',
         'rating' => 'float',
+        'total_reviews' => 'int',
         'total_sessions' => 'int'
     ];
 
     /**
-     * Get available coaches
+     * Get available coaches with user and sport category details
      */
     public function getAvailable(): array
     {
-        return $this->where(['status' => 'active']);
+        $sql = "SELECT 
+                    c.*,
+                    u.first_name,
+                    u.last_name,
+                    u.email,
+                    u.phone,
+                    u.profile_picture,
+                    sc.name as sport_name,
+                    sc.icon as sport_icon
+                FROM {$this->table} c 
+                JOIN users u ON c.user_id = u.id 
+                JOIN sports_categories sc ON c.sport_category_id = sc.id
+                WHERE c.status = 'active' 
+                ORDER BY c.rating DESC, c.total_reviews DESC";
+        
+        $results = $this->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
     }
 
     /**
-     * Get coaches by sport
+     * Get coaches by sport category
      */
-    public function getBySport(string $sport): array
+    public function getBySport(string $sportName): array
     {
-        return $this->where(['sport_specialization' => $sport, 'status' => 'active']);
+        $sql = "SELECT 
+                    c.*,
+                    u.first_name,
+                    u.last_name,
+                    u.email,
+                    u.phone,
+                    u.profile_picture,
+                    sc.name as sport_name,
+                    sc.icon as sport_icon
+                FROM {$this->table} c 
+                JOIN users u ON c.user_id = u.id 
+                JOIN sports_categories sc ON c.sport_category_id = sc.id
+                WHERE c.status = 'active' AND sc.name = ?
+                ORDER BY c.rating DESC, c.total_reviews DESC";
+        
+        $results = $this->query($sql, [$sportName])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
     }
 
     /**
@@ -60,58 +91,105 @@ class Coach extends BaseModel
      */
     public function getTopRated(int $limit = 10): array
     {
-        $sql = "SELECT * FROM {$this->table} 
-                WHERE status = 'active' 
-                ORDER BY rating DESC, total_sessions DESC 
+        $sql = "SELECT 
+                    c.*,
+                    u.first_name,
+                    u.last_name,
+                    u.email,
+                    u.phone,
+                    u.profile_picture,
+                    sc.name as sport_name,
+                    sc.icon as sport_icon
+                FROM {$this->table} c 
+                JOIN users u ON c.user_id = u.id 
+                JOIN sports_categories sc ON c.sport_category_id = sc.id
+                WHERE c.status = 'active' 
+                ORDER BY c.rating DESC, c.total_sessions DESC 
                 LIMIT ?";
         
-        return $this->query($sql, [$limit]);
+        $results = $this->query($sql, [$limit])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
     }
 
     /**
-     * Search coaches
+     * Search coaches with filters
      */
-    public function search(string $query, array $filters = []): array
+    public function search(string $query = '', array $filters = []): array
     {
-        $sql = "SELECT c.*, u.name, u.avatar 
+        $sql = "SELECT 
+                    c.*,
+                    u.first_name,
+                    u.last_name,
+                    u.email,
+                    u.phone,
+                    u.profile_picture,
+                    sc.name as sport_name,
+                    sc.icon as sport_icon
                 FROM {$this->table} c 
                 JOIN users u ON c.user_id = u.id 
-                WHERE c.status = 'active' 
-                AND (u.name LIKE ? OR c.description LIKE ? OR c.sport_specialization LIKE ?)";
+                JOIN sports_categories sc ON c.sport_category_id = sc.id
+                WHERE c.status = 'active'";
         
-        $params = ["%{$query}%", "%{$query}%", "%{$query}%"];
+        $params = [];
         
-        if (isset($filters['sport'])) {
-            $sql .= " AND c.sport_specialization = ?";
+        if (!empty($query)) {
+            $sql .= " AND (u.first_name LIKE ? OR u.last_name LIKE ? OR c.bio LIKE ? OR sc.name LIKE ? OR c.specializations LIKE ?)";
+            $queryParam = "%{$query}%";
+            $params = array_fill(0, 5, $queryParam);
+        }
+        
+        if (isset($filters['sport']) && !empty($filters['sport'])) {
+            $sql .= " AND sc.name = ?";
             $params[] = $filters['sport'];
         }
         
-        if (isset($filters['max_rate'])) {
-            $sql .= " AND c.hourly_rate <= ?";
-            $params[] = $filters['max_rate'];
+        if (isset($filters['experience']) && !empty($filters['experience'])) {
+            if ($filters['experience'] === '1-3') {
+                $sql .= " AND c.experience_years BETWEEN 1 AND 3";
+            } elseif ($filters['experience'] === '3-5') {
+                $sql .= " AND c.experience_years BETWEEN 3 AND 5";
+            } elseif ($filters['experience'] === '5+') {
+                $sql .= " AND c.experience_years >= 5";
+            }
         }
         
-        if (isset($filters['min_rating'])) {
-            $sql .= " AND c.rating >= ?";
-            $params[] = $filters['min_rating'];
+        if (isset($filters['price']) && !empty($filters['price'])) {
+            if ($filters['price'] === '0-2000') {
+                $sql .= " AND c.hourly_rate BETWEEN 0 AND 2000";
+            } elseif ($filters['price'] === '2000-4000') {
+                $sql .= " AND c.hourly_rate BETWEEN 2000 AND 4000";
+            } elseif ($filters['price'] === '4000+') {
+                $sql .= " AND c.hourly_rate >= 4000";
+            }
         }
         
-        $sql .= " ORDER BY c.rating DESC";
+        $sql .= " ORDER BY c.rating DESC, c.total_reviews DESC";
         
-        return $this->query($sql, $params);
+        $results = $this->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
     }
 
     /**
-     * Get coach with user details
+     * Get coach with full details
      */
-    public function getWithUser(int $id): ?array
+    public function getWithDetails(int $id): ?array
     {
-        $sql = "SELECT c.*, u.name, u.email, u.phone, u.avatar 
+        $sql = "SELECT 
+                    c.*,
+                    u.first_name,
+                    u.last_name,
+                    u.email,
+                    u.phone,
+                    u.profile_picture,
+                    sc.name as sport_name,
+                    sc.icon as sport_icon
                 FROM {$this->table} c 
                 JOIN users u ON c.user_id = u.id 
+                JOIN sports_categories sc ON c.sport_category_id = sc.id
                 WHERE c.id = ?";
         
-        return $this->queryFirst($sql, [$id]);
+        $result = $this->queryFirst($sql, [$id]);
+        return $result ? $this->castAttributes($result) : null;
     }
 
     /**
@@ -119,34 +197,65 @@ class Coach extends BaseModel
      */
     public function getBookings(int $coachId): array
     {
-        $sql = "SELECT b.*, u.name as customer_name 
-                FROM bookings b 
-                JOIN users u ON b.user_id = u.id 
-                WHERE b.coach_id = ? 
-                ORDER BY b.booking_date DESC, b.start_time DESC";
+        $sql = "SELECT cb.*, u.first_name, u.last_name 
+                FROM coach_bookings cb 
+                JOIN users u ON cb.user_id = u.id 
+                WHERE cb.coach_id = ? 
+                ORDER BY cb.booking_date DESC, cb.start_time DESC";
         
-        return $this->query($sql, [$coachId]);
+        $results = $this->query($sql, [$coachId])->fetchAll(\PDO::FETCH_ASSOC);
+        return $results;
     }
 
     /**
-     * Update coach rating
+     * Get coach reviews
+     */
+    public function getReviews(int $coachId): array
+    {
+        $sql = "SELECT cr.*, u.first_name, u.last_name 
+                FROM coach_reviews cr 
+                JOIN users u ON cr.user_id = u.id 
+                WHERE cr.coach_id = ? 
+                ORDER BY cr.created_at DESC";
+        
+        $results = $this->query($sql, [$coachId])->fetchAll(\PDO::FETCH_ASSOC);
+        return $results;
+    }
+
+    /**
+     * Update coach rating based on reviews
      */
     public function updateRating(int $coachId): bool
     {
         $sql = "UPDATE {$this->table} 
                 SET rating = (
-                    SELECT AVG(rating) 
+                    SELECT COALESCE(AVG(rating), 0) 
+                    FROM coach_reviews 
+                    WHERE coach_id = ?
+                ),
+                total_reviews = (
+                    SELECT COUNT(*) 
                     FROM coach_reviews 
                     WHERE coach_id = ?
                 ),
                 total_sessions = (
                     SELECT COUNT(*) 
-                    FROM bookings 
-                    WHERE coach_id = ? AND booking_status = 'completed'
+                    FROM coach_bookings 
+                    WHERE coach_id = ? AND status = 'completed'
                 )
                 WHERE id = ?";
         
-        $statement = $this->query($sql, [$coachId, $coachId, $coachId]);
-        return $statement->rowCount() > 0;
+        $statement = $this->query($sql, [$coachId, $coachId, $coachId, $coachId]);
+        return $statement && $statement->rowCount() > 0;
+    }
+
+    /**
+     * Get all sports categories
+     */
+    public function getSportsCategories(): array
+    {
+        $sql = "SELECT * FROM sports_categories WHERE is_active = 1 ORDER BY name";
+        $results = $this->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        return $results;
     }
 }
