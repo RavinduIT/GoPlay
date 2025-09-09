@@ -1057,4 +1057,99 @@ $additionalJS = [];
                 renderProducts(); // Will show error state
             }
         });
+
+
+// --- Header filter helpers -----------------------------
+
+function parsePriceRange(val) {
+  // Map UI values to LKR ranges in your labels
+  // "" => no limit, "0-50" => 0..5000, "50-100" => 5000..10000, "100+" => 10000..∞
+  if (!val) return {min:null, max:null};
+  if (val === '0-50')   return {min:0,     max:5000};
+  if (val === '50-100') return {min:5000,  max:10000};
+  if (val === '100+')   return {min:10000, max:null};
+  return {min:null, max:null};
+}
+
+function applyHeaderFilters() {
+  const qInput      = document.getElementById('search-products');
+  const catSelect   = document.getElementById('category-filter');
+  const priceSelect = document.getElementById('price-filter');
+  const sortSelect  = document.querySelector('.sort-select'); // has class in your markup
+
+  const q   = (qInput?.value || '').trim().toLowerCase();
+  const cat = (catSelect?.value || '').trim();            // category slug
+  const {min, max} = parsePriceRange(priceSelect?.value || '');
+  const sort = (sortSelect?.value || 'featured');
+
+  // filter
+  let filtered = products.filter(p => {
+    // category
+    if (cat && p.category_slug !== cat) return false;
+
+    // search (name or description)
+    if (q) {
+      const blob = ((p.name || '') + ' ' + (p.short_description || p.description || '')).toLowerCase();
+      if (!blob.includes(q)) return false;
+    }
+
+    // price
+    const price = Number(p.price || 0);
+    if (min !== null && price < min) return false;
+    if (max !== null && price > max) return false;
+
+    // only active (your PHP already sends active, keep guard)
+    if (p.status && p.status !== 'active') return false;
+
+    return true;
+  });
+
+  // sort
+  const sorters = {
+    'featured': (a,b) => (b.rating ?? 0) - (a.rating ?? 0) || new Date(b.created_at) - new Date(a.created_at),
+    'price-low': (a,b) => (a.price ?? 0) - (b.price ?? 0),
+    'price-high': (a,b) => (b.price ?? 0) - (a.price ?? 0),
+    'rating': (a,b) => (b.rating ?? 0) - (a.rating ?? 0),
+    'newest': (a,b) => new Date(b.created_at) - new Date(a.created_at),
+    'name': (a,b) => String(a.name||'').localeCompare(String(b.name||''))
+  };
+  filtered.sort(sorters[sort] || sorters['featured']);
+
+  renderProducts(filtered);
+}
+
+// Keep category grid click in sync with header select
+function filterByCategory(categorySlug) {
+  const catSelect = document.getElementById('category-filter');
+  if (catSelect) {
+    catSelect.value = categorySlug || '';
+  }
+  applyHeaderFilters();
+  return false;
+}
+
+// --- Wire up events ------------------------------------
+document.addEventListener('DOMContentLoaded', function () {
+  // First render from DB
+  if (!hasError) {
+    renderCategories();
+    renderProducts();
+  } else {
+    renderProducts();
+  }
+
+  const qInput      = document.getElementById('search-products');
+  const catSelect   = document.getElementById('category-filter');
+  const priceSelect = document.getElementById('price-filter');
+  const sortSelect  = document.querySelector('.sort-select');
+  const searchBtn   = document.querySelector('.search-btn');
+
+  // trigger on interactions
+  qInput?.addEventListener('keydown', e => { if (e.key === 'Enter') applyHeaderFilters(); });
+  catSelect?.addEventListener('change', applyHeaderFilters);
+  priceSelect?.addEventListener('change', applyHeaderFilters);
+  sortSelect?.addEventListener('change', applyHeaderFilters);
+  searchBtn?.addEventListener('click', applyHeaderFilters);
+});
+
     </script>
