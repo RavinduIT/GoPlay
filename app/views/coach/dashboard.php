@@ -6,74 +6,7 @@ $additionalJS = ['/public/js/pages/coach-dashboard.js'];
 <link rel="stylesheet" href="/public/css/pages/coach-dashboard.css">
 <div class="coach-dashboard">
     <!-- Sidebar -->
-    <aside class="dashboard-sidebar" id="dashboardSidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="fas fa-user-tie"></i>
-                <span>Coach Panel</span>
-            </div>
-            <button class="sidebar-toggle mobile-only" onclick="toggleSidebar()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <ul>
-                <li class="active">
-                    <a href="/coach/dashboard">
-                        <i class="fas fa-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/coach/sessions">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Sessions</span>
-                        <span class="badge">8</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/coach/students">
-                        <i class="fas fa-users"></i>
-                        <span>Students</span>
-                        <span class="badge">45</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/coach/earnings">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Earnings</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/coach/availability">
-                        <i class="fas fa-clock"></i>
-                        <span>Availability</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/coach/reviews">
-                        <i class="fas fa-star"></i>
-                        <span>Reviews</span>
-                        <span class="badge new">3</span>
-                    </a>
-                </li>
-                <li class="nav-divider"></li>
-                <li>
-                    <a href="/coach/profile">
-                        <i class="fas fa-user"></i>
-                        <span>Profile</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/logout" class="logout-link">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </aside>
+    <?php include 'sidebar.php'; ?>
 
     <!-- Main Content -->
     <main class="dashboard-main">
@@ -397,3 +330,68 @@ $additionalJS = ['/public/js/pages/coach-dashboard.js'];
         </div>
     </main>
 </div>
+
+    <!-- Quick Session Modal -->
+    <div id="quickSessionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Schedule Quick Session</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="quickSessionForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Client</label>
+                            <select name="clientId" required>
+                                <option value="">Select Client</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Session Type</label>
+                            <select name="sessionType" required>
+                                <option value="personal">Personal Training</option>
+                                <option value="group">Group Session</option>
+                                <option value="assessment">Assessment</option>
+                                <option value="consultation">Consultation</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" name="sessionDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Time</label>
+                            <input type="time" name="sessionTime" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (minutes)</label>
+                        <select name="duration">
+                            <option value="30">30 minutes</option>
+                            <option value="45">45 minutes</option>
+                            <option value="60" selected>1 hour</option>
+                            <option value="90">1.5 hours</option>
+                            <option value="120">2 hours</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea name="notes" placeholder="Session objectives, special requirements, etc."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="coachDashboard.closeModal('quickSessionModal')">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="coachDashboard.saveQuickSession()">Schedule Session</button>
+            </div>
+        </div>
+    </div>
+
+    <?php foreach($additionalJS as $js): ?>
+        <script src="<?= $js ?>"></script>
+    <?php endforeach; ?>
+</body>
+</html>
