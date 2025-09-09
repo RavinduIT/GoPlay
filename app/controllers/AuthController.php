@@ -44,6 +44,11 @@ class AuthController extends BaseController
         try {
             $data = $request->getBody();
             
+            // Use JSON body if regular body is empty (for JSON requests)
+            if (empty($data) && $request->getHeader('content-type') && strpos($request->getHeader('content-type'), 'application/json') !== false) {
+                $data = $request->getJsonBody();
+            }
+            
             if (!isset($data['email']) || !isset($data['password'])) {
                 return $this->json(['error' => 'Email and password are required'], 400);
             }

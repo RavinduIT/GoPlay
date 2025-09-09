@@ -1,0 +1,909 @@
+/* Ground Owner - Maintenance Management Styles */
+
+/* Maintenance Overview */
+.maintenance-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.maintenance-overview .overview-card.active-tasks::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--primary-color), var(--primary-dark));
+}
+
+.maintenance-overview .overview-card.overdue-tasks::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--danger-color), #dc2626);
+}
+
+.maintenance-overview .overview-card.completed-month::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--success-color), #047857);
+}
+
+.maintenance-overview .overview-card.maintenance-cost::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+}
+
+.priority-breakdown {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.high-priority {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.medium-priority {
+    color: var(--warning-color);
+    font-weight: 600;
+}
+
+.completion-rate {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.cost-breakdown {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.cost-change.positive {
+    color: var(--success-color);
+}
+
+.cost-change.negative {
+    color: var(--danger-color);
+}
+
+.stat-number.warning {
+    color: var(--danger-color);
+}
+
+/* Maintenance Calendar */
+.maintenance-calendar-section {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.maintenance-calendar-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.maintenance-calendar-section .section-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.calendar-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.calendar-nav {
+    background: none;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.calendar-nav:hover {
+    background: var(--light-bg);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.calendar-controls h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.maintenance-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.calendar-day {
+    background: white;
+    padding: 1rem;
+    min-height: 120px;
+    position: relative;
+}
+
+.calendar-day.other-month {
+    background: var(--light-bg);
+    color: var(--text-light);
+}
+
+.calendar-day.today {
+    background: #eff6ff;
+}
+
+.calendar-day-number {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.calendar-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.calendar-task {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.calendar-task:hover {
+    transform: scale(1.02);
+}
+
+.calendar-task.scheduled {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary-color);
+    border-left: 3px solid var(--primary-color);
+}
+
+.calendar-task.in-progress {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+    border-left: 3px solid var(--warning-color);
+}
+
+.calendar-task.overdue {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+    border-left: 3px solid var(--danger-color);
+}
+
+.calendar-task.completed {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+    border-left: 3px solid var(--success-color);
+}
+
+.calendar-legend {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.legend-color.scheduled { background: rgba(37, 99, 235, 0.3); }
+.legend-color.in-progress { background: rgba(245, 158, 11, 0.3); }
+.legend-color.overdue { background: rgba(239, 68, 68, 0.3); }
+.legend-color.completed { background: rgba(16, 185, 129, 0.3); }
+
+/* Maintenance Content Grid */
+.maintenance-content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.maintenance-section {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.maintenance-section .section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.maintenance-section .section-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.section-filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Active Tasks List */
+.tasks-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.task-item {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.task-item:hover {
+    background: var(--light-bg);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.task-info h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.task-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.task-ground {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.task-date {
+    color: var(--text-secondary);
+}
+
+.task-priority {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.task-priority.high {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.task-priority.medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.task-priority.low {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.task-priority.urgent {
+    background: var(--danger-color);
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.task-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.task-status.scheduled {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary-color);
+}
+
+.task-status.in-progress {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.task-status.overdue {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.task-description {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.task-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.task-cost {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.task-assigned {
+    color: var(--text-secondary);
+}
+
+/* Inspection List */
+.inspections-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.inspection-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.inspection-item:last-child {
+    border-bottom: none;
+}
+
+.inspection-item:hover {
+    background: var(--light-bg);
+}
+
+.inspection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.inspection-type {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.inspection-date {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.inspection-ground {
+    font-size: 0.875rem;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.inspection-inspector {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* Maintenance Analytics */
+.maintenance-analytics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.analytics-section {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.analytics-section .section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.analytics-section .section-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.analytics-section canvas {
+    padding: 1.5rem;
+    height: 300px;
+}
+
+/* Cost Analysis */
+.cost-breakdown-chart canvas {
+    height: 250px !important;
+}
+
+.cost-categories {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.cost-category {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cost-category:last-child {
+    border-bottom: none;
+}
+
+.category-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.category-amount {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Ground Health Scores */
+.health-scores {
+    padding: 1.5rem;
+}
+
+.health-item {
+    margin-bottom: 1.5rem;
+}
+
+.health-item:last-child {
+    margin-bottom: 0;
+}
+
+.health-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.health-ground {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.health-score {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.health-score.excellent {
+    color: var(--success-color);
+}
+
+.health-score.good {
+    color: #6366f1;
+}
+
+.health-score.fair {
+    color: var(--warning-color);
+}
+
+.health-score.poor {
+    color: var(--danger-color);
+}
+
+.health-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--light-bg);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.health-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease-in-out;
+}
+
+.health-fill.excellent {
+    background: linear-gradient(90deg, var(--success-color), #10b981);
+}
+
+.health-fill.good {
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
+}
+
+.health-fill.fair {
+    background: linear-gradient(90deg, var(--warning-color), #f59e0b);
+}
+
+.health-fill.poor {
+    background: linear-gradient(90deg, var(--danger-color), #ef4444);
+}
+
+/* Maintenance Templates */
+.maintenance-templates {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.maintenance-templates .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.maintenance-templates .section-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.template-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.template-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.template-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.template-title {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.template-type {
+    padding: 0.25rem 0.5rem;
+    background: var(--light-bg);
+    color: var(--primary-color);
+    font-size: 0.75rem;
+    border-radius: 12px;
+}
+
+.template-description {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.template-stats {
+    display: flex;
+    justify-content: between;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Task Details Modal */
+.task-details-content {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.task-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.info-section {
+    padding: 1.5rem;
+    background: var(--light-bg);
+    border-radius: var(--border-radius);
+}
+
+.info-section h4 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.info-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-item label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.info-item span {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.priority-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.priority-badge.high {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.priority-badge.medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.priority-badge.low {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.task-description,
+.task-tools {
+    padding: 1.5rem;
+    background: var(--light-bg);
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+}
+
+.task-description h4,
+.task-tools h4 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.task-description p,
+.task-tools p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.task-progress {
+    padding: 1.5rem;
+    background: var(--light-bg);
+    border-radius: var(--border-radius);
+}
+
+.task-progress h4 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.progress-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.progress-item:last-child {
+    border-bottom: none;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.progress-user {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.progress-date {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.progress-text {
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.add-progress {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.add-progress textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    resize: vertical;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .maintenance-content-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .maintenance-analytics {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+    
+    .task-info-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .maintenance-overview {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .calendar-legend {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .calendar-day {
+        padding: 0.5rem;
+        min-height: 80px;
+    }
+    
+    .maintenance-analytics {
+        grid-template-columns: 1fr;
+    }
+    
+    .templates-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-filters {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+    
+    .task-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    .task-meta {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .maintenance-overview {
+        grid-template-columns: 1fr;
+    }
+    
+    .calendar-nav {
+        padding: 0.25rem;
+    }
+    
+    .calendar-day {
+        padding: 0.25rem;
+        min-height: 60px;
+        font-size: 0.875rem;
+    }
+    
+    .calendar-task {
+        font-size: 0.625rem;
+        padding: 0.125rem 0.25rem;
+    }
+    
+    .task-item {
+        padding: 1rem;
+    }
+    
+    .inspection-item {
+        padding: 0.75rem 1rem;
+    }
+    
+    .analytics-section canvas {
+        height: 200px;
+    }
+}

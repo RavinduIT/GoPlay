@@ -39,7 +39,13 @@ class User extends BaseModel
      */
     public function getByEmail(string $email): ?array
     {
-        return $this->where(['email' => $email])[0] ?? null;
+        // For authentication, we need the password_hash, so query directly
+        $sql = "SELECT * FROM {$this->table} WHERE email = ?";
+        $statement = $this->query($sql, [$email]);
+        $user = $statement->fetch(\PDO::FETCH_ASSOC);
+        
+        // Don't apply castAttributes here as it would hide password_hash
+        return $user ?: null;
     }
 
     /**
