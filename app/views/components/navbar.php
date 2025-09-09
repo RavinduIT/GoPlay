@@ -1,10 +1,65 @@
-<link rel="stylesheet" href="/public/css/pages/components/navbar.css">
+<?php
+// Start session to check user authentication
+session_start();
+
+// Function to get profile URL based on user role
+function getProfileUrl($userType) {
+    switch($userType) {
+        case 'admin':
+            return '/admin/dashboard';
+        case 'coach':
+            return '/coach/profile';
+        case 'ground_owner':
+            return '/ground-owner/profile';
+        case 'shop_owner':
+            return '/shop-owner/profile';
+        case 'user':
+        default:
+            return '/user/profile';
+    }
+}
+
+// Function to get dashboard URL based on user role
+function getDashboardUrl($userType) {
+    switch($userType) {
+        case 'admin':
+            return '/admin/dashboard';
+        case 'coach':
+            return '/coach/dashboard';
+        case 'ground_owner':
+            return '/ground-owner/dashboard';
+        case 'shop_owner':
+            return '/shop-owner/dashboard';
+        case 'user':
+        default:
+            return '/dashboard';
+    }
+}
+
+// Function to get user initials for default avatar
+function getUserInitials($name) {
+    $words = explode(' ', trim($name));
+    $initials = '';
+    foreach ($words as $word) {
+        if (!empty($word)) {
+            $initials .= strtoupper($word[0]);
+        }
+    }
+    return substr($initials, 0, 2); // Maximum 2 initials
+}
+
+// Check if user has a profile picture
+$hasProfilePicture = isset($_SESSION['user']['avatar']) && !empty($_SESSION['user']['avatar']);
+$userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_name']) : 'U';
+?>
+
 <nav class="navbar">
     <div class="nav-container">
         <!-- Logo -->
         <div class="nav-logo">
             <a href="/">
-                <img src="/public/assets/images/logo.jpeg" alt="GoPlay" class="logo-img">
+                <img src="/public/assets/images/logo.jpeg" alt="GoPlay" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                <span class="logo-fallback" style="display: none;">GP</span>
                 <span class="logo-text">GoPlay</span>
             </a>
         </div>
@@ -30,32 +85,56 @@
         
         <!-- User Menu -->
         <div class="nav-user">
-            <?php if (isset($_SESSION['user'])): ?>
+            <?php if (isset($_SESSION['user_id'])): ?>
                 <div class="user-dropdown">
                     <button class="user-btn">
-                        <img src="<?= $_SESSION['user']['avatar'] ?? '/public/assets/images/default-avatar.png' ?>" 
-                             alt="Profile" class="user-avatar">
-                        <span><?= $_SESSION['user']['name'] ?? 'User' ?></span>
+                        <?php if ($hasProfilePicture): ?>
+                            <img src="<?= $_SESSION['user']['avatar'] ?>" 
+                                 alt="Profile" class="user-avatar"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="user-avatar-fallback" style="display: none;"><?= $userInitials ?></div>
+                        <?php else: ?>
+                            <div class="user-avatar-fallback"><?= $userInitials ?></div>
+                        <?php endif; ?>
+                        <span><?= $_SESSION['user_name'] ?? 'User' ?></span>
                         <i class="fas fa-chevron-down dropdown-icon"></i>
                     </button>
                     <div class="dropdown-content">
-                        <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                        <a href="<?= getProfileUrl($_SESSION['user_type'] ?? 'user') ?>">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                        
+                        <?php if (($_SESSION['user_type'] ?? 'user') !== 'user'): ?>
+                            <a href="<?= getDashboardUrl($_SESSION['user_type']) ?>">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        <?php endif; ?>
+                        
                         <a href="/my-bookings"><i class="fas fa-calendar-alt"></i> My Bookings</a>
                         <a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a>
-                        <?php if (($_SESSION['user']['role'] ?? '') === 'admin'): ?>
-                            <a href="/admin"><i class="fas fa-cog"></i> Admin Panel</a>
+                        <a href="/my-orders"><i class="fas fa-receipt"></i> My Orders</a>
+                        
+                        <?php if (($_SESSION['user_type'] ?? '') === 'admin'): ?>
+                            <hr>
+                            <a href="/admin/dashboard"><i class="fas fa-cog"></i> Admin Panel</a>
                         <?php endif; ?>
+                        
                         <hr>
-                        <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        <a href="/notifications"><i class="fas fa-bell"></i> Notifications</a>
+                        <a href="/settings"><i class="fas fa-cog"></i> Settings</a>
+                        <hr>
+                        <a href="#" onclick="logout(); return false;" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
                     </div>
                 </div>
             <?php else: ?>
                 <div class="auth-buttons">
                     <a href="/login" class="btn btn-outline">
-                        <i class="fas fa-sign-in-alt"></i> Login
+                        <i class="fas fa-sign-in-alt"></i> <span>Login</span>
                     </a>
                     <a href="/signup" class="btn btn-primary">
-                        <i class="fas fa-user-plus"></i> Sign Up
+                        <i class="fas fa-user-plus"></i> <span>Sign Up</span>
                     </a>
                 </div>
             <?php endif; ?>
@@ -78,11 +157,14 @@
         <li><a href="/book-coach">Book Coach</a></li>
         <li><a href="/shop">Shop</a></li>
         <li><a href="/news">News</a></li>
-        <?php if (isset($_SESSION['user'])): ?>
-            <li><a href="/profile">Profile</a></li>
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <li><a href="<?= getProfileUrl($_SESSION['user_type'] ?? 'user') ?>">Profile</a></li>
+            <?php if (($_SESSION['user_type'] ?? 'user') !== 'user'): ?>
+                <li><a href="<?= getDashboardUrl($_SESSION['user_type']) ?>">Dashboard</a></li>
+            <?php endif; ?>
             <li><a href="/my-bookings">My Bookings</a></li>
             <li><a href="/cart">Cart</a></li>
-            <li><a href="/logout">Logout</a></li>
+            <li><a href="#" onclick="logout(); return false;">Logout</a></li>
         <?php else: ?>
             <li><a href="/login">Login</a></li>
             <li><a href="/signup">Sign Up</a></li>
@@ -91,39 +173,126 @@
 </div>
 
 <script>
+console.log('Navbar script loaded');
+
 // Mobile menu toggle
-document.querySelector('.nav-toggle').addEventListener('click', function() {
-    document.querySelector('.mobile-menu').classList.toggle('active');
-});
+const navToggle = document.querySelector('.nav-toggle');
+const mobileMenu = document.querySelector('.mobile-menu');
+
+if (navToggle && mobileMenu) {
+    navToggle.addEventListener('click', function() {
+        mobileMenu.classList.toggle('active');
+        this.classList.toggle('active');
+    });
+}
 
 // User dropdown toggle
 const userBtn = document.querySelector('.user-btn');
 if (userBtn) {
-    userBtn.addEventListener('click', function() {
-        this.nextElementSibling.classList.toggle('show');
+    console.log('User button found');
+    userBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        const dropdown = this.nextElementSibling;
+        dropdown.classList.toggle('show');
+        console.log('Dropdown toggled');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const dropdown = document.querySelector('.dropdown-content');
+        if (dropdown && !userBtn.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
     });
 }
+
+// Logout function - Fixed to use correct endpoint
+function logout() {
+    console.log('Logout function called');
+    
+    if (confirm('Are you sure you want to logout?')) {
+        // Try multiple possible logout endpoints
+        const logoutEndpoints = ['/auth/logout', '/logout'];
+        
+        // Use form submission as fallback for logout
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/auth/logout';
+        form.style.display = 'none';
+        document.body.appendChild(form);
+        
+        // Add CSRF token if available
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken) {
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '_token';
+            tokenInput.value = metaToken.content;
+            form.appendChild(tokenInput);
+        }
+        
+        // Try fetch first
+        fetch('/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('Logout response:', response);
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Network response was not ok');
+        })
+        .then(data => {
+            console.log('Logout success:', data);
+            if (data.success) {
+                window.location.href = '/';
+            } else {
+                throw new Error(data.message || 'Logout failed');
+            }
+        })
+        .catch(error => {
+            console.log('Fetch failed, trying form submission:', error);
+            // Fallback to form submission
+            form.submit();
+        });
+    }
+    
+    return false;
+}
+
+// Debug session info
+console.log('Session check - User ID:', <?= json_encode($_SESSION['user_id'] ?? null) ?>);
+console.log('Session check - User Type:', <?= json_encode($_SESSION['user_type'] ?? null) ?>);
+console.log('Session check - User Name:', <?= json_encode($_SESSION['user_name'] ?? null) ?>);
 </script>
+
 <style>
-    :root {
+:root {
     --primary-color: #2563eb;
-    --primary-dark: #64748b;
-    --primary-light: #f1f5f9;
-    --text-primary: #2c3e50;
-    --text-secondary: #6c757d;
-    --text-light: #adb5bd;
+    --primary-dark: #1e40af;
+    --primary-light: #dbeafe;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --text-light: #9ca3af;
     --background-white: #ffffff;
-    --border-color: #e9ecef;
-    --shadow-light: 0 2px 8px rgba(0,0,0,0.08);
-    --shadow-medium: 0 4px 16px rgba(0,0,0,0.12);
-    --border-radius: 8px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --border-color: #e5e7eb;
+    --shadow-light: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-medium: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --border-radius: 6px;
+    --transition: all 0.15s ease-in-out;
 }
 
 /* Navbar */
 .navbar {
     background: var(--background-white);
     box-shadow: var(--shadow-light);
+    position: sticky;
     top: 0;
     z-index: 1000;
     border-bottom: 1px solid var(--border-color);
@@ -132,11 +301,11 @@ if (userBtn) {
 .nav-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 70px;
+    height: 64px;
 }
 
 /* Logo */
@@ -151,20 +320,29 @@ if (userBtn) {
 }
 
 .nav-logo a:hover {
-    transform: scale(1.02);
+    transform: scale(1.05);
 }
 
 .logo-img {
-    width: 40px;
-    height: 40px;
-    margin-right: 0.5rem;
+    width: 36px;
+    height: 36px;
+    margin-right: 8px;
     border-radius: 50%;
     object-fit: cover;
 }
 
-.logo-text {
-    font-weight: 700;
-    font-size: 1.5rem;
+.logo-fallback {
+    width: 36px;
+    height: 36px;
+    margin-right: 8px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
 }
 
 /* Navigation Menu */
@@ -174,41 +352,21 @@ if (userBtn) {
     list-style: none;
     margin: 0;
     padding: 0;
-    gap: 2rem;
-}
-
-.nav-item {
-    position: relative;
+    gap: 0.5rem;
 }
 
 .nav-link {
     color: var(--text-primary);
     text-decoration: none;
     font-weight: 500;
-    padding: 0.75rem 1rem;
+    padding: 8px 16px;
     border-radius: var(--border-radius);
     transition: var(--transition);
-    position: relative;
 }
 
 .nav-link:hover {
     color: var(--primary-color);
     background: var(--primary-light);
-}
-
-.nav-link.active {
-    color: var(--primary-color);
-    background: var(--primary-light);
-}
-
-.nav-link.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--primary-color);
 }
 
 /* User Menu */
@@ -229,15 +387,14 @@ if (userBtn) {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
+    padding: 8px 16px;
     border: none;
     border-radius: var(--border-radius);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     text-decoration: none;
     cursor: pointer;
     transition: var(--transition);
-    text-align: center;
 }
 
 .btn-primary {
@@ -247,14 +404,12 @@ if (userBtn) {
 
 .btn-primary:hover {
     background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
 }
 
 .btn-outline {
     background: transparent;
     color: var(--primary-color);
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--primary-color);
 }
 
 .btn-outline:hover {
@@ -265,21 +420,21 @@ if (userBtn) {
 /* User Dropdown */
 .user-dropdown {
     position: relative;
-    display: inline-block;
 }
 
 .user-btn {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 8px;
     background: var(--background-white);
-    border: 2px solid var(--border-color);
+    border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    padding: 0.5rem 1rem;
+    padding: 6px 12px;
     cursor: pointer;
     transition: var(--transition);
     font-weight: 500;
     color: var(--text-primary);
+    font-size: 0.875rem;
 }
 
 .user-btn:hover {
@@ -288,14 +443,28 @@ if (userBtn) {
 }
 
 .user-avatar {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     object-fit: cover;
 }
 
+.user-avatar-fallback {
+    width: 28px;
+    height: 28px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
 .dropdown-icon {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     transition: var(--transition);
 }
 
@@ -307,8 +476,7 @@ if (userBtn) {
     display: none;
     position: absolute;
     right: 0;
-    top: 100%;
-    margin-top: 0.5rem;
+    top: calc(100% + 8px);
     background: var(--background-white);
     min-width: 200px;
     box-shadow: var(--shadow-medium);
@@ -326,11 +494,12 @@ if (userBtn) {
 .dropdown-content a {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 12px;
     color: var(--text-primary);
-    padding: 0.875rem 1.25rem;
+    padding: 12px 16px;
     text-decoration: none;
     transition: var(--transition);
+    font-size: 0.875rem;
     font-weight: 500;
 }
 
@@ -342,18 +511,18 @@ if (userBtn) {
 .dropdown-content a i {
     width: 16px;
     text-align: center;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
 .dropdown-content hr {
     border: none;
     border-top: 1px solid var(--border-color);
-    margin: 0.5rem 0;
+    margin: 8px 0;
 }
 
 .logout-btn:hover {
-    background: #fee !important;
-    color: #dc3545 !important;
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
 }
 
 /* Mobile Toggle */
@@ -361,7 +530,7 @@ if (userBtn) {
     display: none;
     flex-direction: column;
     cursor: pointer;
-    padding: 0.5rem;
+    padding: 8px;
     border-radius: var(--border-radius);
     transition: var(--transition);
 }
@@ -371,16 +540,16 @@ if (userBtn) {
 }
 
 .nav-toggle span {
-    width: 25px;
-    height: 3px;
+    width: 20px;
+    height: 2px;
     background: var(--text-primary);
-    margin: 3px 0;
+    margin: 2px 0;
     transition: var(--transition);
-    border-radius: 2px;
+    border-radius: 1px;
 }
 
 .nav-toggle.active span:nth-child(1) {
-    transform: rotate(-45deg) translate(-5px, 6px);
+    transform: rotate(-45deg) translate(-4px, 5px);
 }
 
 .nav-toggle.active span:nth-child(2) {
@@ -388,14 +557,14 @@ if (userBtn) {
 }
 
 .nav-toggle.active span:nth-child(3) {
-    transform: rotate(45deg) translate(-5px, -6px);
+    transform: rotate(45deg) translate(-4px, -5px);
 }
 
 /* Mobile Menu */
 .mobile-menu {
     display: none;
     position: fixed;
-    top: 70px;
+    top: 64px;
     left: 0;
     width: 100%;
     background: var(--background-white);
@@ -417,15 +586,11 @@ if (userBtn) {
     margin: 0;
 }
 
-.mobile-nav-menu li {
-    margin: 0;
-}
-
 .mobile-nav-menu a {
     display: block;
     color: var(--text-primary);
     text-decoration: none;
-    padding: 1rem 2rem;
+    padding: 12px 24px;
     font-weight: 500;
     transition: var(--transition);
     border-bottom: 1px solid var(--border-color);
@@ -434,7 +599,7 @@ if (userBtn) {
 .mobile-nav-menu a:hover {
     background: var(--primary-light);
     color: var(--primary-color);
-    padding-left: 2.5rem;
+    padding-left: 32px;
 }
 
 /* Responsive Design */
@@ -454,41 +619,29 @@ if (userBtn) {
     .mobile-menu {
         display: block;
     }
-    
-    .auth-buttons {
-        gap: 0.5rem;
-    }
-    
-    .btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-    }
-    
-    .logo-text {
-        font-size: 1.25rem;
-    }
 }
 
 @media (max-width: 480px) {
     .nav-container {
-        height: 60px;
+        height: 56px;
     }
     
     .mobile-menu {
-        top: 60px;
+        top: 56px;
     }
     
-    .logo-img {
+    .logo-img, .logo-fallback {
         width: 32px;
         height: 32px;
     }
     
     .logo-text {
-        font-size: 1.1rem;
+        font-size: 1.25rem;
     }
     
     .btn {
-        padding: 0.5rem 0.75rem;
+        padding: 6px 12px;
+        font-size: 0.8rem;
     }
     
     .btn span {
@@ -500,34 +653,11 @@ if (userBtn) {
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-8px);
     }
     to {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* Active page highlighting */
-.nav-link[href="/book-ground"].active,
-.nav-link[href="/coaches"].active,
-.nav-link[href="/shop"].active,
-.nav-link[href="/news"].active {
-    color: var(--primary-color);
-    background: var(--primary-light);
-}
-
-/* Smooth scrolling */
-html {
-    scroll-behavior: smooth;
-}
-
-/* Focus styles for accessibility */
-.nav-link:focus,
-.btn:focus,
-.user-btn:focus,
-.nav-toggle:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
 }
 </style>
