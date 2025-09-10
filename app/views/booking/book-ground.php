@@ -572,6 +572,129 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             color: var(--text-secondary);
         }
 
+        /* Map Info Window Styles */
+        .map-info-window {
+            padding: 10px;
+            max-width: 250px;
+        }
+
+        .map-info-window h4 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .map-info-window p {
+            margin: 0 0 10px 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .info-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-info-primary,
+        .btn-info-secondary {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-info-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-info-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-info-secondary {
+            background: white;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-info-secondary:hover {
+            background: var(--primary-light);
+        }
+
+        /* Professional Map Loading Overlay */
+        .map-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            border-radius: 8px;
+        }
+
+        .map-loading-content {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .map-loading-spinner {
+            margin-bottom: 1rem;
+        }
+
+        .spinner-ring {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .map-loading-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .map-error-content {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .map-error-icon {
+            font-size: 3rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .map-error-text {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-retry {
+            padding: 0.75rem 1.5rem !important;
+            font-size: 0.9rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .header-content {
@@ -716,10 +839,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                     </button>
                 </div>
                 <div class="map-container">
-                    <div>
-                        <i class="fas fa-map-marker-alt" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
-                        <p>Interactive map coming soon</p>
-                    </div>
+                    <div id="map" style="width: 100%; height: 400px; border-radius: 8px;"></div>
                 </div>
             </div>
 
@@ -866,5 +986,9 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
         </div>
 
 </div>
+<script async 
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3qKhJG9ulG0vgu9KxaG0NPXADLGxMr7k&callback=initMap">
+</script>
+
 
 <script src="/public/js/pages/book-ground.js"></script>
