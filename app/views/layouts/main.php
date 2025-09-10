@@ -6,12 +6,13 @@
     <title><?= $title ?? 'GoPlay Sports Platform' ?></title>
     
     <!-- CSS -->
+     <link rel="stylesheet" href="/public/css/components/navbar.css">
     <link rel="stylesheet" href="/public/css/main.css">
     <link rel="stylesheet" href="/public/css/components.css">
     <link rel="stylesheet" href="/public/css/pages.css">
     <link rel="stylesheet" href="/public/css/responsive.css">
     <link rel="stylesheet" href="/public/css/pages/news-index.css">
-    <link rel="stylesheet" href="/public/css/pages/news-detail.css">
+    
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
             <link rel="stylesheet" href="<?= $css ?>">
