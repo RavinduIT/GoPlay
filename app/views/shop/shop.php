@@ -1301,9 +1301,9 @@ $additionalJS = ['/public/js/cart-api.js'];
                                 ${discountPercent > 0 ? `<span class="price-discount">${discountPercent}% OFF</span>` : ''}
                             </div>
                             <div class="product-actions">
-                                <button class="btn-outline" onclick="addToWishlist(${product.id})">
-                                    <i class="fas fa-heart"></i>
-                                    Wishlist
+                                <button class="btn-outline" onclick="viewProduct(${product.id})">
+                                    <i class="fas fa-eye"></i>
+                                    View Details
                                 </button>
                                 <button class="btn-primary" onclick="addToCart(${product.id})" ${product.stock_quantity <= 0 ? 'disabled' : ''}>
                                     <i class="fas fa-cart-plus"></i>
@@ -1401,16 +1401,10 @@ $additionalJS = ['/public/js/cart-api.js'];
         // Add to cart - now handled by cart-api.js
         // function addToCart(productId) { ... } // Removed - using API
 
-        // Add to wishlist
-        function addToWishlist(productId) {
-            console.log('Added to wishlist:', productId);
-            // Implement wishlist functionality
-        }
-
-        // View product
+        // View product details
         function viewProduct(productId) {
-            console.log('View product:', productId);
-            // Implement product detail view
+            // Redirect to product details page
+            window.location.href = `/product/${productId}`;
         }
 
         // Cart functions now handled by cart-api.js
