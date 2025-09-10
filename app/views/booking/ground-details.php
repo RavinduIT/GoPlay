@@ -589,8 +589,13 @@ $groundId = $_GET['id'] ?? 1;
                         Location
                     </h3>
                     <div class="map-container">
-                        <i class="fas fa-map-marker-alt" style="font-size: 2rem;"></i>
-                        <p>Interactive map coming soon</p>
+                        <div id="ground-map" style="width: 100%; height: 300px; border-radius: 8px;"></div>
+                    </div>
+                    <div class="location-info">
+                        <div class="ground-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="ground-location">Loading location...</span>
+                        </div>
                     </div>
                 </div>
 
@@ -723,6 +728,9 @@ $groundId = $_GET['id'] ?? 1;
 
             // Contact information
             displayContactInfo(ground);
+
+            // Update map location
+            updateGroundLocation(ground);
         }
 
         // Default availability if not provided
@@ -872,8 +880,81 @@ $groundId = $_GET['id'] ?? 1;
             }
         }
 
+        // Google Maps for Ground Details
+        let groundMap;
+        let groundMarker;
+
+        function initGroundMap() {
+            console.log('Initializing ground map...');
+            
+            // Default location (will be updated when ground data loads)
+            const defaultLocation = { lat: 6.9271, lng: 79.8612 };
+            
+            groundMap = new google.maps.Map(document.getElementById('ground-map'), {
+                zoom: 15,
+                center: defaultLocation,
+                styles: [
+                    {
+                        featureType: 'poi',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'off' }]
+                    }
+                ]
+            });
+
+            // Create marker
+            groundMarker = new google.maps.Marker({
+                position: defaultLocation,
+                map: groundMap,
+                title: 'Ground Location'
+            });
+
+            console.log('Ground map initialized');
+        }
+
+        function updateGroundLocation(ground) {
+            if (!groundMap || !groundMarker) return;
+
+            // Sample coordinates for different grounds (replace with actual data)
+            const groundCoordinates = {
+                1: { lat: 6.9271, lng: 79.8612, name: 'Colombo Cricket Club' },
+                2: { lat: 7.2906, lng: 80.6337, name: 'Tennis Academy Kandy' },
+                3: { lat: 6.0329, lng: 80.217, name: 'Galle Football Ground' },
+                4: { lat: 7.2083, lng: 79.8358, name: 'Basketball Court Negombo' },
+                5: { lat: 6.8463, lng: 79.8649, name: 'Badminton Center Dehiwala' },
+                6: { lat: 6.9344, lng: 79.8471, name: 'Swimming Pool Complex' }
+            };
+
+            const coords = groundCoordinates[ground.id] || groundCoordinates[1];
+            const position = { lat: coords.lat, lng: coords.lng };
+
+            // Update map center and marker
+            groundMap.setCenter(position);
+            groundMarker.setPosition(position);
+            groundMarker.setTitle(ground.name || coords.name);
+
+            // Add info window
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="padding: 10px;">
+                        <h4 style="margin: 0 0 8px 0;">${ground.name || coords.name}</h4>
+                        <p style="margin: 0; color: #666;">${ground.location || 'Sports Facility'}</p>
+                    </div>
+                `
+            });
+
+            groundMarker.addListener('click', () => {
+                infoWindow.open(groundMap, groundMarker);
+            });
+        }
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             loadGroundData();
         });
+    </script>
+
+    <!-- Google Maps API -->
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3qKhJG9ulG0vgu9KxaG0NPXADLGxMr7k&callback=initGroundMap">
     </script>
