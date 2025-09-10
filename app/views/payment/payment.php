@@ -1,151 +1,192 @@
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">Secure Payment</h1>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Payment Form -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-semibold mb-6">Payment Information</h2>
-                
-                <!-- Payment Methods -->
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Payment Method</label>
-                    <div class="space-y-3">
-                        <label class="flex items-center">
-                            <input type="radio" name="payment_method" value="card" class="mr-3" checked>
-                            <i class="fas fa-credit-card text-blue-600 mr-2"></i>
-                            Credit/Debit Card
-                        </label>
-                        <label class="flex items-center">
-                            <input type="radio" name="payment_method" value="upi" class="mr-3">
-                            <i class="fab fa-google-pay text-green-600 mr-2"></i>
-                            UPI Payment
-                        </label>
-                        <label class="flex items-center">
-                            <input type="radio" name="payment_method" value="wallet" class="mr-3">
-                            <i class="fas fa-wallet text-purple-600 mr-2"></i>
-                            Digital Wallet
-                        </label>
-                        <label class="flex items-center">
-                            <input type="radio" name="payment_method" value="netbanking" class="mr-3">
-                            <i class="fas fa-university text-red-600 mr-2"></i>
-                            Net Banking
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Card Details Form -->
-                <form id="payment-form">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Card Holder Name</label>
-                            <input type="text" class="form-input w-full" placeholder="Enter full name" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
-                            <input type="text" class="form-input w-full" placeholder="1234 5678 9012 3456" required>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
-                            <input type="text" class="form-input w-full" placeholder="MM/YY" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">CVV</label>
-                            <input type="text" class="form-input w-full" placeholder="123" required>
-                        </div>
-                    </div>
-                    
-                    <!-- Billing Address -->
-                    <h3 class="text-lg font-semibold mb-4">Billing Address</h3>
-                    <div class="space-y-4 mb-6">
-                        <input type="text" class="form-input w-full" placeholder="Street Address" required>
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="text" class="form-input w-full" placeholder="City" required>
-                            <input type="text" class="form-input w-full" placeholder="Postal Code" required>
-                        </div>
-                        <select class="form-select w-full" required>
-                            <option>Select State</option>
-                            <option>Delhi</option>
-                            <option>Mumbai</option>
-                            <option>Bangalore</option>
-                            <option>Chennai</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Security Features -->
-                    <div class="bg-green-50 p-4 rounded-lg mb-6">
-                        <div class="flex items-center text-green-700">
-                            <i class="fas fa-shield-alt mr-2"></i>
-                            <span class="text-sm">Your payment information is secure and encrypted</span>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
-                        <i class="fas fa-lock mr-2"></i>
-                        Pay Securely
-                    </button>
-                </form>
-            </div>
-            
-            <!-- Order Summary -->
-            <div class="bg-gray-50 rounded-lg p-6">
-                <h2 class="text-xl font-semibold mb-6">Order Summary</h2>
-                
-                <!-- Order Items -->
-                <div class="space-y-4 mb-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h4 class="font-medium">Ground Booking</h4>
-                            <p class="text-sm text-gray-600">Football Ground - 2 hours</p>
-                            <p class="text-sm text-gray-600">Date: March 25, 2024</p>
-                        </div>
-                        <span class="font-bold">₹1,200</span>
-                    </div>
-                    
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h4 class="font-medium">Equipment Rental</h4>
-                            <p class="text-sm text-gray-600">Football set</p>
-                        </div>
-                        <span class="font-bold">₹300</span>
-                    </div>
-                </div>
-                
-                <!-- Price Breakdown -->
-                <div class="border-t pt-4 space-y-2">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Subtotal</span>
-                        <span>₹1,500</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Service Fee</span>
-                        <span>₹50</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">GST (18%)</span>
-                        <span>₹279</span>
-                    </div>
-                    <hr class="my-3">
-                    <div class="flex justify-between text-lg font-bold">
-                        <span>Total</span>
-                        <span class="text-green-600">₹1,829</span>
-                    </div>
-                </div>
-                
-                <!-- Accepted Payment Methods -->
-                <div class="mt-6 pt-6 border-t">
-                    <h3 class="text-sm font-medium text-gray-700 mb-3">We Accept</h3>
-                    <div class="flex space-x-3">
-                        <img src="/public/assets/images/payment/visa.png" alt="Visa" class="h-8">
-                        <img src="/public/assets/images/payment/mastercard.png" alt="Mastercard" class="h-8">
-                        <img src="/public/assets/images/payment/rupay.png" alt="RuPay" class="h-8">
-                        <img src="/public/assets/images/payment/upi.png" alt="UPI" class="h-8">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<?php
+
+//$ROOT = defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 3); // project root
+$title = 'Secure Payment - GoPlay Sports Platform';
+$additionalCSS = [];
+$additionalJS = [];
+
+// include header/navbar
+//require $ROOT . '/app/views/components/navbar.php';
+
+$name   = $_GET['name']  ?? 'Professional Basketball';
+$qty    = intval($_GET['qty'] ?? 1);
+$price  = floatval($_GET['price'] ?? 89.00);
+$subtotal = $price * $qty;
+$tax = round($subtotal * 0.08, 2);
+$shipping = 9.99;
+$total = $subtotal + $tax + $shipping;
+?>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+:root{
+  --primary-color:#2563eb;--primary-dark:#64748b;--primary-light:#f1f5f9;
+  --secondary-color:#0891b2;--accent-color:#ffc107;
+  --text-primary:#2c3e50;--text-secondary:#6c757d;--text-light:#adb5bd;--text-white:#fff;
+  --background-white:#fff;--background-light:#f8f9fa;--background-dark:#343a40;
+  --border-color:#e9ecef;--shadow-light:0 2px 8px rgba(0,0,0,.08);--shadow-medium:0 4px 16px rgba(0,0,0,.12);
+  --border-radius:8px;--border-radius-lg:12px;--border-radius-xl:16px;--transition:all .25s ease;
+}
+*{box-sizing:border-box} body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--text-primary);background:var(--background-white);margin:0}
+.container{max-width:1200px;margin:0 auto;padding:0 1.5rem}
+.header{background:var(--background-light);padding:1.25rem 0;text-align:center}
+.header h2{margin:0;font-weight:800; color: var(--primary-color)}
+.header p{color:var(--text-secondary)}
+.page{padding:1.25rem 0 2.5rem}
+.grid{display:grid;grid-template-columns:1fr 2fr;gap:1.5rem}
+.card{background:#fff;border:1px solid var(--border-color);border-radius:var(--border-radius-lg);box-shadow:var(--shadow-light)}
+.card-body{padding:1rem 1.25rem}
+.summary h4{margin:.25rem 0 1rem}
+.row{display:flex;justify-content:space-between;margin:.35rem 0;color:var(--text-secondary)}
+.total{display:flex;justify-content:space-between;font-weight:800;border-top:1px dashed var(--border-color);padding-top:.75rem;margin-top:.5rem}
+.item{display:flex;align-items:center;gap:.75rem;margin:.5rem 0}
+.item img{width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid var(--border-color)}
+.stepper{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+.dot{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;border:2px solid var(--primary-color);color:var(--primary-color);font-weight:700}
+.dot.muted{border-color:var(--border-color);color:var(--text-light)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.input, .select{width:100%;padding:.7rem .75rem;border:1px solid var(--border-color);border-radius:10px}
+.label{font-weight:600;font-size:.9rem;margin-bottom:.35rem;display:block}
+.actions{margin-top:1rem}
+.btn{border:none;border-radius:10px;padding:.95rem 1rem;font-weight:800;cursor:pointer;transition:var(--transition);width:100%}
+.btn-primary{background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));color:#fff}
+.btn-primary:hover{box-shadow:var(--shadow-medium);transform:translateY(-1px)}
+.back{display:inline-flex;align-items:center;gap:.5rem;color:var(--text-secondary);text-decoration:none;margin:.5rem 0}
+@media (max-width: 900px){.grid{grid-template-columns:1fr}}
+</style>
+
+<div class="header">
+  <h2>Secure Payment</h2>
+  <p>Complete your purchase with confidence</p>
 </div>
+
+<div class="container page">
+  <a class="back" href="/shop"><i class="fa fa-arrow-left"></i> Back</a>
+
+  <div class="grid">
+    <!-- Order Summary -->
+    <div class="card summary">
+      <div class="card-body">
+        <h4>Order Summary</h4>
+        <div class="item">
+          <img src="/public/images/products/bball-1.jpg" alt="Item">
+          <div>
+            <div style="font-weight:700"><?= htmlspecialchars(urldecode($name)) ?></div>
+            <div style="color:var(--text-secondary);font-size:.9rem">Qty: <?= $qty ?></div>
+          </div>
+          <div style="margin-left:auto;font-weight:700">$<?= number_format($subtotal,2) ?></div>
+        </div>
+
+        <div class="row"><span>Subtotal</span><span>$<?= number_format($subtotal,2) ?></span></div>
+        <div class="row"><span>Tax (8%)</span><span>$<?= number_format($tax,2) ?></span></div>
+        <div class="row"><span>Shipping</span><span>$<?= number_format($shipping,2) ?></span></div>
+        <div class="total"><span>Total</span><span>$<?= number_format($total,2) ?></span></div>
+      </div>
+    </div>
+
+    <!-- Contact & Payment -->
+    <div class="card">
+      <div class="card-body">
+        <div class="stepper">
+          <div class="dot">1</div><span>Contact Details</span>
+          <i class="fa fa-ellipsis-h" style="color:var(--text-light)"></i>
+          <div class="dot muted">2</div><span>Payment</span>
+        </div>
+
+        <form id="checkoutForm" onsubmit="return goToPayment(event)">
+          <div class="form-grid">
+            <div>
+              <label class="label">Full Name</label>
+              <input class="input" type="text" name="fullname" required placeholder="Enter your full name">
+            </div>
+            <div>
+              <label class="label">Email Address</label>
+              <input class="input" type="email" name="email" required placeholder="you@email.com">
+            </div>
+            <div>
+              <label class="label">Phone Number</label>
+              <input class="input" type="tel" name="phone" required placeholder="+1 (555) 123-4567">
+            </div>
+            <div>
+              <label class="label">Country</label>
+              <select class="select" name="country" required>
+                <option>United States</option><option>United Kingdom</option><option>Sri Lanka</option>
+              </select>
+            </div>
+            <div style="grid-column:1/-1">
+              <label class="label">Street Address</label>
+              <input class="input" type="text" name="address" required placeholder="123 Main St, Apt 4B">
+            </div>
+            <div>
+              <label class="label">City</label>
+              <input class="input" type="text" name="city" required>
+            </div>
+            <div>
+              <label class="label">State/Province</label>
+              <input class="input" type="text" name="state" required>
+            </div>
+            <div>
+              <label class="label">ZIP/Postal Code</label>
+              <input class="input" type="text" name="zip" required>
+            </div>
+          </div>
+
+          <div class="actions">
+            <!--<button class="btn btn-primary" type="submit">
+              Continue to Payment <i class="fa fa-arrow-right" style="margin-left:.5rem"></i>
+            </button>-->
+            <a class="btn btn-primary"
+                href="/app/views/payment/payment-method.php">
+                Continue to Payment <i class="fa fa-arrow-right" style="margin-left:.5rem"></i>
+            </a>
+          </div>
+        </form>
+
+        <!-- Mock Payment Step (appears after Continue) -->
+        <div id="paymentStep" style="display:none;margin-top:1.25rem">
+          <div class="stepper">
+            <div class="dot muted">1</div><span>Contact Details</span>
+            <i class="fa fa-ellipsis-h" style="color:var(--text-light)"></i>
+            <div class="dot">2</div><span>Payment</span>
+          </div>
+
+          <div class="form-grid">
+            <div style="grid-column:1/-1">
+              <label class="label">Card Number</label>
+              <input class="input" placeholder="4242 4242 4242 4242" maxlength="19">
+            </div>
+            <div>
+              <label class="label">Expiry</label>
+              <input class="input" placeholder="MM/YY" maxlength="5">
+            </div>
+            <div>
+              <label class="label">CVC</label>
+              <input class="input" placeholder="CVC" maxlength="4">
+            </div>
+            <div style="grid-column:1/-1;margin-top:.5rem">
+              <button class="btn btn-primary" onclick="finishOrder()">
+                Pay $<?= number_format($total,2) ?> <i class="fa fa-lock" style="margin-left:.5rem"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function goToPayment(e){
+  e.preventDefault();
+  document.getElementById('checkoutForm').style.display='none';
+  document.getElementById('paymentStep').style.display='block';
+  return false;
+}
+function finishOrder(){
+  alert('Payment successful! Thank you for your purchase.');
+  window.location.href='/order-success.php';
+}
+</script>
+<?php
+//require $ROOT . '/app/views/components/footer.php';

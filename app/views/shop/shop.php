@@ -1043,7 +1043,7 @@ $additionalJS = [];
                 return;
             }
             // Redirect to checkout page
-            window.location.href = '/payment?type=shop';
+            window.location.href = '/payment';
         }
 
         // Initialize page
