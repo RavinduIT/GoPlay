@@ -987,7 +987,31 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
 
 </div>
 <script async 
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3qKhJG9ulG0vgu9KxaG0NPXADLGxMr7k&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3qKhJG9ulG0vgu9KxaG0NPXADLGxMr7k&callback=initMap&libraries=&v=weekly"
+    onerror="handleMapLoadError()">
+</script>
+
+<script>
+    // Fallback function if Google Maps fails to load
+    function handleMapLoadError() {
+        console.error('Failed to load Google Maps API');
+        const mapContainer = document.getElementById('map');
+        if (mapContainer) {
+            mapContainer.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f8f9fa; color: #6c757d; text-align: center; padding: 2rem;">
+                    <div>
+                        <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>Unable to load map. Please check your internet connection.</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    // Ensure initMap exists even if not loaded
+    window.initMap = window.initMap || function() {
+        console.log('initMap fallback called');
+    };
 </script>
 
 

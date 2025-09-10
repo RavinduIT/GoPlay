@@ -356,13 +356,52 @@ $groundId = $_GET['id'] ?? 1;
         }
 
         .map-container {
-            height: 250px;
+            height: 300px;
             background: var(--background-light);
             border-radius: var(--border-radius);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 1000;
+            border-radius: var(--border-radius);
+        }
+
+        .map-loading-content {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .map-loading-spinner {
+            margin-bottom: 1rem;
+        }
+
+        .spinner-ring {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .map-loading-text {
             color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 0;
         }
 
         .contact-info {
@@ -589,12 +628,20 @@ $groundId = $_GET['id'] ?? 1;
                         Location
                     </h3>
                     <div class="map-container">
-                        <div id="ground-map" style="width: 100%; height: 300px; border-radius: 8px;"></div>
+                        <div id="ground-map" style="width: 100%; height: 100%; border-radius: 8px;"></div>
+                        <div id="map-loading-overlay" class="map-loading-overlay">
+                            <div class="map-loading-content">
+                                <div class="map-loading-spinner">
+                                    <div class="spinner-ring"></div>
+                                </div>
+                                <p class="map-loading-text">Loading map...</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="location-info">
                         <div class="ground-location">
                             <i class="fas fa-map-marker-alt"></i>
-                            <span id="ground-location">Loading location...</span>
+                            <span id="sidebar-location">Loading location...</span>
                         </div>
                     </div>
                 </div>
@@ -701,6 +748,12 @@ $groundId = $_GET['id'] ?? 1;
             // Location - combine address and city
             const location = ground.address ? `${ground.address}, ${ground.city}` : ground.city || ground.location || 'Location TBD';
             document.getElementById('ground-location').textContent = location;
+            
+            // Also update sidebar location
+            const sidebarLocation = document.getElementById('sidebar-location');
+            if (sidebarLocation) {
+                sidebarLocation.textContent = location;
+            }
             
             // Image - use first image from array or default
             const imageUrl = (ground.images && ground.images.length > 0) ? ground.images[0] : '/public/assets/images/ground.jpeg';
@@ -887,12 +940,18 @@ $groundId = $_GET['id'] ?? 1;
         function initGroundMap() {
             console.log('Initializing ground map...');
             
+            // Show loading overlay
+            showMapLoading(true);
+            
             // Default location (will be updated when ground data loads)
             const defaultLocation = { lat: 6.9271, lng: 79.8612 };
             
             groundMap = new google.maps.Map(document.getElementById('ground-map'), {
                 zoom: 15,
                 center: defaultLocation,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true,
                 styles: [
                     {
                         featureType: 'poi',
@@ -902,43 +961,102 @@ $groundId = $_GET['id'] ?? 1;
                 ]
             });
 
-            // Create marker
+            // Create marker (will be updated with sport-specific icon)
             groundMarker = new google.maps.Marker({
                 position: defaultLocation,
                 map: groundMap,
                 title: 'Ground Location'
             });
 
+            // Hide loading after map is ready
+            google.maps.event.addListenerOnce(groundMap, 'idle', function() {
+                showMapLoading(false);
+            });
+
             console.log('Ground map initialized');
+        }
+        
+        // Show/hide map loading overlay
+        function showMapLoading(show) {
+            const overlay = document.getElementById('map-loading-overlay');
+            if (overlay) {
+                overlay.style.display = show ? 'flex' : 'none';
+            }
+        }
+        
+        // Get sport-specific marker icon (same as book-ground page)
+        function getSportMarkerIcon(sport) {
+            const colors = {
+                cricket: '#ff6b6b',
+                tennis: '#4ecdc4', 
+                football: '#45b7d1',
+                basketball: '#f9ca24',
+                badminton: '#6c5ce7',
+                swimming: '#00cec9'
+            };
+            
+            const sportKey = sport ? sport.toLowerCase() : 'general';
+            
+            return {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: colors[sportKey] || '#2563eb',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 3
+            };
         }
 
         function updateGroundLocation(ground) {
             if (!groundMap || !groundMarker) return;
 
-            // Sample coordinates for different grounds (replace with actual data)
-            const groundCoordinates = {
-                1: { lat: 6.9271, lng: 79.8612, name: 'Colombo Cricket Club' },
-                2: { lat: 7.2906, lng: 80.6337, name: 'Tennis Academy Kandy' },
-                3: { lat: 6.0329, lng: 80.217, name: 'Galle Football Ground' },
-                4: { lat: 7.2083, lng: 79.8358, name: 'Basketball Court Negombo' },
-                5: { lat: 6.8463, lng: 79.8649, name: 'Badminton Center Dehiwala' },
-                6: { lat: 6.9344, lng: 79.8471, name: 'Swimming Pool Complex' }
-            };
+            // Use actual coordinates from database
+            if (ground.latitude && ground.longitude) {
+                const position = { 
+                    lat: parseFloat(ground.latitude), 
+                    lng: parseFloat(ground.longitude) 
+                };
 
-            const coords = groundCoordinates[ground.id] || groundCoordinates[1];
-            const position = { lat: coords.lat, lng: coords.lng };
+                // Update map center and marker with database coordinates
+                groundMap.setCenter(position);
+                groundMarker.setPosition(position);
+                groundMarker.setTitle(ground.name);
+                
+                // Update marker icon based on sport category
+                const sportIcon = getSportMarkerIcon(ground.category_name);
+                groundMarker.setIcon(sportIcon);
+                
+                console.log(`Updated map for ${ground.name} at coordinates:`, position);
+            } else {
+                console.log(`No coordinates available for ${ground.name}, using default location`);
+                // Fallback to default location if no coordinates in database
+                const defaultPosition = { lat: 6.9271, lng: 79.8612 };
+                groundMap.setCenter(defaultPosition);
+                groundMarker.setPosition(defaultPosition);
+                groundMarker.setTitle(ground.name || 'Sports Facility');
+                
+                // Set default icon
+                const defaultIcon = getSportMarkerIcon('general');
+                groundMarker.setIcon(defaultIcon);
+            }
 
-            // Update map center and marker
-            groundMap.setCenter(position);
-            groundMarker.setPosition(position);
-            groundMarker.setTitle(ground.name || coords.name);
-
-            // Add info window
+            // Add info window with actual ground data
+            const locationText = ground.address ? `${ground.address}, ${ground.city}` : ground.city || 'Sports Facility';
             const infoWindow = new google.maps.InfoWindow({
                 content: `
-                    <div style="padding: 10px;">
-                        <h4 style="margin: 0 0 8px 0;">${ground.name || coords.name}</h4>
-                        <p style="margin: 0; color: #666;">${ground.location || 'Sports Facility'}</p>
+                    <div style="padding: 10px; max-width: 250px;">
+                        <h4 style="margin: 0 0 8px 0; color: #2563eb;">${ground.name}</h4>
+                        <p style="margin: 0 0 6px 0; color: #666; font-size: 14px;">
+                            <i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>
+                            ${locationText}
+                        </p>
+                        <p style="margin: 0 0 6px 0; color: #666; font-size: 14px;">
+                            <i class="fas fa-tag" style="margin-right: 5px;"></i>
+                            ${ground.category_name || 'Sports Facility'}
+                        </p>
+                        <p style="margin: 0; color: #2563eb; font-weight: 600; font-size: 14px;">
+                            LKR ${ground.hourly_rate ? ground.hourly_rate.toLocaleString() : 'N/A'}/hour
+                        </p>
                     </div>
                 `
             });
