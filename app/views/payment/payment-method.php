@@ -181,7 +181,8 @@ body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--te
 
               <!-- Buttons -->
               <div class="buttons">
-                <button class="btn btn-primary" id="placeOrder">Place Order</button>
+                <a class="btn btn-primary" href="/app/views/payment/order-success.php">Place Order</a>
+                <!--<button class="btn btn-primary" id="placeOrder">Place Order</button>-->
                 <a class="btn btn-ghost" href="/shop">Continue Shopping</a>
               </div>
 
@@ -218,14 +219,14 @@ methodList.addEventListener('change', (e)=>{
 });
 
 // Place order button (demo)
-document.getElementById('placeOrder').addEventListener('click', ()=>{
+/*document.getElementById('placeOrder').addEventListener('click', ()=>{
   const terms = document.getElementById('terms').checked;
   if(!terms){ alert('Please agree to the terms and conditions.'); return; }
 
   const pm = document.querySelector('input[name="pm"]:checked').value;
   // You can POST to your backend here; for now we simulate success:
   window.location.href = '/payment-success.php';
-});
+});*/
 </script>
 
 <?php
