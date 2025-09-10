@@ -417,10 +417,15 @@ function viewOnMap(groundId) {
     const mapSidebar = document.getElementById('map-sidebar');
     if (mapSidebar && mapSidebar.classList.contains('hidden')) {
         toggleMapView();
+        
+        // Wait a bit for the map to become visible, then focus
+        setTimeout(() => {
+            focusOnGround(groundId);
+        }, 300);
+    } else {
+        // Focus on the specific ground marker
+        focusOnGround(groundId);
     }
-    
-    // Focus on the specific ground marker
-    focusOnGround(groundId);
 }
 
 function toggleMapView() {
@@ -431,6 +436,19 @@ function toggleMapView() {
         mapSidebar.classList.toggle('hidden');
         if (mapToggleText) {
             mapToggleText.textContent = mapSidebar.classList.contains('hidden') ? 'Show Map' : 'Hide Map';
+        }
+        
+        // Trigger map resize when showing the map
+        if (!mapSidebar.classList.contains('hidden') && map) {
+            setTimeout(() => {
+                google.maps.event.trigger(map, 'resize');
+                // Re-center the map
+                map.setCenter({ lat: 6.9271, lng: 79.8612 });
+                // Fit bounds if markers exist
+                if (markers.length > 0) {
+                    fitMapToMarkers();
+                }
+            }, 100);
         }
     }
 }
@@ -471,38 +489,51 @@ let infoWindow;
 function initMap() {
     console.log('Initializing Google Maps...');
     
+    // Check if map container exists
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+        console.error('Map container not found');
+        return;
+    }
+    
     // Show loading state
     showMapLoadingState(true);
     
     // Default center (Colombo, Sri Lanka)
     const defaultCenter = { lat: 6.9271, lng: 79.8612 };
     
-    // Initialize map
-    map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 12,
-        center: defaultCenter,
-        styles: [
-            {
-                featureType: 'poi',
-                elementType: 'labels',
-                stylers: [{ visibility: 'off' }]
-            }
-        ],
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false
-    });
-    
-    // Initialize info window
-    infoWindow = new google.maps.InfoWindow();
-    
-    console.log('Google Maps initialized successfully');
-    
-    // Hide loading state after map initialization
-    showMapLoadingState(false);
-    
-    // Load markers from database
-    loadGroundMarkers();
+    try {
+        // Initialize map
+        map = new google.maps.Map(mapContainer, {
+            zoom: 12,
+            center: defaultCenter,
+            styles: [
+                {
+                    featureType: 'poi',
+                    elementType: 'labels',
+                    stylers: [{ visibility: 'off' }]
+                }
+            ],
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false
+        });
+        
+        // Initialize info window
+        infoWindow = new google.maps.InfoWindow();
+        
+        // Wait for map to be fully loaded
+        google.maps.event.addListenerOnce(map, 'idle', function() {
+            console.log('Google Maps initialized successfully');
+            showMapLoadingState(false);
+            // Load markers from database after map is ready
+            loadGroundMarkers();
+        });
+        
+    } catch (error) {
+        console.error('Error initializing Google Maps:', error);
+        showMapLoadingState(false);
+    }
 }
 
 // Load ground markers on map
@@ -667,8 +698,14 @@ function showMapLoadingState(show, message = 'Loading map...') {
             overlay = document.createElement('div');
             overlay.id = 'map-loading-overlay';
             overlay.className = 'map-loading-overlay';
-            mapContainer.style.position = 'relative';
-            mapContainer.appendChild(overlay);
+            // Ensure the map container has relative positioning
+            if (mapContainer.parentElement) {
+                mapContainer.parentElement.style.position = 'relative';
+                mapContainer.parentElement.appendChild(overlay);
+            } else {
+                mapContainer.style.position = 'relative';
+                mapContainer.appendChild(overlay);
+            }
         }
         
         overlay.innerHTML = `
