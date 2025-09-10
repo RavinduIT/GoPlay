@@ -147,13 +147,13 @@ class ProductController extends BaseController
             $id = (int)$request->getParam('id');
             
             if (!$id) {
-                return $this->view('errors/404');
+                return new Response('Product ID is required', 400);
             }
             
             $product = $this->getProductModel()->getProductWithCategory($id);
             
             if (!$product) {
-                return $this->view('errors/404');
+                return new Response('Product not found', 404);
             }
             
             // Get related products
@@ -174,7 +174,7 @@ class ProductController extends BaseController
             
         } catch (\Exception $e) {
             error_log("Product details error: " . $e->getMessage());
-            return $this->view('errors/500');
+            return new Response('Server Error: ' . $e->getMessage(), 500);
         }
     }
 

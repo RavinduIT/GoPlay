@@ -153,8 +153,31 @@ class Product extends BaseModel
                 LEFT JOIN categories c ON p.category_id = c.id 
                 WHERE p.id = ? AND p.status = 'active'";
         
-        $result = $this->db->query($sql, [$id])->fetch();
-        return $result ? $this->castAttributes($result) : null;
+        $result = $this->query($sql, [$id])->fetch(\PDO::FETCH_ASSOC);
+        
+        if (!$result) {
+            return null;
+        }
+
+        // Cast attributes and ensure arrays are properly handled
+        $product = $this->castAttributes($result);
+        
+        // Ensure images is an array
+        if (!is_array($product['images'])) {
+            $product['images'] = $product['images'] ? [$product['images']] : [];
+        }
+        
+        // Add original_price if compare_price exists
+        if ($product['compare_price'] && $product['compare_price'] > $product['price']) {
+            $product['original_price'] = $product['compare_price'];
+        }
+        
+        // Set default rating if not set
+        if (!$product['rating']) {
+            $product['rating'] = 4.5;
+        }
+        
+        return $product;
     }
     
     /**
@@ -176,13 +199,25 @@ class Product extends BaseModel
     /**
      * Get product reviews
      */
-    public function getProductReviews(int $productId): array
+    public function getProductReviews(int $productId, int $limit = 10): array
     {
-        $sql = "SELECT * FROM product_reviews 
-                WHERE product_id = ? AND is_approved = 1 
-                ORDER BY created_at DESC";
-        
-        return $this->query($sql, [$productId])->fetchAll();
+        // Check if the product_reviews table exists first
+        try {
+            $sql = "SELECT pr.*, u.first_name, u.last_name, 
+                           CONCAT(u.first_name, ' ', u.last_name) as user_name
+                    FROM product_reviews pr
+                    LEFT JOIN users u ON pr.user_id = u.id
+                    WHERE pr.product_id = ?
+                    ORDER BY pr.created_at DESC
+                    LIMIT ?";
+            
+            $results = $this->query($sql, [$productId, $limit])->fetchAll(\PDO::FETCH_ASSOC);
+            return $results ?: [];
+            
+        } catch (\Exception $e) {
+            // If table doesn't exist or has different structure, return empty array
+            return [];
+        }
     }
     
     /**
@@ -255,4 +290,6 @@ class Product extends BaseModel
         
         return $this->query($sql)->fetchAll();
     }
+
+
 }
