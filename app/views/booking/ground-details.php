@@ -600,25 +600,8 @@ $groundId = $_GET['id'] ?? 1;
                         <i class="fas fa-phone"></i>
                         Contact
                     </h3>
-                    <div class="contact-info">
-                        <div class="contact-item">
-                            <div class="contact-icon">
-                                <i class="fas fa-phone"></i>
-                            </div>
-                            <span class="contact-text">+94 11 234 5678</span>
-                        </div>
-                        <div class="contact-item">
-                            <div class="contact-icon">
-                                <i class="fas fa-envelope"></i>
-                            </div>
-                            <span class="contact-text">info@goplay.lk</span>
-                        </div>
-                        <div class="contact-item">
-                            <div class="contact-icon">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <span class="contact-text">24/7 Support</span>
-                        </div>
+                    <div id="ground-contact" class="contact-info">
+                        <!-- Contact info will be populated dynamically -->
                     </div>
                 </div>
             </div>
@@ -652,30 +635,43 @@ $groundId = $_GET['id'] ?? 1;
             'Poolside Cafe': 'fas fa-coffee'
         };
 
-        // Load ground data
+        // Load ground data from database API
         async function loadGroundData() {
             try {
-                const response = await fetch('/public/data/grounds.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                
                 // Get ground ID from URL parameter
                 const urlParams = new URLSearchParams(window.location.search);
                 const groundIdParam = urlParams.get('id');
                 const groundId = groundIdParam ? parseInt(groundIdParam) : 1;
                 
-                console.log('Looking for ground with ID:', groundId);
-                console.log('Available grounds:', data.grounds.map(g => ({id: g.id, name: g.name})));
+                if (!groundId || groundId <= 0) {
+                    console.log('Invalid ground ID:', groundId);
+                    showError();
+                    return;
+                }
+
+                console.log('Loading ground with ID:', groundId);
                 
-                currentGround = data.grounds.find(ground => ground.id === groundId);
+                // Fetch ground details from database API
+                const response = await fetch(`/api/ground/${groundId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
                 
-                if (currentGround) {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('API Response:', result);
+                
+                if (result.success && result.data) {
+                    currentGround = result.data;
                     console.log('Found ground:', currentGround.name);
                     displayGroundDetails(currentGround);
                 } else {
-                    console.log('Ground not found with ID:', groundId);
+                    console.log('Ground not found:', result.message);
                     showError();
                 }
             } catch (error) {
@@ -694,22 +690,52 @@ $groundId = $_GET['id'] ?? 1;
             document.title = `${ground.name} - GoPlay Sports Platform`;
             document.getElementById('breadcrumb-current').textContent = ground.name;
 
-            // Basic info
-            document.getElementById('ground-title').textContent = ground.name;
-            document.getElementById('ground-location').textContent = ground.location;
-            document.getElementById('ground-image').src = ground.image;
-            document.getElementById('ground-image').alt = ground.name;
-            document.getElementById('ground-description').textContent = ground.description;
-            document.getElementById('ground-price').textContent = ground.price.toLocaleString();
+            // Basic info - handle database structure
+            document.getElementById('ground-title').textContent = ground.name || 'Ground';
+            
+            // Location - combine address and city
+            const location = ground.address ? `${ground.address}, ${ground.city}` : ground.city || ground.location || 'Location TBD';
+            document.getElementById('ground-location').textContent = location;
+            
+            // Image - use first image from array or default
+            const imageUrl = (ground.images && ground.images.length > 0) ? ground.images[0] : '/public/assets/images/ground.jpeg';
+            document.getElementById('ground-image').src = imageUrl;
+            document.getElementById('ground-image').alt = ground.name || 'Ground Image';
+            
+            // Description
+            document.getElementById('ground-description').textContent = ground.description || 'A great facility for sports activities.';
+            
+            // Price - use hourly_rate from database
+            const price = ground.hourly_rate || ground.price || 0;
+            document.getElementById('ground-price').textContent = price.toLocaleString();
 
-            // Rating
-            displayRating(ground.rating, ground.reviews);
+            // Rating - use database rating and review count
+            const rating = ground.rating || 4.5;
+            const reviewCount = ground.reviews || ground.total_reviews || 0;
+            displayRating(rating, reviewCount);
 
-            // Features
-            displayFeatures(ground.features);
+            // Features - use amenities from database
+            const features = ground.amenities || ground.features || ['Parking', 'Changing Rooms'];
+            displayFeatures(features);
 
-            // Availability
-            displayAvailability(ground.availability);
+            // Availability - use availability from API response
+            displayAvailability(ground.availability || getDefaultAvailability());
+
+            // Contact information
+            displayContactInfo(ground);
+        }
+
+        // Default availability if not provided
+        function getDefaultAvailability() {
+            return {
+                'monday': ['6:00 AM - 10:00 PM'],
+                'tuesday': ['6:00 AM - 10:00 PM'],
+                'wednesday': ['6:00 AM - 10:00 PM'],
+                'thursday': ['6:00 AM - 10:00 PM'],
+                'friday': ['6:00 AM - 10:00 PM'],
+                'saturday': ['7:00 AM - 9:00 PM'],
+                'sunday': ['8:00 AM - 8:00 PM']
+            };
         }
 
         // Display rating stars
@@ -777,6 +803,59 @@ $groundId = $_GET['id'] ?? 1;
             }).join('');
 
             availabilityContainer.innerHTML = availabilityHTML;
+        }
+
+        // Display contact information
+        function displayContactInfo(ground) {
+            const contactContainer = document.getElementById('ground-contact');
+            
+            let contactHTML = '';
+            
+            // Phone
+            const phone = ground.phone || ground.contact_phone || '+94 11 234 5678';
+            contactHTML += `
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <span class="contact-text">${phone}</span>
+                </div>
+            `;
+            
+            // Email
+            const email = ground.email || ground.contact_email || 'info@goplay.lk';
+            contactHTML += `
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <span class="contact-text">${email}</span>
+                </div>
+            `;
+            
+            // Owner name (if available)
+            if (ground.first_name && ground.last_name) {
+                contactHTML += `
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="contact-text">${ground.first_name} ${ground.last_name}</span>
+                    </div>
+                `;
+            }
+            
+            // Operating hours
+            contactHTML += `
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <span class="contact-text">Daily: 6AM - 10PM</span>
+                </div>
+            `;
+
+            contactContainer.innerHTML = contactHTML;
         }
 
         // Show error state

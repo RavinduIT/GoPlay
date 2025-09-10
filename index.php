@@ -96,6 +96,11 @@ try {
     $router->get('/api/coaches/{id}', 'CoachController@getCoachDetails');
     $router->get('/api/sports-categories', 'CoachController@getSportsCategories');
     
+    // Public Grounds API routes (for booking)
+    $router->get('/api/grounds', 'BookingController@getGrounds');
+    $router->get('/api/grounds/{id}', 'BookingController@getGroundDetails');
+    $router->get('/api/ground/{id}', 'BookingController@getGroundById');
+    
     // Ground Owner page routes
     $router->get('/ground-owner/grounds', 'GroundOwnerController@groundsPage');
     $router->get('/ground-owner/bookings', 'GroundOwnerController@bookingsPage');
