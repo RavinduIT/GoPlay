@@ -94,17 +94,49 @@ class User extends BaseModel
      */
     public function getBookings(int $userId, ?string $type = null): array
     {
-        $sql = "SELECT b.* FROM bookings b WHERE b.user_id = ?";
-        $params = [$userId];
-        
-        if ($type) {
-            $sql .= " AND b.type = ?";
-            $params[] = $type;
+        try {
+            // Check both coach_bookings and facility_bookings tables
+            $bookings = [];
+            
+            // Get coach bookings
+            $sql = "SELECT 'coach' as booking_type, cb.*, c.user_id as coach_user_id, 
+                           u.first_name as coach_first_name, u.last_name as coach_last_name,
+                           sc.name as sport_name
+                    FROM coach_bookings cb 
+                    LEFT JOIN coaches c ON cb.coach_id = c.id 
+                    LEFT JOIN users u ON c.user_id = u.id
+                    LEFT JOIN sports_categories sc ON c.sport_category_id = sc.id
+                    WHERE cb.user_id = ? 
+                    ORDER BY cb.booking_date DESC, cb.start_time DESC";
+            
+            $statement = $this->query($sql, [$userId]);
+            $coachBookings = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $bookings = array_merge($bookings, $coachBookings);
+
+            // Get facility bookings
+            $sql = "SELECT 'facility' as booking_type, fb.*, sf.name as facility_name,
+                           sf.address as facility_address, sc.name as sport_name
+                    FROM facility_bookings fb 
+                    LEFT JOIN sports_facilities sf ON fb.facility_id = sf.id 
+                    LEFT JOIN sports_categories sc ON sf.sport_category_id = sc.id
+                    WHERE fb.user_id = ? 
+                    ORDER BY fb.booking_date DESC, fb.start_time DESC";
+            
+            $statement = $this->query($sql, [$userId]);
+            $facilityBookings = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $bookings = array_merge($bookings, $facilityBookings);
+
+            // Sort all bookings by date
+            usort($bookings, function($a, $b) {
+                return strtotime($b['booking_date'] . ' ' . $b['start_time']) - strtotime($a['booking_date'] . ' ' . $a['start_time']);
+            });
+
+            return $bookings;
+            
+        } catch (\Exception $e) {
+            error_log("Error fetching bookings: " . $e->getMessage());
+            return [];
         }
-        
-        $sql .= " ORDER BY b.booking_date DESC";
-        
-        return $this->query($sql, $params);
     }
 
     /**
@@ -112,8 +144,23 @@ class User extends BaseModel
      */
     public function getOrders(int $userId): array
     {
-        $sql = "SELECT o.* FROM orders o WHERE o.user_id = ? ORDER BY o.created_at DESC";
-        return $this->query($sql, [$userId]);
+        try {
+            $sql = "SELECT o.*, 
+                           COUNT(oi.id) as item_count,
+                           GROUP_CONCAT(oi.item_name SEPARATOR ', ') as items
+                    FROM orders o 
+                    LEFT JOIN order_items oi ON o.id = oi.order_id 
+                    WHERE o.user_id = ? 
+                    GROUP BY o.id 
+                    ORDER BY o.created_at DESC";
+            
+            $statement = $this->query($sql, [$userId]);
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+            
+        } catch (\Exception $e) {
+            error_log("Error fetching orders: " . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -121,19 +168,43 @@ class User extends BaseModel
      */
     public function getStatistics(int $userId): array
     {
-        $stats = [];
+        $stats = [
+            'total_bookings' => 0,
+            'total_orders' => 0,
+            'total_spent' => 0
+        ];
         
-        // Total bookings
-        $result = $this->queryFirst("SELECT COUNT(*) as count FROM bookings WHERE user_id = ?", [$userId]);
-        $stats['total_bookings'] = $result['count'] ?? 0;
-        
-        // Total orders
-        $result = $this->queryFirst("SELECT COUNT(*) as count FROM orders WHERE user_id = ?", [$userId]);
-        $stats['total_orders'] = $result['count'] ?? 0;
-        
-        // Total spent
-        $result = $this->queryFirst("SELECT SUM(total_amount) as total FROM orders WHERE user_id = ? AND status = 'completed'", [$userId]);
-        $stats['total_spent'] = $result['total'] ?? 0;
+        try {
+            // Count coach bookings
+            $sql = "SELECT COUNT(*) as count FROM coach_bookings WHERE user_id = ?";
+            $statement = $this->query($sql, [$userId]);
+            $result = $statement->fetch(\PDO::FETCH_ASSOC);
+            $coachBookings = $result['count'] ?? 0;
+            
+            // Count facility bookings
+            $sql = "SELECT COUNT(*) as count FROM facility_bookings WHERE user_id = ?";
+            $statement = $this->query($sql, [$userId]);
+            $result = $statement->fetch(\PDO::FETCH_ASSOC);
+            $facilityBookings = $result['count'] ?? 0;
+            
+            $stats['total_bookings'] = $coachBookings + $facilityBookings;
+            
+            // Count orders
+            $sql = "SELECT COUNT(*) as count FROM orders WHERE user_id = ?";
+            $statement = $this->query($sql, [$userId]);
+            $result = $statement->fetch(\PDO::FETCH_ASSOC);
+            $stats['total_orders'] = $result['count'] ?? 0;
+            
+            // Sum total spent
+            $sql = "SELECT SUM(total_amount) as total FROM orders WHERE user_id = ? AND status IN ('completed', 'delivered')";
+            $statement = $this->query($sql, [$userId]);
+            $result = $statement->fetch(\PDO::FETCH_ASSOC);
+            $stats['total_spent'] = floatval($result['total'] ?? 0);
+            
+        } catch (\Exception $e) {
+            error_log("Statistics query failed for user {$userId}: " . $e->getMessage());
+            // Return default values on error
+        }
         
         return $stats;
     }

@@ -49,9 +49,47 @@ class UserController extends BaseController
         // Get user statistics
         $stats = $this->userModel->getStatistics($session['user_id']);
 
+        // Use regular view() method with layout and pass additional CSS/JS
         return $this->view('user/profile', [
             'user' => $user,
-            'stats' => $stats
+            'stats' => $stats,
+            'title' => 'My Profile - GoPlay Sports Platform',
+            'additionalCSS' => [
+                '/public/css/pages/user-profile.css',
+                'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+            ],
+            'additionalJS' => [
+                '/public/js/pages/user-profile.js'
+            ]
+        ]);
+    }
+
+    /**
+     * Dashboard for regular users
+     */
+    public function dashboard(Request $request): Response
+    {
+        $session = $this->requireAuth();
+        
+        // Get user details
+        $user = $this->userModel->find($session['user_id']);
+        if (!$user) {
+            return $this->redirect('/login');
+        }
+
+        // Get user statistics
+        $stats = $this->userModel->getStatistics($session['user_id']);
+        
+        return $this->view('user/dashboard', [
+            'user' => $user,
+            'stats' => $stats,
+            'title' => 'Dashboard - GoPlay Sports Platform',
+            'additionalCSS' => [
+                '/public/css/pages/user-dashboard.css'
+            ],
+            'additionalJS' => [
+                '/public/js/pages/user-dashboard.js'
+            ]
         ]);
     }
 
@@ -163,7 +201,7 @@ class UserController extends BaseController
             }
 
             // Create upload directory if it doesn't exist
-            $uploadDir = PUBLIC_PATH . '/uploads/avatars/';
+            $uploadDir = ROOT_PATH . '/public/uploads/avatars/';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
@@ -201,6 +239,54 @@ class UserController extends BaseController
 
         } catch (\Exception $e) {
             return $this->json(['error' => 'Upload failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Change password
+     */
+    public function changePassword(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $data = $request->getJsonBody();
+            
+            if (!isset($data['current_password']) || !isset($data['new_password'])) {
+                return $this->json(['error' => 'Current password and new password are required'], 400);
+            }
+
+            $userId = $_SESSION['user_id'];
+            $user = $this->userModel->getByEmail($_SESSION['user_email']); // Use getByEmail to get password_hash
+            
+            // Verify current password
+            if (!$this->userModel->verifyPassword($data['current_password'], $user['password_hash'])) {
+                return $this->json(['error' => 'Current password is incorrect'], 400);
+            }
+
+            // Validate new password
+            if (strlen($data['new_password']) < 8) {
+                return $this->json(['error' => 'New password must be at least 8 characters long'], 400);
+            }
+
+            // Update password
+            $hashedPassword = $this->userModel->hashPassword($data['new_password']);
+            $success = $this->userModel->update($userId, ['password_hash' => $hashedPassword]);
+
+            if ($success) {
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Password changed successfully'
+                ]);
+            } else {
+                return $this->json(['error' => 'Failed to update password'], 500);
+            }
+
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Password change failed: ' . $e->getMessage()], 500);
         }
     }
 
@@ -249,91 +335,14 @@ class UserController extends BaseController
     }
 
     /**
-     * Show service provider registration
-     */
-    public function serviceProviderRegister(Request $request): Response
-    {
-        $session = $this->requireAuth();
-        return $this->view('user/service-provider-register');
-    }
-
-    /**
-     * Dashboard for regular users
-     */
-    public function dashboard(Request $request): Response
-    {
-        $session = $this->requireAuth();
-        
-        // Get user details
-        $user = $this->userModel->find($session['user_id']);
-        if (!$user) {
-            return $this->redirect('/login');
-        }
-
-        // Get user statistics
-        $stats = $this->userModel->getStatistics($session['user_id']);
-        
-        return $this->view('user/dashboard', [
-            'user' => $user,
-            'stats' => $stats
-        ]);
-    }
-
-    /**
-     * Change password
-     */
-    public function changePassword(Request $request): Response
-    {
-        session_start();
-        if (!isset($_SESSION['user_id'])) {
-            return $this->json(['error' => 'Unauthorized'], 401);
-        }
-
-        try {
-            $data = $request->getJsonBody();
-            
-            if (!isset($data['current_password']) || !isset($data['new_password'])) {
-                return $this->json(['error' => 'Current password and new password are required'], 400);
-            }
-
-            $userId = $_SESSION['user_id'];
-            $user = $this->userModel->find($userId);
-            
-            // Verify current password
-            if (!$this->userModel->verifyPassword($data['current_password'], $user['password_hash'])) {
-                return $this->json(['error' => 'Current password is incorrect'], 400);
-            }
-
-            // Validate new password
-            if (strlen($data['new_password']) < 8) {
-                return $this->json(['error' => 'New password must be at least 8 characters long'], 400);
-            }
-
-            // Update password
-            $hashedPassword = $this->userModel->hashPassword($data['new_password']);
-            $success = $this->userModel->update($userId, ['password_hash' => $hashedPassword]);
-
-            if ($success) {
-                return $this->json([
-                    'success' => true,
-                    'message' => 'Password changed successfully'
-                ]);
-            } else {
-                return $this->json(['error' => 'Failed to update password'], 500);
-            }
-
-        } catch (\Exception $e) {
-            return $this->json(['error' => 'Password change failed: ' . $e->getMessage()], 500);
-        }
-    }
-
-    /**
      * My bookings page
      */
     public function myBookings(Request $request): Response
     {
         $session = $this->requireAuth();
-        return $this->view('user/bookings');
+        return $this->view('user/bookings', [
+            'title' => 'My Bookings - GoPlay Sports Platform'
+        ]);
     }
 
     /**
@@ -342,7 +351,9 @@ class UserController extends BaseController
     public function myOrders(Request $request): Response
     {
         $session = $this->requireAuth();
-        return $this->view('user/orders');
+        return $this->view('user/orders', [
+            'title' => 'My Orders - GoPlay Sports Platform'
+        ]);
     }
 
     /**
@@ -351,7 +362,9 @@ class UserController extends BaseController
     public function cart(Request $request): Response
     {
         $session = $this->requireAuth();
-        return $this->view('user/cart');
+        return $this->view('user/cart', [
+            'title' => 'Shopping Cart - GoPlay Sports Platform'
+        ]);
     }
 
     /**
@@ -360,7 +373,9 @@ class UserController extends BaseController
     public function notifications(Request $request): Response
     {
         $session = $this->requireAuth();
-        return $this->view('user/notifications');
+        return $this->view('user/notifications', [
+            'title' => 'Notifications - GoPlay Sports Platform'
+        ]);
     }
 
     /**
@@ -369,6 +384,8 @@ class UserController extends BaseController
     public function settings(Request $request): Response
     {
         $session = $this->requireAuth();
-        return $this->view('user/settings');
+        return $this->view('user/settings', [
+            'title' => 'Settings - GoPlay Sports Platform'
+        ]);
     }
 }

@@ -1,462 +1,490 @@
-// User Profile JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    initializeProfile();
-});
-
-function initializeProfile() {
-    // Initialize avatar upload
-    initializeAvatarUpload();
-    
-    // Load recent activity
-    loadRecentActivity();
-    
-    // Initialize password form
-    initializePasswordForm();
-}
-
-// Avatar Upload Functionality
-function initializeAvatarUpload() {
-    const avatarInput = document.getElementById('avatar-input');
-    const profileAvatar = document.getElementById('profile-avatar');
-    
-    if (avatarInput) {
-        avatarInput.addEventListener('change', handleAvatarUpload);
+// User Profile JavaScript functionality
+class UserProfile {
+    constructor() {
+        this.isEditing = {};
+        this.init();
     }
-}
 
-function handleAvatarUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-        showAlert('Please select a valid image file (JPEG, PNG, or GIF)', 'error');
-        return;
+    init() {
+        this.setupEventListeners();
+        this.loadRecentActivity();
     }
-    
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-        showAlert('File size must be less than 5MB', 'error');
-        return;
-    }
-    
-    // Show preview
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById('profile-avatar').src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-    
-    // Upload file
-    uploadAvatar(file);
-}
 
-function uploadAvatar(file) {
-    const formData = new FormData();
-    formData.append('avatar', file);
-    
-    showLoading('Uploading avatar...');
-    
-    fetch('/api/user/avatar', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        hideLoading();
-        if (data.success) {
-            showAlert('Avatar updated successfully!', 'success');
-            // Update navbar avatar if it exists
-            const navbarAvatar = document.querySelector('.user-avatar');
-            if (navbarAvatar) {
-                navbarAvatar.src = data.avatar_url;
+    setupEventListeners() {
+        // Avatar upload
+        const avatarInput = document.getElementById('avatar-input');
+        if (avatarInput) {
+            avatarInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
+        }
+
+        // Password form
+        const passwordForm = document.getElementById('password-form');
+        if (passwordForm) {
+            passwordForm.addEventListener('submit', (e) => this.handlePasswordChange(e));
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('password-modal');
+            if (e.target === modal) {
+                this.closePasswordModal();
             }
-        } else {
-            showAlert(data.error || 'Failed to upload avatar', 'error');
-        }
-    })
-    .catch(error => {
-        hideLoading();
-        console.error('Upload error:', error);
-        showAlert('Failed to upload avatar. Please try again.', 'error');
-    });
-}
+        });
 
-// Edit Profile Functionality
-function toggleEdit(section) {
-    const content = document.getElementById(`${section}-content`);
-    const editFields = content.querySelectorAll('[id$="-edit"]');
-    const displayFields = content.querySelectorAll('[id$="-display"]');
-    const actions = document.getElementById(`${section}-actions`);
-    const editBtn = content.parentElement.querySelector('.edit-btn');
-    
-    const isEditing = editBtn.textContent.includes('Cancel');
-    
-    if (isEditing) {
-        cancelEdit(section);
-        return;
+        // Confirm password validation
+        const confirmPassword = document.getElementById('confirm_password');
+        const newPassword = document.getElementById('new_password');
+        if (confirmPassword && newPassword) {
+            confirmPassword.addEventListener('input', () => {
+                if (confirmPassword.value !== newPassword.value) {
+                    confirmPassword.setCustomValidity('Passwords do not match');
+                } else {
+                    confirmPassword.setCustomValidity('');
+                }
+            });
+        }
     }
-    
-    // Show edit fields, hide display fields
-    editFields.forEach(field => field.style.display = 'block');
-    displayFields.forEach(field => field.style.display = 'none');
-    actions.style.display = 'flex';
-    
-    // Update button
-    editBtn.innerHTML = '<i class="fas fa-times"></i> Cancel';
+
+    // Toggle edit mode for a section
+    toggleEdit(section) {
+        const isCurrentlyEditing = this.isEditing[section];
+        
+        if (isCurrentlyEditing) {
+            this.cancelEdit(section);
+        } else {
+            this.enterEditMode(section);
+        }
+    }
+
+    enterEditMode(section) {
+        this.isEditing[section] = true;
+        
+        // Hide display spans and show input fields
+        const fields = this.getSectionFields(section);
+        fields.forEach(field => {
+            const display = document.getElementById(`${field}-display`);
+            const edit = document.getElementById(`${field}-edit`);
+            
+            if (display && edit) {
+                display.style.display = 'none';
+                edit.style.display = 'block';
+                edit.focus();
+            }
+        });
+
+        // Show action buttons
+        const actions = document.getElementById(`${section}-actions`);
+        if (actions) {
+            actions.style.display = 'flex';
+        }
+
+        // Update edit button
+        const editBtn = document.querySelector(`[onclick="toggleEdit('${section}')"]`);
+        if (editBtn) {
+            editBtn.innerHTML = '<i class="fas fa-times"></i> Cancel';
+            editBtn.className = 'edit-btn btn-secondary';
+        }
+    }
+
+    cancelEdit(section) {
+        this.isEditing[section] = false;
+        
+        // Show display spans and hide input fields, reset values
+        const fields = this.getSectionFields(section);
+        fields.forEach(field => {
+            const display = document.getElementById(`${field}-display`);
+            const edit = document.getElementById(`${field}-edit`);
+            
+            if (display && edit) {
+                // Reset input value to original
+                const originalValue = display.textContent.trim();
+                if (originalValue !== 'Not provided') {
+                    edit.value = originalValue;
+                }
+                
+                display.style.display = 'block';
+                edit.style.display = 'none';
+            }
+        });
+
+        // Hide action buttons
+        const actions = document.getElementById(`${section}-actions`);
+        if (actions) {
+            actions.style.display = 'none';
+        }
+
+        // Update edit button
+        const editBtn = document.querySelector(`[onclick="toggleEdit('${section}')"]`);
+        if (editBtn) {
+            editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+            editBtn.className = 'edit-btn';
+        }
+    }
+
+    getSectionFields(section) {
+        const fieldMap = {
+            'personal': ['first_name', 'last_name', 'phone', 'date_of_birth']
+        };
+        return fieldMap[section] || [];
+    }
+
+    async saveChanges(section) {
+        const fields = this.getSectionFields(section);
+        const data = {};
+
+        // Collect data from input fields
+        fields.forEach(field => {
+            const input = document.getElementById(`${field}-edit`);
+            if (input) {
+                data[field] = input.value.trim();
+            }
+        });
+
+        // Validate data
+        if (!this.validateData(data)) {
+            return;
+        }
+
+        try {
+            // Show loading state
+            this.showLoading(section);
+
+            // Make API request
+            const response = await fetch('/api/user/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Update display values
+                fields.forEach(field => {
+                    const display = document.getElementById(`${field}-display`);
+                    const input = document.getElementById(`${field}-edit`);
+                    
+                    if (display && input) {
+                        let displayValue = input.value || 'Not provided';
+                        
+                        // Format date for display
+                        if (field === 'date_of_birth' && input.value) {
+                            const date = new Date(input.value);
+                            displayValue = date.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+                        }
+                        
+                        display.textContent = displayValue;
+                    }
+                });
+
+                this.cancelEdit(section);
+                this.showToast('Profile updated successfully!', 'success');
+            } else {
+                throw new Error(result.error || 'Failed to update profile');
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            this.showToast(error.message || 'Failed to update profile', 'error');
+        } finally {
+            this.hideLoading(section);
+        }
+    }
+
+    validateData(data) {
+        // Basic validation
+        if (data.first_name && data.first_name.length < 2) {
+            this.showToast('First name must be at least 2 characters long', 'warning');
+            return false;
+        }
+
+        if (data.last_name && data.last_name.length < 2) {
+            this.showToast('Last name must be at least 2 characters long', 'warning');
+            return false;
+        }
+
+        if (data.phone && data.phone.length > 0) {
+            const phoneRegex = /^[\+]?[\d\s\-\(\)]+$/;
+            if (!phoneRegex.test(data.phone)) {
+                this.showToast('Please enter a valid phone number', 'warning');
+                return false;
+            }
+        }
+
+        if (data.date_of_birth) {
+            const date = new Date(data.date_of_birth);
+            const today = new Date();
+            const age = today.getFullYear() - date.getFullYear();
+            
+            if (age < 13 || age > 120) {
+                this.showToast('Please enter a valid date of birth', 'warning');
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    async handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+
+        if (!allowedTypes.includes(file.type)) {
+            this.showToast('Please select a valid image file (JPEG, PNG, or GIF)', 'warning');
+            return;
+        }
+
+        if (file.size > maxSize) {
+            this.showToast('Image size must be less than 5MB', 'warning');
+            return;
+        }
+
+        try {
+            // Show loading state
+            const uploadBtn = document.querySelector('.avatar-upload-btn');
+            const originalContent = uploadBtn.innerHTML;
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            uploadBtn.disabled = true;
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('avatar', file);
+
+            // Upload avatar
+            const response = await fetch('/api/user/avatar', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Update avatar image
+                const avatar = document.getElementById('profile-avatar');
+                if (avatar) {
+                    avatar.src = result.avatar_url + '?t=' + Date.now(); // Cache busting
+                }
+
+                this.showToast('Profile picture updated successfully!', 'success');
+            } else {
+                throw new Error(result.error || 'Failed to upload avatar');
+            }
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            this.showToast(error.message || 'Failed to upload profile picture', 'error');
+        } finally {
+            // Reset button
+            const uploadBtn = document.querySelector('.avatar-upload-btn');
+            uploadBtn.innerHTML = '<i class="fas fa-camera"></i>';
+            uploadBtn.disabled = false;
+        }
+    }
+
+    async handlePasswordChange(event) {
+        event.preventDefault();
+        
+        const currentPassword = document.getElementById('current_password').value;
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        // Validate passwords
+        if (newPassword !== confirmPassword) {
+            this.showToast('New passwords do not match', 'warning');
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            this.showToast('New password must be at least 8 characters long', 'warning');
+            return;
+        }
+
+        try {
+            // Show loading state
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+            submitBtn.disabled = true;
+
+            // Make API request
+            const response = await fetch('/api/user/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.closePasswordModal();
+                document.getElementById('password-form').reset();
+                this.showToast('Password changed successfully!', 'success');
+            } else {
+                throw new Error(result.error || 'Failed to change password');
+            }
+        } catch (error) {
+            console.error('Error changing password:', error);
+            this.showToast(error.message || 'Failed to change password', 'error');
+        } finally {
+            // Reset button
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Change Password';
+            submitBtn.disabled = false;
+        }
+    }
+
+    async loadRecentActivity() {
+        try {
+            const activityList = document.getElementById('activity-list');
+            if (!activityList) return;
+
+            // For now, show sample activity - you can replace this with real API calls
+            const activities = [
+                {
+                    icon: 'fas fa-calendar-check',
+                    iconColor: '#28a745',
+                    title: 'Ground Booking Confirmed',
+                    description: 'Your booking at Central Sports Complex has been confirmed',
+                    time: '2 hours ago'
+                },
+                {
+                    icon: 'fas fa-shopping-cart',
+                    iconColor: '#17a2b8',
+                    title: 'Order Placed',
+                    description: 'Order #12345 for sports equipment has been placed',
+                    time: '1 day ago'
+                },
+                {
+                    icon: 'fas fa-user-tie',
+                    iconColor: '#ffc107',
+                    title: 'Coach Session Completed',
+                    description: 'Tennis coaching session with John Smith completed',
+                    time: '3 days ago'
+                }
+            ];
+
+            const activityHTML = activities.map(activity => `
+                <div class="activity-item">
+                    <div class="activity-icon" style="background-color: ${activity.iconColor}">
+                        <i class="${activity.icon}"></i>
+                    </div>
+                    <div class="activity-details">
+                        <h4>${activity.title}</h4>
+                        <p>${activity.description}</p>
+                        <small>${activity.time}</small>
+                    </div>
+                </div>
+            `).join('');
+
+            activityList.innerHTML = activityHTML;
+        } catch (error) {
+            console.error('Error loading activity:', error);
+            const activityList = document.getElementById('activity-list');
+            if (activityList) {
+                activityList.innerHTML = '<div class="loading">Unable to load recent activity</div>';
+            }
+        }
+    }
+
+    showLoading(section) {
+        const actions = document.getElementById(`${section}-actions`);
+        if (actions) {
+            const saveBtn = actions.querySelector('.btn-primary');
+            if (saveBtn) {
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                saveBtn.disabled = true;
+            }
+        }
+    }
+
+    hideLoading(section) {
+        const actions = document.getElementById(`${section}-actions`);
+        if (actions) {
+            const saveBtn = actions.querySelector('.btn-primary');
+            if (saveBtn) {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                saveBtn.disabled = false;
+            }
+        }
+    }
+
+    showToast(message, type = 'info') {
+        // Remove existing toast
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+
+        // Add to page
+        document.body.appendChild(toast);
+
+        // Show toast
+        setTimeout(() => toast.classList.add('show'), 100);
+
+        // Hide and remove toast
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    changePassword() {
+        const modal = document.getElementById('password-modal');
+        if (modal) {
+            modal.style.display = 'block';
+            document.getElementById('current_password').focus();
+        }
+    }
+
+    closePasswordModal() {
+        const modal = document.getElementById('password-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.getElementById('password-form').reset();
+        }
+    }
 }
 
-function cancelEdit(section) {
-    const content = document.getElementById(`${section}-content`);
-    const editFields = content.querySelectorAll('[id$="-edit"]');
-    const displayFields = content.querySelectorAll('[id$="-display"]');
-    const actions = document.getElementById(`${section}-actions`);
-    const editBtn = content.parentElement.querySelector('.edit-btn');
-    
-    // Hide edit fields, show display fields
-    editFields.forEach(field => field.style.display = 'none');
-    displayFields.forEach(field => field.style.display = 'block');
-    actions.style.display = 'none';
-    
-    // Reset form values
-    editFields.forEach(field => {
-        const displayField = document.getElementById(field.id.replace('-edit', '-display'));
-        if (displayField) {
-            field.value = displayField.textContent.trim();
-        }
-    });
-    
-    // Update button
-    editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+// Global functions for onclick handlers
+function toggleEdit(section) {
+    window.userProfile.toggleEdit(section);
 }
 
 function saveChanges(section) {
-    const content = document.getElementById(`${section}-content`);
-    const editFields = content.querySelectorAll('[id$="-edit"]');
-    
-    // Collect form data
-    const formData = {};
-    editFields.forEach(field => {
-        const fieldName = field.id.replace('-edit', '');
-        formData[fieldName] = field.value.trim();
-    });
-    
-    // Validate required fields
-    if (!formData.first_name || !formData.last_name) {
-        showAlert('First name and last name are required', 'error');
-        return;
-    }
-    
-    showLoading('Saving changes...');
-    
-    fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        hideLoading();
-        if (data.success) {
-            showAlert('Profile updated successfully!', 'success');
-            
-            // Update display fields
-            editFields.forEach(field => {
-                const fieldName = field.id.replace('-edit', '');
-                const displayField = document.getElementById(`${fieldName}-display`);
-                if (displayField) {
-                    let displayValue = field.value;
-                    
-                    // Format date of birth
-                    if (fieldName === 'date_of_birth' && displayValue) {
-                        displayValue = new Date(displayValue).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        });
-                    }
-                    
-                    displayField.textContent = displayValue || 'Not provided';
-                }
-            });
-            
-            // Exit edit mode
-            cancelEdit(section);
-            
-            // Update navbar name if first/last name changed
-            if (formData.first_name || formData.last_name) {
-                const navbarName = document.querySelector('.user-btn span');
-                if (navbarName) {
-                    navbarName.textContent = `${formData.first_name} ${formData.last_name}`;
-                }
-            }
-            
-        } else {
-            showAlert(data.error || 'Failed to update profile', 'error');
-        }
-    })
-    .catch(error => {
-        hideLoading();
-        console.error('Update error:', error);
-        showAlert('Failed to update profile. Please try again.', 'error');
-    });
+    window.userProfile.saveChanges(section);
 }
 
-// Password Change Functionality
+function cancelEdit(section) {
+    window.userProfile.cancelEdit(section);
+}
+
 function changePassword() {
-    document.getElementById('password-modal').classList.add('show');
-    document.getElementById('current_password').focus();
+    window.userProfile.changePassword();
 }
 
 function closePasswordModal() {
-    document.getElementById('password-modal').classList.remove('show');
-    document.getElementById('password-form').reset();
-    clearFormErrors();
+    window.userProfile.closePasswordModal();
 }
 
-function initializePasswordForm() {
-    const passwordForm = document.getElementById('password-form');
-    if (passwordForm) {
-        passwordForm.addEventListener('submit', handlePasswordChange);
-    }
-    
-    // Close modal when clicking outside
-    const modal = document.getElementById('password-modal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                closePasswordModal();
-            }
-        });
-    }
-}
-
-function handlePasswordChange(event) {
-    event.preventDefault();
-    
-    const currentPassword = document.getElementById('current_password').value;
-    const newPassword = document.getElementById('new_password').value;
-    const confirmPassword = document.getElementById('confirm_password').value;
-    
-    // Clear previous errors
-    clearFormErrors();
-    
-    // Validate passwords match
-    if (newPassword !== confirmPassword) {
-        showFormError('confirm_password', 'Passwords do not match');
-        return;
-    }
-    
-    // Validate password strength
-    if (newPassword.length < 8) {
-        showFormError('new_password', 'Password must be at least 8 characters long');
-        return;
-    }
-    
-    const formData = {
-        current_password: currentPassword,
-        new_password: newPassword
-    };
-    
-    showLoading('Changing password...');
-    
-    fetch('/api/user/change-password', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        hideLoading();
-        if (data.success) {
-            showAlert('Password changed successfully!', 'success');
-            closePasswordModal();
-        } else {
-            if (data.error.includes('Current password')) {
-                showFormError('current_password', data.error);
-            } else {
-                showAlert(data.error || 'Failed to change password', 'error');
-            }
-        }
-    })
-    .catch(error => {
-        hideLoading();
-        console.error('Password change error:', error);
-        showAlert('Failed to change password. Please try again.', 'error');
-    });
-}
-
-// Activity Loading
-function loadRecentActivity() {
-    const activityList = document.getElementById('activity-list');
-    if (!activityList) return;
-    
-    fetch('/api/user/activity')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.activities) {
-            displayActivity(data.activities);
-        } else {
-            activityList.innerHTML = '<p class="text-secondary">No recent activity found.</p>';
-        }
-    })
-    .catch(error => {
-        console.error('Failed to load activity:', error);
-        activityList.innerHTML = '<p class="text-secondary">Failed to load recent activity.</p>';
-    });
-}
-
-function displayActivity(activities) {
-    const activityList = document.getElementById('activity-list');
-    
-    if (activities.length === 0) {
-        activityList.innerHTML = '<p class="text-secondary">No recent activity found.</p>';
-        return;
-    }
-    
-    const activityHTML = activities.map(activity => `
-        <div class="activity-item">
-            <div class="activity-icon">
-                <i class="fas fa-${getActivityIcon(activity.type)}"></i>
-            </div>
-            <div class="activity-details">
-                <h4>${activity.title}</h4>
-                <p>${activity.description}</p>
-                <span class="activity-time">${formatTimeAgo(activity.created_at)}</span>
-            </div>
-        </div>
-    `).join('');
-    
-    activityList.innerHTML = activityHTML;
-}
-
-function getActivityIcon(type) {
-    const icons = {
-        'booking': 'calendar-check',
-        'order': 'shopping-cart',
-        'payment': 'credit-card',
-        'profile': 'user',
-        'default': 'bell'
-    };
-    return icons[type] || icons.default;
-}
-
-function formatTimeAgo(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-    
-    if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-    
-    return date.toLocaleDateString();
-}
-
-// Utility Functions
-function showAlert(message, type = 'info') {
-    // Remove existing alerts
-    const existingAlert = document.querySelector('.alert');
-    if (existingAlert) {
-        existingAlert.remove();
-    }
-    
-    // Create new alert
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type} fade-in-up`;
-    alert.textContent = message;
-    
-    // Insert at top of profile container
-    const container = document.querySelector('.profile-container');
-    container.insertBefore(alert, container.firstChild);
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (alert.parentNode) {
-            alert.remove();
-        }
-    }, 5000);
-}
-
-function showLoading(message = 'Loading...') {
-    const existingLoading = document.getElementById('loading-overlay');
-    if (existingLoading) return;
-    
-    const overlay = document.createElement('div');
-    overlay.id = 'loading-overlay';
-    overlay.innerHTML = `
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <span>${message}</span>
-        </div>
-    `;
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-    `;
-    
-    const loadingContent = overlay.querySelector('.loading-content');
-    loadingContent.style.cssText = `
-        background: white;
-        padding: 2rem;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        font-weight: 600;
-    `;
-    
-    document.body.appendChild(overlay);
-}
-
-function hideLoading() {
-    const overlay = document.getElementById('loading-overlay');
-    if (overlay) {
-        overlay.remove();
-    }
-}
-
-function showFormError(fieldId, message) {
-    const field = document.getElementById(fieldId);
-    if (!field) return;
-    
-    const formGroup = field.closest('.form-group');
-    formGroup.classList.add('error');
-    
-    // Remove existing error message
-    const existingError = formGroup.querySelector('.error-message');
-    if (existingError) {
-        existingError.remove();
-    }
-    
-    // Add new error message
-    const errorElement = document.createElement('span');
-    errorElement.className = 'error-message';
-    errorElement.textContent = message;
-    formGroup.appendChild(errorElement);
-}
-
-function clearFormErrors() {
-    const errorGroups = document.querySelectorAll('.form-group.error');
-    errorGroups.forEach(group => {
-        group.classList.remove('error');
-        const errorMessage = group.querySelector('.error-message');
-        if (errorMessage) {
-            errorMessage.remove();
-        }
-    });
-}
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    window.userProfile = new UserProfile();
+});
