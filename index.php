@@ -96,6 +96,19 @@ try {
     $router->get('/api/coaches/{id}', 'CoachController@getCoachDetails');
     $router->get('/api/sports-categories', 'CoachController@getSportsCategories');
     
+    // Public Grounds API routes (for booking)
+    $router->get('/api/grounds', 'BookingController@getGrounds');
+    $router->get('/api/grounds/{id}', 'BookingController@getGroundDetails');
+    
+    // Cart API routes (CRUD operations)
+    $router->get('/api/cart', 'CartController@getCart');
+    $router->get('/api/cart/count', 'CartController@getCartCount');
+    $router->post('/api/cart/add', 'CartController@addToCart');
+    $router->put('/api/cart/update', 'CartController@updateCartItem');
+    $router->delete('/api/cart/remove', 'CartController@removeFromCart');
+    $router->delete('/api/cart/clear', 'CartController@clearCart');
+    $router->post('/api/cart/merge', 'CartController@mergeGuestCart');
+    
     // Ground Owner page routes
     $router->get('/ground-owner/grounds', 'GroundOwnerController@groundsPage');
     $router->get('/ground-owner/bookings', 'GroundOwnerController@bookingsPage');
@@ -125,6 +138,7 @@ try {
     $router->get('/news', 'NewsController@index');
     $router->get('/payment', 'PaymentController@payment');
     $router->get('/payment/success', 'PaymentController@success');
+    
     
     // Shop Owner page routes
     $router->get('/shop-owner/products', 'ShopOwnerController@productsPage');
