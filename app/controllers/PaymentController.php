@@ -2,8 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Core\Request;
-use App\Core\Response;
+use Core\Request;
+use Core\Response;
 
 /**
  * Payment Controller
@@ -19,6 +19,8 @@ class PaymentController extends BaseController
     {
         return $this->view('payment/payment');
     }
+
+    
 
     /**
      * Display payment success page

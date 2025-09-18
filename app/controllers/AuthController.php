@@ -71,14 +71,23 @@ class AuthController extends BaseController
 
             // Start session
             session_start();
+            
+            // Set individual session variables (for compatibility)
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_type'] = $user['user_type'];
             $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+            
+            // Set structured user data for navbar
+            $_SESSION['user'] = [
+                'id' => $user['id'],
+                'name' => $user['first_name'] . ' ' . $user['last_name'],
+                'email' => $user['email'],
+                'role' => $user['user_type'],
+                'avatar' => $user['profile_picture'] ?? null
+            ];
 
-            // Role-based redirect
-            $redirectUrl = $this->getRedirectUrlByRole($user['user_type']);
-
+            // Always redirect to home page after login
             return $this->json([
                 'success' => true,
                 'message' => 'Login successful',
@@ -88,31 +97,11 @@ class AuthController extends BaseController
                     'name' => $user['first_name'] . ' ' . $user['last_name'],
                     'role' => $user['user_type']
                 ],
-                'redirect' => $redirectUrl
+                'redirect' => '/' // Always redirect to home page
             ]);
 
         } catch (\Exception $e) {
             return $this->json(['error' => 'Login failed: ' . $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Get redirect URL based on user role
-     */
-    private function getRedirectUrlByRole(string $role): string
-    {
-        switch ($role) {
-            case 'admin':
-                return '/admin/dashboard';
-            case 'ground_owner':
-                return '/ground-owner/dashboard';
-            case 'coach':
-                return '/coach/dashboard';
-            case 'shop_owner':
-                return '/shop-owner/dashboard';
-            case 'user':
-            default:
-                return '/dashboard';
         }
     }
 

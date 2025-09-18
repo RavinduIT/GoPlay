@@ -31,6 +31,12 @@
                     <span class="badge" id="sessionsCount">0</span>
                 </a>
             </li>
+            <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/book-session') !== false ? 'active' : '' ?>">
+                <a href="/coach/book-session">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span>Book Session</span>
+                </a>
+            </li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/clients') !== false ? 'active' : '' ?>">
                 <a href="/coach/clients">
                     <i class="fas fa-users"></i>

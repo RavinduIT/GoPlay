@@ -871,10 +871,11 @@ $additionalJS = [];
 
         function bookSession(coachId) {
             console.log('Book session with coach:', coachId);
-            // Redirect to booking page
-            window.location.href = `/payment?coach_id=${coachId}`;
+            // Redirect to session booking page
+            window.location.href = `/app/views/booking/book-session.php?coach_id=${coachId}`;
         }
         
+    
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
             // Load initial data

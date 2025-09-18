@@ -115,4 +115,87 @@ class BookingController extends BaseController
         // Booking creation logic
         return $this->json(['success' => true, 'message' => 'Booking created successfully']);
     }
+
+    /**
+     * API: Get all available grounds
+     */
+    public function getGrounds(Request $request): Response
+    {
+        try {
+            // Get filter parameters
+            $filters = [
+                'sport_category' => $request->getQuery('sport'),
+                'city' => $request->getQuery('city'),
+                'min_rate' => $request->getQuery('min_rate'),
+                'max_rate' => $request->getQuery('max_rate'),
+                'search' => $request->getQuery('search')
+            ];
+            
+            // Remove empty filters
+            $filters = array_filter($filters, fn($value) => $value !== null && $value !== '');
+            
+            // Get available sports facilities
+            $facilities = $this->getFacilityModel()->getAvailableFacilities($filters);
+            
+            return $this->json([
+                'success' => true,
+                'data' => $facilities
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("Get grounds API error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'Unable to load facilities',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * API: Get specific ground details by ID
+     */
+    public function getGroundDetails(Request $request): Response
+    {
+        try {
+            $id = $request->getParam('id');
+            if (!$id) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Ground ID is required'
+                ], 400);
+            }
+
+            // Get facility details with reviews and bookings
+            $facility = $this->getFacilityModel()->getDetailedFacility($id);
+            
+            if (!$facility) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Ground not found'
+                ], 404);
+            }
+
+            return $this->json([
+                'success' => true,
+                'data' => $facility
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("Get ground details API error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'Unable to load ground details',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * API: Alternative endpoint for ground by ID (for compatibility)
+     */
+    public function getGroundById(Request $request): Response
+    {
+        return $this->getGroundDetails($request);
+    }
 }
