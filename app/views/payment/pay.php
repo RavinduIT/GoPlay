@@ -1,12 +1,12 @@
 <?php
 
-//$ROOT = defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 3); // project root
+$ROOT = defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 3); // project root
 $title = 'Secure Payment - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
 
 // include header/navbar
-//require $ROOT . '/app/views/components/navbar.php';
+require $ROOT . '/app/views/components/navbar.php';
 
 $name   = $_GET['name']  ?? 'Professional Basketball';
 $qty    = intval($_GET['qty'] ?? 1);
@@ -30,8 +30,8 @@ $total = $subtotal + $tax + $shipping;
 *{box-sizing:border-box} body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--text-primary);background:var(--background-white);margin:0}
 .container{max-width:1200px;margin:0 auto;padding:0 1.5rem}
 .header{background:var(--background-light);padding:1.25rem 0;text-align:center}
-.header h2{margin:0;font-weight:800; color: var(--primary-color)}
-.header p{color:var(--text-secondary)}
+.header h2{margin:0;font-weight:800}
+.header p{color:var(--text-secondary);margin:.25rem 0 0}
 .page{padding:1.25rem 0 2.5rem}
 .grid{display:grid;grid-template-columns:1fr 2fr;gap:1.5rem}
 .card{background:#fff;border:1px solid var(--border-color);border-radius:var(--border-radius-lg);box-shadow:var(--shadow-light)}
@@ -132,13 +132,9 @@ $total = $subtotal + $tax + $shipping;
           </div>
 
           <div class="actions">
-            <!--<button class="btn btn-primary" type="submit">
+            <button class="btn btn-primary" type="submit">
               Continue to Payment <i class="fa fa-arrow-right" style="margin-left:.5rem"></i>
-            </button>-->
-            <a class="btn btn-primary"
-                href="/app/views/payment/payment-method.php">
-                Continue to Payment <i class="fa fa-arrow-right" style="margin-left:.5rem"></i>
-            </a>
+            </button>
           </div>
         </form>
 
@@ -189,4 +185,4 @@ function finishOrder(){
 }
 </script>
 <?php
-//require $ROOT . '/app/views/components/footer.php';
+require $ROOT . '/app/views/components/footer.php';

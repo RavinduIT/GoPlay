@@ -1407,8 +1407,35 @@ $additionalJS = ['/public/js/cart-api.js'];
             window.location.href = `/product/${productId}`;
         }
 
+
         // Cart functions now handled by cart-api.js
         // updateCartDisplay(), toggleCart(), showCartSummary(), checkout() moved to cart-api.js
+
+        /* Toggle cart summary
+        function toggleCart() {
+            const cartSummary = document.getElementById('cart-summary');
+            cartSummary.classList.toggle('visible');
+        }
+
+        // Show cart summary temporarily
+        function showCartSummary() {
+            const cartSummary = document.getElementById('cart-summary');
+            cartSummary.classList.add('visible');
+            setTimeout(() => {
+                cartSummary.classList.remove('visible');
+            }, 3000);
+        }
+
+        // Checkout
+        function checkout() {
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            // Redirect to checkout page
+            window.location.href = '/payment';
+        }*/
+
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {

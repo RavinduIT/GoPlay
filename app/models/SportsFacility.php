@@ -305,4 +305,75 @@ class SportsFacility extends BaseModel
         
         return $this->query($sql, [$facilityId])->fetchAll();
     }
+
+    /**
+     * Get detailed facility information for the details page
+     */
+    public function getDetailedFacility(int $id): ?array
+    {
+        try {
+            // Get basic facility info with category and owner details
+            $sql = "SELECT sf.*, 
+                           sc.name as category_name, 
+                           sc.icon as category_icon,
+                           u.first_name, 
+                           u.last_name, 
+                           u.phone, 
+                           u.email,
+                           COUNT(DISTINCT fr.id) as total_reviews,
+                           ROUND(AVG(fr.rating), 1) as avg_rating,
+                           COUNT(DISTINCT b.id) as total_bookings
+                    FROM {$this->table} sf 
+                    LEFT JOIN sports_categories sc ON sf.sport_category_id = sc.id 
+                    LEFT JOIN users u ON sf.owner_id = u.id
+                    LEFT JOIN facility_reviews fr ON sf.id = fr.facility_id
+                    LEFT JOIN facility_bookings b ON sf.id = b.facility_id AND b.status = 'completed'
+                    WHERE sf.id = ? AND sf.status = 'active'
+                    GROUP BY sf.id";
+            
+            $result = $this->query($sql, [$id])->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$result) {
+                return null;
+            }
+
+            // Cast attributes and enhance data
+            $facility = $this->castAttributes($result);
+            
+            // Add computed fields
+            $facility['rating'] = $result['avg_rating'] ? floatval($result['avg_rating']) : 4.5;
+            $facility['reviews'] = intval($result['total_reviews']);
+            $facility['total_bookings'] = intval($result['total_bookings']);
+            
+            // Ensure images array exists
+            if (!isset($facility['images']) || !is_array($facility['images'])) {
+                $facility['images'] = ['/public/assets/images/ground.jpeg'];
+            }
+            
+            // Ensure amenities array exists
+            if (!isset($facility['amenities']) || !is_array($facility['amenities'])) {
+                $facility['amenities'] = ['Parking', 'Changing Rooms', 'Equipment Rental'];
+            }
+            
+            // Add availability schedule (default)
+            $facility['availability'] = [
+                'monday' => ['6:00 AM - 10:00 PM'],
+                'tuesday' => ['6:00 AM - 10:00 PM'],
+                'wednesday' => ['6:00 AM - 10:00 PM'],
+                'thursday' => ['6:00 AM - 10:00 PM'],
+                'friday' => ['6:00 AM - 10:00 PM'],
+                'saturday' => ['7:00 AM - 9:00 PM'],
+                'sunday' => ['8:00 AM - 8:00 PM']
+            ];
+            
+            // Get recent reviews
+            $facility['recent_reviews'] = $this->getFacilityReviews($id);
+            
+            return $facility;
+            
+        } catch (\Exception $e) {
+            error_log("Error fetching detailed facility: " . $e->getMessage());
+            return null;
+        }
+    }
 }

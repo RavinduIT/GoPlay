@@ -356,13 +356,52 @@ $groundId = $_GET['id'] ?? 1;
         }
 
         .map-container {
-            height: 250px;
+            height: 300px;
             background: var(--background-light);
             border-radius: var(--border-radius);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 1000;
+            border-radius: var(--border-radius);
+        }
+
+        .map-loading-content {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .map-loading-spinner {
+            margin-bottom: 1rem;
+        }
+
+        .spinner-ring {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .map-loading-text {
             color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 0;
         }
 
         .contact-info {
@@ -589,8 +628,21 @@ $groundId = $_GET['id'] ?? 1;
                         Location
                     </h3>
                     <div class="map-container">
-                        <i class="fas fa-map-marker-alt" style="font-size: 2rem;"></i>
-                        <p>Interactive map coming soon</p>
+                        <div id="ground-map" style="width: 100%; height: 100%; border-radius: 8px;"></div>
+                        <div id="map-loading-overlay" class="map-loading-overlay">
+                            <div class="map-loading-content">
+                                <div class="map-loading-spinner">
+                                    <div class="spinner-ring"></div>
+                                </div>
+                                <p class="map-loading-text">Loading map...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="location-info">
+                        <div class="ground-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="sidebar-location">Loading location...</span>
+                        </div>
                     </div>
                 </div>
 
@@ -600,25 +652,8 @@ $groundId = $_GET['id'] ?? 1;
                         <i class="fas fa-phone"></i>
                         Contact
                     </h3>
-                    <div class="contact-info">
-                        <div class="contact-item">
-                            <div class="contact-icon">
-                                <i class="fas fa-phone"></i>
-                            </div>
-                            <span class="contact-text">+94 11 234 5678</span>
-                        </div>
-                        <div class="contact-item">
-                            <div class="contact-icon">
-                                <i class="fas fa-envelope"></i>
-                            </div>
-                            <span class="contact-text">info@goplay.lk</span>
-                        </div>
-                        <div class="contact-item">
-                            <div class="contact-icon">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <span class="contact-text">24/7 Support</span>
-                        </div>
+                    <div id="ground-contact" class="contact-info">
+                        <!-- Contact info will be populated dynamically -->
                     </div>
                 </div>
             </div>
@@ -652,30 +687,43 @@ $groundId = $_GET['id'] ?? 1;
             'Poolside Cafe': 'fas fa-coffee'
         };
 
-        // Load ground data
+        // Load ground data from database API
         async function loadGroundData() {
             try {
-                const response = await fetch('/public/data/grounds.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                
                 // Get ground ID from URL parameter
                 const urlParams = new URLSearchParams(window.location.search);
                 const groundIdParam = urlParams.get('id');
                 const groundId = groundIdParam ? parseInt(groundIdParam) : 1;
                 
-                console.log('Looking for ground with ID:', groundId);
-                console.log('Available grounds:', data.grounds.map(g => ({id: g.id, name: g.name})));
+                if (!groundId || groundId <= 0) {
+                    console.log('Invalid ground ID:', groundId);
+                    showError();
+                    return;
+                }
+
+                console.log('Loading ground with ID:', groundId);
                 
-                currentGround = data.grounds.find(ground => ground.id === groundId);
+                // Fetch ground details from database API
+                const response = await fetch(`/api/ground/${groundId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
                 
-                if (currentGround) {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('API Response:', result);
+                
+                if (result.success && result.data) {
+                    currentGround = result.data;
                     console.log('Found ground:', currentGround.name);
                     displayGroundDetails(currentGround);
                 } else {
-                    console.log('Ground not found with ID:', groundId);
+                    console.log('Ground not found:', result.message);
                     showError();
                 }
             } catch (error) {
@@ -694,22 +742,61 @@ $groundId = $_GET['id'] ?? 1;
             document.title = `${ground.name} - GoPlay Sports Platform`;
             document.getElementById('breadcrumb-current').textContent = ground.name;
 
-            // Basic info
-            document.getElementById('ground-title').textContent = ground.name;
-            document.getElementById('ground-location').textContent = ground.location;
-            document.getElementById('ground-image').src = ground.image;
-            document.getElementById('ground-image').alt = ground.name;
-            document.getElementById('ground-description').textContent = ground.description;
-            document.getElementById('ground-price').textContent = ground.price.toLocaleString();
+            // Basic info - handle database structure
+            document.getElementById('ground-title').textContent = ground.name || 'Ground';
+            
+            // Location - combine address and city
+            const location = ground.address ? `${ground.address}, ${ground.city}` : ground.city || ground.location || 'Location TBD';
+            document.getElementById('ground-location').textContent = location;
+            
+            // Also update sidebar location
+            const sidebarLocation = document.getElementById('sidebar-location');
+            if (sidebarLocation) {
+                sidebarLocation.textContent = location;
+            }
+            
+            // Image - use first image from array or default
+            const imageUrl = (ground.images && ground.images.length > 0) ? ground.images[0] : '/public/assets/images/ground.jpeg';
+            document.getElementById('ground-image').src = imageUrl;
+            document.getElementById('ground-image').alt = ground.name || 'Ground Image';
+            
+            // Description
+            document.getElementById('ground-description').textContent = ground.description || 'A great facility for sports activities.';
+            
+            // Price - use hourly_rate from database
+            const price = ground.hourly_rate || ground.price || 0;
+            document.getElementById('ground-price').textContent = price.toLocaleString();
 
-            // Rating
-            displayRating(ground.rating, ground.reviews);
+            // Rating - use database rating and review count
+            const rating = ground.rating || 4.5;
+            const reviewCount = ground.reviews || ground.total_reviews || 0;
+            displayRating(rating, reviewCount);
 
-            // Features
-            displayFeatures(ground.features);
+            // Features - use amenities from database
+            const features = ground.amenities || ground.features || ['Parking', 'Changing Rooms'];
+            displayFeatures(features);
 
-            // Availability
-            displayAvailability(ground.availability);
+            // Availability - use availability from API response
+            displayAvailability(ground.availability || getDefaultAvailability());
+
+            // Contact information
+            displayContactInfo(ground);
+
+            // Update map location
+            updateGroundLocation(ground);
+        }
+
+        // Default availability if not provided
+        function getDefaultAvailability() {
+            return {
+                'monday': ['6:00 AM - 10:00 PM'],
+                'tuesday': ['6:00 AM - 10:00 PM'],
+                'wednesday': ['6:00 AM - 10:00 PM'],
+                'thursday': ['6:00 AM - 10:00 PM'],
+                'friday': ['6:00 AM - 10:00 PM'],
+                'saturday': ['7:00 AM - 9:00 PM'],
+                'sunday': ['8:00 AM - 8:00 PM']
+            };
         }
 
         // Display rating stars
@@ -779,6 +866,59 @@ $groundId = $_GET['id'] ?? 1;
             availabilityContainer.innerHTML = availabilityHTML;
         }
 
+        // Display contact information
+        function displayContactInfo(ground) {
+            const contactContainer = document.getElementById('ground-contact');
+            
+            let contactHTML = '';
+            
+            // Phone
+            const phone = ground.phone || ground.contact_phone || '+94 11 234 5678';
+            contactHTML += `
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <span class="contact-text">${phone}</span>
+                </div>
+            `;
+            
+            // Email
+            const email = ground.email || ground.contact_email || 'info@goplay.lk';
+            contactHTML += `
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <span class="contact-text">${email}</span>
+                </div>
+            `;
+            
+            // Owner name (if available)
+            if (ground.first_name && ground.last_name) {
+                contactHTML += `
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="contact-text">${ground.first_name} ${ground.last_name}</span>
+                    </div>
+                `;
+            }
+            
+            // Operating hours
+            contactHTML += `
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <span class="contact-text">Daily: 6AM - 10PM</span>
+                </div>
+            `;
+
+            contactContainer.innerHTML = contactHTML;
+        }
+
         // Show error state
         function showError() {
             document.getElementById('loading').style.display = 'none';
@@ -793,8 +933,146 @@ $groundId = $_GET['id'] ?? 1;
             }
         }
 
+        // Google Maps for Ground Details
+        let groundMap;
+        let groundMarker;
+
+        function initGroundMap() {
+            console.log('Initializing ground map...');
+            
+            // Show loading overlay
+            showMapLoading(true);
+            
+            // Default location (will be updated when ground data loads)
+            const defaultLocation = { lat: 6.9271, lng: 79.8612 };
+            
+            groundMap = new google.maps.Map(document.getElementById('ground-map'), {
+                zoom: 15,
+                center: defaultLocation,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true,
+                styles: [
+                    {
+                        featureType: 'poi',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'off' }]
+                    }
+                ]
+            });
+
+            // Create marker (will be updated with sport-specific icon)
+            groundMarker = new google.maps.Marker({
+                position: defaultLocation,
+                map: groundMap,
+                title: 'Ground Location'
+            });
+
+            // Hide loading after map is ready
+            google.maps.event.addListenerOnce(groundMap, 'idle', function() {
+                showMapLoading(false);
+            });
+
+            console.log('Ground map initialized');
+        }
+        
+        // Show/hide map loading overlay
+        function showMapLoading(show) {
+            const overlay = document.getElementById('map-loading-overlay');
+            if (overlay) {
+                overlay.style.display = show ? 'flex' : 'none';
+            }
+        }
+        
+        // Get sport-specific marker icon (same as book-ground page)
+        function getSportMarkerIcon(sport) {
+            const colors = {
+                cricket: '#ff6b6b',
+                tennis: '#4ecdc4', 
+                football: '#45b7d1',
+                basketball: '#f9ca24',
+                badminton: '#6c5ce7',
+                swimming: '#00cec9'
+            };
+            
+            const sportKey = sport ? sport.toLowerCase() : 'general';
+            
+            return {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: colors[sportKey] || '#2563eb',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 3
+            };
+        }
+
+        function updateGroundLocation(ground) {
+            if (!groundMap || !groundMarker) return;
+
+            // Use actual coordinates from database
+            if (ground.latitude && ground.longitude) {
+                const position = { 
+                    lat: parseFloat(ground.latitude), 
+                    lng: parseFloat(ground.longitude) 
+                };
+
+                // Update map center and marker with database coordinates
+                groundMap.setCenter(position);
+                groundMarker.setPosition(position);
+                groundMarker.setTitle(ground.name);
+                
+                // Update marker icon based on sport category
+                const sportIcon = getSportMarkerIcon(ground.category_name);
+                groundMarker.setIcon(sportIcon);
+                
+                console.log(`Updated map for ${ground.name} at coordinates:`, position);
+            } else {
+                console.log(`No coordinates available for ${ground.name}, using default location`);
+                // Fallback to default location if no coordinates in database
+                const defaultPosition = { lat: 6.9271, lng: 79.8612 };
+                groundMap.setCenter(defaultPosition);
+                groundMarker.setPosition(defaultPosition);
+                groundMarker.setTitle(ground.name || 'Sports Facility');
+                
+                // Set default icon
+                const defaultIcon = getSportMarkerIcon('general');
+                groundMarker.setIcon(defaultIcon);
+            }
+
+            // Add info window with actual ground data
+            const locationText = ground.address ? `${ground.address}, ${ground.city}` : ground.city || 'Sports Facility';
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="padding: 10px; max-width: 250px;">
+                        <h4 style="margin: 0 0 8px 0; color: #2563eb;">${ground.name}</h4>
+                        <p style="margin: 0 0 6px 0; color: #666; font-size: 14px;">
+                            <i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>
+                            ${locationText}
+                        </p>
+                        <p style="margin: 0 0 6px 0; color: #666; font-size: 14px;">
+                            <i class="fas fa-tag" style="margin-right: 5px;"></i>
+                            ${ground.category_name || 'Sports Facility'}
+                        </p>
+                        <p style="margin: 0; color: #2563eb; font-weight: 600; font-size: 14px;">
+                            LKR ${ground.hourly_rate ? ground.hourly_rate.toLocaleString() : 'N/A'}/hour
+                        </p>
+                    </div>
+                `
+            });
+
+            groundMarker.addListener('click', () => {
+                infoWindow.open(groundMap, groundMarker);
+            });
+        }
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             loadGroundData();
         });
+    </script>
+
+    <!-- Google Maps API -->
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3qKhJG9ulG0vgu9KxaG0NPXADLGxMr7k&callback=initGroundMap">
     </script>
