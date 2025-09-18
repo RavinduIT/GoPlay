@@ -24,10 +24,10 @@
                         <i class="fas fa-download"></i>
                         Export
                     </button>
-                    <button class="btn btn-primary" id="newSessionBtn">
-                        <i class="fas fa-plus"></i>
-                        New Session
-                    </button>
+                    <a href="/coach/book-session" class="btn btn-primary">
+                        <i class="fas fa-calendar-plus"></i>
+                        Book New Session
+                    </a>
                 </div>
             </div>
 
