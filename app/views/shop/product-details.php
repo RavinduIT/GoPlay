@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 <?php 
 $title = ($product['name'] ?? 'Product') . ' - GoPlay Sports Shop';
 $additionalCSS = ['/public/css/components/cart.css'];
