@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Core\BaseModel;
+
 /**
  * Ground Model
- * 
+ *
  * Handles ground/facility data
  */
 class Ground extends BaseModel
