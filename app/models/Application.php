@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Core\BaseModel;
+
 /**
  * Application Model
- * 
+ *
  * Handles application/booking applications data
  */
 class Application extends BaseModel

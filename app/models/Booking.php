@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Core\BaseModel;
+
 /**
  * Booking Model
- * 
+ *
  * Handles booking data for facilities and coaches
  */
 class Booking extends BaseModel
