@@ -508,6 +508,303 @@ $groundId = $_GET['id'] ?? 1;
             color: var(--text-light);
             margin-bottom: 2rem;
         }
+
+        /* PROFESSIONAL BOOKING MODAL STYLES */
+        .booking-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .booking-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .booking-modal-content {
+            background: white;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-heavy);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .booking-modal-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+            position: relative;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .booking-modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .booking-modal-subtitle {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .booking-modal-body {
+            padding: 2rem;
+        }
+
+        .facility-info {
+            background: var(--background-light);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .facility-icon-large {
+            font-size: 3rem;
+            color: var(--primary-color);
+            background: white;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-light);
+        }
+
+        .facility-details h3 {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .facility-location-modal {
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .facility-price-modal {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .booking-form {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .availability-status {
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .availability-status.available {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .availability-status.unavailable {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .availability-status.checking {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .booking-summary {
+            background: var(--background-light);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .summary-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            padding-top: 1rem;
+        }
+
+        .booking-modal-footer {
+            padding: 1.5rem 2rem;
+            background: var(--background-light);
+            border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-modal-cancel {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-modal-cancel:hover {
+            background: var(--background-light);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-modal-confirm {
+            padding: 0.75rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-modal-confirm:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-modal-confirm:disabled {
+            background: var(--text-light);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .booking-loading {
+            display: none;
+        }
+
+        .booking-loading.show {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
     </style>
 <!-- Ground Details Content -->
 
@@ -656,6 +953,150 @@ $groundId = $_GET['id'] ?? 1;
                         <!-- Contact info will be populated dynamically -->
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Booking Modal -->
+    <div id="booking-modal" class="booking-modal">
+        <div class="booking-modal-content">
+            <div class="booking-modal-header">
+                <button class="modal-close-btn" onclick="closeBookingModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h2 class="booking-modal-title">Book Sports Facility</h2>
+                <p class="booking-modal-subtitle">Complete your reservation details</p>
+            </div>
+
+            <div class="booking-modal-body">
+                <!-- Facility Information -->
+                <div class="facility-info">
+                    <div class="facility-icon-large">
+                        <i id="modal-facility-icon" class="fas fa-sports"></i>
+                    </div>
+                    <div class="facility-details">
+                        <h3 id="modal-facility-name">Facility Name</h3>
+                        <div class="facility-location-modal">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="modal-facility-location">Location</span>
+                        </div>
+                        <div class="facility-price-modal">
+                            LKR <span id="modal-facility-price">0</span> per hour
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Form -->
+                <form id="booking-form" class="booking-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar"></i>
+                                Booking Date *
+                            </label>
+                            <input type="date" id="booking-date" class="form-input" required min="">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-clock"></i>
+                                Duration *
+                            </label>
+                            <select id="booking-duration" class="form-select" required>
+                                <option value="">Select Duration</option>
+                                <option value="1">1 Hour</option>
+                                <option value="2">2 Hours</option>
+                                <option value="3">3 Hours</option>
+                                <option value="4">4 Hours</option>
+                                <option value="5">5 Hours</option>
+                                <option value="6">6 Hours</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-play"></i>
+                                Start Time *
+                            </label>
+                            <select id="start-time" class="form-select" required>
+                                <option value="">Select Start Time</option>
+                                <option value="06:00:00">6:00 AM</option>
+                                <option value="07:00:00">7:00 AM</option>
+                                <option value="08:00:00">8:00 AM</option>
+                                <option value="09:00:00">9:00 AM</option>
+                                <option value="10:00:00">10:00 AM</option>
+                                <option value="11:00:00">11:00 AM</option>
+                                <option value="12:00:00">12:00 PM</option>
+                                <option value="13:00:00">1:00 PM</option>
+                                <option value="14:00:00">2:00 PM</option>
+                                <option value="15:00:00">3:00 PM</option>
+                                <option value="16:00:00">4:00 PM</option>
+                                <option value="17:00:00">5:00 PM</option>
+                                <option value="18:00:00">6:00 PM</option>
+                                <option value="19:00:00">7:00 PM</option>
+                                <option value="20:00:00">8:00 PM</option>
+                                <option value="21:00:00">9:00 PM</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-stop"></i>
+                                End Time
+                            </label>
+                            <input type="text" id="end-time" class="form-input" readonly placeholder="Auto-calculated">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-comment"></i>
+                            Special Requests (Optional)
+                        </label>
+                        <textarea id="special-requests" class="form-textarea" placeholder="Any special requirements or notes..."></textarea>
+                    </div>
+
+                    <!-- Availability Status -->
+                    <div id="availability-status" class="availability-status">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Checking availability...</span>
+                    </div>
+
+                    <!-- Booking Summary -->
+                    <div class="booking-summary">
+                        <h4 class="summary-title">Booking Summary</h4>
+                        <div class="summary-row">
+                            <span>Date:</span>
+                            <span id="summary-date">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Time:</span>
+                            <span id="summary-time">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Duration:</span>
+                            <span id="summary-duration">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Rate:</span>
+                            <span id="summary-rate">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Amount:</span>
+                            <span id="summary-total">FREE</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="booking-modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="closeBookingModal()">
+                    Cancel
+                </button>
+                <button type="button" class="btn-modal-confirm" id="confirm-booking-btn" onclick="confirmBooking()">
+                    <i id="booking-loading" class="fas fa-spinner booking-loading"></i>
+                    <span id="confirm-booking-text">Confirm Booking</span>
+                </button>
             </div>
         </div>
     </div>
@@ -925,11 +1366,220 @@ $groundId = $_GET['id'] ?? 1;
             document.getElementById('error-state').style.display = 'block';
         }
 
-        // Book ground function
+        // Book ground function - opens the booking modal
         function bookGround() {
+            if (!currentGround) {
+                alert('Ground information not loaded. Please try again.');
+                return;
+            }
+
+            // Populate modal with facility information
+            document.getElementById('modal-facility-name').textContent = currentGround.name;
+            const location = currentGround.address ? `${currentGround.address}, ${currentGround.city}` : currentGround.city;
+            document.getElementById('modal-facility-location').textContent = location;
+            document.getElementById('modal-facility-price').textContent = new Intl.NumberFormat().format(currentGround.hourly_rate || 0);
+
+            // Set sport icon based on category
+            const sportIcons = {
+                'Football': 'fas fa-football-ball',
+                'Cricket': 'fas fa-baseball-ball',
+                'Tennis': 'fas fa-table-tennis',
+                'Basketball': 'fas fa-basketball-ball',
+                'Swimming': 'fas fa-swimmer',
+                'Badminton': 'fas fa-shuttlecock',
+                'Volleyball': 'fas fa-volleyball-ball'
+            };
+            const iconClass = sportIcons[currentGround.category_name] || 'fas fa-sports';
+            document.getElementById('modal-facility-icon').className = iconClass;
+
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('booking-date').min = today;
+
+            // Reset form
+            document.getElementById('booking-form').reset();
+            document.getElementById('end-time').value = '';
+            document.getElementById('availability-status').style.display = 'none';
+            resetBookingSummary();
+
+            // Show modal
+            document.getElementById('booking-modal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Global variables for booking
+        let availabilityCheckTimeout = null;
+
+        // Close booking modal
+        function closeBookingModal() {
+            document.getElementById('booking-modal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+
+            // Clear any pending availability checks
+            if (availabilityCheckTimeout) {
+                clearTimeout(availabilityCheckTimeout);
+            }
+        }
+
+        // Calculate end time based on start time and duration
+        function calculateEndTime() {
+            const startTime = document.getElementById('start-time').value;
+            const duration = parseInt(document.getElementById('booking-duration').value);
+
+            if (startTime && duration) {
+                const [hours, minutes] = startTime.split(':');
+                const startDate = new Date();
+                startDate.setHours(parseInt(hours), parseInt(minutes), 0);
+
+                const endDate = new Date(startDate.getTime() + (duration * 60 * 60 * 1000));
+                const endTimeString = endDate.toTimeString().slice(0, 8);
+
+                document.getElementById('end-time').value = endTimeString;
+                updateBookingSummary();
+                checkAvailability();
+            }
+        }
+
+        // Update booking summary
+        function updateBookingSummary() {
+            const date = document.getElementById('booking-date').value;
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+            const duration = document.getElementById('booking-duration').value;
+
+            if (date) {
+                const dateObj = new Date(date);
+                document.getElementById('summary-date').textContent = dateObj.toLocaleDateString();
+            }
+
+            if (startTime && endTime) {
+                const start = new Date(`1970-01-01T${startTime}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const end = new Date(`1970-01-01T${endTime}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                document.getElementById('summary-time').textContent = `${start} - ${end}`;
+            }
+
+            if (duration) {
+                document.getElementById('summary-duration').textContent = `${duration} hour${duration > 1 ? 's' : ''}`;
+            }
+
             if (currentGround) {
-                // Redirect to booking page with ground ID
-                window.location.href = `/payment?ground_id=${currentGround.id}&ground_name=${encodeURIComponent(currentGround.name)}`;
+                document.getElementById('summary-rate').textContent = `LKR ${new Intl.NumberFormat().format(currentGround.hourly_rate || 0)} / hour`;
+            }
+        }
+
+        // Reset booking summary
+        function resetBookingSummary() {
+            document.getElementById('summary-date').textContent = '-';
+            document.getElementById('summary-time').textContent = '-';
+            document.getElementById('summary-duration').textContent = '-';
+            document.getElementById('summary-rate').textContent = '-';
+        }
+
+        // Check availability
+        async function checkAvailability() {
+            const facilityId = currentGround?.id;
+            const date = document.getElementById('booking-date').value;
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+
+            if (!facilityId || !date || !startTime || !endTime) {
+                return;
+            }
+
+            const statusElement = document.getElementById('availability-status');
+            const confirmBtn = document.getElementById('confirm-booking-btn');
+
+            // Show checking status
+            statusElement.className = 'availability-status checking';
+            statusElement.style.display = 'flex';
+            statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Checking availability...</span>';
+            confirmBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/booking/availability?facility_id=${facilityId}&date=${date}&start_time=${startTime}&end_time=${endTime}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.available) {
+                        statusElement.className = 'availability-status available';
+                        statusElement.innerHTML = '<i class="fas fa-check-circle"></i> <span>Time slot is available!</span>';
+                        confirmBtn.disabled = false;
+                    } else {
+                        statusElement.className = 'availability-status unavailable';
+                        statusElement.innerHTML = '<i class="fas fa-times-circle"></i> <span>Time slot is not available. Please choose a different time.</span>';
+                        confirmBtn.disabled = true;
+                    }
+                } else {
+                    throw new Error(data.message || 'Failed to check availability');
+                }
+            } catch (error) {
+                console.error('Availability check error:', error);
+                statusElement.className = 'availability-status unavailable';
+                statusElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span>Error checking availability. Please try again.</span>';
+                confirmBtn.disabled = true;
+            }
+        }
+
+        // Confirm booking
+        async function confirmBooking() {
+            if (!currentGround) {
+                alert('Please select a facility first.');
+                return;
+            }
+
+            const bookingData = {
+                facility_id: currentGround.id,
+                booking_date: document.getElementById('booking-date').value,
+                start_time: document.getElementById('start-time').value,
+                end_time: document.getElementById('end-time').value,
+                special_requests: document.getElementById('special-requests').value || ''
+            };
+
+            // Validate required fields
+            if (!bookingData.facility_id || !bookingData.booking_date || !bookingData.start_time || !bookingData.end_time) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Show loading state
+            const loadingIcon = document.getElementById('booking-loading');
+            const confirmText = document.getElementById('confirm-booking-text');
+            const confirmBtn = document.getElementById('confirm-booking-btn');
+
+            loadingIcon.classList.add('show');
+            confirmText.textContent = 'Processing...';
+            confirmBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/booking/ground', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(bookingData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Booking confirmed successfully! ' + data.message);
+                    closeBookingModal();
+
+                    // Optionally redirect to bookings page
+                    if (confirm('Would you like to view your bookings?')) {
+                        window.location.href = '/my-bookings';
+                    }
+                } else {
+                    throw new Error(data.message || 'Booking failed');
+                }
+            } catch (error) {
+                console.error('Booking error:', error);
+                alert('Booking failed: ' + error.message);
+            } finally {
+                // Reset loading state
+                loadingIcon.classList.remove('show');
+                confirmText.textContent = 'Confirm Booking';
+                confirmBtn.disabled = false;
             }
         }
 
