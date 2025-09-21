@@ -994,14 +994,14 @@ $groundId = $_GET['id'] ?? 1;
                                 <i class="fas fa-calendar"></i>
                                 Booking Date *
                             </label>
-                            <input type="date" id="booking-date" class="form-input" required min="">
+                            <input type="date" id="booking-date" class="form-input" required min="" onchange="updateBookingSummary(); checkAvailability();">
                         </div>
                         <div class="form-group">
                             <label class="form-label">
                                 <i class="fas fa-clock"></i>
                                 Duration *
                             </label>
-                            <select id="booking-duration" class="form-select" required>
+                            <select id="booking-duration" class="form-select" required onchange="calculateEndTime()">
                                 <option value="">Select Duration</option>
                                 <option value="1">1 Hour</option>
                                 <option value="2">2 Hours</option>
@@ -1019,7 +1019,7 @@ $groundId = $_GET['id'] ?? 1;
                                 <i class="fas fa-play"></i>
                                 Start Time *
                             </label>
-                            <select id="start-time" class="form-select" required>
+                            <select id="start-time" class="form-select" required onchange="calculateEndTime()">
                                 <option value="">Select Start Time</option>
                                 <option value="06:00:00">6:00 AM</option>
                                 <option value="07:00:00">7:00 AM</option>
@@ -1423,47 +1423,82 @@ $groundId = $_GET['id'] ?? 1;
 
         // Calculate end time based on start time and duration
         function calculateEndTime() {
+            console.log('=== calculateEndTime called ===');
             const startTime = document.getElementById('start-time').value;
             const duration = parseInt(document.getElementById('booking-duration').value);
 
+            console.log('calculateEndTime inputs:', { startTime, duration });
+
             if (startTime && duration) {
-                const [hours, minutes] = startTime.split(':');
+                const [hours, minutes, seconds] = startTime.split(':');
+                console.log('Time parts:', { hours, minutes, seconds });
+
                 const startDate = new Date();
-                startDate.setHours(parseInt(hours), parseInt(minutes), 0);
+                startDate.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds || 0));
 
                 const endDate = new Date(startDate.getTime() + (duration * 60 * 60 * 1000));
-                const endTimeString = endDate.toTimeString().slice(0, 8);
+                const endTimeString = endDate.toTimeString().slice(0, 8); // HH:MM:SS format
 
+                console.log('Calculated end time:', endTimeString);
                 document.getElementById('end-time').value = endTimeString;
+
                 updateBookingSummary();
                 checkAvailability();
+            } else {
+                console.log('Missing startTime or duration');
             }
         }
 
         // Update booking summary
         function updateBookingSummary() {
+            console.log('=== updateBookingSummary called ===');
             const date = document.getElementById('booking-date').value;
             const startTime = document.getElementById('start-time').value;
             const endTime = document.getElementById('end-time').value;
             const duration = document.getElementById('booking-duration').value;
 
+            console.log('Form values:', { date, startTime, endTime, duration });
+            console.log('currentGround:', currentGround);
+
             if (date) {
                 const dateObj = new Date(date);
-                document.getElementById('summary-date').textContent = dateObj.toLocaleDateString();
+                const formattedDate = dateObj.toLocaleDateString();
+                document.getElementById('summary-date').textContent = formattedDate;
+                console.log('Updated date:', formattedDate);
             }
 
             if (startTime && endTime) {
                 const start = new Date(`1970-01-01T${startTime}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 const end = new Date(`1970-01-01T${endTime}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                document.getElementById('summary-time').textContent = `${start} - ${end}`;
+                const timeRange = `${start} - ${end}`;
+                document.getElementById('summary-time').textContent = timeRange;
+                console.log('Updated time:', timeRange);
             }
 
             if (duration) {
-                document.getElementById('summary-duration').textContent = `${duration} hour${duration > 1 ? 's' : ''}`;
+                const durationText = `${duration} hour${duration > 1 ? 's' : ''}`;
+                document.getElementById('summary-duration').textContent = durationText;
+                console.log('Updated duration:', durationText);
             }
 
             if (currentGround) {
-                document.getElementById('summary-rate').textContent = `LKR ${new Intl.NumberFormat().format(currentGround.hourly_rate || 0)} / hour`;
+                const hourlyRate = currentGround.hourly_rate || 0;
+                const rateText = `LKR ${new Intl.NumberFormat().format(hourlyRate)} / hour`;
+                document.getElementById('summary-rate').textContent = rateText;
+                console.log('Updated rate:', rateText);
+
+                // Calculate total amount based on duration
+                if (duration && hourlyRate) {
+                    const totalAmount = hourlyRate * parseInt(duration);
+                    const totalText = `LKR ${new Intl.NumberFormat().format(totalAmount)}`;
+                    document.getElementById('summary-total').textContent = totalText;
+                    console.log('Updated total:', totalText, '(rate:', hourlyRate, 'x duration:', duration, ')');
+                } else {
+                    document.getElementById('summary-total').textContent = 'LKR 0';
+                    console.log('No total calculated - missing duration or rate');
+                }
+            } else {
+                console.log('No currentGround data available');
             }
         }
 
@@ -1473,6 +1508,7 @@ $groundId = $_GET['id'] ?? 1;
             document.getElementById('summary-time').textContent = '-';
             document.getElementById('summary-duration').textContent = '-';
             document.getElementById('summary-rate').textContent = '-';
+            document.getElementById('summary-total').textContent = 'LKR 0';
         }
 
         // Check availability
