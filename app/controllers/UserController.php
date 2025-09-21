@@ -5,6 +5,7 @@ namespace App\Controllers;
 use Core\Request;
 use Core\Response;
 use App\Models\User;
+use App\Models\GroundBooking;
 
 /**
  * User Controller
@@ -14,10 +15,12 @@ use App\Models\User;
 class UserController extends BaseController
 {
     protected $userModel;
+    protected $groundBookingModel;
 
     public function __construct()
     {
         $this->userModel = new User();
+        $this->groundBookingModel = new GroundBooking();
     }
 
     /**
@@ -386,6 +389,262 @@ class UserController extends BaseController
         $session = $this->requireAuth();
         return $this->view('user/settings', [
             'title' => 'Settings - GoPlay Sports Platform'
+        ]);
+    }
+
+    // ======================
+    // GROUND BOOKING METHODS
+    // ======================
+
+    /**
+     * Get user's ground bookings (API)
+     */
+    public function getGroundBookings(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $userId = $_SESSION['user_id'];
+            $bookings = $this->groundBookingModel->getBookingsByUser($userId);
+
+            // Get booking statistics
+            $stats = $this->groundBookingModel->getUserBookingStats($userId);
+
+            return $this->json([
+                'success' => true,
+                'bookings' => $bookings,
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to fetch ground bookings',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Create a new ground booking
+     */
+    public function createGroundBooking(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $data = $request->getJsonBody();
+            $userId = $_SESSION['user_id'];
+
+            // Validate required fields
+            $required = ['facility_id', 'booking_date', 'start_time', 'end_time'];
+            foreach ($required as $field) {
+                if (empty($data[$field])) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => "Field '{$field}' is required"
+                    ], 400);
+                }
+            }
+
+            // Validate booking date (must be in the future)
+            $bookingDate = $data['booking_date'];
+            if (strtotime($bookingDate) < strtotime('today')) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Booking date must be today or in the future'
+                ], 400);
+            }
+
+            // Validate time slot availability
+            $facilityId = (int)$data['facility_id'];
+            $startTime = $data['start_time'];
+            $endTime = $data['end_time'];
+
+            if (!$this->groundBookingModel->isTimeSlotAvailable($facilityId, $bookingDate, $startTime, $endTime)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'This time slot is not available'
+                ], 409);
+            }
+
+            // Create booking data
+            $bookingData = [
+                'user_id' => $userId,
+                'facility_id' => $facilityId,
+                'booking_date' => $bookingDate,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'special_requests' => $data['special_requests'] ?? ''
+            ];
+
+            $bookingId = $this->groundBookingModel->createBooking($bookingData);
+
+            if (!$bookingId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to create booking'
+                ], 500);
+            }
+
+            // Get the created booking with details
+            $booking = $this->groundBookingModel->find($bookingId);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Ground booked successfully! No payment required.',
+                'booking' => $booking
+            ], 201);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to create booking',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel a ground booking
+     */
+    public function cancelGroundBooking(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $bookingId = (int)$request->getParam('id');
+            $data = $request->getJsonBody();
+            $userId = $_SESSION['user_id'];
+
+            if (!$bookingId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid booking ID'
+                ], 400);
+            }
+
+            // Verify booking belongs to user
+            $booking = $this->groundBookingModel->find($bookingId);
+            if (!$booking || $booking['user_id'] != $userId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Booking not found or unauthorized'
+                ], 404);
+            }
+
+            // Check if booking can be cancelled (not already completed or cancelled)
+            if (in_array($booking['status'], ['completed', 'cancelled'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Cannot cancel this booking'
+                ], 400);
+            }
+
+            $reason = $data['reason'] ?? 'Cancelled by user';
+            $success = $this->groundBookingModel->cancelBooking($bookingId, $userId, $reason);
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to cancel booking'
+                ], 500);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Booking cancelled successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to cancel booking',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get ground booking details
+     */
+    public function getGroundBookingDetails(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $bookingId = (int)$request->getParam('id');
+            $userId = $_SESSION['user_id'];
+
+            if (!$bookingId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid booking ID'
+                ], 400);
+            }
+
+            $booking = $this->groundBookingModel->find($bookingId);
+            if (!$booking || $booking['user_id'] != $userId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Booking not found'
+                ], 404);
+            }
+
+            // Get booking with facility details
+            $bookings = $this->groundBookingModel->getBookingsByUser($userId);
+            $bookingDetails = array_filter($bookings, fn($b) => $b['id'] == $bookingId);
+            $bookingDetails = array_values($bookingDetails)[0] ?? $booking;
+
+            return $this->json([
+                'success' => true,
+                'booking' => $bookingDetails
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to fetch booking details',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Ground bookings dashboard page
+     */
+    public function groundBookingsDashboard(Request $request): Response
+    {
+        $session = $this->requireAuth();
+
+        // Get user details
+        $user = $this->userModel->find($session['user_id']);
+        if (!$user) {
+            return $this->redirect('/login');
+        }
+
+        return $this->view('user/ground-bookings', [
+            'user' => $user,
+            'title' => 'My Ground Bookings - GoPlay Sports Platform',
+            'additionalCSS' => [
+                '/public/css/pages/user-bookings.css',
+                'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+            ],
+            'additionalJS' => [
+                '/public/js/pages/user-bookings.js'
+            ]
         ]);
     }
 }
