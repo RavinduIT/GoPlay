@@ -95,7 +95,7 @@ class GroundBooking extends BaseModel
                     fb.*,
                     sf.name as facility_name,
                     sf.address as facility_address,
-                    sf.location as facility_location,
+                    CONCAT(sf.city, ', ', sf.state) as facility_location,
                     sc.name as sport_name,
                     sc.icon as sport_icon,
                     u_owner.first_name as owner_first_name,

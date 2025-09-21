@@ -695,7 +695,6 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             100% { transform: rotate(360deg); }
         }
 
-
         /* Responsive Design */
         @media (max-width: 768px) {
             .header-content {
@@ -744,7 +743,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
 
             .facility-actions {
                 flex-direction: column;
-            } 
+            }
         }
     </style>
 <div class="book-ground-container">
@@ -985,10 +984,8 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                 </div>
             </div>
         </div>
+
 </div>
-
-        
-
 <script async 
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3qKhJG9ulG0vgu9KxaG0NPXADLGxMr7k&callback=initMap&libraries=&v=weekly"
     onerror="handleMapLoadError()">
@@ -1015,7 +1012,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
     window.initMap = window.initMap || function() {
         console.log('initMap fallback called');
     };
+</script>
 
-    
 
 <script src="/public/js/pages/book-ground.js"></script>

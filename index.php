@@ -139,7 +139,12 @@ try {
     $router->put('/api/ground-owner/bookings/{id}/status', 'GroundOwnerController@updateBookingStatus');
     $router->get('/book-ground', 'BookingController@bookGround');
     $router->get('/ground-details', 'BookingController@groundDetails');
+    $router->get('/book/{id}', 'BookingController@redirectToGroundDetails');
     $router->get('/book-coach', 'BookingController@bookCoach');
+
+    // Public booking API routes
+    $router->post('/api/booking/ground', 'BookingController@createGroundBooking');
+    $router->get('/api/booking/availability', 'BookingController@checkAvailability');
     $router->get('/coaches', 'CoachController@index');
     $router->get('/shop', 'ProductController@index');
     $router->get('/api/products', 'ProductController@getProducts');
@@ -212,7 +217,7 @@ $router->get('/news/{slug}', 'NewsController@show'); // This is the missing rout
     $router->put('/api/user/ground-bookings/{id}/cancel', 'UserController@cancelGroundBooking');
     
     // Additional user routes
-    $router->get('/my-bookings', 'UserController@myBookings');
+    $router->get('/my-bookings', 'UserController@groundBookingsDashboard');
     $router->get('/my-ground-bookings', 'UserController@groundBookingsDashboard');
     $router->get('/my-orders', 'UserController@myOrders');
     $router->get('/cart', 'UserController@cart');

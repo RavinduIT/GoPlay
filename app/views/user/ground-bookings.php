@@ -376,17 +376,37 @@
 
             async loadBookings() {
                 try {
+                    console.log('Loading bookings from API...');
                     const response = await fetch('/api/user/ground-bookings');
+                    console.log('Response status:', response.status);
+
+                    // Handle authentication errors
+                    if (response.status === 401) {
+                        alert('Please login to view your bookings.');
+                        window.location.href = '/login';
+                        return;
+                    }
+
                     const data = await response.json();
+                    console.log('API Response:', data);
 
                     if (data.success) {
                         this.bookings = data.bookings || [];
                         this.stats = data.stats || {};
+                        console.log('Loaded bookings:', this.bookings.length);
+                        console.log('Stats:', this.stats);
                     } else {
                         console.error('Error loading bookings:', data.message);
+                        if (data.error && data.error === 'Unauthorized') {
+                            alert('Please login to view your bookings.');
+                            window.location.href = '/login';
+                        } else {
+                            alert('Error loading bookings: ' + (data.message || 'Unknown error'));
+                        }
                     }
                 } catch (error) {
                     console.error('Error loading bookings:', error);
+                    alert('Failed to load bookings. Please check your internet connection.');
                 }
             }
 
