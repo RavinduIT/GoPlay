@@ -6,6 +6,7 @@ use Core\Request;
 use Core\Response;
 use App\Models\SportsFacility;
 use App\Models\SportsCategory;
+use App\Models\GroundBooking;
 
 /**
  * Booking Controller
@@ -16,6 +17,7 @@ class BookingController extends BaseController
 {
     private ?SportsFacility $facilityModel = null;
     private ?SportsCategory $categoryModel = null;
+    private ?GroundBooking $groundBookingModel = null;
     
     private function getFacilityModel(): SportsFacility
     {
@@ -31,6 +33,14 @@ class BookingController extends BaseController
             $this->categoryModel = new SportsCategory();
         }
         return $this->categoryModel;
+    }
+
+    private function getGroundBookingModel(): GroundBooking
+    {
+        if ($this->groundBookingModel === null) {
+            $this->groundBookingModel = new GroundBooking();
+        }
+        return $this->groundBookingModel;
     }
     
     /**
