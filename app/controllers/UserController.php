@@ -25,7 +25,9 @@ class UserController extends BaseController
      */
     private function requireAuth(): array
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
             exit();
@@ -98,7 +100,9 @@ class UserController extends BaseController
      */
     public function getProfile(Request $request): Response
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         if (!isset($_SESSION['user_id'])) {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
@@ -122,7 +126,9 @@ class UserController extends BaseController
      */
     public function updateProfile(Request $request): Response
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         if (!isset($_SESSION['user_id'])) {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
@@ -176,7 +182,9 @@ class UserController extends BaseController
      */
     public function uploadAvatar(Request $request): Response
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         if (!isset($_SESSION['user_id'])) {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
@@ -247,7 +255,9 @@ class UserController extends BaseController
      */
     public function changePassword(Request $request): Response
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         if (!isset($_SESSION['user_id'])) {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
@@ -295,7 +305,9 @@ class UserController extends BaseController
      */
     public function getBookings(Request $request): Response
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         if (!isset($_SESSION['user_id'])) {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
@@ -317,7 +329,9 @@ class UserController extends BaseController
      */
     public function getOrders(Request $request): Response
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         if (!isset($_SESSION['user_id'])) {
             return $this->json(['error' => 'Unauthorized'], 401);
         }

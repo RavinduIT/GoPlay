@@ -30,7 +30,9 @@ class GroundOwnerController extends BaseController
     
     private function checkGroundOwnerAuth(): bool
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         return isset($_SESSION['user_id']) && $_SESSION['user_type'] === 'ground_owner';
     }
     

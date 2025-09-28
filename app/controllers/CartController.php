@@ -23,7 +23,9 @@ class CartController extends BaseController
      */
     private function getCartSession(): array
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         
         return [
             'user_id' => $_SESSION['user_id'] ?? null,

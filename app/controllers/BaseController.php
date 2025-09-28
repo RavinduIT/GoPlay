@@ -7,6 +7,15 @@ use Core\Request;
 
 abstract class BaseController
 {
+    /**
+     * Start session safely (only if not already started)
+     */
+    protected function startSession(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+    }
     protected function view(string $view, array $data = []): Response
     {
         extract($data);
