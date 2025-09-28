@@ -1,27 +1,23 @@
-document.addEventListener('DOMContentLoaded', function() {
-            loadComponents();
-            
-        });
 // Load components
-        function loadComponents() {
-            // Load navbar
-            fetch('/app/views/components/navbar.php')
-                .then(res => res.text())
-                .then(data => {
-                    document.getElementById('navbar-container').innerHTML = data;
-                    if (typeof Navbar !== 'undefined') {
-                        new Navbar();
-                    }
-                });
+function loadComponents() {
+    // Load navbar
+    fetch('/app/views/components/navbar.php')
+        .then(res => res.text())
+        .then(data => {
+            document.getElementById('navbar-container').innerHTML = data;
+            if (typeof Navbar !== 'undefined') {
+                new Navbar();
+            }
+        });
 
-            // Load footer
-            fetch('/app/views/components/footer.php')
-                .then(res => res.text())
-                .then(data => {
-                    document.getElementById('footer-container').innerHTML = data;
-                });
-        }
-/* Book Ground JavaScript - Connects to JSON data
+    // Load footer
+    fetch('/app/views/components/footer.php')
+        .then(res => res.text())
+        .then(data => {
+            document.getElementById('footer-container').innerHTML = data;
+        });
+}
+// Book Ground JavaScript - Connects to database API
 class GroundBookingApp {
     constructor() {
         this.grounds = [];
@@ -37,22 +33,43 @@ class GroundBookingApp {
     }
 
     async init() {
-        await this.loadGroundsData();
+        // Don't load data from API since PHP already provides it
+        // await this.loadGroundsData();
         this.setupEventListeners();
-        this.renderGrounds();
+        // Don't render grounds since PHP already rendered them
+        // this.renderGrounds();
     }
 
-    // Load JSON data
+    // Load data from database API
     async loadGroundsData() {
         try {
-            const response = await fetch('/public/data/grounds.json');
+            const response = await fetch('/api/grounds');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            this.grounds = data.grounds;
+
+            if (!data.success || !data.data) {
+                throw new Error(data.message || 'Failed to load grounds');
+            }
+
+            // Convert API data to the format expected by the UI
+            this.grounds = data.data.map(facility => ({
+                id: facility.id,
+                name: facility.name,
+                location: facility.address && facility.city ? `${facility.address}, ${facility.city}` : facility.city || 'Location TBD',
+                sport: facility.category_name || 'General',
+                price: facility.hourly_rate || 0,
+                rating: facility.rating || 4.5,
+                reviews: facility.total_reviews || 0,
+                description: facility.description || 'Sports facility',
+                features: facility.amenities || ['Available for booking'],
+                latitude: facility.latitude,
+                longitude: facility.longitude
+            }));
+
             this.filteredGrounds = [...this.grounds];
-            
+
             console.log('Loaded grounds data:', this.grounds.length, 'facilities');
         } catch (error) {
             console.error('Error loading grounds data:', error);
@@ -382,7 +399,6 @@ class GroundBookingApp {
         return this.grounds.find(ground => ground.id == id);
     }
 }
-*/
 // Global functions for button events
 function searchFacilities() {
     // This is handled by the input event listener
@@ -752,7 +768,12 @@ function showMapError(message) {
 
 // Initialize the app when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    window.groundsApp = new GroundBookingApp();
+    // Load page components first
+    loadComponents();
+
+    // Initialize map functionality
+    // The facilities are already rendered server-side by PHP
+    // We only need the map functionality now
 });
 
 // Export for module use if needed
