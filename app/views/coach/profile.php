@@ -33,7 +33,7 @@
                     <div class="profile-header">
                         <div class="profile-avatar-section">
                             <div class="avatar-wrapper">
-                                <img src="/public/assets/images/coach-avatar.jpg" alt="Coach Avatar" class="profile-avatar" id="profileAvatar">
+                                <img src="/public/assets/images/coaches/coach1.png" alt="Coach Avatar" class="profile-avatar" id="profileAvatar">
                                 <button class="avatar-edit-btn" onclick="coachProfile.changeAvatar()">
                                     <i class="fas fa-camera"></i>
                                 </button>
