@@ -846,15 +846,30 @@ function displayProductDetails(product) {
     document.getElementById('product-title').textContent = product.name;
     document.getElementById('product-category').textContent = (product.category_name || 'Product').toUpperCase();
     
-    // Images
+    // Images - use category-specific images
     const mainImage = document.getElementById('main-product-image');
-    if (product.images && product.images.length > 0) {
-        mainImage.src = product.images[0];
-        displayThumbnails(product.images);
-    } else {
-        mainImage.src = '/public/assets/images/product-placeholder.jpg';
-    }
+
+    // Get category-specific image using existing product images
+    const categoryName = product.category_name ? product.category_name.toLowerCase() : 'general';
+    const productImages = {
+        'football': '/public/assets/images/products/football.jpg',
+        'cricket': '/public/assets/images/products/cricket-bat.jpg',
+        'tennis': '/public/assets/images/products/tennis-racket.jpg',
+        'basketball': '/public/assets/images/products/basketball.jpg',
+        'badminton': '/public/assets/images/products/badminton-racket.jpg',
+        'volleyball': '/public/assets/images/products/football.jpg',
+        'swimming': '/public/assets/images/products/football.jpg',
+        'fitness': '/public/assets/images/products/football.jpg',
+        'gym': '/public/assets/images/products/football.jpg'
+    };
+
+    let imageUrl = productImages[categoryName] || '/public/assets/images/products/football.jpg';
+    mainImage.src = imageUrl;
     mainImage.alt = product.name;
+
+    // Create thumbnails with category-specific images
+    const thumbnailImages = [imageUrl];
+    displayThumbnails(thumbnailImages);
 
     // Rating
     displayRating(product.rating || 4.5);
@@ -1025,15 +1040,33 @@ function displayRelatedProducts(products) {
     if (!products || products.length === 0) return;
 
     const container = document.getElementById('related-products');
-    const productsHTML = products.map(product => `
-        <div class="related-product-card" onclick="viewProduct(${product.id})">
-            <div class="related-product-image">
-                <img src="${product.images && product.images[0] ? product.images[0] : '/public/assets/images/product-placeholder.jpg'}" alt="${product.name}">
+    const productsHTML = products.map(product => {
+        // Get category-specific image for related products using existing images
+        const categoryName = product.category_name ? product.category_name.toLowerCase() : 'general';
+        const productImages = {
+            'football': '/public/assets/images/products/football.jpg',
+            'cricket': '/public/assets/images/products/cricket-bat.jpg',
+            'tennis': '/public/assets/images/products/tennis-racket.jpg',
+            'basketball': '/public/assets/images/products/basketball.jpg',
+            'badminton': '/public/assets/images/products/badminton-racket.jpg',
+            'volleyball': '/public/assets/images/products/football.jpg',
+            'swimming': '/public/assets/images/products/football.jpg',
+            'fitness': '/public/assets/images/products/football.jpg',
+            'gym': '/public/assets/images/products/football.jpg'
+        };
+
+        const imageUrl = productImages[categoryName] || '/public/assets/images/products/football.jpg';
+
+        return `
+            <div class="related-product-card" onclick="viewProduct(${product.id})">
+                <div class="related-product-image">
+                    <img src="${imageUrl}" alt="${product.name}">
+                </div>
+                <div class="related-product-name">${product.name}</div>
+                <div class="related-product-price">LKR ${parseFloat(product.price).toLocaleString()}</div>
             </div>
-            <div class="related-product-name">${product.name}</div>
-            <div class="related-product-price">LKR ${parseFloat(product.price).toLocaleString()}</div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     container.innerHTML = productsHTML;
 }

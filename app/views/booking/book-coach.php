@@ -754,10 +754,7 @@ $additionalJS = [];
                                 ${coach.rating}
                             </div>
                             <div class="coach-avatar">
-                                ${coach.profile_picture ? 
-                                    `<img src="${coach.profile_picture}" alt="${coach.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` :
-                                    '<i class="fas fa-user-tie"></i>'
-                                }
+                                ${getCoachImage(coach)}
                             </div>
                             <h3 class="coach-name">${coach.name}</h3>
                             <span class="coach-specialization">${coach.sport} Coach</span>
@@ -812,25 +809,50 @@ $additionalJS = [];
             grid.innerHTML = coachCards;
         }
 
+        // Get coach image based on sport category
+        function getCoachImage(coach) {
+            // If coach has profile picture, use it
+            if (coach.profile_picture) {
+                return `<img src="${coach.profile_picture}" alt="${coach.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            }
+
+            // Use sport-specific coach images with existing assets
+            const sportName = coach.sport ? coach.sport.toLowerCase() : 'general';
+            const coachImages = {
+                'football': '/public/assets/images/coaches/coach1.png',
+                'cricket': '/public/assets/images/coaches/coach2.png',
+                'tennis': '/public/assets/images/coaches/coach3.png',
+                'basketball': '/public/assets/images/coaches/coach1.png',
+                'badminton': '/public/assets/images/coaches/coach2.png',
+                'volleyball': '/public/assets/images/coaches/coach3.png',
+                'swimming': '/public/assets/images/coaches/coach1.png',
+                'fitness': '/public/assets/images/coaches/coach2.png',
+                'gym': '/public/assets/images/coaches/coach3.png'
+            };
+
+            const imageUrl = coachImages[sportName] || '/public/assets/images/coaches/coach1.png';
+            return `<img src="${imageUrl}" alt="${coach.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        }
+
         // Generate star rating HTML
         function generateStars(rating) {
             let stars = '';
             const fullStars = Math.floor(rating);
             const hasHalfStar = rating % 1 !== 0;
-            
+
             for (let i = 0; i < fullStars; i++) {
                 stars += '<i class="fas fa-star" style="color: var(--warning-color);"></i>';
             }
-            
+
             if (hasHalfStar) {
                 stars += '<i class="fas fa-star-half-alt" style="color: var(--warning-color);"></i>';
             }
-            
+
             const remainingStars = 5 - Math.ceil(rating);
             for (let i = 0; i < remainingStars; i++) {
                 stars += '<i class="far fa-star" style="color: var(--warning-color);"></i>';
             }
-            
+
             return stars;
         }
         
