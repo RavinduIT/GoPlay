@@ -303,11 +303,22 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             justify-content: center;
             font-size: 4rem;
             overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .facility-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .facility-icon {
             font-size: 4rem;
             opacity: 0.8;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
         .facility-badge {
@@ -893,7 +904,22 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                             <?php foreach ($facilities as $facility): ?>
                                 <div class="facility-card" data-ground-id="<?php echo $facility['id']; ?>">
                                     <div class="facility-image">
-                                        <div class="facility-icon">
+                                        <?php
+                                        // Get appropriate ground image based on sport category
+                                        $categoryName = strtolower($facility['category_name'] ?? 'general');
+                                        $groundImages = [
+                                            'football' => '/public/assets/images/grounds/football-ground.jpg',
+                                            'cricket' => '/public/assets/images/grounds/cricket-ground.jpg',
+                                            'tennis' => '/public/assets/images/grounds/tennis-court.jpg',
+                                            'basketball' => '/public/assets/images/grounds/basketball-court.jpg',
+                                            'badminton' => '/public/assets/images/grounds/badminton-court.jpg',
+                                            'volleyball' => '/public/assets/images/grounds/football-ground.jpg',
+                                            'swimming' => '/public/assets/images/grounds/football-ground.jpg'
+                                        ];
+                                        $imageUrl = $groundImages[$categoryName] ?? '/public/assets/images/ground.jpeg';
+                                        ?>
+                                        <img src="<?php echo $imageUrl; ?>" alt="<?php echo htmlspecialchars($facility['name']); ?>" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="facility-icon" style="display: none;">
                                             <i class="<?php echo $facility['category_icon'] ?? 'fas fa-sports'; ?>"></i>
                                         </div>
                                         <div class="facility-badge">
