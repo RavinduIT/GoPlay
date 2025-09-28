@@ -1,6 +1,8 @@
 <?php
-// Start session to check user authentication
-session_start();
+// Start session to check user authentication (only if not already started)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Function to get profile URL based on user role
 function getProfileUrl($userType) {

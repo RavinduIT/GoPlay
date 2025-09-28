@@ -70,7 +70,11 @@ class AuthController extends BaseController
             $this->userModel->updateLastLogin($user['id']);
 
             // Start session
+            if (session_status() === PHP_SESSION_NONE) {
+                if (session_status() === PHP_SESSION_NONE) {
             session_start();
+        }
+            }
             
             // Set individual session variables (for compatibility)
             $_SESSION['user_id'] = $user['id'];
@@ -153,7 +157,9 @@ class AuthController extends BaseController
      */
     public function logout(Request $request): Response
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         session_destroy();
         
         return $this->json(['success' => true, 'message' => 'Logout successful']);
@@ -164,7 +170,9 @@ class AuthController extends BaseController
      */
     public function checkAuth(Request $request): Response
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         
         if (!isset($_SESSION['user_id'])) {
             return $this->json(['authenticated' => false], 401);
