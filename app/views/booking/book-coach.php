@@ -549,10 +549,7 @@ $additionalJS = [];
                         <i class="fas fa-calendar"></i>
                         Schedule Session
                     </button>
-                    <button class="btn-secondary">
-                        <i class="fas fa-video"></i>
-                        Online Coaching
-                    </button>
+                   
                 </div>
             </div>
         </div>
