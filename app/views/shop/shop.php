@@ -1065,14 +1065,8 @@ $additionalJS = ['/public/js/cart-api.js'];
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-primary">
-                        <i class="fas fa-tag"></i>
-                        View Deals
-                    </button>
-                    <button class="btn-secondary">
-                        <i class="fas fa-heart"></i>
-                        Wishlist
-                    </button>
+                    
+                    
                 </div>
             </div>
         </div>

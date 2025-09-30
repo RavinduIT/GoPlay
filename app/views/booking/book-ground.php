@@ -770,10 +770,6 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-primary" onclick="getCurrentLocation()">
-                        <i class="fas fa-location-arrow"></i>
-                        Find Near Me
-                    </button>
                     <button class="btn-secondary" onclick="toggleMapView()">
                         <i class="fas fa-map"></i>
                         <span id="map-toggle-text">Show Map</span>
