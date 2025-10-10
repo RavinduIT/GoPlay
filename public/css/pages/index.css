@@ -1,5 +1,32 @@
 /* Home Page Styles */
 
+/* Home scope and design tokens (fallbacks, safely scoped) */
+.home {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: rgba(2, 6, 23, 0.08);
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --primary-50: rgba(37, 99, 235, 0.08);
+  --secondary: #0891b2;
+  --secondary-foreground: #e0f2fe;
+  --accent: #0ea5e9;
+  --accent-50: rgba(14, 165, 233, 0.12);
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --shadow-soft: 0 8px 24px rgba(2, 6, 23, 0.06);
+  --shadow-medium: 0 10px 30px rgba(2, 6, 23, 0.08);
+  --shadow-strong: 0 14px 40px rgba(2, 6, 23, 0.12);
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
+  --gradient-light: linear-gradient(135deg, #93c5fd 0%, #67e8f9 100%);
+  --gradient-hero: linear-gradient(135deg, #0f172a 0%, #0b2a75 45%, #0b61a4 100%);
+}
+
 /* Main Content */
 .main-content {
   min-height: 100vh;
@@ -869,18 +896,18 @@
 .venue-title { letter-spacing: .2px !important; }
 
 /* Global polish */
-.container { max-width: 1240px !important; }
+.home .container { max-width: 1240px !important; }
 section { scroll-margin-top: 90px; }
 
 /* Buttons: consistent rounded + shadow */
-.btn, .hero-btn, .feature-btn { border-radius: 999px !important; }
+.home .btn, .home .hero-btn, .home .feature-btn { border-radius: 999px !important; }
 
 /* Accessible focus ring */
-.btn:focus,
-.hero-btn:focus,
-.feature-btn:focus,
-.carousel-btn:focus,
-.venue-btn:focus {
+.home .btn:focus,
+.home .hero-btn:focus,
+.home .feature-btn:focus,
+.home .carousel-btn:focus,
+.home .venue-btn:focus {
 	outline: 3px solid rgba(37,99,235,.45) !important;
 	outline-offset: 3px !important;
 }
