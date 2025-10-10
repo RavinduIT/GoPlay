@@ -66,11 +66,7 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                                 </button>
                             </div>
                         </div>
-                        <div class="quick-links">
-                            <a href="/book-coach"><i class="fas fa-user"></i> Find a Coach</a>
-                            <a href="/shop"><i class="fas fa-basketball-ball"></i> Buy Equipment</a>
-                            <a href="#venues"><i class="fas fa-map-marker-alt"></i> Popular Venues</a>
-                        </div>
+                        
                     </form>
                 </div>
             </div>
