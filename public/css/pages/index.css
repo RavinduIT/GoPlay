@@ -658,3 +658,168 @@
     height: 12rem;
   }
 }
+
+/* =============================================
+   Full Home Redesign – Professional Blue Theme
+   Goal: Cohesive, premium visual language using
+   only CSS on existing markup. Safe, progressive
+   overrides that elevate the look & feel.
+============================================= */
+
+/* Elevated Hero */
+.hero-section {
+	background:
+		radial-gradient(1200px 500px at 10% -10%, rgba(2, 132, 199, .35), transparent 50%),
+		radial-gradient(900px 500px at 100% 0%, rgba(37, 99, 235, .35), transparent 50%),
+		linear-gradient(135deg, #0f172a 0%, #0b2a75 45%, #0b61a4 100%) !important;
+	position: relative;
+	overflow: hidden;
+}
+
+.hero-section::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: radial-gradient(800px 400px at 70% -10%, rgba(255,255,255,.06), transparent 60%);
+	pointer-events: none;
+}
+
+.hero-section::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: -1px;
+	width: 100%;
+	height: 120px;
+	background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(15, 23, 42, .04) 40%, #f8fafc 100%);
+	clip-path: polygon(0 40%, 100% 0, 100% 100%, 0% 100%);
+}
+
+.hero-title {
+	letter-spacing: .4px !important;
+	line-height: 1.15 !important;
+	text-shadow: 0 6px 24px rgba(0,0,0,.35) !important;
+}
+
+.hero-description {
+	color: rgba(255,255,255,.9) !important;
+	text-shadow: 0 1px 0 rgba(0,0,0,.15) !important;
+}
+
+.hero-buttons .hero-btn {
+	border: 1px solid rgba(255,255,255,.2) !important;
+	box-shadow: 0 10px 30px rgba(2, 132, 199, .25), inset 0 1px 0 rgba(255,255,255,.3) !important;
+}
+
+.hero-btn.primary {
+	background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%) !important;
+	color: #0b3a83 !important;
+}
+
+.hero-btn.secondary {
+	border-color: rgba(255,255,255,.35) !important;
+}
+
+/* Section header refinement */
+.section-header {
+	max-width: 760px !important;
+}
+
+.section-title {
+	letter-spacing: .3px !important;
+}
+
+.title-highlight::after {
+	opacity: .45 !important;
+}
+
+/* Feature cards – gradient edge + subtle glow */
+.features-section {
+	background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%) !important;
+	position: relative;
+}
+
+.feature-card {
+	background: linear-gradient(180deg, #ffffff, #f8fafc) !important;
+	border-radius: 20px !important;
+	box-shadow: 0 10px 35px rgba(2, 6, 23, .06) !important;
+	position: relative !important;
+}
+
+.feature-card::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: 20px;
+	padding: 1px;
+	background: linear-gradient(135deg, rgba(37,99,235,.35), rgba(8,145,178,.35));
+	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	mask-composite: exclude;
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	opacity: .35;
+}
+
+.feature-icon {
+	box-shadow: inset 0 2px 0 rgba(255,255,255,.8), 0 8px 24px rgba(15, 23, 42, .08) !important;
+}
+
+.feature-title { letter-spacing: .2px !important; }
+.feature-description { color: #475569 !important; }
+
+.feature-btn { position: relative !important; }
+.feature-btn::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: -2px;
+	width: 0;
+	height: 2px;
+	background: linear-gradient(90deg, #2563eb, #0891b2);
+	transition: width .25s ease;
+}
+.feature-btn:hover::before { width: 100%; }
+
+/* News – premium surface + spacing rhythm */
+.news-section { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important; }
+.news-carousel { gap: 2.25rem !important; }
+.news-item { border-radius: 20px !important; box-shadow: 0 16px 40px rgba(2,6,23,.06), inset 0 1px 0 rgba(255,255,255,.6) !important; }
+.news-title { letter-spacing: .2px !important; }
+.news-excerpt { color: #475569 !important; }
+
+/* Venues – elevated grid */
+.venues-section { background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%) !important; }
+.venue-card { background: linear-gradient(180deg, #ffffff, #f8fafc) !important; border-radius: 18px !important; box-shadow: 0 12px 30px rgba(2,6,23,.05) !important; }
+.venue-title { letter-spacing: .2px !important; }
+
+/* Global polish */
+.container { max-width: 1240px !important; }
+section { scroll-margin-top: 90px; }
+
+/* Buttons: consistent rounded + shadow */
+.btn, .hero-btn, .feature-btn { border-radius: 999px !important; }
+
+/* Accessible focus ring */
+.btn:focus,
+.hero-btn:focus,
+.feature-btn:focus,
+.carousel-btn:focus,
+.venue-btn:focus {
+	outline: 3px solid rgba(37,99,235,.45) !important;
+	outline-offset: 3px !important;
+}
+
+/* Responsive refinements */
+@media (max-width: 1024px) {
+	.hero-title { font-size: 2.5rem !important; }
+	.news-item { flex: 0 0 320px !important; }
+}
+
+@media (max-width: 640px) {
+	.hero-title { font-size: 2rem !important; }
+	.hero-buttons .hero-btn { width: 100% !important; max-width: 320px !important; }
+	.news-item { flex: 0 0 280px !important; }
+}
