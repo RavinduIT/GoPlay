@@ -27,6 +27,14 @@
   --gradient-hero: linear-gradient(135deg, #0f172a 0%, #0b2a75 45%, #0b61a4 100%);
 }
 
+/* Subtle page background (clean gradient + soft radial accents) */
+.home {
+  background:
+    radial-gradient(900px 500px at 10% -10%, rgba(37,99,235,.06), transparent 60%),
+    radial-gradient(900px 500px at 110% 0%, rgba(8,145,178,.06), transparent 60%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
 /* Main Content */
 .main-content {
   min-height: 100vh;
@@ -796,6 +804,19 @@
 	height: 120px;
 	background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(15, 23, 42, .04) 40%, #f8fafc 100%);
 	clip-path: polygon(0 40%, 100% 0, 100% 100%, 0% 100%);
+}
+
+/* Divider between trust bar and features */
+.trust-bar-section {
+  position: relative;
+}
+.trust-bar-section::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px; height: 100px;
+  background: linear-gradient(to bottom, rgba(248,250,252,0) 0%, rgba(2,6,23,.04) 40%, #eef2f7 100%);
+  clip-path: polygon(0 35%, 100% 0, 100% 100%, 0% 100%);
+  pointer-events: none;
 }
 
 .hero-title {
