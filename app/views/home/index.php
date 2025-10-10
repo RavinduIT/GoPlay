@@ -583,7 +583,7 @@ $additionalJS = ['/public/js/pages/index.js'];
                 <div class="features-grid">
                     <div class="feature-card" data-feature="booking">
                         <div class="feature-image">
-                            <img src="assets/images/feature-booking.jpg" alt="Book Sports Grounds" />
+                            <img src="/public/assets/images/placeholder-news.svg" alt="Book Sports Grounds" />
                             <div class="feature-overlay"></div>
                             <div class="feature-stats">500+ Venues</div>
                         </div>
@@ -605,7 +605,7 @@ $additionalJS = ['/public/js/pages/index.js'];
 
                     <div class="feature-card" data-feature="coaching">
                         <div class="feature-image">
-                            <img src="assets/images/feature-coaching.jpg" alt="Hire Professional Coaches" />
+                            <img src="/public/assets/images/placeholder-news.svg" alt="Hire Professional Coaches" />
                             <div class="feature-overlay"></div>
                             <div class="feature-stats">200+ Coaches</div>
                         </div>
@@ -619,7 +619,7 @@ $additionalJS = ['/public/js/pages/index.js'];
                             <p class="feature-description">
                                 Train with certified coaches for all sports
                             </p>
-                            <a href="/book-coach" class="feature-btn">
+                            <a href="/coaches" class="feature-btn">
                                 Get Started
                             </a>
                         </div>
@@ -627,7 +627,7 @@ $additionalJS = ['/public/js/pages/index.js'];
 
                     <div class="feature-card" data-feature="equipment">
                         <div class="feature-image">
-                            <img src="assets/images/feature-equipment.jpg" alt="Sports Equipment Shop" />
+                            <img src="/public/assets/images/placeholder-news.svg" alt="Sports Equipment Shop" />
                             <div class="feature-overlay"></div>
                             <div class="feature-stats">1000+ Products</div>
                         </div>
@@ -664,7 +664,38 @@ $additionalJS = ['/public/js/pages/index.js'];
                 </div>
                 <div class="news-container">
                     <div class="news-carousel" id="newsCarousel">
-                        <!-- News items will be loaded here -->
+                        <?php if (!empty($featuredNews ?? [])): ?>
+                            <?php foreach (($featuredNews ?? []) as $news): ?>
+                                <div class="news-item" data-id="<?= (int)($news['id'] ?? 0) ?>">
+                                    <div class="news-image">
+                                        <img src="<?= htmlspecialchars($news['featured_image'] ?? '/public/assets/images/placeholder-news.jpg') ?>" alt="<?= htmlspecialchars($news['title'] ?? 'News') ?>" loading="lazy"
+                                             onerror="this.src='/public/assets/images/placeholder-news.jpg'">
+                                        <?php if (!empty($news['category'])): ?>
+                                            <div class="news-badge"><?= htmlspecialchars($news['category']) ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="news-content">
+                                        <div class="news-date">
+                                            <?= isset($news['published_at']) ? date('F j, Y', strtotime((string)$news['published_at'])) : '' ?>
+                                        </div>
+                                        <h3 class="news-title"><?= htmlspecialchars($news['title'] ?? '') ?></h3>
+                                        <p class="news-excerpt"><?= htmlspecialchars($news['excerpt'] ?? '') ?></p>
+                                        <a href="/news/<?= (int)($news['id'] ?? 0) ?>" class="news-link">Read More</a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="news-item">
+                                <div class="news-image">
+                                    <img src="/public/assets/images/placeholder-news.jpg" alt="News" />
+                                </div>
+                                <div class="news-content">
+                                    <div class="news-date">No news</div>
+                                    <h3 class="news-title">No news available</h3>
+                                    <p class="news-excerpt">Please check back later for the latest updates.</p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div class="carousel-controls">
                         <button class="carousel-btn prev" id="prevBtn">
