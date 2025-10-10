@@ -2,14 +2,12 @@
 $title = 'GoPlay - Premier Sports Booking Platform';
 $description = 'Book sports facilities, hire professional coaches, and shop for equipment at GoPlay';
 $additionalCSS = ['/public/css/pages/index.css'];
-$additionalJS = ['/public/js/pages/index.js'];
+$additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/index.js'];
 ?>
 
-<link rel="stylesheet" href="/public/css/pages/index.css">
 
-
-    <!-- Main Content -->
-    <main class="main-content home">
+    <!-- Home Content (scoped) -->
+    <div class="main-content home">
         <!-- Hero Section -->
         <section class="hero-section">
             <div class="hero-content">
@@ -118,7 +116,7 @@ $additionalJS = ['/public/js/pages/index.js'];
                 <div class="features-grid">
                     <div class="feature-card" data-feature="booking">
                         <div class="feature-image">
-                            <img src="/public/assets/images/placeholder-news.svg" alt="Book Sports Grounds" />
+                            <img src="/public/assets/images/football.jpg" alt="Book Sports Grounds" />
                             <div class="feature-overlay"></div>
                             <div class="feature-stats">500+ Venues</div>
                         </div>
@@ -140,7 +138,7 @@ $additionalJS = ['/public/js/pages/index.js'];
 
                     <div class="feature-card" data-feature="coaching">
                         <div class="feature-image">
-                            <img src="/public/assets/images/placeholder-news.svg" alt="Hire Professional Coaches" />
+                            <img src="/public/assets/images/football.jpg" alt="Hire Professional Coaches" />
                             <div class="feature-overlay"></div>
                             <div class="feature-stats">200+ Coaches</div>
                         </div>
@@ -162,7 +160,7 @@ $additionalJS = ['/public/js/pages/index.js'];
 
                     <div class="feature-card" data-feature="equipment">
                         <div class="feature-image">
-                            <img src="/public/assets/images/placeholder-news.svg" alt="Sports Equipment Shop" />
+                            <img src="/public/assets/images/football.jpg" alt="Sports Equipment Shop" />
                             <div class="feature-overlay"></div>
                             <div class="feature-stats">1000+ Products</div>
                         </div>
@@ -198,23 +196,23 @@ $additionalJS = ['/public/js/pages/index.js'];
                         <span>Football</span>
                     </a>
                     <a class="category-card" href="/book-ground?sport=tennis">
-                        <img src="/public/assets/images/ground.jpeg" alt="Tennis" />
+                        <img src="/public/assets/images/football.jpg" alt="Tennis" />
                         <span>Tennis</span>
                     </a>
                     <a class="category-card" href="/book-ground?sport=basketball">
-                        <img src="/public/assets/images/ground.jpeg" alt="Basketball" />
+                        <img src="/public/assets/images/football.jpg" alt="Basketball" />
                         <span>Basketball</span>
                     </a>
                     <a class="category-card" href="/book-ground?sport=cricket">
-                        <img src="/public/assets/images/ground.jpeg" alt="Cricket" />
+                        <img src="/public/assets/images/football.jpg" alt="Cricket" />
                         <span>Cricket</span>
                     </a>
                     <a class="category-card" href="/book-ground?sport=badminton">
-                        <img src="/public/assets/images/ground.jpeg" alt="Badminton" />
+                        <img src="/public/assets/images/football.jpg" alt="Badminton" />
                         <span>Badminton</span>
                     </a>
                     <a class="category-card" href="/book-ground?sport=swimming">
-                        <img src="/public/assets/images/ground.jpeg" alt="Swimming" />
+                        <img src="/public/assets/images/football.jpg" alt="Swimming" />
                         <span>Swimming</span>
                     </a>
                 </div>
@@ -266,8 +264,8 @@ $additionalJS = ['/public/js/pages/index.js'];
                             <?php foreach (($featuredNews ?? []) as $news): ?>
                                 <div class="news-item" data-id="<?= (int)($news['id'] ?? 0) ?>">
                                     <div class="news-image">
-                                        <img src="<?= htmlspecialchars($news['featured_image'] ?? '/public/assets/images/placeholder-news.jpg') ?>" alt="<?= htmlspecialchars($news['title'] ?? 'News') ?>" loading="lazy"
-                                             onerror="this.src='/public/assets/images/placeholder-news.jpg'">
+                                        <img src="<?= htmlspecialchars($news['featured_image'] ?? '/public/assets/images/football.jpg') ?>" alt="<?= htmlspecialchars($news['title'] ?? 'News') ?>" loading="lazy"
+                                             onerror="this.src='/public/assets/images/football.jpg'">
                                         <?php if (!empty($news['category'])): ?>
                                             <div class="news-badge"><?= htmlspecialchars($news['category']) ?></div>
                                         <?php endif; ?>
@@ -285,7 +283,7 @@ $additionalJS = ['/public/js/pages/index.js'];
                         <?php else: ?>
                             <div class="news-item">
                                 <div class="news-image">
-                                    <img src="/public/assets/images/placeholder-news.jpg" alt="News" />
+                                    <img src="/public/assets/images/football.jpg" alt="News" />
                                 </div>
                                 <div class="news-content">
                                     <div class="news-date">No news</div>
@@ -380,16 +378,4 @@ $additionalJS = ['/public/js/pages/index.js'];
                 </div>
             </div>
         </section>
-    </main>
-
-    <script src="/public/js/components/news-carousel.js"></script>
-    <script src="/public/js/pages/index.js"></script>
-    <script src="/public/js/components/navbar.js"></script>
-    <script>
-
-        // Global logout function
-        function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = '/';
-        }
-    </script>
+    </div>
