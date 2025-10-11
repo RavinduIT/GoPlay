@@ -25,6 +25,7 @@
   --gradient-primary: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
   --gradient-light: linear-gradient(135deg, #93c5fd 0%, #67e8f9 100%);
   --gradient-hero: linear-gradient(135deg, #0f172a 0%, #0b2a75 45%, #0b61a4 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 /* Subtle page background (clean gradient + soft radial accents) */
