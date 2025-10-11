@@ -369,7 +369,7 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                     <p>Join thousands of players and book your next session today.</p>
                     <div class="cta-actions">
                         <a class="hero-btn primary" href="/book-ground"><i class="fas fa-calendar"></i> Book a Ground</a>
-                        <a class="hero-btn secondary" href="/book-coach"><i class="fas fa-user"></i> Hire a Coach</a>
+                        <a class="hero-btn primary" href="/book-coach"><i class="fas fa-calendar"></i> Hire a Coach</a>
                     </div>
                 </div>
             </div>
