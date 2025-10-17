@@ -37,26 +37,14 @@ $additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
                     <span class="badge new">12</span>
                 </a>
             </li>
-            <li>
-                <a href="/shop-owner/inventory">
-                    <i class="fas fa-warehouse"></i>
-                    <span>Inventory</span>
-                    <span class="badge warning">5</span>
-                </a>
-            </li>
+            
             <li>
                 <a href="/shop-owner/sales">
                     <i class="fas fa-chart-line"></i>
                     <span>Sales</span>
                 </a>
             </li>
-            <li>
-                <a href="/shop-owner/customers">
-                    <i class="fas fa-users"></i>
-                    <span>Customers</span>
-                    <span class="badge">234</span>
-                </a>
-            </li>
+            
             <li>
                 <a href="/shop-owner/reviews">
                     <i class="fas fa-star"></i>

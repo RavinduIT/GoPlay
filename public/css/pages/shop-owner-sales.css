@@ -1,0 +1,778 @@
+/* Shop Owner Sales Analytics Page Styles */
+
+:root {
+    --primary-color: #2563eb;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #3b82f6;
+    --purple-color: #8b5cf6;
+    --pink-color: #ec4899;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --sidebar-width: 280px;
+}
+
+/* Dashboard Main Layout */
+.dashboard-main {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    background: var(--gray-50);
+}
+
+/* Dashboard Header */
+.dashboard-header {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.date-range-selector {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--gray-100);
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+}
+
+.date-range-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: var(--gray-600);
+    font-weight: 500;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.date-range-btn:hover {
+    color: var(--gray-900);
+}
+
+.date-range-btn.active {
+    background: white;
+    color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-export {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-export:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Sales Analytics Content */
+.sales-analytics {
+    padding: 2rem;
+    background: var(--gray-50);
+}
+
+/* Overview Stats */
+.overview-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.stat-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.stat-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-card.revenue .stat-icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card.orders .stat-icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.stat-card.conversion .stat-icon {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.stat-card.avg-order .stat-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.stat-header h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-body {
+    margin-bottom: 1rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+}
+
+.stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.stat-trend.positive {
+    color: var(--success-color);
+}
+
+.stat-trend.negative {
+    color: var(--danger-color);
+}
+
+.stat-footer {
+    padding-top: 1rem;
+    border-top: 1px solid var(--gray-100);
+}
+
+.stat-detail {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+}
+
+.progress-mini {
+    width: 100%;
+    height: 0.375rem;
+    background: var(--gray-100);
+    border-radius: 1rem;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 1rem;
+    transition: width 0.3s ease;
+}
+
+/* Charts Grid */
+.charts-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(12, 1fr);
+}
+
+.chart-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.chart-card.large {
+    grid-column: span 12;
+}
+
+.chart-card.medium {
+    grid-column: span 6;
+}
+
+.chart-card.small {
+    grid-column: span 4;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.header-left h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 0.25rem;
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+}
+
+.chart-period-select {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 0.5rem;
+    background: white;
+    color: var(--gray-700);
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.view-all-link {
+    color: var(--primary-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.view-all-link:hover {
+    color: #1d4ed8;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.chart-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.chart-legend {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gray-100);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+.legend-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+}
+
+.legend-dot.revenue {
+    background: #2563eb;
+}
+
+.legend-dot.previous {
+    background: #cbd5e1;
+}
+
+/* Category Stats */
+.category-stats {
+    margin-top: 1rem;
+}
+
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.category-item:last-child {
+    border-bottom: none;
+}
+
+.category-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.category-color {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 0.25rem;
+}
+
+.category-color.cricket {
+    background: #ef4444;
+}
+
+.category-color.football {
+    background: #3b82f6;
+}
+
+.category-color.tennis {
+    background: #10b981;
+}
+
+.category-color.other {
+    background: #8b5cf6;
+}
+
+.category-name {
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.category-value {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+/* Status Stats */
+.status-stats {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-badge.delivered {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.shipped {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge.processing {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-count {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+/* Products Table */
+.products-table {
+    overflow-x: auto;
+}
+
+.products-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.products-table th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    background: var(--gray-50);
+    color: var(--gray-600);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.products-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.rank-badge.gold {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+}
+
+.rank-badge.silver {
+    background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%);
+    color: var(--gray-700);
+}
+
+.rank-badge.bronze {
+    background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+    color: white;
+}
+
+.rank-badge:not(.gold):not(.silver):not(.bronze) {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+
+.product-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.product-cell img {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    object-fit: cover;
+}
+
+.category-tag {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.category-tag.cricket {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.category-tag.football {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.category-tag.tennis {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.category-tag.badminton {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.trend-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.trend-indicator.up {
+    color: var(--success-color);
+}
+
+.trend-indicator.down {
+    color: var(--danger-color);
+}
+
+/* Regional Stats */
+.regional-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.region-item {
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: 0.75rem;
+}
+
+.region-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.region-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.region-percentage {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.region-bar {
+    height: 0.5rem;
+    background: var(--gray-200);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.region-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+    border-radius: 1rem;
+    transition: width 0.3s ease;
+}
+
+.region-details {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+/* Payment Stats */
+.payment-stats {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.payment-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--gray-50);
+    border-radius: 0.5rem;
+}
+
+.payment-item i {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 0.5rem;
+    color: var(--primary-color);
+}
+
+.payment-name {
+    flex: 1;
+    font-size: 0.875rem;
+    color: var(--gray-700);
+}
+
+.payment-value {
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+/* Performance Insights */
+.insights-section {
+    margin-top: 2rem;
+}
+
+.section-header {
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 0.25rem;
+}
+
+.section-header p {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.insight-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 1rem;
+    border-left: 4px solid;
+    box-shadow: var(--shadow);
+}
+
+.insight-card.positive {
+    border-left-color: var(--success-color);
+}
+
+.insight-card.warning {
+    border-left-color: var(--warning-color);
+}
+
+.insight-card.info {
+    border-left-color: var(--info-color);
+}
+
+.insight-card.negative {
+    border-left-color: var(--danger-color);
+}
+
+.insight-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.insight-card.positive .insight-icon {
+    background: #d1fae5;
+    color: var(--success-color);
+}
+
+.insight-card.warning .insight-icon {
+    background: #fef3c7;
+    color: var(--warning-color);
+}
+
+.insight-card.info .insight-icon {
+    background: #dbeafe;
+    color: var(--info-color);
+}
+
+.insight-card.negative .insight-icon {
+    background: #fee2e2;
+    color: var(--danger-color);
+}
+
+.insight-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+}
+
+.insight-content p {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .chart-card.large,
+    .chart-card.medium {
+        grid-column: span 12;
+    }
+}
+
+@media (max-width: 768px) {
+    .sales-analytics {
+        padding: 1rem;
+    }
+
+    .overview-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .date-range-selector {
+        display: none;
+    }
+
+    .header-right {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .products-table {
+        font-size: 0.875rem;
+    }
+
+    .products-table th,
+    .products-table td {
+        padding: 0.5rem;
+    }
+
+    .product-cell img {
+        width: 2rem;
+        height: 2rem;
+    }
+}
