@@ -755,8 +755,18 @@ $groundId = $_GET['id'] ?? 1;
                 sidebarLocation.textContent = location;
             }
             
-            // Image - use first image from array or default
-            const imageUrl = (ground.images && ground.images.length > 0) ? ground.images[0] : '/public/assets/images/ground.jpeg';
+            // Image - use sport-specific image based on category (always use sport-specific images)
+            const categoryName = ground.category_name ? ground.category_name.toLowerCase() : 'general';
+            const groundImages = {
+                'football': '/public/assets/images/grounds/football-ground.jpg',
+                'cricket': '/public/assets/images/grounds/cricket-ground.jpg',
+                'tennis': '/public/assets/images/grounds/tennis-court.jpg',
+                'basketball': '/public/assets/images/grounds/basketball-court.jpg',
+                'badminton': '/public/assets/images/grounds/badminton-court.jpg',
+                'volleyball': '/public/assets/images/grounds/football-ground.jpg',
+                'swimming': '/public/assets/images/grounds/football-ground.jpg'
+            };
+            let imageUrl = groundImages[categoryName] || '/public/assets/images/grounds/football-ground.jpg';
             document.getElementById('ground-image').src = imageUrl;
             document.getElementById('ground-image').alt = ground.name || 'Ground Image';
             
