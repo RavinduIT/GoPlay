@@ -162,7 +162,8 @@ try {
     $router->get('/shop-owner/orders', 'ShopOwnerController@ordersPage');
     $router->get('/shop-owner/reviews', 'ShopOwnerController@reviewsPage');
     $router->get('/shop-owner/profile', 'ShopOwnerController@profilePage');
-    
+    $router->get('/shop-owner/sales', 'ShopOwnerController@salesPage');
+
     // Redirect old .php URLs to new routes
     $router->get('/shop-owner/products.php', 'ShopOwnerController@productsPage');
     $router->get('/shop-owner/inventory.php', 'ShopOwnerController@inventoryPage');
