@@ -74,13 +74,7 @@
                         </div>
                     </div>
 
-                    <div class="form-options">
-                        <label class="checkbox-wrapper">
-                            <input type="checkbox" id="remember" class="checkbox">
-                            <span class="checkbox-label">Remember me</span>
-                        </label>
-                        <a href="/forgot-password" class="forgot-link">Forgot Password?</a>
-                    </div>
+                    
 
                     <button type="submit" class="submit-btn" id="submitBtn">
                         <span class="btn-text">Sign In</span>
