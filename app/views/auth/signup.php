@@ -160,18 +160,6 @@
                             </button>
                         </div>
                     </div>
-                    
-                       <div class="form-group">
-                        <label class="checkbox-wrapper">
-                            <input type="checkbox" id="terms" class="checkbox" required>
-                            <span class="checkbox-label">
-                                I agree to the <a href="/terms" class="auth-link">Terms of Service</a> 
-                                and <a href="/privacy" class="auth-link">Privacy Policy</a>
-                            </span>
-                        </label>
-                    </div>
-                    
-                   
 
                     <button type="submit" class="submit-btn" id="submitBtn">
                         <span class="btn-text">Create Account</span>
@@ -298,10 +286,7 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
         return;
     }
 
-    if (!terms) {
-        showToast('Please accept the Terms of Service', 'error');
-        return;
-    }
+    
 
     // Disable submit button
     const submitBtn = document.getElementById('submitBtn');
