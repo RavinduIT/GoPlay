@@ -295,6 +295,15 @@ $additionalJS = ['/public/js/cart-api.js'];
             justify-content: center;
             font-size: 4rem;
             overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .product-icon {
@@ -1273,7 +1282,8 @@ $additionalJS = ['/public/js/cart-api.js'];
                     <div class="product-card">
                         <div class="product-image">
                             ${badge ? `<div class="product-badge ${badgeClass}">${badge}</div>` : ''}
-                            <div class="product-icon">${getCategoryIcon(categorySlug)}</div>
+                            ${getProductImage(product, categorySlug)}
+                            <div class="product-icon" style="display: none;">${getCategoryIcon(categorySlug)}</div>
                             <div class="product-overlay">
                                 <button class="quick-view-btn" onclick="viewProduct(${product.id})">
                                     <i class="fas fa-eye"></i>
@@ -1310,6 +1320,35 @@ $additionalJS = ['/public/js/cart-api.js'];
             }).join('');
 
             grid.innerHTML = productCards;
+        }
+
+        // Get product image based on product data or category
+        function getProductImage(product, categorySlug) {
+            // Check if product has specific images
+            if (product.images && product.images.length > 0) {
+                try {
+                    const images = typeof product.images === 'string' ? JSON.parse(product.images) : product.images;
+                    if (Array.isArray(images) && images.length > 0) {
+                        return `<img src="${images[0]}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+                    }
+                } catch (e) {
+                    console.log('Error parsing product images:', e);
+                }
+            }
+
+            // Use category-specific default images
+            const productImages = {
+                'football': '/public/assets/images/products/football.jpg',
+                'tennis': '/public/assets/images/products/tennis-racket.jpg',
+                'basketball': '/public/assets/images/products/basketball.jpg',
+                'cricket': '/public/assets/images/products/cricket-bat.jpg',
+                'badminton': '/public/assets/images/products/badminton-racket.jpg',
+                'swimming': '/public/assets/images/products/football.jpg',
+                'fitness': '/public/assets/images/products/football.jpg'
+            };
+
+            const imageUrl = productImages[categorySlug] || '/public/assets/images/products/football.jpg';
+            return `<img src="${imageUrl}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
         }
 
         // Generate star rating HTML
