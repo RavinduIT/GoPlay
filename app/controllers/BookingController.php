@@ -6,6 +6,7 @@ use Core\Request;
 use Core\Response;
 use App\Models\SportsFacility;
 use App\Models\SportsCategory;
+use App\Models\GroundBooking;
 
 /**
  * Booking Controller
@@ -16,6 +17,7 @@ class BookingController extends BaseController
 {
     private ?SportsFacility $facilityModel = null;
     private ?SportsCategory $categoryModel = null;
+    private ?GroundBooking $groundBookingModel = null;
     
     private function getFacilityModel(): SportsFacility
     {
@@ -31,6 +33,14 @@ class BookingController extends BaseController
             $this->categoryModel = new SportsCategory();
         }
         return $this->categoryModel;
+    }
+
+    private function getGroundBookingModel(): GroundBooking
+    {
+        if ($this->groundBookingModel === null) {
+            $this->groundBookingModel = new GroundBooking();
+        }
+        return $this->groundBookingModel;
     }
     
     /**
@@ -108,12 +118,124 @@ class BookingController extends BaseController
     }
 
     /**
-     * Handle booking submission
+     * Handle ground booking submission
      */
-    public function store(Request $request): Response
+    public function createGroundBooking(Request $request): Response
     {
-        // Booking creation logic
-        return $this->json(['success' => true, 'message' => 'Booking created successfully']);
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Please login to make a booking'
+            ], 401);
+        }
+
+        try {
+            $data = $request->getJsonBody();
+            $userId = $_SESSION['user_id'];
+
+            // Validate required fields
+            $required = ['facility_id', 'booking_date', 'start_time', 'end_time'];
+            foreach ($required as $field) {
+                if (empty($data[$field])) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => "Field '{$field}' is required"
+                    ], 400);
+                }
+            }
+
+            // Validate booking date (must be today or in the future)
+            $bookingDate = $data['booking_date'];
+            if (strtotime($bookingDate) < strtotime('today')) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Booking date must be today or in the future'
+                ], 400);
+            }
+
+            // Validate time slot availability
+            $facilityId = (int)$data['facility_id'];
+            $startTime = $data['start_time'];
+            $endTime = $data['end_time'];
+
+            if (!$this->getGroundBookingModel()->isTimeSlotAvailable($facilityId, $bookingDate, $startTime, $endTime)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'This time slot is not available'
+                ], 409);
+            }
+
+            // Create booking data
+            $bookingData = [
+                'user_id' => $userId,
+                'facility_id' => $facilityId,
+                'booking_date' => $bookingDate,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'special_requests' => $data['special_requests'] ?? ''
+            ];
+
+            $bookingId = $this->getGroundBookingModel()->createBooking($bookingData);
+
+            if (!$bookingId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to create booking'
+                ], 500);
+            }
+
+            // Get the created booking with details
+            $booking = $this->getGroundBookingModel()->find($bookingId);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Ground booked successfully! No payment required.',
+                'booking' => $booking,
+                'booking_id' => $bookingId
+            ], 201);
+
+        } catch (\Exception $e) {
+            error_log("Ground booking error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to create booking: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check time slot availability for a facility
+     */
+    public function checkAvailability(Request $request): Response
+    {
+        try {
+            $facilityId = (int)$request->getQuery('facility_id');
+            $date = $request->getQuery('date');
+            $startTime = $request->getQuery('start_time');
+            $endTime = $request->getQuery('end_time');
+
+            if (!$facilityId || !$date || !$startTime || !$endTime) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Missing required parameters'
+                ], 400);
+            }
+
+            $available = $this->getGroundBookingModel()->isTimeSlotAvailable($facilityId, $date, $startTime, $endTime);
+
+            return $this->json([
+                'success' => true,
+                'available' => $available,
+                'message' => $available ? 'Time slot is available' : 'Time slot is not available'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error checking availability'
+            ], 500);
+        }
     }
 
     /**
@@ -197,5 +319,18 @@ class BookingController extends BaseController
     public function getGroundById(Request $request): Response
     {
         return $this->getGroundDetails($request);
+    }
+
+    /**
+     * Redirect /book/{id} to ground details page
+     */
+    public function redirectToGroundDetails(Request $request): Response
+    {
+        $id = $request->getParam('id');
+        if (!$id) {
+            return $this->redirect('/book-ground');
+        }
+
+        return $this->redirect('/ground-details?id=' . $id);
     }
 }

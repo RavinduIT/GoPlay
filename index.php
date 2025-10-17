@@ -130,9 +130,21 @@ try {
     $router->put('/api/ground-owner/grounds/{id}', 'GroundOwnerController@updateGround');
     $router->delete('/api/ground-owner/grounds/{id}', 'GroundOwnerController@deleteGround');
     $router->get('/api/ground-owner/categories', 'GroundOwnerController@getSportsCategories');
+
+    // Ground Owner Booking Management API routes
+    $router->get('/api/ground-owner/dashboard-stats', 'GroundOwnerController@getDashboardStats');
+    $router->get('/api/ground-owner/bookings', 'GroundOwnerController@getBookings');
+    $router->put('/api/ground-owner/bookings/{id}/cancel', 'GroundOwnerController@cancelBooking');
+    $router->get('/api/ground-owner/facilities/{id}/bookings', 'GroundOwnerController@getFacilityBookings');
+    $router->put('/api/ground-owner/bookings/{id}/status', 'GroundOwnerController@updateBookingStatus');
     $router->get('/book-ground', 'BookingController@bookGround');
     $router->get('/ground-details', 'BookingController@groundDetails');
+    $router->get('/book/{id}', 'BookingController@redirectToGroundDetails');
     $router->get('/book-coach', 'BookingController@bookCoach');
+
+    // Public booking API routes
+    $router->post('/api/booking/ground', 'BookingController@createGroundBooking');
+    $router->get('/api/booking/availability', 'BookingController@checkAvailability');
     $router->get('/coaches', 'CoachController@index');
     $router->get('/shop', 'ProductController@index');
     $router->get('/api/products', 'ProductController@getProducts');
@@ -197,9 +209,16 @@ $router->get('/news/{slug}', 'NewsController@show'); // This is the missing rout
     $router->post('/api/user/change-password', 'UserController@changePassword');
     $router->get('/api/user/bookings', 'UserController@getBookings');
     $router->get('/api/user/orders', 'UserController@getOrders');
+
+    // User Ground Booking API routes
+    $router->get('/api/user/ground-bookings', 'UserController@getGroundBookings');
+    $router->post('/api/user/ground-bookings', 'UserController@createGroundBooking');
+    $router->get('/api/user/ground-bookings/{id}', 'UserController@getGroundBookingDetails');
+    $router->put('/api/user/ground-bookings/{id}/cancel', 'UserController@cancelGroundBooking');
     
     // Additional user routes
-    $router->get('/my-bookings', 'UserController@myBookings');
+    $router->get('/my-bookings', 'UserController@groundBookingsDashboard');
+    $router->get('/my-ground-bookings', 'UserController@groundBookingsDashboard');
     $router->get('/my-orders', 'UserController@myOrders');
     $router->get('/cart', 'UserController@cart');
     $router->get('/notifications', 'UserController@notifications');

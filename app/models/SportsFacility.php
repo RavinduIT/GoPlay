@@ -106,7 +106,7 @@ class SportsFacility extends BaseModel
      */
     public function getAvailableFacilities(array $filters = []): array
     {
-        // Use subquery to get only the latest record for each facility name (handles duplicates)
+
         $sql = "SELECT sf.*, sc.name as category_name, sc.icon as category_icon,
                        u.first_name, u.last_name, u.phone
                 FROM {$this->table} sf
