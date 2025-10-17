@@ -100,7 +100,24 @@
                             />
                         </div>
                     </div>
-                    
+
+                    <div class="form-group">
+                        <label for="userType" class="form-label">I want to register as</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user-tag input-icon"></i>
+                            <select
+                                id="userType"
+                                class="form-input"
+                                required
+                            >
+                                <option value="">Select your role</option>
+                                <option value="user">User </option>
+                                <option value="coach">Coach </option>
+                                <option value="ground_owner">Ground Owner </option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label for="password" class="form-label">Password</label>
                         <div class="input-wrapper">
@@ -144,7 +161,7 @@
                         </div>
                     </div>
                     
-                    <div class="form-group">
+                       <div class="form-group">
                         <label class="checkbox-wrapper">
                             <input type="checkbox" id="terms" class="checkbox" required>
                             <span class="checkbox-label">
@@ -253,42 +270,78 @@ document.getElementById('password').addEventListener('input', function() {
 // Form validation and submission
 document.getElementById('signupForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
-    const formData = new FormData(this);
+
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    const terms = document.getElementById('terms').checked;
+    const userType = document.getElementById('userType').value;
     
+
     // Validation
+    if (!firstName || !lastName || !email || !phone || !userType) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+
     const { score } = checkPasswordStrength(password);
-    
+
     if (score < 3) {
         showToast('Please create a stronger password', 'error');
         return;
     }
-    
+
     if (password !== confirmPassword) {
         showToast('Passwords do not match', 'error');
         return;
     }
-    
+
     if (!terms) {
         showToast('Please accept the Terms of Service', 'error');
         return;
     }
-    
+
     // Disable submit button
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
-    
-    // Simulate API call (replace with actual registration logic)
-    setTimeout(() => {
-        showToast('Account created successfully!', 'success');
-        setTimeout(() => {
-            window.location.href = '/login';
-        }, 1500);
-    }, 2000);
+
+    // Send registration request
+    fetch('/auth/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            phone: phone,
+            password: password,
+            user_type: userType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Account created successfully! Redirecting...', 'success');
+            setTimeout(() => {
+                window.location.href = data.redirect || '/';
+            }, 1500);
+        } else {
+            showToast(data.error || 'Registration failed', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span class="btn-text">Create Account</span><i class="fas fa-user-plus btn-icon"></i>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred. Please try again.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="btn-text">Create Account</span><i class="fas fa-user-plus btn-icon"></i>';
+    });
 });
 
 // Toast notification function
