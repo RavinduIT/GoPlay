@@ -87,6 +87,15 @@ class ShopOwnerController extends BaseController
         
         return $this->view('shop-owner/reviews');
     }
+    public function salesPage(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+
+        return $this->view('shop-owner/sales');
+    }
+
     
     public function profilePage(Request $request): Response
     {

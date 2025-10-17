@@ -129,42 +129,48 @@ class GroundBookingApp {
             // Search filter
             if (this.currentFilters.search) {
                 const searchTerm = this.currentFilters.search.toLowerCase();
-                const matchesSearch = 
+                const matchesSearch =
                     ground.name.toLowerCase().includes(searchTerm) ||
                     ground.location.toLowerCase().includes(searchTerm) ||
                     ground.sport.toLowerCase().includes(searchTerm) ||
                     ground.description.toLowerCase().includes(searchTerm);
-                
+
                 if (!matchesSearch) return false;
             }
 
             // Location filter
             if (this.currentFilters.location) {
-                const locationValue = this.currentFilters.location.replace('-', ' ');
+                const locationValue = this.currentFilters.location.toLowerCase();
                 if (!ground.location.toLowerCase().includes(locationValue)) {
                     return false;
                 }
             }
 
-            // Sport filter
+            // Sport filter - compare the sport name instead of ID
             if (this.currentFilters.sport) {
-                if (ground.sport !== this.currentFilters.sport) {
-                    return false;
+                // Get the selected option's text (sport name) not value (ID)
+                const sportSelect = document.getElementById('sport-type');
+                if (sportSelect) {
+                    const selectedOption = sportSelect.options[sportSelect.selectedIndex];
+                    const sportName = selectedOption.text.toLowerCase();
+                    if (!ground.sport.toLowerCase().includes(sportName)) {
+                        return false;
+                    }
                 }
             }
 
-            // Price filter
+            // Price filter - convert from LKR ranges
             if (this.currentFilters.priceRange) {
                 const price = ground.price;
                 switch (this.currentFilters.priceRange) {
-                    case '0-30':
-                        if (price > 30) return false;
+                    case '0-1000':
+                        if (price > 1000) return false;
                         break;
-                    case '30-50':
-                        if (price < 30 || price > 50) return false;
+                    case '1000-2000':
+                        if (price < 1000 || price > 2000) return false;
                         break;
-                    case '50+':
-                        if (price < 50) return false;
+                    case '2000+':
+                        if (price < 2000) return false;
                         break;
                 }
             }
@@ -223,18 +229,23 @@ class GroundBookingApp {
     // Create HTML for a single ground card
     createGroundCard(ground) {
         const stars = this.generateStarsHTML(ground.rating);
-        const features = ground.features.slice(0, 3).map(feature => 
+        const features = ground.features.slice(0, 3).map(feature =>
             `<div class="feature-item"><i class="fas fa-check"></i>${feature}</div>`
         ).join('');
-        
-        const moreFeatures = ground.features.length > 3 ? 
+
+        const moreFeatures = ground.features.length > 3 ?
             `<div class="more-features">+${ground.features.length - 3} more features</div>` : '';
+
+        // Get image URL or fallback
+        const imageUrl = ground.imageUrl || '/public/assets/images/ground.jpeg';
+        const sportIcon = this.getSportIconClass(ground.sport);
 
         return `
             <div class="facility-card" data-ground-id="${ground.id}">
                 <div class="facility-image">
-                    <div class="facility-icon">
-                        ${this.getSportIcon(ground.sport)}
+                    <img src="${imageUrl}" alt="${ground.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="facility-icon" style="display: none;">
+                        <i class="${sportIcon}"></i>
                     </div>
                     <div class="facility-badge">
                         <i class="fas fa-star"></i>
@@ -312,7 +323,7 @@ class GroundBookingApp {
         return stars;
     }
 
-    // Get sport icon
+    // Get sport icon (emoji - kept for backward compatibility)
     getSportIcon(sport) {
         const icons = {
             'football': '⚽',
@@ -323,6 +334,22 @@ class GroundBookingApp {
             'swimming': '🏊'
         };
         return icons[sport] || '🏟️';
+    }
+
+    // Get sport icon class (Font Awesome icons)
+    getSportIconClass(sport) {
+        const sportLower = sport.toLowerCase();
+        const icons = {
+            'football': 'fas fa-futbol',
+            'soccer': 'fas fa-futbol',
+            'tennis': 'fas fa-table-tennis',
+            'basketball': 'fas fa-basketball-ball',
+            'cricket': 'fas fa-baseball-ball',
+            'badminton': 'fas fa-shuttle-van',
+            'swimming': 'fas fa-swimmer',
+            'volleyball': 'fas fa-volleyball-ball'
+        };
+        return icons[sportLower] || 'fas fa-running';
     }
 
     // Get empty state HTML
@@ -744,7 +771,7 @@ function showMapLoadingState(show, message = 'Loading map...') {
 function showMapError(message) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
-    
+
     let overlay = document.getElementById('map-loading-overlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -753,7 +780,7 @@ function showMapError(message) {
         mapContainer.style.position = 'relative';
         mapContainer.appendChild(overlay);
     }
-    
+
     overlay.innerHTML = `
         <div class="map-error-content">
             <div class="map-error-icon">
@@ -766,14 +793,64 @@ function showMapError(message) {
     overlay.style.display = 'flex';
 }
 
+// Load facility data from the DOM (since PHP already rendered them)
+function loadFacilitiesFromDOM() {
+    if (!window.groundsApp) return;
+
+    const facilityCards = document.querySelectorAll('.facility-card');
+    const facilities = [];
+
+    facilityCards.forEach(card => {
+        const id = card.dataset.groundId;
+        const name = card.querySelector('.facility-name')?.textContent || '';
+        const location = card.querySelector('.facility-location')?.textContent.trim() || '';
+        const sport = card.querySelector('.sport-tag')?.textContent || '';
+        const priceText = card.querySelector('.price-amount')?.textContent || '0';
+        const price = parseFloat(priceText.replace(/[^0-9.-]+/g, ''));
+        const ratingBadge = card.querySelector('.facility-badge')?.textContent.trim() || '0';
+        const rating = parseFloat(ratingBadge.replace('★', '').trim());
+        const reviewsText = card.querySelector('.rating-text')?.textContent || '(0 reviews)';
+        const reviews = parseInt(reviewsText.match(/\d+/)?.[0] || '0');
+
+        // Get image URL
+        const imgElement = card.querySelector('.facility-image img');
+        const imageUrl = imgElement?.src || '';
+
+        // Get features
+        const featureElements = card.querySelectorAll('.feature-item');
+        const features = Array.from(featureElements).map(el => el.textContent.trim());
+
+        facilities.push({
+            id: id,
+            name: name,
+            location: location,
+            sport: sport.toLowerCase(),
+            price: price,
+            rating: rating,
+            reviews: reviews,
+            description: sport,
+            features: features,
+            imageUrl: imageUrl,
+            latitude: null,
+            longitude: null
+        });
+    });
+
+    console.log('Loaded facilities from DOM:', facilities.length);
+    window.groundsApp.grounds = facilities;
+    window.groundsApp.filteredGrounds = [...facilities];
+}
+
 // Initialize the app when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     // Load page components first
     loadComponents();
 
-    // Initialize map functionality
-    // The facilities are already rendered server-side by PHP
-    // We only need the map functionality now
+    // Initialize the booking app to enable search and filtering
+    window.groundsApp = new GroundBookingApp();
+
+    // Load facility data from the DOM since PHP already rendered them
+    loadFacilitiesFromDOM();
 });
 
 // Export for module use if needed
