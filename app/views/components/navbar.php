@@ -62,7 +62,7 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
             <a href="/">
                 <img src="/public/assets/images/logo.jpeg" alt="GoPlay" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                 <span class="logo-fallback" style="display: none;">GP</span>
-                <span class="logo-text">GoPlay</span>
+                <span class="logo-text">GOPLAY</span>
             </a>
         </div>
         

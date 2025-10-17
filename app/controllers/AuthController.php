@@ -116,7 +116,12 @@ class AuthController extends BaseController
     {
         try {
             $data = $request->getBody();
-            
+
+            // Use JSON body if regular body is empty (for JSON requests)
+            if (empty($data) && $request->getHeader('content-type') && strpos($request->getHeader('content-type'), 'application/json') !== false) {
+                $data = $request->getJsonBody();
+            }
+
             if (!isset($data['email'], $data['password'], $data['first_name'], $data['last_name'])) {
                 return $this->json(['error' => 'All required fields must be provided'], 400);
             }
@@ -141,10 +146,39 @@ class AuthController extends BaseController
 
             $userId = $this->userModel->create($userData);
 
+            // Get the newly created user
+            $newUser = $this->userModel->getByEmail($userData['email']);
+
+            // Automatically log in the user after registration
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+
+            // Set session variables
+            $_SESSION['user_id'] = $newUser['id'];
+            $_SESSION['user_email'] = $newUser['email'];
+            $_SESSION['user_type'] = $newUser['user_type'];
+            $_SESSION['user_name'] = $newUser['first_name'] . ' ' . $newUser['last_name'];
+
+            // Set structured user data for navbar
+            $_SESSION['user'] = [
+                'id' => $newUser['id'],
+                'name' => $newUser['first_name'] . ' ' . $newUser['last_name'],
+                'email' => $newUser['email'],
+                'role' => $newUser['user_type'],
+                'avatar' => $newUser['profile_picture'] ?? null
+            ];
+
             return $this->json([
                 'success' => true,
                 'message' => 'Registration successful',
-                'user_id' => $userId
+                'user' => [
+                    'id' => $newUser['id'],
+                    'email' => $newUser['email'],
+                    'name' => $newUser['first_name'] . ' ' . $newUser['last_name'],
+                    'role' => $newUser['user_type']
+                ],
+                'redirect' => '/' // Redirect to homepage
             ]);
 
         } catch (\Exception $e) {
