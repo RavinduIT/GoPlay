@@ -90,11 +90,19 @@ try {
     $router->post('/api/coach/clients', 'CoachController@createClient');
     $router->get('/api/coach/sidebar-stats', 'CoachController@getSidebarStats');
     $router->get('/api/coach/notifications/count', 'CoachController@getNotificationsCount');
+    $router->get('/api/coach/bookings', 'CoachController@getCoachOwnBookings');
+    $router->put('/api/coach/bookings/{id}/complete', 'CoachController@markSessionCompleted');
+    $router->put('/api/coach/bookings/{id}/cancel', 'CoachController@coachCancelSession');
     
     // Public Coach API routes (for booking)
     $router->get('/api/coaches', 'CoachController@getCoachesForBooking');
     $router->get('/api/coaches/{id}', 'CoachController@getCoachDetails');
     $router->get('/api/sports-categories', 'CoachController@getSportsCategories');
+
+    // Coach Booking API routes (CRUD operations)
+    $router->post('/api/coach-bookings', 'CoachController@createCoachBooking');
+    $router->get('/api/my-coach-bookings', 'CoachController@getMyBookings');
+    $router->put('/api/coach-bookings/{id}/cancel', 'CoachController@cancelCoachBooking');
     
     // Public Grounds API routes (for booking)
     $router->get('/api/grounds', 'BookingController@getGrounds');
@@ -141,6 +149,7 @@ try {
     $router->get('/ground-details', 'BookingController@groundDetails');
     $router->get('/book/{id}', 'BookingController@redirectToGroundDetails');
     $router->get('/book-coach', 'BookingController@bookCoach');
+    $router->get('/book-session', 'BookingController@bookSession');
 
     // Public booking API routes
     $router->post('/api/booking/ground', 'BookingController@createGroundBooking');
