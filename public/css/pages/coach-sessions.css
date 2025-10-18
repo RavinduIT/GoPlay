@@ -646,6 +646,320 @@
     color: var(--text-primary);
 }
 
+.btn-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+.btn-sm {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 8px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    background: var(--bg-secondary);
+    color: var(--primary-color);
+}
+
+/* Session Card Enhancements */
+.session-card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.session-card-header .session-info {
+    flex: 1;
+}
+
+.session-card-header .session-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.session-card-header .session-title i {
+    color: var(--primary-color);
+    font-size: 20px;
+}
+
+.session-card-header .session-title h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.session-card-header .session-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.session-card-header .session-type,
+.session-card-header .session-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.session-card-header .session-type.individual {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+.session-card-header .session-type.group {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.session-card-header .session-type.assessment {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.session-card-header .session-status.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.session-card-header .session-status.confirmed {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+.session-card-header .session-status.completed {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.session-card-header .session-status.cancelled {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.session-card-header .session-actions-menu {
+    display: flex;
+    gap: 8px;
+}
+
+.session-card .session-details {
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    background: var(--bg-secondary);
+}
+
+.session-card .session-details .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.session-card .session-details .detail-item i {
+    color: var(--primary-color);
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+.session-card .session-details .detail-item > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.session-card .session-details .detail-item strong {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.session-card .session-details .detail-item span {
+    font-size: 15px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.session-card .session-notes {
+    padding: 16px 24px;
+    background: rgba(59, 130, 246, 0.05);
+    border-left: 4px solid var(--primary-color);
+    margin: 0 24px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.session-card .session-notes i {
+    color: var(--primary-color);
+    font-size: 16px;
+    margin-top: 2px;
+}
+
+.session-card .session-notes span {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.session-card .session-notes strong {
+    color: var(--text-primary);
+}
+
+.session-card .session-client-contact {
+    padding: 16px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.session-card .session-client-contact .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.session-card .session-client-contact .contact-item i {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.session-card .session-client-contact .contact-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s ease;
+}
+
+.session-card .session-client-contact .contact-item a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.session-card-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Status Classes for Session Cards */
+.session-card.status-pending {
+    border-left: 4px solid var(--warning-color);
+}
+
+.session-card.status-confirmed {
+    border-left: 4px solid var(--primary-color);
+}
+
+.session-card.status-completed {
+    border-left: 4px solid var(--success-color);
+}
+
+.session-card.status-cancelled {
+    border-left: 4px solid var(--danger-color);
+    opacity: 0.7;
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Session Details View (in modal) */
+.session-details-view {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.session-details-view h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.session-details-view p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.session-details-view p strong {
+    display: inline-block;
+    min-width: 140px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Modal Display Flex */
+.modal {
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
     .main-content {
