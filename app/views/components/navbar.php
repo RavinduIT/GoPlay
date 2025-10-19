@@ -175,7 +175,7 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
 </div>
 
 <script>
-console.log('Navbar script loaded');
+//console.log('Navbar script loaded');
 
 // Mobile menu toggle
 const navToggle = document.querySelector('.nav-toggle');

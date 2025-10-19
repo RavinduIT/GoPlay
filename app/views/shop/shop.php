@@ -1332,7 +1332,7 @@ $additionalJS = ['/public/js/cart-api.js'];
                         return `<img src="${images[0]}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
                     }
                 } catch (e) {
-                    console.log('Error parsing product images:', e);
+                    //console.log('Error parsing product images:', e);
                 }
             }
 
