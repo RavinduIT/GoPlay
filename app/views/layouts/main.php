@@ -36,6 +36,7 @@
     <?php include __DIR__ . '/../components/footer.php'; ?>
     
    
+   
     <?php if (isset($additionalJS)): ?>
         <?php foreach ($additionalJS as $js): ?>
             <script src="<?= $js ?>"></script>
