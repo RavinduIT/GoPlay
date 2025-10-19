@@ -7,10 +7,8 @@
     
     <!-- CSS -->
      <link rel="stylesheet" href="/public/css/components/navbar.css">
-    <link rel="stylesheet" href="/public/css/main.css">
-    <link rel="stylesheet" href="/public/css/components.css">
-    <link rel="stylesheet" href="/public/css/pages.css">
-    <link rel="stylesheet" href="/public/css/responsive.css">
+    
+    
     <link rel="stylesheet" href="/public/css/pages/news-index.css">
     
     <?php if (isset($additionalCSS)): ?>
@@ -38,8 +36,7 @@
     <!-- Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
     
-    <!-- JavaScript -->
-    <script src="/public/js/main.js"></script>
+   
     <?php if (isset($additionalJS)): ?>
         <?php foreach ($additionalJS as $js): ?>
             <script src="<?= $js ?>"></script>
