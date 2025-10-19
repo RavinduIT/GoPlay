@@ -114,6 +114,7 @@
                                 <option value="user">User </option>
                                 <option value="coach">Coach </option>
                                 <option value="ground_owner">Ground Owner </option>
+                                <option value="shop_owner">Shop Owner </option>
                             </select>
                         </div>
                     </div>
