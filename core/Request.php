@@ -85,14 +85,19 @@ class Request
     private function parseHeaders(): array
     {
         $headers = [];
-        
+
         foreach ($_SERVER as $key => $value) {
             if (strpos($key, 'HTTP_') === 0) {
                 $name = strtolower(str_replace('_', '-', substr($key, 5)));
                 $headers[$name] = $value;
             }
         }
-        
+
+        // Add Content-Type separately (it's in CONTENT_TYPE, not HTTP_CONTENT_TYPE)
+        if (isset($_SERVER['CONTENT_TYPE'])) {
+            $headers['content-type'] = $_SERVER['CONTENT_TYPE'];
+        }
+
         return $headers;
     }
     
@@ -110,16 +115,21 @@ class Request
     {
         return $this->routeParams;
     }
-    
+
     public function getJsonBody(): array
     {
         $contentType = $this->getHeader('content-type') ?? '';
-        
+
         if (strpos($contentType, 'application/json') !== false) {
             $decoded = json_decode(self::$rawInput, true);
             return $decoded ?: [];
         }
-        
+
         return [];
+    }
+
+    public function all(): array
+    {
+        return array_merge($this->query, $this->body, $this->routeParams);
     }
 }
