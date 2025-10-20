@@ -76,7 +76,7 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
 .shop-owner-dashboard { display: flex; min-height: 100vh; }
 .dashboard-sidebar {
   width: 240px; background: #1e293b; color: #fff;
-  position: fixed; top: 0; left: 0; bottom: 0;
+  position: fixed; top: 70px; left: 0; height: calc(100vh - 70px);
 }
 .dashboard-content { flex: 1; margin-left: 240px; padding: 20px; background: #f9f9f9; }
 
