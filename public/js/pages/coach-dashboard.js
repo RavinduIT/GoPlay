@@ -95,7 +95,7 @@ class CoachDashboard {
             
         } catch (error) {
             console.error('Error loading dashboard data:', error);
-            this.showToast('Error loading dashboard data', 'error');
+            this.// // showToast('Error loading dashboard data', 'error');
         }
     }
 
@@ -491,13 +491,13 @@ class CoachDashboard {
             });
             
             if (response.ok) {
-                this.showToast('Session status updated', 'success');
+                this.// // showToast('Session status updated', 'success');
                 this.loadDashboardData();
             } else {
                 throw new Error('Failed to update session status');
             }
         } catch (error) {
-            this.showToast('Error updating session status', 'error');
+            this.// // showToast('Error updating session status', 'error');
         }
     }
 
@@ -536,7 +536,7 @@ class CoachDashboard {
             
             if (response.ok) {
                 const newSession = await response.json();
-                this.showToast('Session scheduled successfully', 'success');
+                this.// // showToast('Session scheduled successfully', 'success');
                 this.closeModal('quickSessionModal');
                 this.loadDashboardData();
             } else {
@@ -544,7 +544,7 @@ class CoachDashboard {
                 throw new Error(error.message || 'Failed to schedule session');
             }
         } catch (error) {
-            this.showToast('Error scheduling session: ' + error.message, 'error');
+            this.// // showToast('Error scheduling session: ' + error.message, 'error');
         }
     }
 
@@ -552,7 +552,7 @@ class CoachDashboard {
         const required = ['clientId', 'sessionType', 'sessionDate', 'sessionTime'];
         for (let field of required) {
             if (!data[field]) {
-                this.showToast(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
+                this.// // showToast(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
                 return false;
             }
         }
@@ -560,7 +560,7 @@ class CoachDashboard {
         // Validate date is not in the past
         const sessionDateTime = new Date(data.sessionDate + 'T' + data.sessionTime);
         if (sessionDateTime < new Date()) {
-            this.showToast('Session date and time cannot be in the past', 'error');
+            this.// // showToast('Session date and time cannot be in the past', 'error');
             return false;
         }
         
@@ -651,7 +651,7 @@ class CoachDashboard {
     // Other Actions
     refreshProgress() {
         this.loadDashboardData();
-        this.showToast('Progress data refreshed', 'success');
+        this.// // showToast('Progress data refreshed', 'success');
     }
 
     setGoals() {
@@ -662,11 +662,11 @@ class CoachDashboard {
         // Mark all notifications as read
         this.notifications.forEach(notification => notification.read = true);
         this.renderNotifications();
-        this.showToast('All notifications marked as read', 'success');
+        this.// // showToast('All notifications marked as read', 'success');
     }
 
     // Toast Notifications
-    showToast(message, type = 'info') {
+    // // showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.innerHTML = `

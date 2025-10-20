@@ -130,7 +130,7 @@ function initializeNotifications() {
     notificationBtn.addEventListener('click', function() {
         // In a real app, this would show a notifications dropdown
         console.log('Notifications clicked');
-        showToast('Notifications feature coming soon!', 'info');
+        // showToast('Notifications feature coming soon!', 'info');
     });
 }
 
@@ -159,7 +159,7 @@ function updateDashboardStats() {
     });
 }
 
-function showToast(message, type = 'info') {
+function // showToast(message, type = 'info') {
     // Create toast container if it doesn't exist
     let toastContainer = document.querySelector('.toast-container');
     if (!toastContainer) {

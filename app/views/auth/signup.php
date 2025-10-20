@@ -271,19 +271,19 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
 
     // Validation
     if (!firstName || !lastName || !email || !phone || !userType) {
-        showToast('Please fill in all required fields', 'error');
+        // showToast('Please fill in all required fields', 'error');
         return;
     }
 
     const { score } = checkPasswordStrength(password);
 
     if (score < 3) {
-        showToast('Please create a stronger password', 'error');
+        // showToast('Please create a stronger password', 'error');
         return;
     }
 
     if (password !== confirmPassword) {
-        showToast('Passwords do not match', 'error');
+        // showToast('Passwords do not match', 'error');
         return;
     }
 
@@ -317,14 +317,14 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
                 window.location.href = data.redirect || '/';
             }, 1500);
         } else {
-            showToast(data.error || 'Registration failed', 'error');
+            // showToast(data.error || 'Registration failed', 'error');
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<span class="btn-text">Create Account</span><i class="fas fa-user-plus btn-icon"></i>';
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showToast('An error occurred. Please try again.', 'error');
+        // showToast('An error occurred. Please try again.', 'error');
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<span class="btn-text">Create Account</span><i class="fas fa-user-plus btn-icon"></i>';
     });
