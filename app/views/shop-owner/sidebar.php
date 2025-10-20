@@ -55,7 +55,20 @@ $additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
                     
                 </a>
             </li>
-            <li class="<?= strpos($_SERVER['REQUEST_URI'], '/shop-owner/reviews') !== false ? 'active' : '' ?>">
+            <!--<li>
+                <a href="/shop-owner/sales">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Sales</span>
+                </a>
+            </li>
+            <li>
+                <a href="/shop-owner/customers">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                    <span class="badge">234</span>
+                </a>
+            </li>-->
+            <li>
                 <a href="/shop-owner/reviews">
                     <i class="fas fa-star"></i>
                     <span>Reviews</span>
