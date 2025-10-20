@@ -108,7 +108,7 @@ if (!$news) {
                 </div>
                 
                 <div class="article-stats">
-                    <span>👁️ <?= number_format($news['views'] ?? 0) ?> views</span>
+                    <span><i class="fa-solid fa-eye"></i> <?= number_format($news['views'] ?? 0) ?> views</span>
                     <span id="reading-time">⏱️ <?= $news['reading_time'] ?? '5 min read' ?></span>
                 </div>
             </div>
@@ -132,16 +132,16 @@ if (!$news) {
         <!-- Share Buttons -->
         <div class="share-buttons" role="toolbar" aria-label="Share this article">
             <a href="#" class="share-btn share-facebook" onclick="shareOnFacebook(); return false;" title="Share on Facebook" aria-label="Share on Facebook">
-                📘 Share on Facebook
+                <i class="fa-brands fa-facebook"></i> Share on Facebook
             </a>
             <a href="#" class="share-btn share-twitter" onclick="shareOnTwitter(); return false;" title="Share on Twitter" aria-label="Share on Twitter">
-                🐦 Share on Twitter
+                <i class="fa-brands fa-x-twitter"></i> Share on Twitter
             </a>
             <a href="#" class="share-btn share-linkedin" onclick="shareOnLinkedIn(); return false;" title="Share on LinkedIn" aria-label="Share on LinkedIn">
-                💼 Share on LinkedIn
+                <i class="fa-brands fa-linkedin"></i> Share on LinkedIn
             </a>
             <button class="share-btn share-copy" onclick="copyToClipboard()" title="Copy Link" aria-label="Copy article link">
-                🔗 Copy Link
+                <i class="fa-solid fa-link"></i> Copy Link
             </button>
         </div>
 

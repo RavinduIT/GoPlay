@@ -65,9 +65,9 @@ $total = $data['total'] ?? 0;
                     <p class="featured-excerpt"><?= htmlspecialchars($featured['excerpt']) ?></p>
                     <?php endif; ?>
                     <div class="featured-meta">
-                        <span>📂 <?= htmlspecialchars($featured['category']) ?></span>
-                        <span>📅 <?= date('M j, Y', strtotime($featured['published_at'])) ?></span>
-                        <span>👁️ <?= number_format($featured['views'] ?? 0) ?> views</span>
+                        <span><i class="fa-solid fa-volleyball"></i> <?= htmlspecialchars($featured['category']) ?></span>
+                        <span><i class="fa-solid fa-calendar"></i> <?= date('M j, Y', strtotime($featured['published_at'])) ?></span>
+                        <span><i class="fa-solid fa-eye"></i> <?= number_format($featured['views'] ?? 0) ?> views</span>
                     </div>
                 </div>
             </div>
@@ -95,8 +95,8 @@ $total = $data['total'] ?? 0;
                         <p class="news-excerpt"><?= htmlspecialchars($article['excerpt']) ?></p>
                         <?php endif; ?>
                         <div class="news-meta">
-                            <span>📅 <?= date('M j, Y', strtotime($article['published_at'])) ?></span>
-                            <span>👁️ <?= number_format($article['views'] ?? 0) ?> views</span>
+                            <span><i class="fa-solid fa-calendar"></i> <?= date('M j, Y', strtotime($article['published_at'])) ?></span>
+                            <span><i class="fa-solid fa-eye"></i> <?= number_format($article['views'] ?? 0) ?> views</span>
                         </div>
                     </div>
                 </article>
