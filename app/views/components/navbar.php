@@ -123,7 +123,7 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
                         
                         <hr>
                         <a href="/notifications"><i class="fas fa-bell"></i> Notifications</a>
-                        <a href="/settings"><i class="fas fa-cog"></i> Settings</a>
+                        <!--<a href="/settings"><i class="fas fa-cog"></i> Settings</a>-->
                         <hr>
                         <a href="#" onclick="logout(); return false;" class="logout-btn">
                             <i class="fas fa-sign-out-alt"></i> Logout
