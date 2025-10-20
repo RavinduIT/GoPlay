@@ -1,4 +1,4 @@
-<?php 
+<?php
 $title = 'Ground Details - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
@@ -355,53 +355,8 @@ $groundId = $_GET['id'] ?? 1;
             box-shadow: var(--shadow-light);
         }
 
-        .map-container {
-            height: 300px;
-            background: var(--background-light);
-            border-radius: var(--border-radius);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .map-loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            border-radius: var(--border-radius);
-        }
-
-        .map-loading-content {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .map-loading-spinner {
-            margin-bottom: 1rem;
-        }
-
-        .spinner-ring {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--border-color);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        .map-loading-text {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin: 0;
+        .location-info {
+            padding: 1rem 0;
         }
 
         .contact-info {
@@ -918,23 +873,12 @@ $groundId = $_GET['id'] ?? 1;
             </div>
 
             <div class="sidebar">
-                <!-- Map -->
+                <!-- Location -->
                 <div class="sidebar-section">
                     <h3 class="section-title">
-                        <i class="fas fa-map"></i>
+                        <i class="fas fa-map-marker-alt"></i>
                         Location
                     </h3>
-                    <div class="map-container">
-                        <div id="ground-map" style="width: 100%; height: 100%; border-radius: 8px;"></div>
-                        <div id="map-loading-overlay" class="map-loading-overlay">
-                            <div class="map-loading-content">
-                                <div class="map-loading-spinner">
-                                    <div class="spinner-ring"></div>
-                                </div>
-                                <p class="map-loading-text">Loading map...</p>
-                            </div>
-                        </div>
-                    </div>
                     <div class="location-info">
                         <div class="ground-location">
                             <i class="fas fa-map-marker-alt"></i>
@@ -1378,6 +1322,30 @@ $groundId = $_GET['id'] ?? 1;
 
         // Book ground function - opens the booking modal
         function bookGround() {
+            // Check if user is logged in
+            fetch('/auth/check')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.authenticated) {
+                        // User is not logged in, redirect to login with current page as redirect
+                        const currentUrl = window.location.pathname + window.location.search;
+                        window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+                        return;
+                    }
+
+                    // User is logged in, proceed with booking
+                    openBookingModal();
+                })
+                .catch(error => {
+                    console.error('Error checking login status:', error);
+                    // On error, redirect to login to be safe
+                    const currentUrl = window.location.pathname + window.location.search;
+                    window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+                });
+        }
+
+        // Open booking modal (separated from bookGround for clarity)
+        function openBookingModal() {
             if (!currentGround) {
                 alert('Ground information not loaded. Please try again.');
                 return;
@@ -1629,146 +1597,17 @@ $groundId = $_GET['id'] ?? 1;
             }
         }
 
-        // Google Maps for Ground Details
-        let groundMap;
-        let groundMarker;
-
+        // Map functionality removed - no initialization needed
         function initGroundMap() {
-            console.log('Initializing ground map...');
-            
-            // Show loading overlay
-            showMapLoading(true);
-            
-            // Default location (will be updated when ground data loads)
-            const defaultLocation = { lat: 6.9271, lng: 79.8612 };
-            
-            groundMap = new google.maps.Map(document.getElementById('ground-map'), {
-                zoom: 15,
-                center: defaultLocation,
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: true,
-                styles: [
-                    {
-                        featureType: 'poi',
-                        elementType: 'labels',
-                        stylers: [{ visibility: 'off' }]
-                    }
-                ]
-            });
-
-            // Create marker (will be updated with sport-specific icon)
-            groundMarker = new google.maps.Marker({
-                position: defaultLocation,
-                map: groundMap,
-                title: 'Ground Location'
-            });
-
-            // Hide loading after map is ready
-            google.maps.event.addListenerOnce(groundMap, 'idle', function() {
-                showMapLoading(false);
-            });
-
-            console.log('Ground map initialized');
-        }
-        
-        // Show/hide map loading overlay
-        function showMapLoading(show) {
-            const overlay = document.getElementById('map-loading-overlay');
-            if (overlay) {
-                overlay.style.display = show ? 'flex' : 'none';
-            }
-        }
-        
-        // Get sport-specific marker icon (same as book-ground page)
-        function getSportMarkerIcon(sport) {
-            const colors = {
-                cricket: '#ff6b6b',
-                tennis: '#4ecdc4', 
-                football: '#45b7d1',
-                basketball: '#f9ca24',
-                badminton: '#6c5ce7',
-                swimming: '#00cec9'
-            };
-            
-            const sportKey = sport ? sport.toLowerCase() : 'general';
-            
-            return {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 10,
-                fillColor: colors[sportKey] || '#2563eb',
-                fillOpacity: 1,
-                strokeColor: '#ffffff',
-                strokeWeight: 3
-            };
+            // Map removed
         }
 
         function updateGroundLocation(ground) {
-            if (!groundMap || !groundMarker) return;
-
-            // Use actual coordinates from database
-            if (ground.latitude && ground.longitude) {
-                const position = { 
-                    lat: parseFloat(ground.latitude), 
-                    lng: parseFloat(ground.longitude) 
-                };
-
-                // Update map center and marker with database coordinates
-                groundMap.setCenter(position);
-                groundMarker.setPosition(position);
-                groundMarker.setTitle(ground.name);
-                
-                // Update marker icon based on sport category
-                const sportIcon = getSportMarkerIcon(ground.category_name);
-                groundMarker.setIcon(sportIcon);
-                
-                console.log(`Updated map for ${ground.name} at coordinates:`, position);
-            } else {
-                console.log(`No coordinates available for ${ground.name}, using default location`);
-                // Fallback to default location if no coordinates in database
-                const defaultPosition = { lat: 6.9271, lng: 79.8612 };
-                groundMap.setCenter(defaultPosition);
-                groundMarker.setPosition(defaultPosition);
-                groundMarker.setTitle(ground.name || 'Sports Facility');
-                
-                // Set default icon
-                const defaultIcon = getSportMarkerIcon('general');
-                groundMarker.setIcon(defaultIcon);
-            }
-
-            // Add info window with actual ground data
-            const locationText = ground.address ? `${ground.address}, ${ground.city}` : ground.city || 'Sports Facility';
-            const infoWindow = new google.maps.InfoWindow({
-                content: `
-                    <div style="padding: 10px; max-width: 250px;">
-                        <h4 style="margin: 0 0 8px 0; color: #2563eb;">${ground.name}</h4>
-                        <p style="margin: 0 0 6px 0; color: #666; font-size: 14px;">
-                            <i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>
-                            ${locationText}
-                        </p>
-                        <p style="margin: 0 0 6px 0; color: #666; font-size: 14px;">
-                            <i class="fas fa-tag" style="margin-right: 5px;"></i>
-                            ${ground.category_name || 'Sports Facility'}
-                        </p>
-                        <p style="margin: 0; color: #2563eb; font-weight: 600; font-size: 14px;">
-                            LKR ${ground.hourly_rate ? ground.hourly_rate.toLocaleString() : 'N/A'}/hour
-                        </p>
-                    </div>
-                `
-            });
-
-            groundMarker.addListener('click', () => {
-                infoWindow.open(groundMap, groundMarker);
-            });
+            // Map removed - location is displayed in sidebar
         }
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             loadGroundData();
         });
-    </script>
-
-    <!-- Google Maps API -->
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3qKhJG9ulG0vgu9KxaG0NPXADLGxMr7k&callback=initGroundMap">
     </script>

@@ -186,19 +186,6 @@ body {
     gap: 1.5rem;
 }
 
-.product-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: var(--primary-light);
-    color: var(--primary-color);
-    border-radius: var(--border-radius);
-    font-size: 0.85rem;
-    font-weight: 600;
-    width: fit-content;
-}
-
 .product-title {
     font-size: 2.5rem;
     font-weight: 700;
@@ -263,23 +250,6 @@ body {
     font-size: 2.5rem;
     font-weight: 700;
     color: var(--primary-color);
-}
-
-.price-original {
-    font-size: 1.5rem;
-    color: var(--text-light);
-    text-decoration: line-through;
-    margin-left: 1rem;
-}
-
-.price-discount {
-    background: var(--danger-color);
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--border-radius);
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-left: 1rem;
 }
 
 .stock-info {
@@ -518,53 +488,6 @@ body {
     box-shadow: var(--shadow-light);
 }
 
-/* Related Products */
-.related-products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-top: 2rem;
-}
-
-.related-product-card {
-    background: var(--background-white);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    box-shadow: var(--shadow-light);
-    transition: var(--transition);
-    cursor: pointer;
-}
-
-.related-product-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
-}
-
-.related-product-image {
-    width: 100%;
-    height: 150px;
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    margin-bottom: 1rem;
-}
-
-.related-product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.related-product-name {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: var(--text-primary);
-}
-
-.related-product-price {
-    color: var(--primary-color);
-    font-weight: 600;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
@@ -591,10 +514,6 @@ body {
 
     .btn {
         min-width: auto;
-    }
-
-    .related-products-grid {
-        grid-template-columns: 1fr;
     }
 }
 
@@ -663,11 +582,6 @@ body {
         </div>
         
         <div class="product-info">
-            <div id="product-badge" class="product-badge" style="display: none;">
-                <i class="fas fa-star"></i>
-                <span id="badge-text">Featured</span>
-            </div>
-            
             <div id="product-category" class="product-category">Category</div>
             <h1 id="product-title" class="product-title">Product Name</h1>
             
@@ -681,8 +595,6 @@ body {
             
             <div class="price-section">
                 <span id="product-price-current" class="price-current">LKR 0</span>
-                <span id="product-price-original" class="price-original" style="display: none;">LKR 0</span>
-                <span id="product-price-discount" class="price-discount" style="display: none;">0% OFF</span>
             </div>
             
             <div id="stock-info" class="stock-info in-stock">
@@ -802,17 +714,6 @@ body {
             </div>
         </div>
     </div>
-
-    <!-- Related Products -->
-    <div class="content-section">
-        <h3 class="section-title">
-            <i class="fas fa-heart"></i>
-            You May Also Like
-        </h3>
-        <div id="related-products" class="related-products-grid">
-            <!-- Related products will be populated dynamically -->
-        </div>
-    </div>
 </div>
 
 <script>
@@ -827,7 +728,6 @@ let currentQuantity = 1;
 document.addEventListener('DOMContentLoaded', function() {
     if (productData) {
         displayProductDetails(productData);
-        displayRelatedProducts(relatedProducts);
         displayReviews(reviews);
         hideLoading();
     } else {
@@ -885,9 +785,6 @@ function displayProductDetails(product) {
 
     // Specifications
     displaySpecifications(product);
-
-    // Badge
-    displayBadge(product);
 }
 
 // Display product images
@@ -956,17 +853,7 @@ function displayRating(rating) {
 // Display pricing
 function displayPricing(product) {
     const currentPrice = parseFloat(product.price);
-    const originalPrice = parseFloat(product.original_price || 0);
-    
     document.getElementById('product-price-current').textContent = `LKR ${currentPrice.toLocaleString()}`;
-    
-    if (originalPrice > currentPrice) {
-        const discount = Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
-        document.getElementById('product-price-original').textContent = `LKR ${originalPrice.toLocaleString()}`;
-        document.getElementById('product-price-original').style.display = 'inline';
-        document.getElementById('product-price-discount').textContent = `${discount}% OFF`;
-        document.getElementById('product-price-discount').style.display = 'inline';
-    }
 }
 
 // Display stock status
@@ -1016,59 +903,6 @@ function displaySpecifications(product) {
     `).join('');
 
     specsGrid.innerHTML = specsHTML;
-}
-
-// Display badge
-function displayBadge(product) {
-    const badge = document.getElementById('product-badge');
-    const badgeText = document.getElementById('badge-text');
-
-    if (product.original_price && product.original_price > product.price) {
-        const discount = Math.round(((product.original_price - product.price) / product.original_price) * 100);
-        badgeText.innerHTML = `<i class="fas fa-percent"></i> ${discount}% OFF`;
-        badge.style.display = 'flex';
-        badge.style.background = '#fee2e2';
-        badge.style.color = '#dc2626';
-    } else if (product.is_featured) {
-        badgeText.innerHTML = '<i class="fas fa-star"></i> Featured';
-        badge.style.display = 'flex';
-    }
-}
-
-// Display related products
-function displayRelatedProducts(products) {
-    if (!products || products.length === 0) return;
-
-    const container = document.getElementById('related-products');
-    const productsHTML = products.map(product => {
-        // Get category-specific image for related products using existing images
-        const categoryName = product.category_name ? product.category_name.toLowerCase() : 'general';
-        const productImages = {
-            'football': '/public/assets/images/products/football.jpg',
-            'cricket': '/public/assets/images/products/cricket-bat.jpg',
-            'tennis': '/public/assets/images/products/tennis-racket.jpg',
-            'basketball': '/public/assets/images/products/basketball.jpg',
-            'badminton': '/public/assets/images/products/badminton-racket.jpg',
-            'volleyball': '/public/assets/images/products/football.jpg',
-            'swimming': '/public/assets/images/products/football.jpg',
-            'fitness': '/public/assets/images/products/football.jpg',
-            'gym': '/public/assets/images/products/football.jpg'
-        };
-
-        const imageUrl = productImages[categoryName] || '/public/assets/images/products/football.jpg';
-
-        return `
-            <div class="related-product-card" onclick="viewProduct(${product.id})">
-                <div class="related-product-image">
-                    <img src="${imageUrl}" alt="${product.name}">
-                </div>
-                <div class="related-product-name">${product.name}</div>
-                <div class="related-product-price">LKR ${parseFloat(product.price).toLocaleString()}</div>
-            </div>
-        `;
-    }).join('');
-
-    container.innerHTML = productsHTML;
 }
 
 // Display reviews
