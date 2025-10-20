@@ -229,7 +229,7 @@ $router->get('/news/{slug}', 'NewsController@show'); // This is the missing rout
     // Additional user routes
     $router->get('/my-bookings', 'UserController@groundBookingsDashboard');
     $router->get('/my-ground-bookings', 'UserController@groundBookingsDashboard');
-    $router->get('/my-orders', 'UserController@myOrders');
+    $router->get('/my-orders', 'UserController@myOrderss');
     $router->get('/cart', 'UserController@cart');
     $router->get('/notifications', 'UserController@notifications');
     $router->get('/settings', 'UserController@settings');
