@@ -5,6 +5,7 @@ namespace App\Controllers;
 use Core\Request;
 use Core\Response;
 use App\Models\Coach;
+use App\Models\CoachBooking;
 
 /**
  * Coach Controller
@@ -642,7 +643,7 @@ class CoachController extends BaseController
                 'success' => true,
                 'coach' => $formattedCoach
             ]);
-            
+
         } catch (Exception $e) {
             return $this->json([
                 'success' => false,
@@ -652,4 +653,324 @@ class CoachController extends BaseController
         }
     }
 
+    /**
+     * Create a new coach booking (API endpoint)
+     *
+     * POST /api/coach-bookings
+     */
+    public function createCoachBooking(Request $request): Response
+    {
+        try {
+            // Get user ID from session
+            session_start();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'You must be logged in to book a session'
+                ], 401);
+            }
+
+            $userId = $_SESSION['user_id'];
+
+            // Get booking data from request
+            $data = $request->getBody();
+
+            // Debug log
+            error_log("Booking request data: " . json_encode($data));
+            error_log("Content-Type: " . ($request->getHeader('content-type') ?? 'not set'));
+
+            // Validate required fields
+            $required = ['coach_id', 'booking_date', 'start_time', 'session_type', 'total_amount'];
+            foreach ($required as $field) {
+                if (empty($data[$field])) {
+                    return $this->json([
+                        'success' => false,
+                        'error' => "Missing required field: {$field}"
+                    ], 400);
+                }
+            }
+
+            // Calculate end time (default 1 hour)
+            $duration = isset($data['duration']) ? (int)$data['duration'] : 60;
+            $startTime = $data['start_time'];
+            $endTime = date('H:i', strtotime($startTime) + ($duration * 60));
+
+            // Check if time slot is available
+            $coachBookingModel = new CoachBooking();
+            $isAvailable = $coachBookingModel->isTimeSlotAvailable(
+                (int)$data['coach_id'],
+                $data['booking_date'],
+                $startTime,
+                $endTime
+            );
+
+            if (!$isAvailable) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'This time slot is not available'
+                ], 400);
+            }
+
+            // Create booking
+            $bookingData = [
+                'user_id' => $userId,
+                'coach_id' => (int)$data['coach_id'],
+                'booking_date' => $data['booking_date'],
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'session_type' => $data['session_type'],
+                'total_amount' => (float)$data['total_amount'],
+                'special_requests' => $data['special_requests'] ?? ''
+            ];
+
+            $bookingId = $coachBookingModel->createBooking($bookingData);
+
+            if ($bookingId) {
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Booking created successfully',
+                    'booking_id' => $bookingId
+                ], 201);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Failed to create booking'
+                ], 500);
+            }
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'An error occurred',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get user's coach bookings (API endpoint)
+     *
+     * GET /api/my-coach-bookings
+     */
+    public function getMyBookings(Request $request): Response
+    {
+        try {
+            session_start();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ], 401);
+            }
+
+            $coachBookingModel = new CoachBooking();
+            $bookings = $coachBookingModel->getBookingsByUser($_SESSION['user_id']);
+
+            return $this->json([
+                'success' => true,
+                'bookings' => $bookings
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Failed to fetch bookings',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel a coach booking (API endpoint)
+     *
+     * PUT /api/coach-bookings/{id}/cancel
+     */
+    public function cancelCoachBooking(Request $request): Response
+    {
+        try {
+            session_start();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ], 401);
+            }
+
+            $bookingId = $request->getParam('id');
+            if (!$bookingId) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Booking ID is required'
+                ], 400);
+            }
+
+            $coachBookingModel = new CoachBooking();
+
+            // Verify booking belongs to user
+            $booking = $coachBookingModel->find((int)$bookingId);
+            if (!$booking || $booking['user_id'] != $_SESSION['user_id']) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Booking not found or unauthorized'
+                ], 404);
+            }
+
+            // Cancel the booking
+            $success = $coachBookingModel->cancelBooking((int)$bookingId);
+
+            if ($success) {
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Booking cancelled successfully'
+                ]);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Failed to cancel booking'
+                ], 500);
+            }
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'An error occurred',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get coach's own bookings (for coach dashboard)
+     *
+     * GET /api/coach/bookings
+     */
+    public function getCoachOwnBookings(Request $request): Response
+    {
+        try {
+            session_start();
+            if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Unauthorized - Coach access required'
+                ], 401);
+            }
+
+            $userId = $_SESSION['user_id'];
+
+            // Get coach record for this user
+            $coachModel = new Coach();
+            $coach = $coachModel->where(['user_id' => $userId]);
+
+            if (empty($coach)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Coach profile not found'
+                ], 404);
+            }
+
+            $coachId = $coach[0]['id'];
+
+            // Get bookings for this coach
+            $coachBookingModel = new CoachBooking();
+            $bookings = $coachBookingModel->getBookingsByCoach($coachId);
+
+            // Get statistics
+            $stats = $coachBookingModel->getCoachBookingStats($coachId);
+
+            return $this->json([
+                'success' => true,
+                'bookings' => $bookings,
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Failed to fetch bookings',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark session as completed (coach only)
+     *
+     * PUT /api/coach/bookings/{id}/complete
+     */
+    public function markSessionCompleted(Request $request): Response
+    {
+        try {
+            session_start();
+            if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $bookingId = $request->getParam('id');
+            $coachBookingModel = new CoachBooking();
+
+            // Verify booking belongs to this coach
+            $booking = $coachBookingModel->find((int)$bookingId);
+            if (!$booking) {
+                return $this->json(['success' => false, 'error' => 'Booking not found'], 404);
+            }
+
+            // Get coach ID
+            $coachModel = new Coach();
+            $coach = $coachModel->where(['user_id' => $_SESSION['user_id']]);
+            if (empty($coach) || $booking['coach_id'] != $coach[0]['id']) {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 403);
+            }
+
+            $success = $coachBookingModel->updateStatus((int)$bookingId, 'completed');
+
+            return $this->json([
+                'success' => $success,
+                'message' => $success ? 'Session marked as completed' : 'Failed to update'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Cancel session (coach only)
+     *
+     * PUT /api/coach/bookings/{id}/cancel
+     */
+    public function coachCancelSession(Request $request): Response
+    {
+        try {
+            session_start();
+            if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $bookingId = $request->getParam('id');
+            $coachBookingModel = new CoachBooking();
+
+            // Verify booking belongs to this coach
+            $booking = $coachBookingModel->find((int)$bookingId);
+            if (!$booking) {
+                return $this->json(['success' => false, 'error' => 'Booking not found'], 404);
+            }
+
+            // Get coach ID
+            $coachModel = new Coach();
+            $coach = $coachModel->where(['user_id' => $_SESSION['user_id']]);
+            if (empty($coach) || $booking['coach_id'] != $coach[0]['id']) {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 403);
+            }
+
+            $success = $coachBookingModel->cancelBooking((int)$bookingId);
+
+            return $this->json([
+                'success' => $success,
+                'message' => $success ? 'Session cancelled' : 'Failed to cancel'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
 }
