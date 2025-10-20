@@ -251,12 +251,6 @@ class GroundBookingApp {
                         <i class="fas fa-star"></i>
                         ${ground.rating}
                     </div>
-                    <div class="facility-overlay">
-                        <button class="view-on-map-btn" onclick="viewOnMap(${ground.id})">
-                            <i class="fas fa-map-marker-alt"></i>
-                            View on Map
-                        </button>
-                    </div>
                 </div>
                 <div class="facility-content">
                     <div class="facility-header">
@@ -448,52 +442,33 @@ function viewDetails(groundId) {
 
 function bookNow(groundId) {
     console.log('Book now for ground:', groundId);
-    // Implement booking functionality
-    // Could redirect to booking page or show booking modal
-    window.location.href = `/book/${groundId}`;
+
+    // Check if user is logged in before proceeding
+    fetch('/auth/check')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.authenticated) {
+                // User is not logged in, redirect to login
+                window.location.href = `/login?redirect=${encodeURIComponent('/ground-details?id=' + groundId)}`;
+                return;
+            }
+
+            // User is logged in, redirect to ground details
+            window.location.href = `/ground-details?id=${groundId}`;
+        })
+        .catch(error => {
+            console.error('Error checking login status:', error);
+            // On error, redirect to login to be safe
+            window.location.href = `/login?redirect=${encodeURIComponent('/ground-details?id=' + groundId)}`;
+        });
 }
 
 function viewOnMap(groundId) {
-    console.log('View on map for ground:', groundId);
-    
-    // Show the map if it's hidden
-    const mapSidebar = document.getElementById('map-sidebar');
-    if (mapSidebar && mapSidebar.classList.contains('hidden')) {
-        toggleMapView();
-        
-        // Wait a bit for the map to become visible, then focus
-        setTimeout(() => {
-            focusOnGround(groundId);
-        }, 300);
-    } else {
-        // Focus on the specific ground marker
-        focusOnGround(groundId);
-    }
+    // Map view disabled
 }
 
 function toggleMapView() {
-    const mapSidebar = document.getElementById('map-sidebar');
-    const mapToggleText = document.getElementById('map-toggle-text');
-    
-    if (mapSidebar) {
-        mapSidebar.classList.toggle('hidden');
-        if (mapToggleText) {
-            mapToggleText.textContent = mapSidebar.classList.contains('hidden') ? 'Show Map' : 'Hide Map';
-        }
-        
-        // Trigger map resize when showing the map
-        if (!mapSidebar.classList.contains('hidden') && map) {
-            setTimeout(() => {
-                google.maps.event.trigger(map, 'resize');
-                // Re-center the map
-                map.setCenter({ lat: 6.9271, lng: 79.8612 });
-                // Fit bounds if markers exist
-                if (markers.length > 0) {
-                    fitMapToMarkers();
-                }
-            }, 100);
-        }
-    }
+    // Map toggle disabled
 }
 
 function getCurrentLocation() {
@@ -519,278 +494,7 @@ function sortFacilities() {
 }
 
 function fitMapToMarkers() {
-    console.log('Fit map to markers');
-    // Implement map fitting functionality
-}
-
-// Google Maps Integration
-let map;
-let markers = [];
-let infoWindow;
-
-// Initialize Google Maps
-function initMap() {
-    console.log('Initializing Google Maps...');
-    
-    // Check if map container exists
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer) {
-        console.error('Map container not found');
-        return;
-    }
-    
-    // Show loading state
-    showMapLoadingState(true);
-    
-    // Default center (Colombo, Sri Lanka)
-    const defaultCenter = { lat: 6.9271, lng: 79.8612 };
-    
-    try {
-        // Initialize map
-        map = new google.maps.Map(mapContainer, {
-            zoom: 12,
-            center: defaultCenter,
-            styles: [
-                {
-                    featureType: 'poi',
-                    elementType: 'labels',
-                    stylers: [{ visibility: 'off' }]
-                }
-            ],
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false
-        });
-        
-        // Initialize info window
-        infoWindow = new google.maps.InfoWindow();
-        
-        // Wait for map to be fully loaded
-        google.maps.event.addListenerOnce(map, 'idle', function() {
-            console.log('Google Maps initialized successfully');
-            showMapLoadingState(false);
-            // Load markers from database after map is ready
-            loadGroundMarkers();
-        });
-        
-    } catch (error) {
-        console.error('Error initializing Google Maps:', error);
-        showMapLoadingState(false);
-    }
-}
-
-// Load ground markers on map
-async function loadGroundMarkers() {
-    if (!map) return;
-    
-    console.log('Loading ground markers from database...');
-    showMapLoadingState(true, 'Loading facilities...');
-    
-    // Clear existing markers
-    clearMarkers();
-    
-    try {
-        // Fetch grounds from API
-        const response = await fetch('/api/grounds');
-        const data = await response.json();
-        
-        if (!data.success || !data.data) {
-            console.error('Failed to load grounds:', data.message);
-            showMapLoadingState(false);
-            return;
-        }
-        
-        const facilities = data.data;
-        console.log('Loaded facilities for map:', facilities.length);
-        
-        facilities.forEach(facility => {
-            // Only add markers for facilities with coordinates
-            if (!facility.latitude || !facility.longitude) {
-                console.log(`Skipping ${facility.name} - no coordinates`);
-                return;
-            }
-            
-            const ground = {
-                id: facility.id,
-                name: facility.name,
-                lat: parseFloat(facility.latitude),
-                lng: parseFloat(facility.longitude),
-                sport: facility.category_name ? facility.category_name.toLowerCase() : 'general',
-                address: facility.address,
-                city: facility.city,
-                hourly_rate: facility.hourly_rate
-            };
-            
-            // Format address for display
-            const addressDisplay = ground.address && ground.city ? 
-                `${ground.address}, ${ground.city}` : 
-                (ground.address || ground.city || 'Address not available');
-            
-            // Create marker with address in tooltip
-            const markerTitle = `${ground.name} - ${addressDisplay}`;
-            const marker = new google.maps.Marker({
-                position: { lat: ground.lat, lng: ground.lng },
-                map: map,
-                title: markerTitle,
-                icon: getSportMarkerIcon(ground.sport)
-            });
-            
-            const infoContent = `
-                <div class="map-info-window">
-                    <h4>${ground.name}</h4>
-                    <p><strong>Sport:</strong> ${ground.sport.charAt(0).toUpperCase() + ground.sport.slice(1)}</p>
-                    <p><strong>Address:</strong> ${addressDisplay}</p>
-                    <p><strong>Rate:</strong> Rs. ${ground.hourly_rate ? ground.hourly_rate.toLocaleString() : 'N/A'}/hour</p>
-                    <div class="info-actions">
-                        <button onclick="viewDetails(${ground.id})" class="btn-info-primary">View Details</button>
-                        <button onclick="bookNow(${ground.id})" class="btn-info-secondary">Book Now</button>
-                    </div>
-                </div>
-            `;
-            
-            marker.addListener('click', () => {
-                infoWindow.setContent(infoContent);
-                infoWindow.open(map, marker);
-            });
-            
-            // Store ground info in marker for later reference
-            marker.groundId = ground.id;
-            markers.push(marker);
-        });
-        
-        // Fit map to show all markers
-        fitMapToMarkers();
-        showMapLoadingState(false);
-        console.log(`Loaded ${markers.length} facility markers on map`);
-        
-    } catch (error) {
-        console.error('Error loading ground markers:', error);
-        showMapLoadingState(false);
-        showMapError('Failed to load facility locations. Please try again.');
-    }
-}
-
-// Get sport-specific marker icon
-function getSportMarkerIcon(sport) {
-    const colors = {
-        cricket: '#ff6b6b',
-        tennis: '#4ecdc4',
-        football: '#45b7d1',
-        basketball: '#f9ca24',
-        badminton: '#6c5ce7',
-        swimming: '#00cec9'
-    };
-    
-    return {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 8,
-        fillColor: colors[sport] || '#2563eb',
-        fillOpacity: 1,
-        strokeColor: '#ffffff',
-        strokeWeight: 2
-    };
-}
-
-// Clear all markers from map
-function clearMarkers() {
-    markers.forEach(marker => {
-        marker.setMap(null);
-    });
-    markers = [];
-}
-
-// Fit map to show all markers
-function fitMapToMarkers() {
-    if (!map || markers.length === 0) return;
-    
-    const bounds = new google.maps.LatLngBounds();
-    markers.forEach(marker => {
-        bounds.extend(marker.getPosition());
-    });
-    
-    map.fitBounds(bounds);
-    
-    // Ensure minimum zoom level
-    const listener = google.maps.event.addListener(map, 'idle', function() {
-        if (map.getZoom() > 12) map.setZoom(12);
-        google.maps.event.removeListener(listener);
-    });
-}
-
-// Focus map on specific ground
-function focusOnGround(groundId) {
-    const marker = markers.find(m => m.groundId === groundId);
-    if (marker && map) {
-        map.setCenter(marker.getPosition());
-        map.setZoom(15);
-        
-        // Trigger marker click to show info
-        google.maps.event.trigger(marker, 'click');
-    }
-}
-
-// Show/hide professional loading state for map
-function showMapLoadingState(show, message = 'Loading map...') {
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer) return;
-    
-    let overlay = document.getElementById('map-loading-overlay');
-    
-    if (show) {
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'map-loading-overlay';
-            overlay.className = 'map-loading-overlay';
-            // Ensure the map container has relative positioning
-            if (mapContainer.parentElement) {
-                mapContainer.parentElement.style.position = 'relative';
-                mapContainer.parentElement.appendChild(overlay);
-            } else {
-                mapContainer.style.position = 'relative';
-                mapContainer.appendChild(overlay);
-            }
-        }
-        
-        overlay.innerHTML = `
-            <div class="map-loading-content">
-                <div class="map-loading-spinner">
-                    <div class="spinner-ring"></div>
-                </div>
-                <p class="map-loading-text">${message}</p>
-            </div>
-        `;
-        overlay.style.display = 'flex';
-    } else {
-        if (overlay) {
-            overlay.style.display = 'none';
-        }
-    }
-}
-
-// Show map error message
-function showMapError(message) {
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer) return;
-
-    let overlay = document.getElementById('map-loading-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'map-loading-overlay';
-        overlay.className = 'map-loading-overlay';
-        mapContainer.style.position = 'relative';
-        mapContainer.appendChild(overlay);
-    }
-
-    overlay.innerHTML = `
-        <div class="map-error-content">
-            <div class="map-error-icon">
-                <i class="fas fa-map-marked-alt"></i>
-            </div>
-            <p class="map-error-text">${message}</p>
-            <button class="btn-primary btn-retry" onclick="loadGroundMarkers()">Try Again</button>
-        </div>
-    `;
-    overlay.style.display = 'flex';
+    // Map functionality disabled
 }
 
 // Load facility data from the DOM (since PHP already rendered them)
