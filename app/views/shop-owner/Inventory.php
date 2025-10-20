@@ -75,10 +75,10 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
 /* ----- Layout base (unchanged) ----- */
 .shop-owner-dashboard { display: flex; min-height: 100vh; }
 .dashboard-sidebar {
-  width: 240px; background: #1e293b; color: #fff;
+  width: 280px; background: #1e293b; color: #fff;
   position: fixed; top: 70px; left: 0; height: calc(100vh - 70px);
 }
-.dashboard-content { flex: 1; margin-left: 240px; padding: 20px; background: #f9f9f9; }
+.dashboard-content { flex: 1; margin-left: 280px; padding: 20px; background: #f9f9f9; }
 
 /* Header */
 .products-header { margin-bottom: 1rem; }
@@ -102,7 +102,7 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
   padding: .55rem 1rem;
   border: none;
   border-radius: 6px;
-  background: #0fa930;
+  background: #2563eb;
   color: #fff;
   font-weight: 600;
   cursor: pointer;
@@ -150,7 +150,7 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
   padding: 6px 12px; border-radius: 6px; text-decoration: none;
   font-size: .85rem; font-weight: 600; color: #fff;
 }
-.btn-update { background: #0fa930; }
+.btn-update { background: #2563eb; }
 .btn-delete { background: #b60909; }
 
 /* Responsive */
