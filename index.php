@@ -236,6 +236,19 @@ $router->post('/admin/news/store', 'Admin\AdminNewsController@store');
 $router->get('/admin/news/edit/{id}', 'Admin\AdminNewsController@edit');
 $router->post('/admin/news/update/{id}', 'Admin\AdminNewsController@update');
 $router->delete('/admin/news/delete/{id}', 'Admin\AdminNewsController@delete');
+
+    
+// Admin User Management Page
+$router->get('/admin/users', 'Admin\AdminUserController@index');
+
+// Admin User Management API Routes
+$router->get('/api/admin/users', 'Admin\AdminUserController@getUsers');
+$router->get('/api/admin/users/statistics', 'Admin\AdminUserController@getStatistics');
+$router->get('/api/admin/users/{id}', 'Admin\AdminUserController@getUser');
+$router->put('/api/admin/users/{id}/role', 'Admin\AdminUserController@updateRole');
+$router->put('/api/admin/users/{id}/status', 'Admin\AdminUserController@updateStatus');
+$router->post('/api/admin/users/{id}/reset-password', 'Admin\AdminUserController@resetPassword');
+$router->delete('/api/admin/users/{id}', 'Admin\AdminUserController@deleteUser');
     
     /* Debug routes
     $router->get('/debug', function() {

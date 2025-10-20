@@ -61,7 +61,7 @@ class User extends BaseModel
      */
     public function getByRole(string $role): array
     {
-        return $this->where(['role' => $role, 'status' => 'active']);
+        return $this->where(['user_type' => $role, 'status' => 'active']);
     }
 
     /**
@@ -81,12 +81,94 @@ class User extends BaseModel
     }
 
     /**
-     * Update last login (disabled - no last_login column in database)
+     * Record user login
      */
-    public function updateLastLogin(int $userId): bool
+    public function recordLogin(int $userId, string $ipAddress = null, string $userAgent = null): bool
     {
-        // Note: No last_login column exists in users table
-        return true;
+        try {
+            // Insert login record
+            $sql = "INSERT INTO user_logins (user_id, last_login_at, last_login_ip, user_agent) 
+                    VALUES (?, NOW(), ?, ?)";
+            
+            $this->query($sql, [
+                $userId,
+                $ipAddress ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                $userAgent ?? $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            error_log("Failed to record login: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get user's last login
+     */
+    public function getLastLogin(int $userId): ?array
+    {
+        try {
+            $sql = "SELECT * FROM user_logins WHERE user_id = ? ORDER BY last_login_at DESC LIMIT 1";
+            $stmt = $this->query($sql, [$userId]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            error_log("Failed to get last login: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Get user's login history
+     */
+    public function getLoginHistory(int $userId, int $limit = 10): array
+    {
+        try {
+            $sql = "SELECT * FROM user_logins 
+                    WHERE user_id = ? 
+                    ORDER BY last_login_at DESC 
+                    LIMIT ?";
+            $stmt = $this->query($sql, [$userId, $limit]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            error_log("Failed to get login history: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get user details with extended info (for admin)
+     */
+    public function getUserDetails(int $userId): ?array
+    {
+        try {
+            $sql = "SELECT u.*, 
+                           ul.last_login_at,
+                           ul.last_login_ip,
+                           ul.user_agent,
+                           (SELECT COUNT(*) FROM coach_bookings WHERE user_id = u.id) as booking_count,
+                           (SELECT COUNT(*) FROM facility_bookings WHERE user_id = u.id) as facility_booking_count,
+                           (SELECT COUNT(*) FROM orders WHERE user_id = u.id) as order_count,
+                           (SELECT SUM(total_amount) FROM orders WHERE user_id = u.id AND status = 'completed') as total_spent
+                    FROM users u
+                    LEFT JOIN user_logins ul ON u.id = ul.user_id AND ul.id = (
+                        SELECT id FROM user_logins WHERE user_id = u.id ORDER BY last_login_at DESC LIMIT 1
+                    )
+                    WHERE u.id = ?";
+            
+            $stmt = $this->query($sql, [$userId]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if ($user) {
+                unset($user['password_hash']);
+                return $user;
+            }
+            
+            return null;
+        } catch (\Exception $e) {
+            error_log("Failed to get user details: " . $e->getMessage());
+            return null;
+        }
     }
 
     /**
