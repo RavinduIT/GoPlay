@@ -1,42 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Ground Bookings - GoPlay Sports Platform</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<?php
+$title = 'My Bookings - GoPlay Sports Platform';
+$additionalCSS = [];
+$additionalJS = [];
+?>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
-        }
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
+<style>
+    :root {
+        --primary-color: #2563eb;
+        --primary-dark: #1d4ed8;
+        --primary-light: #dbeafe;
+        --secondary-color: #0891b2;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --background-light: #f9fafb;
+        --border-color: #e5e7eb;
+    }
 
-            text-align: center;
-        }
+    .bookings-page {
+        background: var(--background-light);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
+    .page-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
 
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
+    .page-header-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+    }
+
+    .page-header-section h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
 
     .page-header-section p {
         font-size: 1.1rem;
@@ -811,43 +821,55 @@
             }
         }
 
-            async viewBookingDetails(bookingId) {
-                try {
-                    const response = await fetch(`/api/user/ground-bookings/${bookingId}`);
-                    const data = await response.json();
+        async cancelCoachBooking(bookingId) {
+            if (!confirm('Are you sure you want to cancel this coaching session?')) return;
 
-                    if (data.success) {
-                        const booking = data.booking;
+            try {
+                const response = await fetch(`/api/coach-bookings/${bookingId}/cancel`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
 
-                        const details = `
-Booking Details:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Facility: ${booking.facility_name}
-Date: ${new Date(booking.booking_date).toLocaleDateString()}
-Time: ${booking.start_time} - ${booking.end_time}
-Duration: ${booking.duration_hours} hours
-Status: ${booking.status}
-Sport: ${booking.sport_name || 'General'}
-Address: ${booking.facility_address || 'N/A'}
-Owner Contact: ${booking.owner_phone || 'N/A'}
-
-${booking.special_requests ? `📝 Special Requests: ${booking.special_requests}` : ''}
-
-Booking ID: #${booking.id}
-Created: ${new Date(booking.created_at).toLocaleString()}
-                        `;
-
-                        alert(details);
-                    } else {
-                        alert('Error loading booking details: ' + data.message);
-                    }
-                } catch (error) {
-                    console.error('Error loading booking details:', error);
-                    alert('Error loading booking details');
+                const data = await response.json();
+                if (data.success) {
+                    alert('Session cancelled successfully');
+                    await this.loadCoachBookings();
+                    this.updateStats();
+                    this.renderCoachBookings();
+                } else {
+                    alert('Error: ' + data.message);
                 }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to cancel session');
             }
         }
+
+        viewGroundDetails(bookingId) {
+            const booking = this.groundBookings.find(b => b.id === bookingId);
+            if (!booking) return;
+
+            alert(`Ground Booking Details\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nFacility: ${booking.facility_name}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nDuration: ${booking.duration_hours} hours\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
+        }
+
+        viewCoachDetails(bookingId) {
+            const booking = this.coachBookings.find(b => b.id === bookingId);
+            if (!booking) return;
+
+            const coachName = `${booking.coach_first_name} ${booking.coach_last_name}`;
+            alert(`Coach Session Details\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCoach: ${coachName}\nSport: ${booking.sport_name || 'General'}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nType: ${booking.session_type}\nFee: LKR ${parseFloat(booking.total_amount).toLocaleString()}\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
+        }
+    }
+
+    function switchTab(tab) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tab + 'Tab').classList.add('active');
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(tab + 'Content').classList.add('active');
+    }
 
     // Initialize dashboard
     const dashboard = new MyBookingsDashboard();
