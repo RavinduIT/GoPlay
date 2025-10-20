@@ -317,3 +317,48 @@ body {
     cursor: pointer;
     transition: var(--transition);
 }
+/* Icon chip look (like your screenshot) */
+.sidebar-nav ul li a {
+  display: flex;
+  align-items: center;
+  gap: 12px;              /* space between icon and text */
+}
+
+.sidebar-nav ul li a i {
+  /* white icon */
+  color: #ffffff !important;
+  font-size: 18px;
+
+  /* the rounded square chip */
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+
+  /* soft light background behind icon */
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.06);
+  transition: background .25s ease, transform .2s ease;
+}
+
+/* Hover: brighten chip a bit */
+.sidebar-nav ul li a:hover i {
+  background: rgba(255, 255, 255, 0.20);
+  transform: translateY(-1px);
+}
+
+/* Active menu item: slightly brighter chip */
+.sidebar-nav ul li.active a i {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* (optional) keep text color tidy with your theme */
+.sidebar-nav ul li a span {
+  color: rgba(255,255,255,0.9);
+}
+.sidebar-nav ul li.active a span,
+.sidebar-nav ul li a:hover span {
+  color: #ffffff;
+}
