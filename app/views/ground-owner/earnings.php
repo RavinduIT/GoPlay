@@ -26,10 +26,10 @@ $additionalJS = [
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <button class="btn-secondary" onclick="generateReport()">
+                    <!--<button class="btn-secondary" onclick="generateReport()">
                         <i class="fas fa-file-pdf"></i>
                         Generate Report
-                    </button>
+                    </button>-->
                     <select id="timeRange" class="filter-select">
                         <option value="7">Last 7 days</option>
                         <option value="30" selected>Last 30 days</option>
@@ -67,7 +67,7 @@ $additionalJS = [
                     </div>
                     <div class="card-content">
                         <h3>Total Revenue</h3>
-                        <p class="earning-amount" id="totalRevenue">₹0</p>
+                        <p class="earning-amount" id="totalRevenue">LKR 0</p>
                         <div class="earning-change positive">
                             <i class="fas fa-arrow-up"></i>
                             <span id="revenueChange">0%</span>
@@ -82,7 +82,7 @@ $additionalJS = [
                     </div>
                     <div class="card-content">
                         <h3>This Month</h3>
-                        <p class="earning-amount" id="monthlyEarnings">₹0</p>
+                        <p class="earning-amount" id="monthlyEarnings">LKR 0</p>
                         <div class="earning-change positive">
                             <i class="fas fa-arrow-up"></i>
                             <span id="monthlyChange">0%</span>
@@ -97,7 +97,7 @@ $additionalJS = [
                     </div>
                     <div class="card-content">
                         <h3>Avg. per Booking</h3>
-                        <p class="earning-amount" id="averageBooking">₹0</p>
+                        <p class="earning-amount" id="averageBooking">LKR 0</p>
                         <div class="earning-change positive">
                             <i class="fas fa-arrow-up"></i>
                             <span id="avgChange">0%</span>
@@ -112,7 +112,7 @@ $additionalJS = [
                     </div>
                     <div class="card-content">
                         <h3>Pending Payments</h3>
-                        <p class="earning-amount" id="pendingPayments">₹0</p>
+                        <p class="earning-amount" id="pendingPayments">LKR 0</p>
                         <div class="pending-count">
                             <span id="pendingCount">0</span>
                             <small>transactions</small>
@@ -210,7 +210,7 @@ $additionalJS = [
                         </div>
                         <div class="metric-item">
                             <div class="metric-label">Refunds Issued</div>
-                            <div class="metric-value" id="refundsIssued">₹0</div>
+                            <div class="metric-value" id="refundsIssued">LKR 0</div>
                         </div>
                     </div>
                 </div>
@@ -245,23 +245,23 @@ $additionalJS = [
                     <div class="financial-items">
                         <div class="financial-item">
                             <span class="label">Gross Revenue</span>
-                            <span class="amount positive" id="grossRevenue">₹0</span>
+                            <span class="amount positive" id="grossRevenue">LKR 0</span>
                         </div>
                         <div class="financial-item">
                             <span class="label">Platform Commission</span>
-                            <span class="amount negative" id="platformCommission">-₹0</span>
+                            <span class="amount negative" id="platformCommission">-LKR 0</span>
                         </div>
                         <div class="financial-item">
                             <span class="label">Payment Processing</span>
-                            <span class="amount negative" id="processingFees">-₹0</span>
+                            <span class="amount negative" id="processingFees">-LKR 0</span>
                         </div>
                         <div class="financial-item">
                             <span class="label">Taxes</span>
-                            <span class="amount negative" id="taxes">-₹0</span>
+                            <span class="amount negative" id="taxes">-LKR 0</span>
                         </div>
                         <div class="financial-item total">
                             <span class="label">Net Earnings</span>
-                            <span class="amount positive" id="netEarnings">₹0</span>
+                            <span class="amount positive" id="netEarnings">LKR 0</span>
                         </div>
                     </div>
                 </div>
@@ -305,7 +305,7 @@ $additionalJS = [
         </div>
     </main>
 
-    <!-- Custom Date Range Modal -->
+    <!-- Custom Date Range Modal
     <div id="dateRangeModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -331,5 +331,5 @@ $additionalJS = [
                 <button type="button" class="btn-primary" onclick="applyDateRange()">Apply Range</button>
             </div>
         </div>
-    </div>
+    </div> -->
 </div>
