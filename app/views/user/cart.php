@@ -390,56 +390,6 @@ $additionalJS = [];
         transform: none;
     }
 
-    /* Coupon Section */
-    .coupon-section {
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--border-color);
-    }
-
-    .coupon-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 0.75rem;
-    }
-
-    .coupon-form {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .coupon-input {
-        flex: 1;
-        padding: 0.75rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        font-size: 0.95rem;
-        transition: var(--transition);
-    }
-
-    .coupon-input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-
-    .coupon-btn {
-        background: var(--text-secondary);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.25rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        cursor: pointer;
-        transition: var(--transition);
-        white-space: nowrap;
-    }
-
-    .coupon-btn:hover {
-        background: var(--text-primary);
-    }
-
     /* Empty Cart State */
     .empty-cart {
         text-align: center;
@@ -545,10 +495,6 @@ $additionalJS = [];
             flex-direction: column;
             gap: 1rem;
         }
-
-        .coupon-form {
-            flex-direction: column;
-        }
     }
 
     @media (max-width: 480px) {
@@ -629,11 +575,7 @@ $additionalJS = [];
                     </div>
                     <div class="summary-row">
                         <span class="summary-label">Shipping</span>
-                        <span class="summary-value" id="shipping">LKR 0</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Tax (18%)</span>
-                        <span class="summary-value" id="tax">LKR 0</span>
+                        <span class="summary-value" id="shipping">Free</span>
                     </div>
                     <div class="summary-row summary-total">
                         <span class="summary-label">Total</span>
@@ -644,15 +586,6 @@ $additionalJS = [];
                         <i class="fas fa-lock"></i>
                         Proceed to Checkout
                     </button>
-
-                    <!-- Coupon Section -->
-                    <div class="coupon-section">
-                        <h4 class="coupon-title">Have a coupon code?</h4>
-                        <form class="coupon-form" onsubmit="applyCoupon(event)">
-                            <input type="text" class="coupon-input" id="coupon-code" placeholder="Enter coupon code">
-                            <button type="submit" class="coupon-btn">Apply</button>
-                        </form>
-                    </div>
                 </div>
             </div>
         </div>
@@ -736,8 +669,24 @@ $additionalJS = [];
 
     // Create HTML for a cart item
     function createCartItemHTML(item) {
-        // Parse images from database - it's stored as JSON string
-        let imageUrl = '/public/assets/images/products/default.jpg';
+        // Get category-based image for products
+        const categoryName = item.category_name ? item.category_name.toLowerCase() : 'general';
+        const productImages = {
+            'football': '/public/assets/images/products/football.jpg',
+            'cricket': '/public/assets/images/products/cricket-bat.jpg',
+            'tennis': '/public/assets/images/products/tennis-racket.jpg',
+            'basketball': '/public/assets/images/products/basketball.jpg',
+            'badminton': '/public/assets/images/products/badminton-racket.jpg',
+            'volleyball': '/public/assets/images/products/football.jpg',
+            'swimming': '/public/assets/images/products/football.jpg',
+            'fitness': '/public/assets/images/products/football.jpg',
+            'gym': '/public/assets/images/products/football.jpg'
+        };
+
+        // Use category-based image as default
+        let imageUrl = productImages[categoryName] || '/public/assets/images/products/football.jpg';
+
+        // Try to parse images from database if available
         if (item.images) {
             try {
                 const images = typeof item.images === 'string' ? JSON.parse(item.images) : item.images;
@@ -746,6 +695,7 @@ $additionalJS = [];
                 }
             } catch (e) {
                 console.log('Error parsing images:', e);
+                // Keep the category-based fallback
             }
         }
 
@@ -755,7 +705,7 @@ $additionalJS = [];
 
         return `
             <div class="cart-item" data-item-id="${item.product_id}">
-                <img src="${imageUrl}" alt="${productName}" class="item-image" onerror="this.src='/public/assets/images/products/default.jpg'">
+                <img src="${imageUrl}" alt="${productName}" class="item-image" onerror="this.src='/public/assets/images/products/football.jpg'">
                 <div class="item-details">
                     <h3 class="item-name">${productName}${brandInfo}</h3>
                     <p class="item-description">${item.category_name || 'Sports Equipment'} • SKU: ${item.sku || 'N/A'}</p>
@@ -786,14 +736,11 @@ $additionalJS = [];
 
         // Calculate subtotal from items (using unit_price from database)
         const subtotal = cartData.totals ? cartData.totals.subtotal : cartData.items.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
-        const shipping = subtotal > 5000 ? 0 : 500; // Free shipping over LKR 5000
-        const taxRate = 0.18; // 18% tax
-        const tax = subtotal * taxRate;
-        const total = subtotal + shipping + tax;
+        const shipping = 0; // Free shipping
+        const total = subtotal + shipping; // No tax
 
         document.getElementById('subtotal').textContent = `LKR ${new Intl.NumberFormat().format(subtotal)}`;
-        document.getElementById('shipping').textContent = shipping === 0 ? 'Free' : `LKR ${new Intl.NumberFormat().format(shipping)}`;
-        document.getElementById('tax').textContent = `LKR ${new Intl.NumberFormat().format(tax)}`;
+        document.getElementById('shipping').textContent = 'Free';
         document.getElementById('total').textContent = `LKR ${new Intl.NumberFormat().format(total)}`;
 
         // Enable/disable checkout button
@@ -889,25 +836,6 @@ $additionalJS = [];
         } catch (error) {
             console.error('Clear cart error:', error);
             alert('Failed to clear cart. Please try again.');
-        }
-    }
-
-    // Apply coupon code
-    async function applyCoupon(event) {
-        event.preventDefault();
-
-        const couponCode = document.getElementById('coupon-code').value.trim();
-        if (!couponCode) {
-            alert('Please enter a coupon code');
-            return;
-        }
-
-        try {
-            // For now, show a message (implement coupon API later)
-            alert('Coupon functionality will be implemented soon!');
-        } catch (error) {
-            console.error('Coupon error:', error);
-            alert('Failed to apply coupon. Please try again.');
         }
     }
 

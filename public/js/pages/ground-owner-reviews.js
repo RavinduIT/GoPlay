@@ -86,7 +86,7 @@ class ReviewsManager {
             }
         } catch (error) {
             console.error('Error loading reviews:', error);
-            this.showToast('Failed to load reviews', 'error');
+            this.// showToast('Failed to load reviews', 'error');
         }
     }
 
@@ -378,12 +378,12 @@ class ReviewsManager {
         const responseText = document.getElementById('responseText').value.trim();
         
         if (!responseText) {
-            this.showToast('Please enter a response', 'error');
+            this.// showToast('Please enter a response', 'error');
             return;
         }
 
         if (responseText.length > 500) {
-            this.showToast('Response must be 500 characters or less', 'error');
+            this.// showToast('Response must be 500 characters or less', 'error');
             return;
         }
 
@@ -397,7 +397,7 @@ class ReviewsManager {
             });
 
             if (response.ok) {
-                this.showToast('Response submitted successfully', 'success');
+                this.// showToast('Response submitted successfully', 'success');
                 this.closeResponseModal();
                 this.loadReviews();
             } else {
@@ -405,7 +405,7 @@ class ReviewsManager {
             }
         } catch (error) {
             console.error('Error submitting response:', error);
-            this.showToast('Failed to submit response', 'error');
+            this.// showToast('Failed to submit response', 'error');
         }
     }
 
@@ -431,7 +431,7 @@ class ReviewsManager {
         const details = document.getElementById('reportDetails').value.trim();
         
         if (!reason) {
-            this.showToast('Please select a reason for reporting', 'error');
+            this.// showToast('Please select a reason for reporting', 'error');
             return;
         }
 
@@ -445,14 +445,14 @@ class ReviewsManager {
             });
 
             if (response.ok) {
-                this.showToast('Review reported successfully', 'success');
+                this.// showToast('Review reported successfully', 'success');
                 this.closeReportModal();
             } else {
                 throw new Error('Failed to report review');
             }
         } catch (error) {
             console.error('Error reporting review:', error);
-            this.showToast('Failed to report review', 'error');
+            this.// showToast('Failed to report review', 'error');
         }
     }
 
@@ -528,7 +528,7 @@ class ReviewsManager {
         });
     }
 
-    showToast(message, type = 'info') {
+    // showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.innerHTML = `

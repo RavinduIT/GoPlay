@@ -280,13 +280,13 @@ class ScheduleManager {
             });
             
             if (response.ok) {
-                this.showToast('Time slot set as available', 'success');
+                this.// showToast('Time slot set as available', 'success');
                 this.loadSchedule();
             } else {
                 throw new Error('Failed to set availability');
             }
         } catch (error) {
-            this.showToast('Error setting availability', 'error');
+            this.// showToast('Error setting availability', 'error');
         }
     }
 
@@ -301,13 +301,13 @@ class ScheduleManager {
             });
             
             if (response.ok) {
-                this.showToast('Time slot blocked', 'success');
+                this.// showToast('Time slot blocked', 'success');
                 this.loadSchedule();
             } else {
                 throw new Error('Failed to block slot');
             }
         } catch (error) {
-            this.showToast('Error blocking slot', 'error');
+            this.// showToast('Error blocking slot', 'error');
         }
     }
 
@@ -322,13 +322,13 @@ class ScheduleManager {
             });
             
             if (response.ok) {
-                this.showToast('Time slot removed', 'success');
+                this.// showToast('Time slot removed', 'success');
                 this.loadSchedule();
             } else {
                 throw new Error('Failed to remove slot');
             }
         } catch (error) {
-            this.showToast('Error removing slot', 'error');
+            this.// showToast('Error removing slot', 'error');
         }
     }
 
@@ -368,14 +368,14 @@ class ScheduleManager {
             });
             
             if (response.ok) {
-                this.showToast('Bulk availability set successfully', 'success');
+                this.// showToast('Bulk availability set successfully', 'success');
                 this.closeModal(document.getElementById('bulkAvailabilityModal'));
                 this.loadSchedule();
             } else {
                 throw new Error('Failed to set bulk availability');
             }
         } catch (error) {
-            this.showToast('Error setting bulk availability', 'error');
+            this.// showToast('Error setting bulk availability', 'error');
         }
     }
 
@@ -391,14 +391,14 @@ class ScheduleManager {
             });
             
             if (response.ok) {
-                this.showToast('Time blocked successfully', 'success');
+                this.// showToast('Time blocked successfully', 'success');
                 this.closeModal(document.getElementById('blockTimeModal'));
                 this.loadSchedule();
             } else {
                 throw new Error('Failed to block time');
             }
         } catch (error) {
-            this.showToast('Error blocking time', 'error');
+            this.// showToast('Error blocking time', 'error');
         }
     }
 
@@ -467,7 +467,7 @@ class ScheduleManager {
             this.renderCurrentView();
         } catch (error) {
             console.error('Error loading schedule:', error);
-            this.showToast('Error loading schedule data', 'error');
+            this.// showToast('Error loading schedule data', 'error');
         }
     }
 
@@ -478,7 +478,7 @@ class ScheduleManager {
         forms.forEach(form => form.reset());
     }
 
-    showToast(message, type = 'info') {
+    // showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.innerHTML = `

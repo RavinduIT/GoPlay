@@ -79,7 +79,7 @@ class CoachProfile {
             this.updateProfileDisplay();
         } catch (error) {
             console.error('Error loading profile data:', error);
-            this.showToast('Error loading profile data', 'error');
+            this.// showToast('Error loading profile data', 'error');
             // Use mock data as fallback
             this.profileData = this.getMockProfileData();
             this.updateProfileDisplay();
@@ -279,12 +279,12 @@ class CoachProfile {
 
         // Validate file type and size
         if (!file.type.startsWith('image/')) {
-            this.showToast('Please select an image file', 'error');
+            this.// showToast('Please select an image file', 'error');
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) { // 5MB limit
-            this.showToast('Image size must be less than 5MB', 'error');
+            this.// showToast('Image size must be less than 5MB', 'error');
             return;
         }
 
@@ -293,7 +293,7 @@ class CoachProfile {
             const reader = new FileReader();
             reader.onload = (e) => {
                 document.getElementById('profileAvatar').src = e.target.result;
-                this.showToast('Avatar updated successfully', 'success');
+                this.// showToast('Avatar updated successfully', 'success');
             };
             reader.readAsDataURL(file);
 
@@ -307,7 +307,7 @@ class CoachProfile {
 
         } catch (error) {
             console.error('Error uploading avatar:', error);
-            this.showToast('Error uploading avatar', 'error');
+            this.// showToast('Error uploading avatar', 'error');
         }
     }
 
@@ -321,7 +321,7 @@ class CoachProfile {
                 this.openModal('editProfileModal');
                 break;
             case 'certifications':
-                this.showToast('Certifications management coming soon', 'info');
+                this.// showToast('Certifications management coming soon', 'info');
                 break;
             default:
                 this.openModal('editProfileModal');
@@ -368,7 +368,7 @@ class CoachProfile {
             this.profileData = { ...this.profileData, ...profileData };
             this.updateProfileDisplay();
             this.closeModal('editProfileModal');
-            this.showToast('Profile updated successfully', 'success');
+            this.// showToast('Profile updated successfully', 'success');
 
             // In a real application, you would save to the server:
             // const response = await fetch('/api/coach/profile', {
@@ -379,7 +379,7 @@ class CoachProfile {
 
         } catch (error) {
             console.error('Error updating profile:', error);
-            this.showToast('Error updating profile: ' + error.message, 'error');
+            this.// showToast('Error updating profile: ' + error.message, 'error');
         }
     }
 
@@ -388,7 +388,7 @@ class CoachProfile {
         
         for (let field of required) {
             if (!data[field] || data[field].trim() === '') {
-                this.showToast(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
+                this.// showToast(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
                 return false;
             }
         }
@@ -396,14 +396,14 @@ class CoachProfile {
         // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(data.email)) {
-            this.showToast('Please enter a valid email address', 'error');
+            this.// showToast('Please enter a valid email address', 'error');
             return false;
         }
 
         // Phone validation
         const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
         if (!phoneRegex.test(data.phone.replace(/[\s\-\(\)]/g, ''))) {
-            this.showToast('Please enter a valid phone number', 'error');
+            this.// showToast('Please enter a valid phone number', 'error');
             return false;
         }
 
@@ -463,7 +463,7 @@ class CoachProfile {
     }
 
     // Toast Notifications
-    showToast(message, type = 'info') {
+    // showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.innerHTML = `
