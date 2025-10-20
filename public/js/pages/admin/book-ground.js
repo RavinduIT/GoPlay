@@ -123,41 +123,7 @@ let facilitiesMap;
             });
         }
 
-        // Initialize Google Maps
-        function initializeMap() {
-            if (MAPS_CONFIG.apiKey === 'YOUR_GOOGLE_MAPS_API_KEY') {
-                document.getElementById('facilities-map').innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f8f9fa; color: #6c757d; flex-direction: column; text-align: center; padding: 2rem;">
-                        <i class="fas fa-map" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                        <h3>Google Maps Integration Ready</h3>
-                        <p>Your API key is configured and maps are ready to use!</p>
-                    </div>
-                `;
-                
-                // Since you have a real API key, let's actually load the map
-                loadGoogleMapsAPI(MAPS_CONFIG.apiKey, function() {
-                    facilitiesMap = new GoogleMap('facilities-map', {
-                        center: MAPS_CONFIG.defaultCenter,
-                        zoom: MAPS_CONFIG.defaultZoom
-                    });
-
-                    facilitiesMap.addSportsFacilities(currentFacilities);
-                    facilitiesMap.fitToMarkers();
-                });
-                return;
-            }
-
-            // Load Google Maps API
-            loadGoogleMapsAPI(MAPS_CONFIG.apiKey, function() {
-                facilitiesMap = new GoogleMap('facilities-map', {
-                    center: MAPS_CONFIG.defaultCenter,
-                    zoom: MAPS_CONFIG.defaultZoom
-                });
-
-                facilitiesMap.addSportsFacilities(currentFacilities);
-                facilitiesMap.fitToMarkers();
-            });
-        }
+       
 
         // Render facilities list with professional design
         function renderFacilities() {
@@ -186,12 +152,6 @@ let facilitiesMap;
                         </div>
                         <div class="facility-icon">
                             <i class="fas fa-dumbbell"></i>
-                        </div>
-                        <div class="facility-overlay">
-                            <button class="view-on-map-btn" onclick="viewOnMap(${facility.id}); event.stopPropagation();">
-                                <i class="fas fa-map-marker-alt"></i>
-                                View on Map
-                            </button>
                         </div>
                     </div>
                     
@@ -252,34 +212,7 @@ let facilitiesMap;
         }
 
         // Professional map toggle functionality
-        function toggleMapView() {
-            const sidebar = document.getElementById('map-sidebar');
-            const toggleText = document.getElementById('map-toggle-text');
-            const isVisible = !sidebar.classList.contains('hidden');
-            
-            if (isVisible) {
-                sidebar.classList.add('hidden');
-                toggleText.textContent = 'Show Map';
-            } else {
-                sidebar.classList.remove('hidden');
-                toggleText.textContent = 'Hide Map';
-                setTimeout(() => {
-                    if (facilitiesMap) {
-                        facilitiesMap.resize();
-                        facilitiesMap.fitToMarkers();
-                    }
-                }, 300);
-            }
-        }
-
-        // View facility on map
-        function viewOnMap(facilityId) {
-            const sidebar = document.getElementById('map-sidebar');
-            if (sidebar.classList.contains('hidden')) {
-                toggleMapView();
-            }
-            setTimeout(() => highlightFacility(facilityId), 300);
-        }
+                }
 
         // Sort facilities using data loader
         function sortFacilities() {
@@ -330,35 +263,17 @@ let facilitiesMap;
 
         // Get current location
         function getCurrentLocation() {
-            if (facilitiesMap) {
-                facilitiesMap.addUserLocation()
-                    .then(() => {
-                        alert('Location found! Showing facilities near you.');
-                        // Here you would typically filter facilities by distance
-                    })
-                    .catch(error => {
-                        alert('Unable to get your location. Please enable location services.');
-                    });
-            }
+            // Location functionality disabled
         }
 
         // Highlight facility on map
         function highlightFacility(facilityId) {
-            if (facilitiesMap && currentView !== 'list') {
-                // Find the facility and center map on it
-                const facility = currentFacilities.find(f => f.id === facilityId);
-                if (facility) {
-                    facilitiesMap.setCenter(facility.lat, facility.lng);
-                    facilitiesMap.setZoom(16);
-                }
-            }
+            // Map highlight disabled
         }
 
         // Fit map to show all markers
         function fitMapToMarkers() {
-            if (facilitiesMap) {
-                facilitiesMap.fitToMarkers();
-            }
+            // Map functionality disabled
         }
 
         // Book facility
@@ -378,11 +293,7 @@ let facilitiesMap;
 
         // Update map markers
         function updateMapMarkers() {
-            if (facilitiesMap) {
-                facilitiesMap.clearMarkers();
-                facilitiesMap.addSportsFacilities(currentFacilities);
-                facilitiesMap.fitToMarkers();
-            }
+            // Map update disabled
         }
 
         // Add event listeners for search inputs
