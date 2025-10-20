@@ -651,3 +651,5 @@ class CoachController extends BaseController
             ], 500);
         }
     }
+
+}
