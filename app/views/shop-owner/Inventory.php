@@ -75,10 +75,10 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
 /* ----- Layout base (unchanged) ----- */
 .shop-owner-dashboard { display: flex; min-height: 100vh; }
 .dashboard-sidebar {
-  width: 240px; background: #1e293b; color: #fff;
+  width: 280px; background: #1e293b; color: #fff;
   position: fixed; top: 70px; left: 0; height: calc(100vh - 70px);
 }
-.dashboard-content { flex: 1; margin-left: 240px; padding: 20px; background: #f9f9f9; }
+.dashboard-content { flex: 1; margin-left: 280px; padding: 20px; background: #f9f9f9; }
 
 /* Header */
 .products-header { margin-bottom: 1rem; }

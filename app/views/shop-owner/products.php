@@ -77,7 +77,7 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
 }
 
 .dashboard-sidebar {
-  width: 240px;
+  width: 280px;
   background: #1e293b;
   color: white;
   position: fixed;
@@ -88,7 +88,7 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
 
 .dashboard-content {
   flex: 1;
-  margin-left:240px;
+  margin-left:280px;
   padding: 20px;
   background: #f9f9f9;
 }
