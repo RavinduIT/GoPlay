@@ -51,9 +51,9 @@ body {
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
     color: white;
     position: fixed;
-    top: 0;
+    top: var(--header-height);
     left: 0;
-    height: 100vh;
+    height: calc(100vh - var(--header-height));
     z-index: 1000;
     transition: var(--transition);
     overflow-y: auto;
