@@ -62,16 +62,16 @@ class CartAPI {
             if (result.success) {
                 this.cart = result.data;
                 this.updateCartDisplay();
-                this.showCartNotification('Item added to cart!', 'success');
+                // this.showCartNotification('Item added to cart!', 'success');
                 this.showCartSummary();
                 return true;
             } else {
-                this.showCartNotification(result.message || 'Failed to add item', 'error');
+                // this.showCartNotification(result.message || 'Failed to add item', 'error');
                 return false;
             }
         } catch (error) {
             console.error('Error adding to cart:', error);
-            this.showCartNotification('Error adding item to cart', 'error');
+            // this.showCartNotification('Error adding item to cart', 'error');
             return false;
         }
     }
@@ -97,15 +97,15 @@ class CartAPI {
             if (result.success) {
                 this.cart = result.data;
                 this.updateCartDisplay();
-                this.showCartNotification(result.message, 'success');
+                // this.showCartNotification(result.message, 'success');
                 return true;
             } else {
-                this.showCartNotification(result.message || 'Failed to update item', 'error');
+                // this.showCartNotification(result.message || 'Failed to update item', 'error');
                 return false;
             }
         } catch (error) {
             console.error('Error updating cart item:', error);
-            this.showCartNotification('Error updating item', 'error');
+            // this.showCartNotification('Error updating item', 'error');
             return false;
         }
     }
@@ -130,15 +130,15 @@ class CartAPI {
             if (result.success) {
                 this.cart = result.data;
                 this.updateCartDisplay();
-                this.showCartNotification('Item removed from cart', 'success');
+                // this.showCartNotification('Item removed from cart', 'success');
                 return true;
             } else {
-                this.showCartNotification(result.message || 'Failed to remove item', 'error');
+                // this.showCartNotification(result.message || 'Failed to remove item', 'error');
                 return false;
             }
         } catch (error) {
             console.error('Error removing from cart:', error);
-            this.showCartNotification('Error removing item', 'error');
+            // this.showCartNotification('Error removing item', 'error');
             return false;
         }
     }
@@ -167,15 +167,15 @@ class CartAPI {
                     }
                 };
                 this.updateCartDisplay();
-                this.showCartNotification('Cart cleared', 'success');
+                // this.showCartNotification('Cart cleared', 'success');
                 return true;
             } else {
-                this.showCartNotification(result.message || 'Failed to clear cart', 'error');
+                // this.showCartNotification(result.message || 'Failed to clear cart', 'error');
                 return false;
             }
         } catch (error) {
             console.error('Error clearing cart:', error);
-            this.showCartNotification('Error clearing cart', 'error');
+            // this.showCartNotification('Error clearing cart', 'error');
             return false;
         }
     }
@@ -379,7 +379,7 @@ class CartAPI {
      */
     async checkout() {
         if (!this.cart.items || this.cart.items.length === 0) {
-            this.showCartNotification('Your cart is empty!', 'error');
+            // this.showCartNotification('Your cart is empty!', 'error');
             return false;
         }
 
@@ -408,7 +408,7 @@ class CartAPI {
             if (result.success) {
                 this.cart = result.data;
                 this.updateCartDisplay();
-                this.showCartNotification('Cart updated successfully', 'success');
+                // this.showCartNotification('Cart updated successfully', 'success');
                 return true;
             } else {
                 console.error('Failed to merge cart:', result.message);

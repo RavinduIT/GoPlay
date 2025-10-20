@@ -184,13 +184,13 @@ class UserProfile {
                 });
 
                 this.cancelEdit(section);
-                this.showToast('Profile updated successfully!', 'success');
+                // this.showToast('Profile updated successfully!', 'success');
             } else {
                 throw new Error(result.error || 'Failed to update profile');
             }
         } catch (error) {
             console.error('Error updating profile:', error);
-            this.showToast(error.message || 'Failed to update profile', 'error');
+            // this.showToast(error.message || 'Failed to update profile', 'error');
         } finally {
             this.hideLoading(section);
         }
@@ -199,19 +199,19 @@ class UserProfile {
     validateData(data) {
         // Basic validation
         if (data.first_name && data.first_name.length < 2) {
-            this.showToast('First name must be at least 2 characters long', 'warning');
+            // this.showToast('First name must be at least 2 characters long', 'warning');
             return false;
         }
 
         if (data.last_name && data.last_name.length < 2) {
-            this.showToast('Last name must be at least 2 characters long', 'warning');
+            // this.showToast('Last name must be at least 2 characters long', 'warning');
             return false;
         }
 
         if (data.phone && data.phone.length > 0) {
             const phoneRegex = /^[\+]?[\d\s\-\(\)]+$/;
             if (!phoneRegex.test(data.phone)) {
-                this.showToast('Please enter a valid phone number', 'warning');
+                // this.showToast('Please enter a valid phone number', 'warning');
                 return false;
             }
         }
@@ -222,7 +222,7 @@ class UserProfile {
             const age = today.getFullYear() - date.getFullYear();
             
             if (age < 13 || age > 120) {
-                this.showToast('Please enter a valid date of birth', 'warning');
+                // this.showToast('Please enter a valid date of birth', 'warning');
                 return false;
             }
         }
@@ -239,12 +239,12 @@ class UserProfile {
         const maxSize = 5 * 1024 * 1024; // 5MB
 
         if (!allowedTypes.includes(file.type)) {
-            this.showToast('Please select a valid image file (JPEG, PNG, or GIF)', 'warning');
+            // this.showToast('Please select a valid image file (JPEG, PNG, or GIF)', 'warning');
             return;
         }
 
         if (file.size > maxSize) {
-            this.showToast('Image size must be less than 5MB', 'warning');
+            // this.showToast('Image size must be less than 5MB', 'warning');
             return;
         }
 
@@ -274,13 +274,13 @@ class UserProfile {
                     avatar.src = result.avatar_url + '?t=' + Date.now(); // Cache busting
                 }
 
-                this.showToast('Profile picture updated successfully!', 'success');
+                // this.showToast('Profile picture updated successfully!', 'success');
             } else {
                 throw new Error(result.error || 'Failed to upload avatar');
             }
         } catch (error) {
             console.error('Error uploading avatar:', error);
-            this.showToast(error.message || 'Failed to upload profile picture', 'error');
+            // this.showToast(error.message || 'Failed to upload profile picture', 'error');
         } finally {
             // Reset button
             const uploadBtn = document.querySelector('.avatar-upload-btn');
@@ -298,12 +298,12 @@ class UserProfile {
 
         // Validate passwords
         if (newPassword !== confirmPassword) {
-            this.showToast('New passwords do not match', 'warning');
+            // this.showToast('New passwords do not match', 'warning');
             return;
         }
 
         if (newPassword.length < 8) {
-            this.showToast('New password must be at least 8 characters long', 'warning');
+            // this.showToast('New password must be at least 8 characters long', 'warning');
             return;
         }
 
@@ -331,13 +331,13 @@ class UserProfile {
             if (result.success) {
                 this.closePasswordModal();
                 document.getElementById('password-form').reset();
-                this.showToast('Password changed successfully!', 'success');
+                // this.showToast('Password changed successfully!', 'success');
             } else {
                 throw new Error(result.error || 'Failed to change password');
             }
         } catch (error) {
             console.error('Error changing password:', error);
-            this.showToast(error.message || 'Failed to change password', 'error');
+            // this.showToast(error.message || 'Failed to change password', 'error');
         } finally {
             // Reset button
             const submitBtn = event.target.querySelector('button[type="submit"]');

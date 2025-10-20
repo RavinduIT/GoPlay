@@ -91,7 +91,7 @@ class BookingsManager {
             }
         } catch (error) {
             console.error('Error loading bookings:', error);
-            this.showToast('Failed to load bookings', 'error');
+            this.// showToast('Failed to load bookings', 'error');
         }
     }
 
@@ -331,7 +331,7 @@ class BookingsManager {
             }
         } catch (error) {
             console.error('Error loading booking details:', error);
-            this.showToast('Failed to load booking details', 'error');
+            this.// showToast('Failed to load booking details', 'error');
         }
     }
 
@@ -384,13 +384,13 @@ class BookingsManager {
             });
 
             if (response.ok) {
-                this.showToast('Booking confirmed successfully', 'success');
+                this.// showToast('Booking confirmed successfully', 'success');
                 this.closeBookingModal();
                 this.loadBookings();
             }
         } catch (error) {
             console.error('Error confirming booking:', error);
-            this.showToast('Failed to confirm booking', 'error');
+            this.// showToast('Failed to confirm booking', 'error');
         }
     }
 
@@ -410,13 +410,13 @@ class BookingsManager {
             });
 
             if (response.ok) {
-                this.showToast('Booking cancelled successfully', 'success');
+                this.// showToast('Booking cancelled successfully', 'success');
                 this.closeBookingModal();
                 this.loadBookings();
             }
         } catch (error) {
             console.error('Error cancelling booking:', error);
-            this.showToast('Failed to cancel booking', 'error');
+            this.// showToast('Failed to cancel booking', 'error');
         }
     }
 
@@ -577,7 +577,7 @@ class BookingsManager {
         return grouped;
     }
 
-    showToast(message, type = 'info') {
+    // showToast(message, type = 'info') {
         // Create toast notification
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
