@@ -8,34 +8,65 @@ $additionalJS = [];
 // Get coach ID from URL parameter
 $coach_id = $_GET['coach_id'] ?? null;
 
-// Fetch coaches from database
-try {
-    $coachModel = new Coach();
-    $allCoaches = $coachModel->getAvailable();
-
-    // Format coaches for display
-    $coaches = [];
-    foreach ($allCoaches as $coach) {
-        $coaches[$coach['id']] = [
-            'id' => $coach['id'],
-            'name' => $coach['first_name'] . ' ' . $coach['last_name'],
-            'sport' => $coach['sport_name'] ?? 'General',
-            'experience' => $coach['experience_years'] . ' Years',
-            'rating' => round($coach['rating'], 1),
-            'reviews' => $coach['total_reviews'],
-            'price' => $coach['hourly_rate'],
-            'location' => $coach['location'],
-            'bio' => $coach['bio'],
-            'profile_picture' => $coach['profile_picture'] ?? null,
-            'specialties' => !empty($coach['specializations']) ? explode(', ', $coach['specializations']) : [],
-            'available_times' => ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00']
-        ];
-    }
-} catch (Exception $e) {
-    // Fallback to empty array if database connection fails
-    $coaches = [];
-    error_log("Error loading coaches: " . $e->getMessage());
-}
+// Mock coach data (you can replace this with database query)
+$coaches = [
+    1 => [
+        'id' => 1,
+        'name' => 'Lasith Malinga',
+        'sport' => 'Cricket',
+        'experience' => '8 Years',
+        'rating' => 4.8,
+        'reviews' => 156,
+        'price' => 3500,
+        'location' => 'Colombo',
+        'bio' => 'Professional cricket coach with international experience.',
+        'profile_picture' => null,
+        'specialties' => ['Batting', 'Bowling', 'Fielding'],
+        'available_times' => ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00']
+    ],
+    2 => [
+        'id' => 2,
+        'name' => 'Chaminda Vaas',
+        'sport' => 'Swimming Coach',
+        'experience' => '6 Years',
+        'rating' => 4.9,
+        'reviews' => 89,
+        'price' => 3200,
+        'location' => 'Kandy',
+        'bio' => 'Former professional swimming player turned coach.',
+        'profile_picture' => null,
+        'specialties' => ['Freestyle', 'Backstroke', 'Butterfly'],
+        'available_times' => ['08:00', '09:00', '10:00', '15:00', '16:00', '17:00']
+    ],
+    3 => [
+        'id' => 3,
+        'name' => 'Angelo Mathews',
+        'sport' => 'Tennis',
+        'experience' => '8 Years',
+        'rating' => 4.7,
+        'reviews' => 203,
+        'price' => 4000,
+        'location' => 'Galle',
+        'bio' => 'Expert Tennis coach specializing in youth development.',
+        'profile_picture' => null,
+        'specialties' => ['Forehand', 'Backhand', 'Serve'],
+        'available_times' => ['07:00', '08:00', '17:00', '18:00', '19:00']
+    ],
+    4 => [
+        'id' => 4,
+        'name' => 'Thisara Perera',
+        'sport' => 'Football',
+        'experience' => '10 Years',
+        'rating' => 4.6,
+        'reviews' => 67,
+        'price' => 2800,
+        'location' => 'Colombo',
+        'bio' => 'Dynamic football coach with focus on fundamentals.',
+        'profile_picture' => null,
+        'specialties' => ['Dribbling', 'Shooting', 'Defense'],
+        'available_times' => ['09:00', '10:00', '11:00', '16:00', '17:00', '18:00']
+    ]
+];
 
 $selected_coach = null;
 if ($coach_id && isset($coaches[$coach_id])) {
@@ -567,7 +598,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                             </div>
                             <div class="summary-row">
                                 <span>Total Amount:</span>
-                                <span id="summaryTotal">LKR 0</span>
+                                <span id="summaryTotal">LKR0</span>
                             </div>
                         </div>
 
@@ -712,7 +743,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                 }
 
                 document.getElementById('summaryDuration').textContent = `${this.duration} minutes`;
-                document.getElementById('summaryTotal').textContent = `LKR ${this.selectedCoach.price.toLocaleString()}`;
+                document.getElementById('summaryTotal').textContent = `LKR${this.selectedCoach.price.toLocaleString()}`;
 
                 // Enable/disable proceed button
                 const canProceed = this.selectedCoach && this.selectedType && this.selectedDate && this.selectedTime;
