@@ -10,12 +10,12 @@ $coach_id = $_GET['coach_id'] ?? null;
 $coaches = [
     1 => [
         'id' => 1,
-        'name' => 'John Smith',
+        'name' => 'Lasith Malinga',
         'sport' => 'Cricket',
         'experience' => '8 Years',
         'rating' => 4.8,
         'reviews' => 156,
-        'price' => 2500,
+        'price' => 3500,
         'location' => 'Colombo',
         'bio' => 'Professional cricket coach with international experience.',
         'profile_picture' => null,
@@ -24,44 +24,44 @@ $coaches = [
     ],
     2 => [
         'id' => 2,
-        'name' => 'Sarah Williams',
-        'sport' => 'Tennis',
+        'name' => 'Chaminda Vaas',
+        'sport' => 'Swimming Coach',
         'experience' => '6 Years',
         'rating' => 4.9,
         'reviews' => 89,
-        'price' => 3000,
+        'price' => 3200,
         'location' => 'Kandy',
-        'bio' => 'Former professional tennis player turned coach.',
+        'bio' => 'Former professional swimming player turned coach.',
         'profile_picture' => null,
-        'specialties' => ['Forehand', 'Backhand', 'Serve'],
+        'specialties' => ['Freestyle', 'Backstroke', 'Butterfly'],
         'available_times' => ['08:00', '09:00', '10:00', '15:00', '16:00', '17:00']
     ],
     3 => [
         'id' => 3,
-        'name' => 'Mike Johnson',
-        'sport' => 'Football',
-        'experience' => '10 Years',
+        'name' => 'Angelo Mathews',
+        'sport' => 'Tennis',
+        'experience' => '8 Years',
         'rating' => 4.7,
         'reviews' => 203,
-        'price' => 2800,
+        'price' => 4000,
         'location' => 'Galle',
-        'bio' => 'Expert football coach specializing in youth development.',
+        'bio' => 'Expert Tennis coach specializing in youth development.',
         'profile_picture' => null,
-        'specialties' => ['Dribbling', 'Shooting', 'Defense'],
+        'specialties' => ['Forehand', 'Backhand', 'Serve'],
         'available_times' => ['07:00', '08:00', '17:00', '18:00', '19:00']
     ],
     4 => [
         'id' => 4,
-        'name' => 'Emma Davis',
-        'sport' => 'Basketball',
-        'experience' => '5 Years',
+        'name' => 'Thisara Perera',
+        'sport' => 'Football',
+        'experience' => '10 Years',
         'rating' => 4.6,
         'reviews' => 67,
-        'price' => 2200,
+        'price' => 2800,
         'location' => 'Colombo',
-        'bio' => 'Dynamic basketball coach with focus on fundamentals.',
+        'bio' => 'Dynamic football coach with focus on fundamentals.',
         'profile_picture' => null,
-        'specialties' => ['Shooting', 'Dribbling', 'Team Play'],
+        'specialties' => ['Dribbling', 'Shooting', 'Defense'],
         'available_times' => ['09:00', '10:00', '11:00', '16:00', '17:00', '18:00']
     ]
 ];
@@ -515,7 +515,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                                         <span><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($coach['location']) ?></span>
                                         <span><i class="fas fa-clock"></i> <?= htmlspecialchars($coach['experience']) ?></span>
                                     </div>
-                                    <div class="coach-price">₹<?= number_format($coach['price']) ?>/session</div>
+                                    <div class="coach-price">LKR <?= number_format($coach['price']) ?>/session</div>
                                 </div>
                             </div>
                         </div>
@@ -601,7 +601,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                             </div>
                             <div class="summary-row">
                                 <span>Total Amount:</span>
-                                <span id="summaryTotal">₹0</span>
+                                <span id="summaryTotal">LKR0</span>
                             </div>
                         </div>
 
@@ -746,7 +746,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                 }
 
                 document.getElementById('summaryDuration').textContent = `${this.duration} minutes`;
-                document.getElementById('summaryTotal').textContent = `₹${this.selectedCoach.price.toLocaleString()}`;
+                document.getElementById('summaryTotal').textContent = `LKR${this.selectedCoach.price.toLocaleString()}`;
 
                 // Enable/disable proceed button
                 const canProceed = this.selectedCoach && this.selectedType && this.selectedDate && this.selectedTime;
