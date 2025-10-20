@@ -42,9 +42,9 @@ body {
     background: linear-gradient(180deg, #065f46 0%, #064e3b 100%);
     color: white;
     position: fixed;
-    top: 0;
+    top: var(--header-height);
     left: 0;
-    height: 100vh;
+    height: calc(100vh - var(--header-height));
     z-index: 1000;
     transition: var(--transition);
     overflow-y: auto;
