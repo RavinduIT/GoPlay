@@ -281,7 +281,7 @@ function showNotificationsPanel() {
         }
     ];
     
-    showToast('You have ' + notifications.filter(n => n.unread).length + ' new notifications', 'info');
+    // showToast('You have ' + notifications.filter(n => n.unread).length + ' new notifications', 'info');
 }
 
 function startRealTimeUpdates() {
@@ -337,13 +337,13 @@ function updateBookingStatuses() {
             
             // Show notification
             setTimeout(() => {
-                showToast('Booking confirmed!', 'success');
+                // showToast('Booking confirmed!', 'success');
             }, 1000);
         }
     });
 }
 
-function showToast(message, type = 'info') {
+function // showToast(message, type = 'info') {
     // Create toast container if it doesn't exist
     let toastContainer = document.querySelector('.toast-container');
     if (!toastContainer) {
