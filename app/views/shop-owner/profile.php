@@ -25,12 +25,12 @@ $title = 'Profile - GoPlay';
 
             <div class="field">
               <label>Owner Name:</label>
-              <input type="text" name="owner_name" value="Rehan Gunaratne">
+              <input type="text" name="owner_name" value="Rohan Gunaratne">
             </div>
 
             <div class="field">
               <label>Email:</label>
-              <input type="email" name="email" value="rehan@wxampie.com">
+              <input type="email" name="email" value="rohan@wxampie.com">
             </div>
 
             <div class="field">
@@ -54,7 +54,7 @@ $title = 'Profile - GoPlay';
       <!-- Right Card: Profile Photo -->
       <div class="profile-card photo-card">
         <div class="profile-photo-section">
-          <img src="uploads/profile.jpg" alt="Profile Photo" class="profile-photo"></div>
+          <img src="/public/assets/images/default-avatar.png" alt="Profile Photo" class="profile-photo"></div>
           <div class="btn-upload">
             Edit Photo
             <input type="file" name="profile_photo" accept="image/*" hidden>
@@ -102,7 +102,7 @@ $title = 'Profile - GoPlay';
 .btn-upload {
   display: inline-block;
   margin-top: 50px;
-  background: #02832bff;
+  background: #2563eb;
   color: #fff;
   padding: 6px 12px;
   border-radius: 6px;
@@ -110,7 +110,7 @@ $title = 'Profile - GoPlay';
   font-weight: 600;
   cursor: pointer;
 }
-.btn-upload:hover { background: #0069d9; }
+.btn-upload:hover { background: #64748b; }
 
 /* Profile Fields */
 .profile-fields {

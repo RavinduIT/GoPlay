@@ -130,7 +130,7 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
   padding: .55rem .9rem;
   border: none;
   border-radius: 6px;
-  background: #0fa930ff;
+  background: #2563eb;
   color: white;
   cursor: pointer;
 }
@@ -188,7 +188,7 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
 }
 
 .edit-btn {
-  background: #0fa930ff;
+  background: #2563eb;
 }
 
 .delete-btn {
