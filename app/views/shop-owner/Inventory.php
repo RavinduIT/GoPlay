@@ -102,7 +102,7 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
   padding: .55rem 1rem;
   border: none;
   border-radius: 6px;
-  background: #0fa930;
+  background: #2563eb;
   color: #fff;
   font-weight: 600;
   cursor: pointer;
@@ -150,7 +150,7 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
   padding: 6px 12px; border-radius: 6px; text-decoration: none;
   font-size: .85rem; font-weight: 600; color: #fff;
 }
-.btn-update { background: #0fa930; }
+.btn-update { background: #2563eb; }
 .btn-delete { background: #b60909; }
 
 /* Responsive */

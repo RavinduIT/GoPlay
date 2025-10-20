@@ -93,9 +93,9 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                 <button class="sidebar-toggle" onclick="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title">Shop Dashboard</h1>
+                <h1 class>Shop Dashboard</h1>
             </div>
-            <div class="header-right">
+            <!--<div class="header-right">
                 <div class="header-notifications">
                     <button class="notification-btn">
                         <i class="fas fa-bell"></i>
@@ -112,7 +112,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                         <i class="fas fa-chevron-down"></i>
                     </button>
                 </div>
-            </div>
+            </div>-->
         </header>
 
         <!-- Dashboard Content -->
@@ -125,7 +125,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Monthly Revenue</h3>
-                        <p class="stat-number">₹1,23,450</p>
+                        <p class="stat-number">LKR1,23,450</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
                             <span>18% this month</span>
@@ -206,7 +206,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                             <div class="order-info">
                                 <h4>Order #ORD-1001</h4>
                                 <p>Kavinda Ranasighe</p>
-                                <span class="order-details">3 items • ₹2,450</span>
+                                <span class="order-details">3 items • LKR2,450</span>
                             </div>
                             <div class="order-status">
                                 <span class="status-badge processing">Processing</span>
@@ -218,7 +218,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                             <div class="order-info">
                                 <h4>Order #ORD-1002</h4>
                                 <p>Sanduni Rajapakse</p>
-                                <span class="order-details">2 items • ₹1,800</span>
+                                <span class="order-details">2 items • LKR1,800</span>
                             </div>
                             <div class="order-status">
                                 <span class="status-badge shipped">Shipped</span>
@@ -230,7 +230,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                             <div class="order-info">
                                 <h4>Order #ORD-1003</h4>
                                 <p>Dilan Wijesinghe</p>
-                                <span class="order-details">1 item • ₹650</span>
+                                <span class="order-details">1 item • LKR650</span>
                             </div>
                             <div class="order-status">
                                 <span class="status-badge delivered">Delivered</span>
@@ -252,7 +252,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                                 <img src="/public/assets/images/product1.jpg" alt="Product" class="product-image">
                                 <div class="product-details">
                                     <h4>Cricket Bat - Professional</h4>
-                                    <p>₹3,500 • 23 sold</p>
+                                    <p>LKR3,500 • 23 sold</p>
                                 </div>
                             </div>
                             <div class="product-performance">
@@ -268,7 +268,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                                 <img src="/public/assets/images/product2.jpg" alt="Product" class="product-image">
                                 <div class="product-details">
                                     <h4>Football - Official Size</h4>
-                                    <p>₹1,200 • 18 sold</p>
+                                    <p>LKR1,200 • 18 sold</p>
                                 </div>
                             </div>
                             <div class="product-performance">
@@ -284,7 +284,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                                 <img src="/public/assets/images/product3.jpg" alt="Product" class="product-image">
                                 <div class="product-details">
                                     <h4>Tennis Racket - Pro</h4>
-                                    <p>₹4,200 • 15 sold</p>
+                                    <p>LKR4,200 • 15 sold</p>
                                 </div>
                             </div>
                             <div class="product-performance">
