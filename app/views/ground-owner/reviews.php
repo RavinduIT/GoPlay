@@ -23,10 +23,10 @@ $additionalJS = ['/public/js/pages/ground-owner-reviews.js'];
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <button class="btn-secondary" onclick="exportReviews()">
+                    <!--<button class="btn-secondary" onclick="exportReviews()">
                         <i class="fas fa-download"></i>
                         Export Reviews
-                    </button>
+                    </button>-->
                     <select id="timeFilter" class="filter-select">
                         <option value="all">All Time</option>
                         <option value="30">Last 30 days</option>
@@ -103,7 +103,7 @@ $additionalJS = ['/public/js/pages/ground-owner-reviews.js'];
                     </div>
                 </div>
 
-                <div class="overview-card recent-reviews">
+                <!--<div class="overview-card recent-reviews">
                     <div class="card-icon">
                         <i class="fas fa-history"></i>
                     </div>
@@ -112,7 +112,7 @@ $additionalJS = ['/public/js/pages/ground-owner-reviews.js'];
                         <p class="stat-number" id="recentCount">0</p>
                         <span class="period-indicator">Last 7 days</span>
                     </div>
-                </div>
+                </div>-->
             </div>
 
             <!-- Rating Distribution -->

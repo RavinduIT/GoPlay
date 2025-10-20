@@ -102,7 +102,7 @@ $additionalJS = ['/public/js/pages/ground-owner-maintenance.js'];
                     </div>
                     <div class="card-content">
                         <h3>Monthly Cost</h3>
-                        <p class="stat-number" id="monthlyCost">₹0</p>
+                        <p class="stat-number" id="monthlyCost">LKR 0</p>
                         <div class="cost-breakdown">
                             <span class="cost-change" id="costChange">vs last month</span>
                         </div>
