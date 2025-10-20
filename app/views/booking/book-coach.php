@@ -884,8 +884,8 @@ $additionalJS = [];
         // Coach action functions
         function viewProfile(coachId) {
             console.log('View profile for coach:', coachId);
-            // You can implement a modal or redirect to profile page
-            window.open(`/coach/profile?id=${coachId}`, '_blank');
+            // Redirect to public coach profile page
+            window.location.href = `/coach/view`;
         }
 
         function bookSession(coachId) {
