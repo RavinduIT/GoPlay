@@ -74,50 +74,19 @@ class AdminUserController extends BaseController
 
             $offset = ($page - 1) * $limit;
 
-            // Build query
-            $where = [];
-            $params = [];
-
-            if ($search) {
-                $where[] = "(username LIKE ? OR email LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR phone LIKE ?)";
-                $searchParam = "%{$search}%";
-                $params = array_merge($params, [$searchParam, $searchParam, $searchParam, $searchParam, $searchParam]);
-            }
-
-            if ($userType) {
-                $where[] = "user_type = ?";
-                $params[] = $userType;
-            }
-
-            if ($status) {
-                $where[] = "status = ?";
-                $params[] = $status;
-            }
-
-            $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+            $filters = [
+                'search' => $search,
+                'user_type' => $userType,
+                'status' => $status,
+                'sort_by' => $sortBy,
+                'sort_order' => $sortOrder
+            ];
 
             // Get total count
-            $countSql = "SELECT COUNT(*) as total FROM users {$whereClause}";
-            $countStmt = $this->userModel->query($countSql, $params);
-            $totalResult = $countStmt->fetch(\PDO::FETCH_ASSOC);
-            $total = $totalResult['total'];
+            $total = $this->userModel->getUsersCount($filters);
 
-            // Get users with last login info
-            $sql = "SELECT u.*, 
-                           ul.last_login_at,
-                           ul.last_login_ip,
-                           (SELECT COUNT(*) FROM coach_bookings WHERE user_id = u.id) as booking_count,
-                           (SELECT COUNT(*) FROM orders WHERE user_id = u.id) as order_count
-                    FROM users u
-                    LEFT JOIN user_logins ul ON u.id = ul.user_id AND ul.id = (
-                        SELECT id FROM user_logins WHERE user_id = u.id ORDER BY last_login_at DESC LIMIT 1
-                    )
-                    {$whereClause}
-                    ORDER BY {$sortBy} {$sortOrder}
-                    LIMIT {$limit} OFFSET {$offset}";
-
-            $stmt = $this->userModel->query($sql, $params);
-            $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            // Get users
+            $users = $this->userModel->getUsersWithFilters($filters, $limit, $offset);
 
             // Remove password hash from response
             foreach ($users as &$user) {
@@ -155,31 +124,7 @@ class AdminUserController extends BaseController
         }
 
         try {
-            $sql = "SELECT 
-                        COUNT(*) as total_users,
-                        SUM(CASE WHEN user_type = 'user' THEN 1 ELSE 0 END) as regular_users,
-                        SUM(CASE WHEN user_type = 'coach' THEN 1 ELSE 0 END) as coaches,
-                        SUM(CASE WHEN user_type = 'ground_owner' THEN 1 ELSE 0 END) as ground_owners,
-                        SUM(CASE WHEN user_type = 'shop_owner' THEN 1 ELSE 0 END) as shop_owners,
-                        SUM(CASE WHEN user_type = 'admin' THEN 1 ELSE 0 END) as admins,
-                        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_users,
-                        SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as inactive_users,
-                        SUM(CASE WHEN status = 'suspended' THEN 1 ELSE 0 END) as suspended_users,
-                        SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today_signups,
-                        SUM(CASE WHEN DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as week_signups,
-                        SUM(CASE WHEN DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as month_signups
-                    FROM users";
-
-            $stmt = $this->userModel->query($sql);
-            $stats = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-            // Get active users in last 24 hours
-            $activeSql = "SELECT COUNT(DISTINCT user_id) as active_24h 
-                          FROM user_logins 
-                          WHERE last_login_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)";
-            $activeStmt = $this->userModel->query($activeSql);
-            $activeResult = $activeStmt->fetch(\PDO::FETCH_ASSOC);
-            $stats['active_24h'] = $activeResult['active_24h'];
+            $stats = $this->userModel->getAdminStatistics();
 
             return $this->json([
                 'success' => true,
@@ -270,10 +215,12 @@ class AdminUserController extends BaseController
 
             if ($success) {
                 // Log the action
-                $this->logAdminAction('role_change', $userId, [
-                    'new_role' => $data['user_type'],
-                    'admin_id' => $_SESSION['user_id']
-                ]);
+                $this->userModel->logAdminAction(
+                    $_SESSION['user_id'],
+                    'role_change',
+                    $userId,
+                    ['new_role' => $data['user_type']]
+                );
 
                 return $this->json([
                     'success' => true,
@@ -330,11 +277,15 @@ class AdminUserController extends BaseController
 
             if ($success) {
                 // Log the action
-                $this->logAdminAction('status_change', $userId, [
-                    'new_status' => $data['status'],
-                    'reason' => $data['reason'] ?? null,
-                    'admin_id' => $_SESSION['user_id']
-                ]);
+                $this->userModel->logAdminAction(
+                    $_SESSION['user_id'],
+                    'status_change',
+                    $userId,
+                    [
+                        'new_status' => $data['status'],
+                        'reason' => $data['reason'] ?? null
+                    ]
+                );
 
                 return $this->json([
                     'success' => true,
@@ -379,9 +330,12 @@ class AdminUserController extends BaseController
 
             if ($success) {
                 // Log the action
-                $this->logAdminAction('user_delete', $userId, [
-                    'admin_id' => $_SESSION['user_id']
-                ]);
+                $this->userModel->logAdminAction(
+                    $_SESSION['user_id'],
+                    'user_delete',
+                    $userId,
+                    []
+                );
 
                 return $this->json([
                     'success' => true,
@@ -429,9 +383,12 @@ class AdminUserController extends BaseController
 
             if ($success) {
                 // Log the action
-                $this->logAdminAction('password_reset', $userId, [
-                    'admin_id' => $_SESSION['user_id']
-                ]);
+                $this->userModel->logAdminAction(
+                    $_SESSION['user_id'],
+                    'password_reset',
+                    $userId,
+                    []
+                );
 
                 return $this->json([
                     'success' => true,
@@ -447,27 +404,6 @@ class AdminUserController extends BaseController
                 'message' => 'Failed to reset password',
                 'error' => $e->getMessage()
             ], 500);
-        }
-    }
-
-    /**
-     * Log admin action
-     */
-    private function logAdminAction(string $action, int $targetUserId, array $data = []): void
-    {
-        try {
-            $sql = "INSERT INTO admin_logs (admin_id, action_type, target_user_id, action_data, created_at) 
-                    VALUES (?, ?, ?, ?, NOW())";
-            
-            $this->userModel->query($sql, [
-                $data['admin_id'] ?? $_SESSION['user_id'],
-                $action,
-                $targetUserId,
-                json_encode($data)
-            ]);
-        } catch (\Exception $e) {
-            // Log error but don't fail the main action
-            error_log("Failed to log admin action: " . $e->getMessage());
         }
     }
 }

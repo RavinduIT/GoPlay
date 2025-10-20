@@ -39,12 +39,10 @@ class User extends BaseModel
      */
     public function getByEmail(string $email): ?array
     {
-        // For authentication, we need the password_hash, so query directly
         $sql = "SELECT * FROM {$this->table} WHERE email = ?";
         $statement = $this->query($sql, [$email]);
         $user = $statement->fetch(\PDO::FETCH_ASSOC);
         
-        // Don't apply castAttributes here as it would hide password_hash
         return $user ?: null;
     }
 
@@ -86,7 +84,6 @@ class User extends BaseModel
     public function recordLogin(int $userId, string $ipAddress = null, string $userAgent = null): bool
     {
         try {
-            // Insert login record
             $sql = "INSERT INTO user_logins (user_id, last_login_at, last_login_ip, user_agent) 
                     VALUES (?, NOW(), ?, ?)";
             
@@ -104,40 +101,165 @@ class User extends BaseModel
     }
 
     /**
-     * Get user's last login
+     * Log user activity
      */
-    public function getLastLogin(int $userId): ?array
+    public function logActivity(int $userId, string $activityType, string $description = '', string $ipAddress = null): bool
     {
         try {
-            $sql = "SELECT * FROM user_logins WHERE user_id = ? ORDER BY last_login_at DESC LIMIT 1";
-            $stmt = $this->query($sql, [$userId]);
-            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+            $sql = "INSERT INTO user_activity_log (user_id, activity_type, activity_description, ip_address, created_at) 
+                    VALUES (?, ?, ?, ?, NOW())";
+            
+            $this->query($sql, [
+                $userId,
+                $activityType,
+                $description,
+                $ipAddress ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+            ]);
+
+            return true;
         } catch (\Exception $e) {
-            error_log("Failed to get last login: " . $e->getMessage());
-            return null;
+            error_log("Failed to log activity: " . $e->getMessage());
+            return false;
         }
     }
 
     /**
-     * Get user's login history
+     * Log admin action
      */
-    public function getLoginHistory(int $userId, int $limit = 10): array
+    public function logAdminAction(int $adminId, string $actionType, ?int $targetUserId, array $data = []): bool
     {
         try {
-            $sql = "SELECT * FROM user_logins 
-                    WHERE user_id = ? 
-                    ORDER BY last_login_at DESC 
-                    LIMIT ?";
-            $stmt = $this->query($sql, [$userId, $limit]);
-            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $sql = "INSERT INTO admin_logs (admin_id, action_type, target_user_id, action_data, ip_address, created_at) 
+                    VALUES (?, ?, ?, ?, ?, NOW())";
+            
+            $this->query($sql, [
+                $adminId,
+                $actionType,
+                $targetUserId,
+                json_encode($data),
+                $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+            ]);
+
+            return true;
         } catch (\Exception $e) {
-            error_log("Failed to get login history: " . $e->getMessage());
-            return [];
+            error_log("Failed to log admin action: " . $e->getMessage());
+            return false;
         }
     }
 
     /**
-     * Get user details with extended info (for admin)
+     * Get users with filters and pagination
+     */
+    public function getUsersWithFilters(array $filters, int $limit = 20, int $offset = 0): array
+    {
+        $where = [];
+        $params = [];
+
+        if (!empty($filters['search'])) {
+            $where[] = "(username LIKE ? OR email LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR phone LIKE ?)";
+            $searchParam = "%{$filters['search']}%";
+            $params = array_merge($params, [$searchParam, $searchParam, $searchParam, $searchParam, $searchParam]);
+        }
+
+        if (!empty($filters['user_type'])) {
+            $where[] = "user_type = ?";
+            $params[] = $filters['user_type'];
+        }
+
+        if (!empty($filters['status'])) {
+            $where[] = "status = ?";
+            $params[] = $filters['status'];
+        }
+
+        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortOrder = $filters['sort_order'] ?? 'DESC';
+
+        $sql = "SELECT u.*, 
+                       ul.last_login_at,
+                       ul.last_login_ip,
+                       (SELECT COUNT(*) FROM coach_bookings WHERE user_id = u.id) as booking_count,
+                       (SELECT COUNT(*) FROM orders WHERE user_id = u.id) as order_count
+                FROM users u
+                LEFT JOIN user_logins ul ON u.id = ul.user_id AND ul.id = (
+                    SELECT id FROM user_logins WHERE user_id = u.id ORDER BY last_login_at DESC LIMIT 1
+                )
+                {$whereClause}
+                ORDER BY {$sortBy} {$sortOrder}
+                LIMIT {$limit} OFFSET {$offset}";
+
+        $stmt = $this->query($sql, $params);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get total users count with filters
+     */
+    public function getUsersCount(array $filters): int
+    {
+        $where = [];
+        $params = [];
+
+        if (!empty($filters['search'])) {
+            $where[] = "(username LIKE ? OR email LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR phone LIKE ?)";
+            $searchParam = "%{$filters['search']}%";
+            $params = array_merge($params, [$searchParam, $searchParam, $searchParam, $searchParam, $searchParam]);
+        }
+
+        if (!empty($filters['user_type'])) {
+            $where[] = "user_type = ?";
+            $params[] = $filters['user_type'];
+        }
+
+        if (!empty($filters['status'])) {
+            $where[] = "status = ?";
+            $params[] = $filters['status'];
+        }
+
+        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        $sql = "SELECT COUNT(*) as total FROM users {$whereClause}";
+        
+        $stmt = $this->query($sql, $params);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return (int)($result['total'] ?? 0);
+    }
+
+    /**
+     * Get user statistics for admin dashboard
+     */
+    public function getAdminStatistics(): array
+    {
+        $sql = "SELECT 
+                    COUNT(*) as total_users,
+                    SUM(CASE WHEN user_type = 'user' THEN 1 ELSE 0 END) as regular_users,
+                    SUM(CASE WHEN user_type = 'coach' THEN 1 ELSE 0 END) as coaches,
+                    SUM(CASE WHEN user_type = 'ground_owner' THEN 1 ELSE 0 END) as ground_owners,
+                    SUM(CASE WHEN user_type = 'shop_owner' THEN 1 ELSE 0 END) as shop_owners,
+                    SUM(CASE WHEN user_type = 'admin' THEN 1 ELSE 0 END) as admins,
+                    SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_users,
+                    SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as inactive_users,
+                    SUM(CASE WHEN status = 'suspended' THEN 1 ELSE 0 END) as suspended_users,
+                    SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today_signups,
+                    SUM(CASE WHEN DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as week_signups,
+                    SUM(CASE WHEN DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as month_signups
+                FROM users";
+
+        $stmt = $this->query($sql);
+        $stats = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        // Get active users in last 24 hours
+        $activeSql = "SELECT COUNT(DISTINCT user_id) as active_24h 
+                      FROM user_logins 
+                      WHERE last_login_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)";
+        $activeStmt = $this->query($activeSql);
+        $activeResult = $activeStmt->fetch(\PDO::FETCH_ASSOC);
+        $stats['active_24h'] = $activeResult['active_24h'] ?? 0;
+
+        return $stats;
+    }
+
+    /**
+     * Get user details with extended info
      */
     public function getUserDetails(int $userId): ?array
     {
@@ -172,12 +294,26 @@ class User extends BaseModel
     }
 
     /**
-     * Get user's bookings
+     * Get user's last login
      */
-    public function getBookings(int $userId, ?string $type = null): array
+    public function getLastLogin(int $userId): ?array
     {
         try {
-            // Check both coach_bookings and facility_bookings tables
+            $sql = "SELECT * FROM user_logins WHERE user_id = ? ORDER BY last_login_at DESC LIMIT 1";
+            $stmt = $this->query($sql, [$userId]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            error_log("Failed to get last login: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Get user's bookings
+     */
+    public function getBookings(int $userId): array
+    {
+        try {
             $bookings = [];
             
             // Get coach bookings
@@ -208,9 +344,9 @@ class User extends BaseModel
             $facilityBookings = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $bookings = array_merge($bookings, $facilityBookings);
 
-            // Sort all bookings by date
             usort($bookings, function($a, $b) {
-                return strtotime($b['booking_date'] . ' ' . $b['start_time']) - strtotime($a['booking_date'] . ' ' . $a['start_time']);
+                return strtotime($b['booking_date'] . ' ' . $b['start_time']) - 
+                       strtotime($a['booking_date'] . ' ' . $a['start_time']);
             });
 
             return $bookings;
@@ -257,35 +393,21 @@ class User extends BaseModel
         ];
         
         try {
-            // Count coach bookings
-            $sql = "SELECT COUNT(*) as count FROM coach_bookings WHERE user_id = ?";
-            $statement = $this->query($sql, [$userId]);
-            $result = $statement->fetch(\PDO::FETCH_ASSOC);
-            $coachBookings = $result['count'] ?? 0;
+            $sql = "SELECT 
+                        (SELECT COUNT(*) FROM coach_bookings WHERE user_id = ?) as coach_bookings,
+                        (SELECT COUNT(*) FROM facility_bookings WHERE user_id = ?) as facility_bookings,
+                        (SELECT COUNT(*) FROM orders WHERE user_id = ?) as total_orders,
+                        (SELECT SUM(total_amount) FROM orders WHERE user_id = ? AND status IN ('completed', 'delivered')) as total_spent";
             
-            // Count facility bookings
-            $sql = "SELECT COUNT(*) as count FROM facility_bookings WHERE user_id = ?";
-            $statement = $this->query($sql, [$userId]);
+            $statement = $this->query($sql, [$userId, $userId, $userId, $userId]);
             $result = $statement->fetch(\PDO::FETCH_ASSOC);
-            $facilityBookings = $result['count'] ?? 0;
             
-            $stats['total_bookings'] = $coachBookings + $facilityBookings;
-            
-            // Count orders
-            $sql = "SELECT COUNT(*) as count FROM orders WHERE user_id = ?";
-            $statement = $this->query($sql, [$userId]);
-            $result = $statement->fetch(\PDO::FETCH_ASSOC);
-            $stats['total_orders'] = $result['count'] ?? 0;
-            
-            // Sum total spent
-            $sql = "SELECT SUM(total_amount) as total FROM orders WHERE user_id = ? AND status IN ('completed', 'delivered')";
-            $statement = $this->query($sql, [$userId]);
-            $result = $statement->fetch(\PDO::FETCH_ASSOC);
-            $stats['total_spent'] = floatval($result['total'] ?? 0);
+            $stats['total_bookings'] = ($result['coach_bookings'] ?? 0) + ($result['facility_bookings'] ?? 0);
+            $stats['total_orders'] = $result['total_orders'] ?? 0;
+            $stats['total_spent'] = floatval($result['total_spent'] ?? 0);
             
         } catch (\Exception $e) {
             error_log("Statistics query failed for user {$userId}: " . $e->getMessage());
-            // Return default values on error
         }
         
         return $stats;

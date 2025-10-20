@@ -25,6 +25,34 @@
     <!-- Statistics Cards -->
     <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="totalUsers">-</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="totalUsersChange">-</span> this month
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Active Users</div>
+                <div class="stat-value" id="activeUsers">-</div>
+                <div class="stat-change">
+                    <i class="fas fa-circle"></i>
+                    <span id="active24h">-</span> active today
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
             <div class="stat-icon purple">
                 <i class="fas fa-user-plus"></i>
             </div>
@@ -300,32 +328,5 @@
     </div>
 </div>
 
-<script src="/public/js/pages/admin-users.js"></script>-card">
-            <div class="stat-icon blue">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-label">Total Users</div>
-                <div class="stat-value" id="totalUsers">-</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-arrow-up"></i>
-                    <span id="totalUsersChange">-</span> this month
-                </div>
-            </div>
-        </div>
 
-        <div class="stat-card">
-            <div class="stat-icon green">
-                <i class="fas fa-user-check"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-label">Active Users</div>
-                <div class="stat-value" id="activeUsers">-</div>
-                <div class="stat-change">
-                    <i class="fas fa-circle"></i>
-                    <span id="active24h">-</span> active today
-                </div>
-            </div>
-        </div>
-
-        <div class="stat
+<script src="/public/js/pages/admin-users.js"></script>
