@@ -181,9 +181,8 @@ class AuthController extends BaseController
             }
 
             // Check if username already exists
-            $sql = "SELECT id FROM users WHERE username = ?";
-            $stmt = $this->userModel->query($sql, [$data['username']]);
-            if ($stmt->fetch()) {
+            $existingUsername = $this->userModel->where(['username' => $data['username']]);
+            if (!empty($existingUsername)) {
                 return $this->json([
                     'success' => false,
                     'message' => 'Username already taken'
@@ -253,28 +252,39 @@ class AuthController extends BaseController
     }
 
     /**
-     * Handle logout
+     * Handle logout - FIXED VERSION
      */
     public function logout(Request $request): Response
     {
         $this->startSession();
         
-        // Log the logout activity
+        // Log the logout activity before destroying session
         if (isset($_SESSION['user_id'])) {
             try {
-                $sql = "INSERT INTO user_activity_log (user_id, activity_type, activity_description, ip_address) 
-                        VALUES (?, 'logout', 'User logged out', ?)";
-                $this->userModel->query($sql, [
+                $this->userModel->logActivity(
                     $_SESSION['user_id'],
+                    'logout',
+                    'User logged out',
                     $_SERVER['REMOTE_ADDR'] ?? 'unknown'
-                ]);
+                );
             } catch (\Exception $e) {
                 error_log("Failed to log logout: " . $e->getMessage());
             }
         }
 
-        // Clear session
+        // Properly clear and destroy session
+        $_SESSION = array(); // Clear all session variables
+        
+        // Delete session cookie if it exists
+        if (isset($_COOKIE[session_name()])) {
+            setcookie(session_name(), '', time() - 3600, '/');
+        }
+        
+        // Destroy the session
         session_destroy();
+        
+        // Start a new clean session to avoid issues
+        session_start();
 
         // Handle both GET and POST requests
         if ($request->getMethod() === 'POST') {
@@ -284,7 +294,9 @@ class AuthController extends BaseController
                 'redirect' => '/login'
             ]);
         } else {
-            return $this->redirect('/login');
+            // For GET requests, redirect directly
+            header('Location: /login');
+            exit();
         }
     }
 

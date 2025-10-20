@@ -28,13 +28,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/admin/bookings">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Bookings</span>
-                        <span class="badge">1,247</span>
-                    </a>
-                </li>
-                <li>
                     <a href="/admin/grounds">
                         <i class="fas fa-map-marker-alt"></i>
                         <span>Grounds</span>
@@ -53,13 +46,6 @@
                         <i class="fas fa-store"></i>
                         <span>Shop</span>
                         <span class="badge">156</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/admin/orders">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>Orders</span>
-                        <span class="badge new">12</span>
                     </a>
                 </li>
                 <li>
