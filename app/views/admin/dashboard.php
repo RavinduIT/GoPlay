@@ -63,6 +63,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="/admin/news">
+                        <i class="fas fa-newspaper"></i>
+                        <span>Manage News</span>
+                    </a>
+                </li>
+                <li>
                     <a href="/admin/payments">
                         <i class="fas fa-credit-card"></i>
                         <span>Payments</span>
@@ -297,3 +303,4 @@
         </div>
     </main>
 </div>
+<script src="/public/js/pages/admin-dashboard.js"></script>

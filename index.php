@@ -237,6 +237,14 @@ $router->get('/news/{slug}', 'NewsController@show'); // This is the missing rout
     // LOGOUT ROUTE FIX - Make sure this exists (should already be there)
     $router->post('/auth/logout', 'AuthController@logout');
     $router->get('/logout', 'AuthController@logout'); // Add GET version as fallback
+
+    // Admin News Management Routes
+$router->get('/admin/news', 'Admin\AdminNewsController@index');
+$router->get('/admin/news/create', 'Admin\AdminNewsController@create');
+$router->post('/admin/news/store', 'Admin\AdminNewsController@store');
+$router->get('/admin/news/edit/{id}', 'Admin\AdminNewsController@edit');
+$router->post('/admin/news/update/{id}', 'Admin\AdminNewsController@update');
+$router->delete('/admin/news/delete/{id}', 'Admin\AdminNewsController@delete');
     
     /* Debug routes
     $router->get('/debug', function() {
