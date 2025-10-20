@@ -573,6 +573,13 @@ $additionalJS = [];
                             <option value="3-5">3-5 Years</option>
                             <option value="5+">5+ Years</option>
                         </select>
+                        <select id="age-filter" class="filter-select">
+                            <option value="">Any Age</option>
+                            <option value="20-30">20-30 Years</option>
+                            <option value="30-40">30-40 Years</option>
+                            <option value="40-50">40-50 Years</option>
+                            <option value="50+">50+ Years (Senior Coaches)</option>
+                        </select>
                         <select id="price-filter" class="filter-select">
                             <option value="">Any Price</option>
                             <option value="0-2000">LKR 0 - 2,000</option>
@@ -655,17 +662,22 @@ $additionalJS = [];
         async function loadCoaches(params = {}) {
             try {
                 showLoading();
-                
+
                 // Build query string
                 const queryParams = new URLSearchParams();
                 if (params.search) queryParams.set('search', params.search);
                 if (params.sport) queryParams.set('sport', params.sport);
                 if (params.experience) queryParams.set('experience', params.experience);
+                if (params.age) queryParams.set('age', params.age);
                 if (params.price) queryParams.set('price', params.price);
                 if (params.sort) queryParams.set('sort', params.sort);
-                
-                const response = await fetch(`/api/coaches?${queryParams.toString()}`);
+
+                const apiUrl = `/api/coaches?${queryParams.toString()}`;
+                console.log('Fetching coaches from:', apiUrl);
+
+                const response = await fetch(apiUrl);
                 const data = await response.json();
+                console.log('Received coaches:', data);
                 
                 if (data.success) {
                     allCoaches = data.coaches;
@@ -858,6 +870,7 @@ $additionalJS = [];
             document.getElementById('search-coaches').value = '';
             document.getElementById('sport-filter').value = '';
             document.getElementById('experience-filter').value = '';
+            document.getElementById('age-filter').value = '';
             document.getElementById('price-filter').value = '';
             document.querySelector('.sort-select').value = 'rating';
             loadCoaches();
@@ -868,16 +881,19 @@ $additionalJS = [];
             const searchQuery = document.getElementById('search-coaches').value;
             const sport = document.getElementById('sport-filter').value;
             const experience = document.getElementById('experience-filter').value;
+            const age = document.getElementById('age-filter').value;
             const price = document.getElementById('price-filter').value;
             const sort = document.querySelector('.sort-select').value;
-            
+
             const params = {};
             if (searchQuery) params.search = searchQuery;
             if (sport) params.sport = sport;
             if (experience) params.experience = experience;
+            if (age) params.age = age;
             if (price) params.price = price;
             if (sort) params.sort = sort;
-            
+
+            console.log('Searching coaches with filters:', params);
             loadCoaches(params);
         }
 
@@ -906,9 +922,10 @@ $additionalJS = [];
             const searchInput = document.getElementById('search-coaches');
             const sportFilter = document.getElementById('sport-filter');
             const experienceFilter = document.getElementById('experience-filter');
+            const ageFilter = document.getElementById('age-filter');
             const priceFilter = document.getElementById('price-filter');
             const sortSelect = document.querySelector('.sort-select');
-            
+
             // Search button click
             if (searchBtn) {
                 searchBtn.addEventListener('click', searchCoaches);
@@ -924,7 +941,7 @@ $additionalJS = [];
             }
             
             // Filter changes
-            [sportFilter, experienceFilter, priceFilter, sortSelect].forEach(element => {
+            [sportFilter, experienceFilter, ageFilter, priceFilter, sortSelect].forEach(element => {
                 if (element) {
                     element.addEventListener('change', searchCoaches);
                 }

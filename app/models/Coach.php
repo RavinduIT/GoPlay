@@ -17,6 +17,8 @@ class Coach extends BaseModel
         'user_id',
         'sport_category_id',
         'experience_years',
+        'age',
+        'date_of_birth',
         'hourly_rate',
         'bio',
         'specializations',
@@ -31,6 +33,7 @@ class Coach extends BaseModel
 
     protected array $casts = [
         'experience_years' => 'int',
+        'age' => 'int',
         'hourly_rate' => 'float',
         'availability_schedule' => 'array',
         'rating' => 'float',
@@ -152,7 +155,19 @@ class Coach extends BaseModel
                 $sql .= " AND c.experience_years >= 5";
             }
         }
-        
+
+        if (isset($filters['age']) && !empty($filters['age'])) {
+            if ($filters['age'] === '20-30') {
+                $sql .= " AND c.age BETWEEN 20 AND 30";
+            } elseif ($filters['age'] === '30-40') {
+                $sql .= " AND c.age BETWEEN 30 AND 40";
+            } elseif ($filters['age'] === '40-50') {
+                $sql .= " AND c.age BETWEEN 40 AND 50";
+            } elseif ($filters['age'] === '50+') {
+                $sql .= " AND c.age >= 50";
+            }
+        }
+
         if (isset($filters['price']) && !empty($filters['price'])) {
             if ($filters['price'] === '0-2000') {
                 $sql .= " AND c.hourly_rate BETWEEN 0 AND 2000";
