@@ -507,9 +507,10 @@ class CoachController extends BaseController
             $searchQuery = $request->getQuery('search') ?? '';
             $sport = $request->getQuery('sport') ?? '';
             $experience = $request->getQuery('experience') ?? '';
+            $age = $request->getQuery('age') ?? '';
             $price = $request->getQuery('price') ?? '';
             $sortBy = $request->getQuery('sort') ?? 'rating';
-            
+
             // Prepare filters
             $filters = [];
             if (!empty($sport)) {
@@ -517,6 +518,9 @@ class CoachController extends BaseController
             }
             if (!empty($experience)) {
                 $filters['experience'] = $experience;
+            }
+            if (!empty($age)) {
+                $filters['age'] = $age;
             }
             if (!empty($price)) {
                 $filters['price'] = $price;
@@ -537,6 +541,7 @@ class CoachController extends BaseController
                     'name' => $coach['first_name'] . ' ' . $coach['last_name'],
                     'sport' => $coach['sport_name'] ?? 'General',
                     'experience' => $coach['experience_years'] . ' years',
+                    'age' => $coach['age'] ?? null,
                     'rating' => round($coach['rating'], 1),
                     'reviews' => $coach['total_reviews'],
                     'price' => $coach['hourly_rate'],
@@ -646,4 +651,3 @@ class CoachController extends BaseController
             ], 500);
         }
     }
-}
