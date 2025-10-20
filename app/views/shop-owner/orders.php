@@ -127,7 +127,7 @@ $title = 'Orders - GoPlay';
   gap: 8px;
 }
 .btn-view {
-  background: #02ad1cff;
+  background: #2563eb;
   color: #fff;
   border: none;
   padding: 8px 14px;
@@ -185,7 +185,7 @@ $title = 'Orders - GoPlay';
   padding: .55rem .9rem;
   border: none;
   border-radius: 6px;
-  background: #0fa930ff;
+  background: #2563eb;
   color: white;
   cursor: pointer;
 }
