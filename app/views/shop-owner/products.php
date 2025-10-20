@@ -81,9 +81,9 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
   background: #1e293b;
   color: white;
   position: fixed;
-  top:0;
-  left:0;
-  bottom:0;
+  top: 70px;
+  left: 0;
+  height: calc(100vh - 70px);
 }
 
 .dashboard-content {
