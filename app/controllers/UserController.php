@@ -365,7 +365,7 @@ class UserController extends BaseController
     /**
      * My orders page  
      */
-    public function myOrders(Request $request): Response
+    public function myOrderss(Request $request): Response
     {
         $session = $this->requireAuth();
         return $this->view('user/orders', [
