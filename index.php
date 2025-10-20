@@ -67,6 +67,7 @@ try {
     
     // Coach page routes
     $router->get('/coach/profile', 'CoachController@profilePage');
+    $router->get('/coach/view', 'CoachController@publicProfile');
     $router->get('/coach/sessions', 'CoachController@sessionsPage');
     $router->get('/coach/clients', 'CoachController@clientsPage');
     $router->get('/coach/programs', 'CoachController@programsPage');
