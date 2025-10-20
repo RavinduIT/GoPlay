@@ -6,8 +6,9 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
 ?>
 
 <div class="shop-owner-dashboard">
+    <?php include 'sidebar.php'; ?>
     <!-- Sidebar -->
-    <aside class="dashboard-sidebar" id="dashboardSidebar">
+    <!--<aside class="dashboard-sidebar" id="dashboardSidebar">
         <div class="sidebar-header">
             <div class="logo">
                 <i class="fas fa-store"></i>
@@ -82,7 +83,7 @@ $additionalJS = ['/public/js/pages/shop-owner-dashboard.js'];
                 </li>
             </ul>
         </nav>
-    </aside>
+    </aside>-->
 
     <!-- Main Content -->
     <main class="dashboard-main">
