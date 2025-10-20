@@ -38,504 +38,778 @@
             margin-bottom: 0.5rem;
         }
 
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+    .page-header-section p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .stat-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-card .number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card .label {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Tab Navigation */
+    .tabs-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+
+    .tabs-nav {
+        display: flex;
+        background: var(--background-light);
+        border-bottom: 2px solid var(--border-color);
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    .tab-button {
+        flex: 1;
+        padding: 1.25rem 2rem;
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .tab-button:hover {
+        background: rgba(37, 99, 235, 0.05);
+        color: var(--primary-color);
+    }
+
+    .tab-button.active {
+        background: white;
+        color: var(--primary-color);
+    }
+
+    .tab-button.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary-color);
+    }
+
+    .tab-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .tab-button:not(.active) .tab-badge {
+        background: var(--text-secondary);
+    }
+
+    /* Tab Content */
+    .tab-content {
+        display: none;
+        padding: 2rem;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Booking Cards */
+    .bookings-grid {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .booking-card {
+        background: var(--background-light);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .booking-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: var(--primary-color);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .booking-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .booking-card:hover::before {
+        opacity: 1;
+    }
+
+    .booking-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1.25rem;
+        gap: 1rem;
+    }
+
+    .booking-title {
+        flex: 1;
+    }
+
+    .booking-title h3 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .booking-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: capitalize;
+        white-space: nowrap;
+    }
+
+    .status-badge.confirmed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-badge.completed {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-badge.cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .booking-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: white;
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+
+    .detail-item i {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        width: 24px;
+        text-align: center;
+    }
+
+    .detail-item strong {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        display: block;
+        font-weight: 600;
+    }
+
+    .detail-item span {
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+
+    .booking-amount {
+        background: linear-gradient(135deg, var(--success-color), #047857);
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .booking-amount .label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-bottom: 0.25rem;
+    }
+
+    .booking-amount .amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .special-requests {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        border-left: 3px solid var(--primary-color);
+    }
+
+    .special-requests strong {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .booking-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-cancel {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #b91c1c;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    .btn-view {
+        background: var(--text-secondary);
+        color: white;
+    }
+
+    .btn-view:hover {
+        background: #4b5563;
+        transform: translateY(-2px);
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Loading & Empty States */
+    .loading-state, .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary);
+    }
+
+    .loading-state i {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: var(--border-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-container {
+            padding: 0 1rem;
         }
 
-        .stats-section {
-            padding: 2rem 0;
+        .page-header-section h1 {
+            font-size: 2rem;
         }
 
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: 1fr;
         }
 
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.3s ease;
+        .tabs-nav {
+            flex-direction: column;
         }
 
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .stat-card .icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: #667eea;
-        }
-
-        .stat-card .number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card .label {
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        .bookings-section {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .section-header {
-            padding: 1.5rem;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            color: #333;
-            margin: 0;
-        }
-
-        .new-booking-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .new-booking-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .bookings-list {
-            padding: 1.5rem;
-        }
-
-        .booking-card {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .booking-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-color: #667eea;
-        }
-
-        .booking-header {
-            display: flex;
-            justify-content: between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-
-        .booking-info {
-            flex: 1;
-        }
-
-        .facility-name {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 0.5rem;
+        .tab-button {
+            padding: 1rem;
         }
 
         .booking-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
+            grid-template-columns: 1fr;
         }
 
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .detail-item i {
-            color: #667eea;
-            width: 20px;
-        }
-
-        .status {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            text-transform: capitalize;
-        }
-
-        .status.confirmed {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .status.pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .status.completed {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .status.cancelled {
-            background-color: #f8d7da;
-            color: #721c24;
+        .booking-header {
+            flex-direction: column;
         }
 
         .booking-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
+            flex-direction: column;
         }
 
         .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
+            width: 100%;
+            justify-content: center;
         }
+    }
+</style>
 
-        .btn-cancel {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .btn-cancel:hover {
-            background-color: #c82333;
-        }
-
-        .btn-view {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .btn-view:hover {
-            background-color: #5a6268;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 3rem;
-            font-size: 1.1rem;
-            color: #666;
-        }
-
-        .no-bookings {
-            text-align: center;
-            padding: 3rem;
-            color: #666;
-        }
-
-        .no-bookings i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        .special-requests {
-            background-color: #f8f9fa;
-            padding: 1rem;
-            border-radius: 6px;
-            margin-top: 1rem;
-            font-style: italic;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .section-header {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: stretch;
-            }
-
-            .booking-details {
-                grid-template-columns: 1fr;
-            }
-
-            .booking-actions {
-                flex-direction: column;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="container">
-            <h1><i class="fas fa-calendar-check"></i> My Ground Bookings</h1>
-            <p>Manage your sports ground reservations</p>
+<div class="bookings-page">
+    <div class="page-container">
+        <!-- Page Header -->
+        <div class="page-header-section">
+            <h1><i class="fas fa-calendar-check"></i> My Bookings</h1>
+            <p>Manage your sports ground and coaching session bookings</p>
         </div>
-    </div>
 
-    <div class="container">
-        <div class="stats-section">
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="icon"><i class="fas fa-calendar-alt"></i></div>
-                    <div class="number" id="totalBookings">-</div>
-                    <div class="label">Total Bookings</div>
-                </div>
-                <div class="stat-card">
-                    <div class="icon"><i class="fas fa-clock"></i></div>
-                    <div class="number" id="upcomingBookings">-</div>
-                    <div class="label">Upcoming</div>
-                </div>
-                <div class="stat-card">
-                    <div class="icon"><i class="fas fa-check-circle"></i></div>
-                    <div class="number" id="completedBookings">-</div>
-                    <div class="label">Completed</div>
-                </div>
-                <div class="stat-card">
-                    <div class="icon"><i class="fas fa-times-circle"></i></div>
-                    <div class="number" id="cancelledBookings">-</div>
-                    <div class="label">Cancelled</div>
-                </div>
+        <!-- Stats Section -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+                <div class="number" id="totalBookings">0</div>
+                <div class="label">Total Bookings</div>
             </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-clock"></i></div>
+                <div class="number" id="upcomingBookings">0</div>
+                <div class="label">Upcoming</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-check-circle"></i></div>
+                <div class="number" id="completedBookings">0</div>
+                <div class="label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-dollar-sign"></i></div>
+                <div class="number" id="totalSpent">LKR 0</div>
+                <div class="label">Total Spent</div>
+            </div>
+        </div>
 
-            <div class="bookings-section">
-                <div class="section-header">
-                    <h2 class="section-title">Your Bookings</h2>
-                    <a href="/book-ground" class="new-booking-btn">
-                        <i class="fas fa-plus"></i> Book New Ground
+        <!-- Tabs Container -->
+        <div class="tabs-container">
+            <ul class="tabs-nav">
+                <li>
+                    <button class="tab-button active" onclick="switchTab('grounds')" id="groundsTab">
+                        <i class="fas fa-futbol"></i>
+                        Ground Bookings
+                        <span class="tab-badge" id="groundsCount">0</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="tab-button" onclick="switchTab('coaches')" id="coachesTab">
+                        <i class="fas fa-user-tie"></i>
+                        Coach Sessions
+                        <span class="tab-badge" id="coachesCount">0</span>
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Ground Bookings Tab -->
+            <div id="groundsContent" class="tab-content active">
+                <div id="groundsLoading" class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading ground bookings...</p>
+                </div>
+                <div id="groundsList" class="bookings-grid" style="display: none;"></div>
+                <div id="groundsEmpty" class="empty-state" style="display: none;">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No ground bookings yet</h3>
+                    <p>You haven't booked any sports grounds yet</p>
+                    <a href="/book-ground" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Book Your First Ground
                     </a>
                 </div>
+            </div>
 
-                <div class="bookings-list">
-                    <div id="loadingMessage" class="loading">
-                        <i class="fas fa-spinner fa-spin"></i> Loading your bookings...
-                    </div>
-
-                    <div id="bookingsList" style="display: none;"></div>
-
-                    <div id="noBookings" class="no-bookings" style="display: none;">
-                        <i class="fas fa-calendar-times"></i>
-                        <h3>No bookings yet</h3>
-                        <p>You haven't made any ground bookings yet. Book your first ground to get started!</p>
-                        <a href="/book-ground" class="new-booking-btn" style="margin-top: 1rem;">
-                            <i class="fas fa-plus"></i> Book Your First Ground
-                        </a>
-                    </div>
+            <!-- Coach Sessions Tab -->
+            <div id="coachesContent" class="tab-content">
+                <div id="coachesLoading" class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading coach sessions...</p>
+                </div>
+                <div id="coachesList" class="bookings-grid" style="display: none;"></div>
+                <div id="coachesEmpty" class="empty-state" style="display: none;">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No coach sessions yet</h3>
+                    <p>You haven't booked any coaching sessions yet</p>
+                    <a href="/book-coach" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Book Your First Session
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        class UserBookingDashboard {
-            constructor() {
-                this.bookings = [];
-                this.stats = {};
-                this.init();
-            }
+<script>
+    class MyBookingsDashboard {
+        constructor() {
+            this.groundBookings = [];
+            this.coachBookings = [];
+            this.init();
+        }
 
-            async init() {
-                await this.loadBookings();
-                this.renderStats();
-                this.renderBookings();
-            }
+        async init() {
+            await Promise.all([
+                this.loadGroundBookings(),
+                this.loadCoachBookings()
+            ]);
+            this.updateStats();
+            this.renderGroundBookings();
+            this.renderCoachBookings();
+        }
 
-            async loadBookings() {
-                try {
-                    console.log('Loading bookings from API...');
-                    const response = await fetch('/api/user/ground-bookings');
-                    console.log('Response status:', response.status);
-
-                    // Handle authentication errors
-                    if (response.status === 401) {
-                        alert('Please login to view your bookings.');
-                        window.location.href = '/login';
-                        return;
-                    }
-
-                    const data = await response.json();
-                    console.log('API Response:', data);
-
-                    if (data.success) {
-                        this.bookings = data.bookings || [];
-                        this.stats = data.stats || {};
-                        console.log('Loaded bookings:', this.bookings.length);
-                        console.log('Stats:', this.stats);
-                    } else {
-                        console.error('Error loading bookings:', data.message);
-                        if (data.error && data.error === 'Unauthorized') {
-                            alert('Please login to view your bookings.');
-                            window.location.href = '/login';
-                        } else {
-                            alert('Error loading bookings: ' + (data.message || 'Unknown error'));
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error loading bookings:', error);
-                    alert('Failed to load bookings. Please check your internet connection.');
-                }
-            }
-
-            renderStats() {
-                document.getElementById('totalBookings').textContent = this.stats.total_bookings || 0;
-                document.getElementById('upcomingBookings').textContent = this.stats.upcoming_bookings || 0;
-                document.getElementById('completedBookings').textContent = this.stats.completed_bookings || 0;
-                document.getElementById('cancelledBookings').textContent = this.stats.cancelled_bookings || 0;
-            }
-
-            renderBookings() {
-                const loadingMessage = document.getElementById('loadingMessage');
-                const bookingsList = document.getElementById('bookingsList');
-                const noBookings = document.getElementById('noBookings');
-
-                loadingMessage.style.display = 'none';
-
-                if (this.bookings.length === 0) {
-                    noBookings.style.display = 'block';
-                    bookingsList.style.display = 'none';
+        async loadGroundBookings() {
+            try {
+                const response = await fetch('/api/user/ground-bookings');
+                if (response.status === 401) {
+                    window.location.href = '/login';
                     return;
                 }
+                const data = await response.json();
+                if (data.success) {
+                    this.groundBookings = data.bookings || [];
+                }
+            } catch (error) {
+                console.error('Error loading ground bookings:', error);
+            }
+        }
 
-                noBookings.style.display = 'none';
-                bookingsList.style.display = 'block';
+        async loadCoachBookings() {
+            try {
+                const response = await fetch('/api/my-coach-bookings');
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                const data = await response.json();
+                if (data.success) {
+                    this.coachBookings = data.bookings || [];
+                }
+            } catch (error) {
+                console.error('Error loading coach bookings:', error);
+            }
+        }
 
-                bookingsList.innerHTML = this.bookings.map(booking => `
-                    <div class="booking-card">
-                        <div class="booking-header">
-                            <div class="booking-info">
-                                <h3 class="facility-name">${booking.facility_name}</h3>
-                                <span class="status ${booking.status}">${booking.status}</span>
+        updateStats() {
+            const total = this.groundBookings.length + this.coachBookings.length;
+            const upcoming = [...this.groundBookings, ...this.coachBookings].filter(b =>
+                b.status === 'confirmed' || b.status === 'pending'
+            ).length;
+            const completed = [...this.groundBookings, ...this.coachBookings].filter(b =>
+                b.status === 'completed'
+            ).length;
+            const totalSpent = [...this.groundBookings, ...this.coachBookings]
+                .filter(b => b.status !== 'cancelled')
+                .reduce((sum, b) => sum + parseFloat(b.total_amount || 0), 0);
+
+            document.getElementById('totalBookings').textContent = total;
+            document.getElementById('upcomingBookings').textContent = upcoming;
+            document.getElementById('completedBookings').textContent = completed;
+            document.getElementById('totalSpent').textContent = 'LKR ' + totalSpent.toLocaleString();
+            document.getElementById('groundsCount').textContent = this.groundBookings.length;
+            document.getElementById('coachesCount').textContent = this.coachBookings.length;
+        }
+
+        renderGroundBookings() {
+            const loading = document.getElementById('groundsLoading');
+            const list = document.getElementById('groundsList');
+            const empty = document.getElementById('groundsEmpty');
+
+            loading.style.display = 'none';
+
+            if (this.groundBookings.length === 0) {
+                empty.style.display = 'block';
+                list.style.display = 'none';
+                return;
+            }
+
+            empty.style.display = 'none';
+            list.style.display = 'grid';
+
+            list.innerHTML = this.groundBookings.map(booking => `
+                <div class="booking-card">
+                    <div class="booking-header">
+                        <div class="booking-title">
+                            <h3>${booking.facility_name}</h3>
+                            <div class="booking-subtitle">
+                                <i class="fas fa-tag"></i> ${booking.sport_name || 'General Sports'}
                             </div>
                         </div>
+                        <span class="status-badge ${booking.status}">${booking.status}</span>
+                    </div>
 
-                        <div class="booking-details">
-                            <div class="detail-item">
-                                <i class="fas fa-calendar"></i>
-                                <span><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-clock"></i>
-                                <span><strong>Time:</strong> ${booking.start_time} - ${booking.end_time}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-hourglass-half"></i>
-                                <span><strong>Duration:</strong> ${booking.duration_hours} hours</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span><strong>Location:</strong> ${booking.facility_address || 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-tag"></i>
-                                <span><strong>Sport:</strong> ${booking.sport_name || 'General'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-phone"></i>
-                                <span><strong>Owner:</strong> ${booking.owner_phone || 'N/A'}</span>
+                    <div class="booking-details">
+                        <div class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <div>
+                                <strong>Date</strong>
+                                <span>${new Date(booking.booking_date).toLocaleDateString()}</span>
                             </div>
                         </div>
-
-                        ${booking.special_requests ? `
-                            <div class="special-requests">
-                                <strong>Special Requests:</strong> ${booking.special_requests}
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <strong>Time</strong>
+                                <span>${booking.start_time} - ${booking.end_time}</span>
                             </div>
-                        ` : ''}
-
-                        <div class="booking-actions">
-                            ${this.getActionButtons(booking)}
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-hourglass-half"></i>
+                            <div>
+                                <strong>Duration</strong>
+                                <span>${booking.duration_hours} hours</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <strong>Location</strong>
+                                <span>${booking.facility_location || 'N/A'}</span>
+                            </div>
                         </div>
                     </div>
-                `).join('');
-            }
 
-            getActionButtons(booking) {
-                let buttons = '';
+                    ${booking.special_requests ? `
+                        <div class="special-requests">
+                            <strong><i class="fas fa-comment"></i> Special Requests</strong>
+                            <p>${booking.special_requests}</p>
+                        </div>
+                    ` : ''}
 
-                // Show cancel button only for confirmed or pending bookings
-                if (booking.status === 'confirmed' || booking.status === 'pending') {
-                    buttons += `
-                        <button class="btn btn-cancel" onclick="dashboard.cancelBooking(${booking.id})">
-                            <i class="fas fa-times"></i> Cancel Booking
+                    <div class="booking-actions">
+                        ${(booking.status === 'confirmed' || booking.status === 'pending') ? `
+                            <button class="btn btn-cancel" onclick="dashboard.cancelGroundBooking(${booking.id})">
+                                <i class="fas fa-times"></i> Cancel Booking
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-view" onclick="dashboard.viewGroundDetails(${booking.id})">
+                            <i class="fas fa-eye"></i> View Details
                         </button>
-                    `;
-                }
+                    </div>
+                </div>
+            `).join('');
+        }
 
-                buttons += `
-                    <button class="btn btn-view" onclick="dashboard.viewBookingDetails(${booking.id})">
-                        <i class="fas fa-eye"></i> View Details
-                    </button>
-                `;
+        renderCoachBookings() {
+            const loading = document.getElementById('coachesLoading');
+            const list = document.getElementById('coachesList');
+            const empty = document.getElementById('coachesEmpty');
 
-                return buttons;
+            loading.style.display = 'none';
+
+            if (this.coachBookings.length === 0) {
+                empty.style.display = 'block';
+                list.style.display = 'none';
+                return;
             }
 
-            async cancelBooking(bookingId) {
-                const reason = prompt('Please provide a reason for cancellation (optional):');
-                if (reason === null) return; // User clicked cancel
+            empty.style.display = 'none';
+            list.style.display = 'grid';
 
-                if (!confirm('Are you sure you want to cancel this booking?')) {
-                    return;
+            list.innerHTML = this.coachBookings.map(booking => {
+                const coachName = `${booking.coach_first_name} ${booking.coach_last_name}`;
+                return `
+                <div class="booking-card">
+                    <div class="booking-header">
+                        <div class="booking-title">
+                            <h3><i class="fas fa-user-tie"></i> ${coachName}</h3>
+                            <div class="booking-subtitle">
+                                <i class="fas fa-trophy"></i> ${booking.sport_name || 'General Coaching'}
+                                ${booking.coach_rating ? `<span style="margin-left: 0.5rem"><i class="fas fa-star" style="color: #fbbf24"></i> ${booking.coach_rating}</span>` : ''}
+                            </div>
+                        </div>
+                        <span class="status-badge ${booking.status}">${booking.status}</span>
+                    </div>
+
+                    <div class="booking-details">
+                        <div class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <div>
+                                <strong>Date</strong>
+                                <span>${new Date(booking.booking_date).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <strong>Time</strong>
+                                <span>${booking.start_time} - ${booking.end_time}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-users"></i>
+                            <div>
+                                <strong>Session Type</strong>
+                                <span>${booking.session_type.charAt(0).toUpperCase() + booking.session_type.slice(1)}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <strong>Location</strong>
+                                <span>${booking.coach_location || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${booking.total_amount ? `
+                        <div class="booking-amount">
+                            <div class="label">Session Fee</div>
+                            <div class="amount">LKR ${parseFloat(booking.total_amount).toLocaleString()}</div>
+                        </div>
+                    ` : ''}
+
+                    ${booking.special_requests ? `
+                        <div class="special-requests">
+                            <strong><i class="fas fa-comment"></i> Special Requests</strong>
+                            <p>${booking.special_requests}</p>
+                        </div>
+                    ` : ''}
+
+                    <div class="booking-actions">
+                        ${(booking.status === 'confirmed' || booking.status === 'pending') ? `
+                            <button class="btn btn-cancel" onclick="dashboard.cancelCoachBooking(${booking.id})">
+                                <i class="fas fa-times"></i> Cancel Session
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-view" onclick="dashboard.viewCoachDetails(${booking.id})">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        async cancelGroundBooking(bookingId) {
+            if (!confirm('Are you sure you want to cancel this booking?')) return;
+
+            try {
+                const response = await fetch(`/api/user/ground-bookings/${bookingId}/cancel`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason: 'Cancelled by user' })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Booking cancelled successfully');
+                    await this.loadGroundBookings();
+                    this.updateStats();
+                    this.renderGroundBookings();
+                } else {
+                    alert('Error: ' + data.message);
                 }
-
-                try {
-                    const response = await fetch(`/api/user/ground-bookings/${bookingId}/cancel`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ reason: reason || 'Cancelled by user' })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        alert('Booking cancelled successfully');
-                        await this.loadBookings();
-                        this.renderStats();
-                        this.renderBookings();
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                } catch (error) {
-                    console.error('Error cancelling booking:', error);
-                    alert('Error cancelling booking. Please try again.');
-                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to cancel booking');
             }
+        }
 
             async viewBookingDetails(bookingId) {
                 try {
@@ -575,8 +849,6 @@ Created: ${new Date(booking.created_at).toLocaleString()}
             }
         }
 
-        // Initialize dashboard
-        const dashboard = new UserBookingDashboard();
-    </script>
-</body>
-</html>
+    // Initialize dashboard
+    const dashboard = new MyBookingsDashboard();
+</script>
