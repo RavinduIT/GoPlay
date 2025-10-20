@@ -23,12 +23,22 @@ class CoachController extends BaseController
     }
 
     /**
-     * Display coach profile
+     * Display coach profile (for authenticated coach - dashboard)
      */
     public function profile(Request $request): Response
     {
         $id = $request->getParam('id');
         return $this->view('coach/profile', ['id' => $id]);
+    }
+
+    /**
+     * Display public coach profile (for users to view)
+     */
+    public function publicProfile(Request $request): Response
+    {
+        
+
+        return $this->view('coach/public-profile');
     }
 
     /**
