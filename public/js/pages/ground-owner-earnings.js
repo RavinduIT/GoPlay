@@ -71,7 +71,7 @@ class EarningsManager {
             }
         } catch (error) {
             console.error('Error loading earnings data:', error);
-            this.showToast('Failed to load earnings data', 'error');
+            this.// showToast('Failed to load earnings data', 'error');
         }
     }
 
@@ -449,12 +449,12 @@ class EarningsManager {
         const endDate = document.getElementById('customEndDate').value;
         
         if (!startDate || !endDate) {
-            this.showToast('Please select both start and end dates', 'error');
+            this.// showToast('Please select both start and end dates', 'error');
             return;
         }
         
         if (new Date(startDate) > new Date(endDate)) {
-            this.showToast('Start date must be before end date', 'error');
+            this.// showToast('Start date must be before end date', 'error');
             return;
         }
 
@@ -466,7 +466,7 @@ class EarningsManager {
 
     async generateReport() {
         try {
-            this.showToast('Generating earnings report...', 'info');
+            this.// showToast('Generating earnings report...', 'info');
             
             const response = await fetch('/api/ground-owner/earnings/report', {
                 method: 'POST',
@@ -490,11 +490,11 @@ class EarningsManager {
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
                 
-                this.showToast('Report generated successfully', 'success');
+                this.// showToast('Report generated successfully', 'success');
             }
         } catch (error) {
             console.error('Error generating report:', error);
-            this.showToast('Failed to generate report', 'error');
+            this.// showToast('Failed to generate report', 'error');
         }
     }
 
@@ -544,7 +544,7 @@ class EarningsManager {
         return new Date(date).toLocaleDateString();
     }
 
-    showToast(message, type = 'info') {
+    // showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.innerHTML = `

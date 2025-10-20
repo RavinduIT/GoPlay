@@ -409,14 +409,14 @@ class MaintenanceManager {
             if (response.ok) {
                 const newTask = await response.json();
                 this.maintenanceTasks.push(newTask);
-                this.showToast('Maintenance task created successfully', 'success');
+                this.// showToast('Maintenance task created successfully', 'success');
                 this.closeModal(document.getElementById('addTaskModal'));
                 this.renderCurrentView();
             } else {
                 throw new Error('Failed to create task');
             }
         } catch (error) {
-            this.showToast('Error creating maintenance task', 'error');
+            this.// showToast('Error creating maintenance task', 'error');
         }
     }
 
@@ -429,11 +429,11 @@ class MaintenanceManager {
             if (response.ok) {
                 const task = this.maintenanceTasks.find(t => t.id === taskId);
                 if (task) task.status = 'in_progress';
-                this.showToast('Task started', 'success');
+                this.// showToast('Task started', 'success');
                 this.renderCurrentView();
             }
         } catch (error) {
-            this.showToast('Error starting task', 'error');
+            this.// showToast('Error starting task', 'error');
         }
     }
 
@@ -454,11 +454,11 @@ class MaintenanceManager {
                     task.status = 'completed';
                     task.actualCost = parseFloat(cost);
                 }
-                this.showToast('Task completed successfully', 'success');
+                this.// showToast('Task completed successfully', 'success');
                 this.renderCurrentView();
             }
         } catch (error) {
-            this.showToast('Error completing task', 'error');
+            this.// showToast('Error completing task', 'error');
         }
     }
 
@@ -494,7 +494,7 @@ class MaintenanceManager {
             this.renderCurrentView();
         } catch (error) {
             console.error('Error loading maintenance data:', error);
-            this.showToast('Error loading maintenance data', 'error');
+            this.// showToast('Error loading maintenance data', 'error');
         }
     }
 
@@ -595,7 +595,7 @@ class MaintenanceManager {
         forms.forEach(form => form.reset());
     }
 
-    showToast(message, type = 'info') {
+    // showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.innerHTML = `

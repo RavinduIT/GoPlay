@@ -10,9 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const email = emailInput.value.trim();
         const password = passwordInput.value.trim();
-        
+
         if (!email || !password) {
-            showToast('Please fill in all fields', 'error');
+            // showToast('Please fill in all fields', 'error');
             return;
         }
 
@@ -32,21 +32,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (result.success) {
-                showToast('Login successful! Redirecting...', 'success');
-                
+                // showToast('Login successful! Redirecting...', 'success');
+
                 // Store user info in localStorage
                 localStorage.setItem('user', JSON.stringify(result.user));
-                
+
                 // Redirect based on role
                 setTimeout(() => {
                     window.location.href = result.redirect;
                 }, 1500);
             } else {
-                showToast(result.error || 'Login failed', 'error');
+                // showToast(result.error || 'Login failed', 'error');
             }
         } catch (error) {
             console.error('Login error:', error);
-            showToast('Connection error. Please try again.', 'error');
+            // showToast('Connection error. Please try again.', 'error');
         } finally {
             // Re-enable submit button
             submitBtn.disabled = false;
