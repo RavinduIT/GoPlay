@@ -481,6 +481,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                                         <span><i class="fas fa-clock"></i> <?= htmlspecialchars($coach['experience']) ?></span>
                                     </div>
                                     <div class="coach-price">LKR <?= number_format($coach['price']) ?>/session</div>
+                                    <div class="coach-price">LKR <?= number_format($coach['price']) ?>/session</div>
                                 </div>
                             </div>
                         </div>
