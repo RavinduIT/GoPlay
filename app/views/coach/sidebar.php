@@ -31,12 +31,12 @@
                     <span class="badge" id="sessionsCount">0</span>
                 </a>
             </li>
-            <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/book-session') !== false ? 'active' : '' ?>">
+            <!-- <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/book-session') !== false ? 'active' : '' ?>">
                 <a href="/coach/book-session">
                     <i class="fas fa-calendar-plus"></i>
                     <span>Book Session</span>
                 </a>
-            </li>
+            </li> -->
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/clients') !== false ? 'active' : '' ?>">
                 <a href="/coach/clients">
                     <i class="fas fa-users"></i>
@@ -75,13 +75,13 @@
                     <span class="badge" id="reviewsCount">0</span>
                 </a>
             </li>
-            <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/notifications') !== false ? 'active' : '' ?>">
+            <!-- <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/notifications') !== false ? 'active' : '' ?>">
                 <a href="/coach/notifications">
                     <i class="fas fa-bell"></i>
                     <span>Notifications</span>
                     <span class="badge new" id="notificationCount">0</span>
                 </a>
-            </li>
+            </li> -->
             <li class="nav-divider"></li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/settings') !== false ? 'active' : '' ?>">
                 <a href="/coach/settings">
