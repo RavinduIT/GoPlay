@@ -250,6 +250,17 @@ $router->put('/api/admin/users/{id}/status', 'Admin\AdminUserController@updateSt
 $router->post('/api/admin/users/{id}/reset-password', 'Admin\AdminUserController@resetPassword');
 $router->delete('/api/admin/users/{id}', 'Admin\AdminUserController@deleteUser');
     
+// Admin Dashboard API Routes
+$router->get('/admin/api/stats', 'AdminController@getStats');
+$router->get('/admin/api/revenue-chart', 'AdminController@getRevenueChart');
+$router->get('/admin/api/recent-registrations', 'AdminController@getRecentRegistrations');
+$router->get('/admin/api/recent-content', 'AdminController@getRecentContent');
+$router->get('/admin/api/user-breakdown', 'AdminController@getUserBreakdown');
+$router->get('/admin/api/notifications', 'AdminController@getNotifications');
+$router->get('/admin/api/profile', 'AdminController@getProfile');
+
+
+
     /* Debug routes
     $router->get('/debug', function() {
         require_once 'debug.php';

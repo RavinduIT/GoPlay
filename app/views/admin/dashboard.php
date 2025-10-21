@@ -1,12 +1,8 @@
 <link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
 <div class="admin-dashboard">
     <?php 
-    // Set active page and optional badge counts
+    // Set active page for sidebar
     $activePage = 'dashboard';
-    $userCount = 892;
-    $groundCount = 45;
-    $coachCount = 23;
-    $shopCount = 156;
     
     // Include the reusable sidebar component
     include __DIR__ . '/../components/admin-sidebar.php';
@@ -23,15 +19,15 @@
                 <div class="header-notifications">
                     <button class="notification-btn">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-count">5</span>
+                        <span class="notification-count" style="display: none;">0</span>
                     </button>
                 </div>
                 <div class="admin-profile">
                     <div class="profile-info">
-                        <span class="profile-name">John Smith</span>
+                        <span class="profile-name">Loading...</span>
                         <span class="profile-role">Super Admin</span>
                     </div>
-                    <img src="/public/assets/images/admin-avatar.jpg" alt="Admin" class="profile-avatar">
+                    <img src="/public/assets/images/default-avatar.png" alt="Admin" class="profile-avatar">
                     <button class="profile-dropdown">
                         <i class="fas fa-chevron-down"></i>
                     </button>
@@ -45,14 +41,14 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue">
-                        <i class="fas fa-calendar-alt"></i>
+                        <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>Total Bookings</h3>
-                        <p class="stat-number">1,247</p>
+                        <h3>Total Users</h3>
+                        <p class="stat-number">0</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>12% from last month</span>
+                            <span>Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -62,39 +58,39 @@
                         <i class="fas fa-rupee-sign"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>Revenue</h3>
-                        <p class="stat-number">Rs.34,567</p>
+                        <h3>Total Revenue</h3>
+                        <p class="stat-number">Rs.0</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>8% from last month</span>
+                            <span>Loading...</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-icon purple">
-                        <i class="fas fa-users"></i>
+                        <i class="fas fa-map-marker-alt"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>Active Users</h3>
-                        <p class="stat-number">892</p>
+                        <h3>Active Grounds</h3>
+                        <p class="stat-number">0</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>15% from last month</span>
+                            <span>Loading...</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-icon orange">
-                        <i class="fas fa-map-marker-alt"></i>
+                        <i class="fas fa-user-tie"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>Active Grounds</h3>
-                        <p class="stat-number">45</p>
+                        <h3>Active Coaches</h3>
+                        <p class="stat-number">0</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>3 new this month</span>
+                            <span>Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -108,9 +104,9 @@
                         <h3>Revenue Trend</h3>
                         <div class="card-actions">
                             <select class="time-filter">
-                                <option>Last 7 days</option>
-                                <option>Last 30 days</option>
-                                <option>Last 90 days</option>
+                                <option value="7">Last 7 days</option>
+                                <option value="30">Last 30 days</option>
+                                <option value="90">Last 90 days</option>
                             </select>
                         </div>
                     </div>
@@ -119,36 +115,16 @@
                     </div>
                 </div>
 
-                <!-- Recent Bookings -->
+                <!-- Recent Registrations -->
                 <div class="dashboard-card">
                     <div class="card-header">
-                        <h3>Recent Bookings</h3>
-                        <a href="/admin/bookings" class="view-all">View All</a>
+                        <h3>Recent Registrations</h3>
+                        <a href="/admin/users" class="view-all">View All</a>
                     </div>
                     <div class="booking-list">
-                        <div class="booking-item">
-                            <div class="booking-info">
-                                <h4>Football Ground A</h4>
-                                <p>John Doe - 2 hours</p>
-                                <span class="booking-time">2 hours ago</span>
-                            </div>
-                            <span class="status-badge confirmed">Confirmed</span>
-                        </div>
-                        <div class="booking-item">
-                            <div class="booking-info">
-                                <h4>Cricket Ground B</h4>
-                                <p>Jane Smith - 3 hours</p>
-                                <span class="booking-time">4 hours ago</span>
-                            </div>
-                            <span class="status-badge pending">Pending</span>
-                        </div>
-                        <div class="booking-item">
-                            <div class="booking-info">
-                                <h4>Tennis Court 1</h4>
-                                <p>Mike Johnson - 1 hour</p>
-                                <span class="booking-time">6 hours ago</span>
-                            </div>
-                            <span class="status-badge confirmed">Confirmed</span>
+                        <div class="loading-state">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading registrations...</p>
                         </div>
                     </div>
                 </div>
@@ -178,36 +154,16 @@
                     </div>
                 </div>
 
-                <!-- Recent Orders -->
+                <!-- Recent Content Additions -->
                 <div class="dashboard-card">
                     <div class="card-header">
-                        <h3>Recent Orders</h3>
-                        <a href="/admin/orders" class="view-all">View All</a>
+                        <h3>Recent Content</h3>
+                        <a href="/admin/content" class="view-all">View All</a>
                     </div>
                     <div class="order-list">
-                        <div class="order-item">
-                            <div class="order-info">
-                                <h4>Order #ORD-1001</h4>
-                                <p>Kavinda Ranasighe</p>
-                                <span class="order-amount">₹3,450</span>
-                            </div>
-                            <span class="status-badge processing">Processing</span>
-                        </div>
-                        <div class="order-item">
-                            <div class="order-info">
-                                <h4>Order #ORD-1002</h4>
-                                <p>Sanduni Rajapakse</p>
-                                <span class="order-amount">₹1,850</span>
-                            </div>
-                            <span class="status-badge completed">Completed</span>
-                        </div>
-                        <div class="order-item">
-                            <div class="order-info">
-                                <h4>Order #ORD-1003</h4>
-                                <p>Dilan Wijesinghe</p>
-                                <span class="order-amount">₹2,100</span>
-                            </div>
-                            <span class="status-badge shipped">Shipped</span>
+                        <div class="loading-state">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading content...</p>
                         </div>
                     </div>
                 </div>
@@ -215,4 +171,85 @@
         </div>
     </main>
 </div>
+
+<style>
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #64748b;
+    gap: 0.5rem;
+}
+
+.loading-state i {
+    font-size: 2rem;
+    color: #3b82f6;
+}
+
+.empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: #64748b;
+}
+
+.stat-change.negative {
+    color: #ef4444;
+}
+
+.stat-change.negative i {
+    color: #ef4444;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-badge.user {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge.admin {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-badge.ground-owner {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.coach {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.shop-owner {
+    background: #e9d5ff;
+    color: #6b21a8;
+}
+
+.status-badge.ground {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.product {
+    background: #e9d5ff;
+    color: #6b21a8;
+}
+
+.booking-item h4 i,
+.order-item h4 i {
+    margin-right: 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+
 <script src="/public/js/pages/admin-dashboard.js"></script>
