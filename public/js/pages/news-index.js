@@ -1,6 +1,7 @@
 // News Index JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     initializeNewsIndex();
+    initializeClickableCards();
 });
 
 let currentPage = 1;
@@ -25,6 +26,58 @@ function initializeNewsIndex() {
     addLoadingStates();
 }
 
+// Make entire news cards clickable
+function initializeClickableCards() {
+    const clickableCards = document.querySelectorAll('.clickable-card');
+    
+    clickableCards.forEach(card => {
+        // Add cursor pointer
+        card.style.cursor = 'pointer';
+        
+        // Handle click events
+        card.addEventListener('click', function(e) {
+            // Don't navigate if clicking on a link directly
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+            }
+            
+            const href = this.getAttribute('data-href');
+            if (href) {
+                // Check if Ctrl/Cmd or middle mouse button for new tab
+                if (e.ctrlKey || e.metaKey || e.button === 1) {
+                    window.open(href, '_blank');
+                } else {
+                    window.location.href = href;
+                }
+            }
+        });
+        
+        // Handle middle mouse button click (open in new tab)
+        card.addEventListener('mousedown', function(e) {
+            if (e.button === 1) { // Middle mouse button
+                e.preventDefault();
+                const href = this.getAttribute('data-href');
+                if (href) {
+                    window.open(href, '_blank');
+                }
+            }
+        });
+        
+        // Add keyboard accessibility (Enter and Space keys)
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('role', 'article');
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const href = this.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            }
+        });
+    });
+}
+
 function filterByCategory(category) {
     if (isLoading) return;
     
@@ -47,8 +100,6 @@ function filterByCategory(category) {
 
 function loadCategoryNews(category) {
     const url = category === 'all' ? '/news' : `/news?category=${category}`;
-    
-    // Redirect to filtered page
     window.location.href = url;
 }
 
@@ -61,16 +112,13 @@ function loadMoreNews() {
     loadMoreBtn.textContent = 'Loading...';
     loadMoreBtn.disabled = true;
     
-    // Prepare request data
     const requestData = {
         page: currentPage + 1,
         category: currentCategory
     };
     
-    // Build query string
     const queryString = new URLSearchParams(requestData).toString();
     
-    // Make AJAX request
     fetch(`/news/load-more?${queryString}`, {
         method: 'GET',
         headers: {
@@ -81,10 +129,12 @@ function loadMoreNews() {
     .then(response => response.json())
     .then(data => {
         if (data.success && data.news && data.news.length > 0) {
-            // Add new news cards to the grid
             appendNewsCards(data.news);
             currentPage++;
             hasMoreNews = data.hasMore;
+            
+            // Re-initialize clickable cards for new items
+            initializeClickableCards();
             
             if (!hasMoreNews) {
                 loadMoreBtn.style.display = 'none';
@@ -128,13 +178,15 @@ function appendNewsCards(newsArray) {
 }
 
 function createNewsCard(article) {
-    const card = document.createElement('div');
-    card.className = 'news-card';
+    const card = document.createElement('article');
+    card.className = 'news-card clickable-card';
+    card.setAttribute('data-href', `/news/${article.slug}`);
     
     card.innerHTML = `
         <img src="${article.featured_image || '/public/assets/images/default-news.jpg'}" 
              alt="${escapeHtml(article.title)}" 
-             class="news-image">
+             class="news-image"
+             loading="lazy">
         <div class="news-content">
             <span class="news-category">${escapeHtml(article.category)}</span>
             <h3>
@@ -142,10 +194,10 @@ function createNewsCard(article) {
                     ${escapeHtml(article.title)}
                 </a>
             </h3>
-            <p class="news-excerpt">${escapeHtml(article.excerpt || '')}</p>
+            ${article.excerpt ? `<p class="news-excerpt">${escapeHtml(article.excerpt)}</p>` : ''}
             <div class="news-meta">
-                <span>${formatDate(article.published_at)}</span>
-                <span>${article.views || 0} views</span>
+                <span><i class="fa-solid fa-calendar"></i> ${formatDate(article.published_at)}</span>
+                <span><i class="fa-solid fa-eye"></i> ${Number(article.views || 0).toLocaleString()} views</span>
             </div>
         </div>
     `;
@@ -154,32 +206,12 @@ function createNewsCard(article) {
 }
 
 function initializeInfiniteScroll() {
-    // Check if we should show load more button
     const newsGrid = document.getElementById('news-grid');
     const loadMoreBtn = document.getElementById('load-more-btn');
     
     if (newsGrid && newsGrid.children.length >= 9) {
         loadMoreBtn.style.display = 'block';
     }
-    
-    // Optional: Auto-load on scroll (uncomment if preferred)
-    /*
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-        if (scrollTimeout) clearTimeout(scrollTimeout);
-        
-        scrollTimeout = setTimeout(() => {
-            if (!isLoading && hasMoreNews) {
-                const scrollPosition = window.innerHeight + window.scrollY;
-                const documentHeight = document.documentElement.offsetHeight;
-                
-                if (scrollPosition >= documentHeight - 1000) {
-                    loadMoreNews();
-                }
-            }
-        }, 150);
-    });
-    */
 }
 
 function initializeSearch() {
@@ -197,7 +229,6 @@ function initializeSearch() {
         });
     }
     
-    // Add search suggestions (optional enhancement)
     if (searchInput) {
         let searchTimeout;
         searchInput.addEventListener('input', function() {
@@ -206,7 +237,6 @@ function initializeSearch() {
             
             if (query.length >= 3) {
                 searchTimeout = setTimeout(() => {
-                    // Could implement search suggestions here
                     console.log('Could show search suggestions for:', query);
                 }, 300);
             }
@@ -215,7 +245,6 @@ function initializeSearch() {
 }
 
 function addLoadingStates() {
-    // Add loading state for category buttons
     document.querySelectorAll('.category-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             if (!this.classList.contains('active')) {
@@ -249,7 +278,6 @@ function showLoadingState() {
         </style>
     `;
     
-    // Insert loading state before news grid
     const newsGrid = document.getElementById('news-grid');
     if (newsGrid) {
         newsContainer.insertBefore(loadingDiv, newsGrid);
@@ -279,7 +307,6 @@ function showErrorMessage(message) {
     const container = document.querySelector('.container');
     container.insertBefore(errorDiv, container.firstChild);
     
-    // Auto remove after 5 seconds
     setTimeout(() => {
         errorDiv.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => errorDiv.remove(), 300);
