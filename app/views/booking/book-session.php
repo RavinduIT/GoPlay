@@ -1,4 +1,6 @@
 <?php
+use App\Models\Coach;
+
 $title = 'Book Training Session - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
@@ -6,7 +8,6 @@ $additionalJS = [];
 // Get coach ID from URL parameter
 $coach_id = $_GET['coach_id'] ?? null;
 
-<<<<<<< Updated upstream
 // Mock coach data (you can replace this with database query)
 $coaches = [
     1 => [
@@ -67,12 +68,10 @@ $coaches = [
     ]
 ];
 
-=======
-// Note: Coaches data will be loaded via AJAX from the API
-// This prevents direct model usage in views (follows MVC pattern)
-$coaches = [];
->>>>>>> Stashed changes
 $selected_coach = null;
+if ($coach_id && isset($coaches[$coach_id])) {
+    $selected_coach = $coaches[$coach_id];
+}
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -176,41 +175,6 @@ $selected_coach = null;
             gap: 1rem;
             max-height: 500px;
             overflow-y: auto;
-        }
-
-        .loading-message,
-        .error-message,
-        .no-coaches {
-            text-align: center;
-            padding: 3rem 2rem;
-            color: var(--text-secondary);
-        }
-
-        .loading-message i {
-            font-size: 3rem;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-
-        .error-message i {
-            font-size: 3rem;
-            color: var(--danger-color);
-            margin-bottom: 1rem;
-        }
-
-        .error-message .btn-retry {
-            margin-top: 1rem;
-            padding: 0.75rem 1.5rem;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .error-message .btn-retry:hover {
-            background: var(--primary-dark);
         }
 
         .coach-card {
@@ -527,7 +491,6 @@ $selected_coach = null;
                 </div>
                 <div class="section-content">
                     <div class="coach-grid" id="coachGrid">
-<<<<<<< Updated upstream
                         <?php foreach ($coaches as $coach): ?>
                         <div class="coach-card <?= $selected_coach && $selected_coach['id'] == $coach['id'] ? 'selected' : '' ?>"
                              data-coach-id="<?= $coach['id'] ?>"
@@ -552,12 +515,8 @@ $selected_coach = null;
                                     <div class="coach-price">LKR <?= number_format($coach['price']) ?>/session</div>
                                 </div>
                             </div>
-=======
-                        <div class="loading-message">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <p>Loading coaches...</p>
->>>>>>> Stashed changes
                         </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
@@ -661,70 +620,14 @@ $selected_coach = null;
                 this.selectedTime = null;
                 this.selectedDate = null;
                 this.duration = 60;
-                this.coaches = [];
 
-                this.loadCoaches();
+                this.initializeEventListeners();
                 this.setMinDate();
 
                 // Auto-select coach if coach_id is provided
-                const urlParams = new URLSearchParams(window.location.search);
-                const coachId = urlParams.get('coach_id');
-                if (coachId) {
-                    // Wait for coaches to load, then select
-                    setTimeout(() => this.selectCoach(parseInt(coachId)), 500);
-                }
-            }
-
-            async loadCoaches() {
-                try {
-                    const response = await fetch('/api/coaches');
-                    const data = await response.json();
-
-                    if (data.success && data.coaches) {
-                        this.coaches = data.coaches;
-                        this.renderCoaches();
-                        this.initializeEventListeners();
-                    } else {
-                        this.showError('Failed to load coaches');
-                    }
-                } catch (error) {
-                    console.error('Error loading coaches:', error);
-                    this.showError('Error loading coaches. Please refresh the page.');
-                }
-            }
-
-            renderCoaches() {
-                const coachGrid = document.getElementById('coachGrid');
-                if (!this.coaches || this.coaches.length === 0) {
-                    coachGrid.innerHTML = '<div class="no-coaches"><p>No coaches available at the moment.</p></div>';
-                    return;
-                }
-
-                coachGrid.innerHTML = this.coaches.map(coach => `
-                    <div class="coach-card"
-                         data-coach-id="${coach.id}"
-                         data-coach-name="${this.escapeHtml(coach.name)}"
-                         data-coach-price="${coach.price}"
-                         data-coach-sport="${this.escapeHtml(coach.sport)}">
-                        <div class="coach-info">
-                            <div class="coach-avatar">
-                                ${coach.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div class="coach-details">
-                                <h3>${this.escapeHtml(coach.name)}</h3>
-                                <div class="coach-meta">
-                                    <span><i class="fas fa-trophy"></i> ${this.escapeHtml(coach.sport)}</span>
-                                    <span><i class="fas fa-star"></i> ${coach.rating} (${coach.reviews})</span>
-                                </div>
-                                <div class="coach-meta">
-                                    <span><i class="fas fa-map-marker-alt"></i> ${this.escapeHtml(coach.location)}</span>
-                                    <span><i class="fas fa-clock"></i> ${this.escapeHtml(coach.experience)}</span>
-                                </div>
-                                <div class="coach-price">LKR ${this.formatNumber(coach.price)}/session</div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
+                <?php if ($selected_coach): ?>
+                this.selectCoach(<?= $selected_coach['id'] ?>);
+                <?php endif; ?>
             }
 
             initializeEventListeners() {
@@ -853,27 +756,6 @@ $selected_coach = null;
                 tomorrow.setDate(tomorrow.getDate() + 1);
 
                 document.getElementById('sessionDate').min = tomorrow.toISOString().split('T')[0];
-            }
-
-            escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
-
-            formatNumber(num) {
-                return new Intl.NumberFormat('en-LK').format(num);
-            }
-
-            showError(message) {
-                const coachGrid = document.getElementById('coachGrid');
-                coachGrid.innerHTML = `
-                    <div class="error-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <p>${message}</p>
-                        <button onclick="location.reload()" class="btn-retry">Retry</button>
-                    </div>
-                `;
             }
 
             async proceedToPayment() {
