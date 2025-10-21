@@ -16,7 +16,25 @@ $total = $data['total'] ?? 0;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sports News - GoPlay Platform</title>
     <meta name="description" content="Stay updated with the latest sports news and updates from GoPlay Platform">
-    <link rel="stylesheet" href="/public/css/news-index.css">
+    <link rel="stylesheet" href="/public/css/pages/news-index.css">
+    <style>
+        /* Make cards clearly clickable */
+        .clickable-card {
+            cursor: pointer !important;
+            user-select: none;
+        }
+        
+        .clickable-card:active {
+            transform: scale(0.98) !important;
+        }
+        
+        /* Ensure links still work */
+        .clickable-card a {
+            position: relative;
+            z-index: 1;
+            pointer-events: auto;
+        }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
@@ -50,7 +68,7 @@ $total = $data['total'] ?? 0;
         <!-- Featured News -->
         <?php if ($featured): ?>
         <div class="featured-section">
-            <div class="featured-card">
+            <div class="featured-card clickable-card" data-href="/news/<?= htmlspecialchars($featured['slug']) ?>">
                 <img src="<?= htmlspecialchars($featured['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>" 
                      alt="<?= htmlspecialchars($featured['title']) ?>" 
                      class="featured-image"
@@ -79,7 +97,7 @@ $total = $data['total'] ?? 0;
             <?php if (!empty($news)): ?>
             <div class="news-grid" id="news-grid">
                 <?php foreach ($news as $article): ?>
-                <article class="news-card">
+                <article class="news-card clickable-card" data-href="/news/<?= htmlspecialchars($article['slug']) ?>">
                     <img src="<?= htmlspecialchars($article['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>" 
                          alt="<?= htmlspecialchars($article['title']) ?>" 
                          class="news-image"
@@ -103,7 +121,7 @@ $total = $data['total'] ?? 0;
                 <?php endforeach; ?>
             </div>
             
-            <!-- Load More Button (for AJAX loading) -->
+            <!-- Load More Button -->
             <button id="load-more-btn" class="load-more-btn" style="display: none;" onclick="loadMoreNews()">
                 Load More News
             </button>
@@ -159,7 +177,45 @@ $total = $data['total'] ?? 0;
         <?php endif; ?>
     </div>
 
+    <script src="/public/js/pages/news-index.js"></script>
     <script>
+        // Make cards clickable
+        document.addEventListener('DOMContentLoaded', function() {
+            const clickableCards = document.querySelectorAll('.clickable-card');
+            
+            clickableCards.forEach(card => {
+                card.style.cursor = 'pointer';
+                
+                card.addEventListener('click', function(e) {
+                    // Don't navigate if clicking on a link directly
+                    if (e.target.tagName === 'A' || e.target.closest('a')) {
+                        return;
+                    }
+                    
+                    const href = this.getAttribute('data-href');
+                    if (href) {
+                        // Check if Ctrl/Cmd or middle mouse button for new tab
+                        if (e.ctrlKey || e.metaKey || e.button === 1) {
+                            window.open(href, '_blank');
+                        } else {
+                            window.location.href = href;
+                        }
+                    }
+                });
+                
+                // Handle middle mouse button click
+                card.addEventListener('mousedown', function(e) {
+                    if (e.button === 1) { // Middle mouse button
+                        e.preventDefault();
+                        const href = this.getAttribute('data-href');
+                        if (href) {
+                            window.open(href, '_blank');
+                        }
+                    }
+                });
+            });
+        });
+
         // Category filtering function
         function filterByCategory(category) {
             const currentUrl = new URL(window.location);
@@ -168,15 +224,8 @@ $total = $data['total'] ?? 0;
             } else {
                 currentUrl.searchParams.set('category', category);
             }
-            currentUrl.searchParams.delete('page'); // Reset to first page
+            currentUrl.searchParams.delete('page');
             window.location.href = currentUrl.toString();
-        }
-
-        // Load more news function (for AJAX implementation)
-        function loadMoreNews() {
-            // This function would be implemented with AJAX
-            // For now, it's just a placeholder
-            console.log('Load more news functionality would be implemented here');
         }
 
         // Search form enhancement
@@ -191,29 +240,10 @@ $total = $data['total'] ?? 0;
         // Add loading state to category buttons
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                // Add loading state
                 this.style.opacity = '0.7';
                 this.style.pointerEvents = 'none';
             });
         });
-
-        // Lazy loading for images (fallback for older browsers)
-        if ('IntersectionObserver' in window) {
-            const imageObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        img.src = img.dataset.src || img.src;
-                        img.classList.remove('lazy');
-                        imageObserver.unobserve(img);
-                    }
-                });
-            });
-
-            document.querySelectorAll('img[loading="lazy"]').forEach(img => {
-                imageObserver.observe(img);
-            });
-        }
     </script>
 </body>
 </html>
