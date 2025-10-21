@@ -57,9 +57,6 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
         <!-- Top Header -->
         <header class="admin-header">
             <div class="header-left">
-                <button class="sidebar-toggle" onclick="toggleSidebar()">
-                    <i class="fas fa-bars"></i>
-                </button>
                 <h1 class="page-title"><?= $pageTitle ?></h1>
             </div>
             <div class="header-right">
