@@ -189,12 +189,12 @@ try {
     $router->get('/api/shop-owner/analytics', 'ShopOwnerController@getAnalytics');
     $router->get('/api/shop-owner/categories', 'ShopOwnerController@getCategories');
 
-    //News model methods
-    // Add these news routes after your existing news route
+    // News Routes - Updated
 $router->get('/news', 'NewsController@index');
 $router->get('/news/search', 'NewsController@search');
 $router->get('/news/load-more', 'NewsController@loadMore');
-$router->get('/news/{slug}', 'NewsController@show'); // This is the missing route!
+$router->get('/api/news/live-search', 'NewsController@liveSearch'); // NEW!
+$router->get('/news/{slug}', 'NewsController@show');
 
     // USER PROFILE ROUTES - Add these to your existing routes in index.php
     
