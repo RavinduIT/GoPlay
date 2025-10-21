@@ -260,6 +260,27 @@ $router->get('/admin/api/notifications', 'AdminController@getNotifications');
 $router->get('/admin/api/profile', 'AdminController@getProfile');
 
 
+// Admin Analytics Routes
+$router->get('/admin/analytics', 'Admin\AnalyticsController@index');
+$router->get('/api/admin/analytics/overview', 'Admin\AnalyticsController@getOverviewStats');
+$router->get('/api/admin/analytics/users', 'Admin\AnalyticsController@getUserAnalytics');
+$router->get('/api/admin/analytics/revenue', 'Admin\AnalyticsController@getRevenueAnalytics');
+$router->get('/api/admin/analytics/bookings', 'Admin\AnalyticsController@getBookingAnalytics');
+$router->get('/api/admin/analytics/products', 'Admin\AnalyticsController@getProductAnalytics');
+$router->get('/api/admin/analytics/export', 'Admin\AnalyticsController@exportData');
+$router->get('/api/admin/analytics/activity', 'Admin\AnalyticsController@getActivityLogs');
+
+// Admin Settings Routes
+$router->get('/admin/settings', 'Admin\AdminSettingsController@index');
+$router->get('/api/admin/settings', 'Admin\AdminSettingsController@getSettings');
+$router->post('/api/admin/settings/update', 'Admin\AdminSettingsController@updateSetting');
+$router->post('/api/admin/settings/bulk', 'Admin\AdminSettingsController@updateBulk');
+$router->get('/api/admin/settings/system-info', 'Admin\AdminSettingsController@getSystemInfo');
+$router->post('/api/admin/settings/clear-cache', 'Admin\AdminSettingsController@clearCache');
+$router->post('/api/admin/settings/test-email', 'Admin\AdminSettingsController@testEmail');
+$router->post('/api/admin/settings/backup-database', 'Admin\AdminSettingsController@backupDatabase');
+$router->get('/api/admin/settings/activity-logs', 'Admin\AdminSettingsController@getActivityLogs');
+
 
     /* Debug routes
     $router->get('/debug', function() {
