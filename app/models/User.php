@@ -103,7 +103,7 @@ class User extends BaseModel
     /**
      * Log user activity
      */
-    public function logActivity(int $userId, string $activityType, string $description = '', string $ipAddress = null): bool
+    public function logActivity(int $userId, string $activityType, string $description = ''): bool
     {
         try {
             $sql = "INSERT INTO user_activity_log (user_id, activity_type, activity_description, ip_address, created_at) 
