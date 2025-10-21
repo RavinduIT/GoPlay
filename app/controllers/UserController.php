@@ -661,4 +661,87 @@ class UserController extends BaseController
             ]
         ]);
     }
+
+    /**
+     * Update ground booking (reschedule)
+     * PUT /api/user/ground-bookings/{id}
+     */
+    public function updateGroundBooking(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $bookingId = (int)$request->getParam('id');
+            $userId = $_SESSION['user_id'];
+            $data = $request->getBody();
+
+            error_log("=== Update Ground Booking Request ===");
+            error_log("Booking ID: " . $bookingId);
+            error_log("User ID: " . $userId);
+            error_log("Update Data: " . json_encode($data));
+
+            if (!$bookingId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid booking ID'
+                ], 400);
+            }
+
+            // Verify booking belongs to user
+            $booking = $this->groundBookingModel->find($bookingId);
+            if (!$booking || $booking['user_id'] != $userId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Booking not found or unauthorized'
+                ], 404);
+            }
+
+            // Check if booking can be updated (not already completed or cancelled)
+            if (in_array($booking['status'], ['completed', 'cancelled'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Cannot update completed or cancelled bookings'
+                ], 400);
+            }
+
+            // Prepare update data
+            $updateData = [];
+            if (isset($data['booking_date'])) $updateData['booking_date'] = $data['booking_date'];
+            if (isset($data['start_time'])) $updateData['start_time'] = $data['start_time'];
+            if (isset($data['end_time'])) $updateData['end_time'] = $data['end_time'];
+            if (isset($data['special_requests'])) $updateData['special_requests'] = $data['special_requests'];
+
+            if (empty($updateData)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'No update data provided'
+                ], 400);
+            }
+
+            $success = $this->groundBookingModel->updateBooking($bookingId, $updateData);
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to update booking. The time slot may not be available.'
+                ], 400);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Booking updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Error updating ground booking: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to update booking',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

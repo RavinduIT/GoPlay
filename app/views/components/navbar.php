@@ -269,9 +269,9 @@ function logout() {
 }
 
 // Debug session info
-console.log('Session check - User ID:', <?= json_encode($_SESSION['user_id'] ?? null) ?>);
-console.log('Session check - User Type:', <?= json_encode($_SESSION['user_type'] ?? null) ?>);
-console.log('Session check - User Name:', <?= json_encode($_SESSION['user_name'] ?? null) ?>);
+//console.log('Session check - User ID:', <?= json_encode($_SESSION['user_id'] ?? null) ?>);
+//console.log('Session check - User Type:', <?= json_encode($_SESSION['user_type'] ?? null) ?>);
+//console.log('Session check - User Name:', <?= json_encode($_SESSION['user_name'] ?? null) ?>);
 </script>
 
 <style>

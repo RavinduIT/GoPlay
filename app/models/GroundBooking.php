@@ -173,6 +173,48 @@ class GroundBooking extends BaseModel
     }
 
     /**
+     * Update booking details (reschedule)
+     */
+    public function updateBooking(int $bookingId, array $updateData): bool
+    {
+        // Get existing booking
+        $booking = $this->find($bookingId);
+        if (!$booking) {
+            return false;
+        }
+
+        // If time is being changed, check availability
+        if (isset($updateData['booking_date']) || isset($updateData['start_time']) || isset($updateData['end_time'])) {
+            $newDate = $updateData['booking_date'] ?? $booking['booking_date'];
+            $newStartTime = $updateData['start_time'] ?? $booking['start_time'];
+            $newEndTime = $updateData['end_time'] ?? $booking['end_time'];
+
+            // Check if new time slot is available (excluding current booking)
+            $isAvailable = $this->isTimeSlotAvailable(
+                $booking['facility_id'],
+                $newDate,
+                $newStartTime,
+                $newEndTime,
+                $bookingId
+            );
+
+            if (!$isAvailable) {
+                return false;
+            }
+
+            // Recalculate duration if time changed
+            if (isset($updateData['start_time']) || isset($updateData['end_time'])) {
+                $startTime = strtotime($newStartTime);
+                $endTime = strtotime($newEndTime);
+                $updateData['duration_hours'] = ($endTime - $startTime) / 3600;
+            }
+        }
+
+        // Perform update
+        return $this->update($bookingId, $updateData);
+    }
+
+    /**
      * Cancel booking (can be done by user or ground owner)
      */
     public function cancelBooking(int $bookingId, int $cancelledBy, string $reason = ''): bool

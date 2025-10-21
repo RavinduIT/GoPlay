@@ -804,6 +804,105 @@ class CoachController extends BaseController
     }
 
     /**
+     * Update a coach booking (reschedule)
+     *
+     * PUT /api/coach-bookings/{id}
+     */
+    public function updateCoachBooking(Request $request): Response
+    {
+        try {
+            session_start();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ], 401);
+            }
+
+            $bookingId = $request->getParam('id');
+            $userId = $_SESSION['user_id'];
+            $data = $request->getBody();
+
+            error_log("=== Update Coach Booking Request ===");
+            error_log("Booking ID: " . $bookingId);
+            error_log("User ID: " . $userId);
+            error_log("Update Data: " . json_encode($data));
+
+            if (!$bookingId) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Booking ID is required'
+                ], 400);
+            }
+
+            $coachBookingModel = new CoachBooking();
+
+            // Verify booking belongs to user
+            $booking = $coachBookingModel->find((int)$bookingId);
+            if (!$booking || $booking['user_id'] != $userId) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Booking not found or unauthorized'
+                ], 404);
+            }
+
+            // Check if booking can be updated
+            if (in_array($booking['status'], ['completed', 'cancelled'])) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Cannot update completed or cancelled bookings'
+                ], 400);
+            }
+
+            // Prepare update data
+            $updateData = [];
+            if (isset($data['booking_date'])) $updateData['booking_date'] = $data['booking_date'];
+            if (isset($data['start_time'])) $updateData['start_time'] = $data['start_time'];
+            if (isset($data['session_type'])) $updateData['session_type'] = $data['session_type'];
+            if (isset($data['special_requests'])) $updateData['special_requests'] = $data['special_requests'];
+
+            // Calculate end time if start_time is updated
+            if (isset($data['start_time']) && isset($data['duration'])) {
+                $duration = (int)$data['duration'];
+                $updateData['end_time'] = date('H:i', strtotime($data['start_time']) + ($duration * 60));
+            } elseif (isset($data['start_time'])) {
+                // Use default 1 hour if no duration specified
+                $updateData['end_time'] = date('H:i', strtotime($data['start_time']) + 3600);
+            }
+
+            if (empty($updateData)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'No update data provided'
+                ], 400);
+            }
+
+            // Update the booking
+            $success = $coachBookingModel->updateBooking((int)$bookingId, $updateData);
+
+            if ($success) {
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Booking updated successfully'
+                ]);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Failed to update booking. The time slot may not be available.'
+                ], 400);
+            }
+
+        } catch (\Exception $e) {
+            error_log("Error updating coach booking: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'error' => 'An error occurred',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Cancel a coach booking (API endpoint)
      *
      * PUT /api/coach-bookings/{id}/cancel
