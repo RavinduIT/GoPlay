@@ -670,19 +670,43 @@ class CoachController extends BaseController
             // Get booking data from request
             $data = $request->getBody();
 
-            // Debug log
-            error_log("Booking request data: " . json_encode($data));
+            // Enhanced debug logging
+            error_log("=== Coach Booking Request ===");
+            error_log("Request Method: " . $request->getMethod());
             error_log("Content-Type: " . ($request->getHeader('content-type') ?? 'not set'));
+            error_log("Request Body Data: " . json_encode($data));
+            error_log("Data is array: " . (is_array($data) ? 'yes' : 'no'));
+            error_log("Data count: " . count($data));
+
+            // If data is empty, try alternative methods
+            if (empty($data)) {
+                error_log("Body is empty, trying getJsonBody()");
+                $data = $request->getJsonBody();
+                error_log("JsonBody Data: " . json_encode($data));
+            }
 
             // Validate required fields
             $required = ['coach_id', 'booking_date', 'start_time', 'session_type', 'total_amount'];
+            $missing = [];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
-                    return $this->json([
-                        'success' => false,
-                        'error' => "Missing required field: {$field}"
-                    ], 400);
+                    $missing[] = $field;
                 }
+            }
+
+            if (!empty($missing)) {
+                error_log("Missing fields: " . implode(', ', $missing));
+                error_log("Available fields: " . implode(', ', array_keys($data)));
+                return $this->json([
+                    'success' => false,
+                    'error' => "Missing required fields: " . implode(', ', $missing),
+                    'received_data' => array_keys($data),
+                    'debug' => [
+                        'content_type' => $request->getHeader('content-type'),
+                        'method' => $request->getMethod(),
+                        'body_count' => count($data)
+                    ]
+                ], 400);
             }
 
             // Calculate end time (default 1 hour)
