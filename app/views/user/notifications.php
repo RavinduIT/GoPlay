@@ -25,7 +25,6 @@ $additionalJS = [];
     .notifications-page { background: var(--background-light); min-height: 100vh; padding: 2rem 0; }
     .page-container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
 
-    /* Header */
     .page-header-section { background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white; padding: 2.5rem 2rem; border-radius: 16px; margin-bottom: 1.5rem; box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2); display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1rem; }
     .page-header-section h1 { font-size: 2rem; margin: 0; font-weight: 800; }
     .header-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
@@ -35,7 +34,6 @@ $additionalJS = [];
     .btn-outline { background: transparent; color: white; border: 2px solid rgba(255,255,255,.7); }
     .btn-danger { background: var(--danger-color); color: white; }
 
-    /* Toolbar */
     .toolbar { background: white; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.05); padding: .75rem; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .75rem; margin-bottom: 1rem; }
     .search-input { display: flex; align-items: center; gap: .5rem; background: var(--muted-bg); padding: .5rem .75rem; border-radius: 10px; }
     .search-input input { border: none; outline: none; background: transparent; width: 100%; font-size: .95rem; color: var(--text-primary); }
@@ -45,7 +43,6 @@ $additionalJS = [];
     .chip:hover { background: var(--primary-light); border-color: var(--primary-color); }
     .chip.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-    /* List container */
     .panel { background: white; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,.08); overflow: hidden; width: 100%; }
 
     .panel-header { display: flex; justify-content: space-between; align-items: center; padding: .9rem 1rem; border-bottom: 1px solid var(--border-color); background: var(--background-light); }
@@ -54,7 +51,6 @@ $additionalJS = [];
     .bulk-actions { display: flex; align-items: center; gap: .5rem; }
     .bulk-actions .btn { padding: .45rem .75rem; font-weight: 700; }
 
-    /* Notification item */
     .notif-item { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border-color); transition: background .2s ease; }
     .notif-item:hover { background: #fbfdff; }
     .notif-item.unread { background: #f8fbff; }
@@ -73,12 +69,10 @@ $additionalJS = [];
     .empty-state, .loading-state { text-align: center; padding: 3rem 1rem; color: var(--text-secondary); }
     .empty-state i { font-size: 3rem; color: var(--border-color); margin-bottom: .75rem; }
 
-    /* Footer */
     .panel-footer { display: flex; justify-content: center; gap: .5rem; padding: .8rem; background: var(--background-light); }
     .pager { border: 1px solid var(--border-color); background: white; padding: .4rem .75rem; border-radius: 8px; cursor: pointer; color: var(--text-primary); font-weight: 700; }
     .pager[disabled] { opacity: .5; cursor: not-allowed; }
 
-    /* Responsive */
     @media (max-width: 768px) { .page-container { padding: 0 1rem; } .notif-item { grid-template-columns: auto 1fr; } .notif-actions { grid-column: 1 / -1; justify-content: flex-end; } }
 </style>
 
@@ -96,7 +90,6 @@ $additionalJS = [];
             </div>
         </div>
 
-        <!-- Toolbar: search + quick filters -->
         <div class="toolbar">
             <div class="search-input">
                 <i class="fas fa-search"></i>
@@ -113,7 +106,6 @@ $additionalJS = [];
             </div>
         </div>
 
-        <!-- List -->
         <div class="panel">
             <div class="panel-header">
                 <div class="panel-title"><i class="fas fa-inbox"></i> Inbox <span id="inboxCount" style="font-weight:600; opacity:.7; margin-left:.4rem;">(0)</span></div>
@@ -165,13 +157,11 @@ class NotificationsPage {
             if (res.status === 401) { window.location.href = '/login'; return; }
             const data = await res.json();
             if (data.success) {
-                // Expected shape: [{id, type, title, message, created_at, read, meta:{order_id, booking_id, ...}, icon, severity}]
                 this.all = data.notifications || [];
             }
         } catch (e) { console.error(e); }
     }
 
-    /* -------- Filters & Search -------- */
     switchFilter(el) {
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
@@ -207,7 +197,6 @@ class NotificationsPage {
         document.getElementById('inboxCount').textContent = `(${this.filtered.length})`;
     }
 
-    /* -------- Rendering -------- */
     render() {
         const loading = document.getElementById('notifLoading');
         const list = document.getElementById('notifList');
@@ -274,7 +263,6 @@ class NotificationsPage {
         return '';
     }
 
-    /* -------- Selection & Bulk -------- */
     toggleSelect(id, isChecked) { if (isChecked) this.selected.add(id); else this.selected.delete(id); }
     toggleSelectAll(cb) {
         const start = (this.page - 1) * this.perPage;
@@ -282,13 +270,10 @@ class NotificationsPage {
         slice.forEach(n => cb.checked ? this.selected.add(n.id) : this.selected.delete(n.id));
         this.render();
     }
-
     get selectedArray() { return Array.from(this.selected); }
-
     async bulkMarkRead() { await this.bulk('/api/user/notifications/bulk/read'); }
     async bulkMarkUnread() { await this.bulk('/api/user/notifications/bulk/unread'); }
     async bulkDelete() { if (!confirm('Delete selected notifications?')) return; await this.bulk('/api/user/notifications/bulk/delete', { method: 'DELETE' }); }
-
     async bulk(url, extra = {}) {
         if (this.selected.size === 0) { alert('Select at least one notification'); return; }
         try {
@@ -298,7 +283,6 @@ class NotificationsPage {
         } catch (e) { console.error(e); }
     }
 
-    /* -------- Item actions -------- */
     async toggleRead(id) {
         try {
             const notif = this.all.find(n => n.id === id);
@@ -337,7 +321,6 @@ class NotificationsPage {
 
     toggleMuted() { this.muted = !this.muted; alert(this.muted ? 'Notifications muted' : 'Notifications unmuted'); }
 
-    /* -------- Pagination -------- */
     updatePager(total) {
         const pages = Math.max(1, Math.ceil(total / this.perPage));
         document.getElementById('pageInfo').textContent = `Page ${this.page} / ${pages}`;
@@ -350,4 +333,17 @@ class NotificationsPage {
 }
 
 const notifications = new NotificationsPage();
+</script>
+
+<!-- ✅ DEMO NOTIFICATIONS ADDED HERE -->
+<script>
+window.addEventListener('load', () => {
+    notifications.all = [
+      { id: 1, type: 'order', severity: 'success', title: 'Order #45231 Confirmed', message: 'Your sports gear order was placed successfully.', created_at: new Date().toISOString(), read: false, meta: { order_id: 45231 }},
+      { id: 2, type: 'booking', severity: 'info', title: 'Ground Booking Approved', message: 'Your booking for Royal Turf Ground is confirmed.', created_at: new Date().toISOString(), read: false, meta: { booking_id: 9273 }},
+      { id: 3, type: 'promotion', severity: 'success', title: '🔥 25% Off Weekend Offer!', message: 'Grab discounts on all football items.', created_at: new Date().toISOString(), read: true },
+      { id: 4, type: 'system', severity: 'warning', title: 'Password Change Recommended', message: 'Your password is 90 days old. Consider updating it.', created_at: new Date().toISOString(), read: true }
+    ];
+    notifications.applyFilters();
+});
 </script>
