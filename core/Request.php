@@ -71,14 +71,22 @@ class Request
         if ($this->method === 'GET') {
             return [];
         }
-        
+
         $contentType = $this->getHeader('content-type') ?? '';
-        
+
         if (strpos($contentType, 'application/json') !== false) {
             $decoded = json_decode(self::$rawInput, true);
-            return $decoded ?: [];
+
+            // Debug logging for JSON parsing
+            if ($decoded === null && !empty(self::$rawInput)) {
+                error_log("JSON Parse Error: " . json_last_error_msg());
+                error_log("Raw Input: " . self::$rawInput);
+            }
+
+            // Return decoded data if valid, otherwise empty array
+            return is_array($decoded) ? $decoded : [];
         }
-        
+
         return $_POST;
     }
     
