@@ -23,7 +23,6 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 2rem 0;
-
             text-align: center;
         }
 
@@ -549,14 +548,14 @@
 Booking Details:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Facility: ${booking.facility_name}
-Date: ${new Date(booking.booking_date).toLocaleDateString()}
-Time: ${booking.start_time} - ${booking.end_time}
-Duration: ${booking.duration_hours} hours
-Status: ${booking.status}
-Sport: ${booking.sport_name || 'General'}
-Address: ${booking.facility_address || 'N/A'}
-Owner Contact: ${booking.owner_phone || 'N/A'}
+📍 Facility: ${booking.facility_name}
+📅 Date: ${new Date(booking.booking_date).toLocaleDateString()}
+🕐 Time: ${booking.start_time} - ${booking.end_time}
+⏱️ Duration: ${booking.duration_hours} hours
+🏷️ Status: ${booking.status}
+🏃 Sport: ${booking.sport_name || 'General'}
+📍 Address: ${booking.facility_address || 'N/A'}
+📞 Owner Contact: ${booking.owner_phone || 'N/A'}
 
 ${booking.special_requests ? `📝 Special Requests: ${booking.special_requests}` : ''}
 

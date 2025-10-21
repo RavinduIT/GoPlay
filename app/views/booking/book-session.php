@@ -1,6 +1,4 @@
 <?php
-use App\Models\Coach;
-
 $title = 'Book Training Session - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
@@ -8,34 +6,65 @@ $additionalJS = [];
 // Get coach ID from URL parameter
 $coach_id = $_GET['coach_id'] ?? null;
 
-// Fetch coaches from database
-try {
-    $coachModel = new Coach();
-    $allCoaches = $coachModel->getAvailable();
-
-    // Format coaches for display
-    $coaches = [];
-    foreach ($allCoaches as $coach) {
-        $coaches[$coach['id']] = [
-            'id' => $coach['id'],
-            'name' => $coach['first_name'] . ' ' . $coach['last_name'],
-            'sport' => $coach['sport_name'] ?? 'General',
-            'experience' => $coach['experience_years'] . ' Years',
-            'rating' => round($coach['rating'], 1),
-            'reviews' => $coach['total_reviews'],
-            'price' => $coach['hourly_rate'],
-            'location' => $coach['location'],
-            'bio' => $coach['bio'],
-            'profile_picture' => $coach['profile_picture'] ?? null,
-            'specialties' => !empty($coach['specializations']) ? explode(', ', $coach['specializations']) : [],
-            'available_times' => ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00']
-        ];
-    }
-} catch (Exception $e) {
-    // Fallback to empty array if database connection fails
-    $coaches = [];
-    error_log("Error loading coaches: " . $e->getMessage());
-}
+// Mock coach data (you can replace this with database query)
+$coaches = [
+    1 => [
+        'id' => 1,
+        'name' => 'John Smith',
+        'sport' => 'Cricket',
+        'experience' => '8 Years',
+        'rating' => 4.8,
+        'reviews' => 156,
+        'price' => 2500,
+        'location' => 'Colombo',
+        'bio' => 'Professional cricket coach with international experience.',
+        'profile_picture' => null,
+        'specialties' => ['Batting', 'Bowling', 'Fielding'],
+        'available_times' => ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00']
+    ],
+    2 => [
+        'id' => 2,
+        'name' => 'Sarah Williams',
+        'sport' => 'Tennis',
+        'experience' => '6 Years',
+        'rating' => 4.9,
+        'reviews' => 89,
+        'price' => 3000,
+        'location' => 'Kandy',
+        'bio' => 'Former professional tennis player turned coach.',
+        'profile_picture' => null,
+        'specialties' => ['Forehand', 'Backhand', 'Serve'],
+        'available_times' => ['08:00', '09:00', '10:00', '15:00', '16:00', '17:00']
+    ],
+    3 => [
+        'id' => 3,
+        'name' => 'Mike Johnson',
+        'sport' => 'Football',
+        'experience' => '10 Years',
+        'rating' => 4.7,
+        'reviews' => 203,
+        'price' => 2800,
+        'location' => 'Galle',
+        'bio' => 'Expert football coach specializing in youth development.',
+        'profile_picture' => null,
+        'specialties' => ['Dribbling', 'Shooting', 'Defense'],
+        'available_times' => ['07:00', '08:00', '17:00', '18:00', '19:00']
+    ],
+    4 => [
+        'id' => 4,
+        'name' => 'Emma Davis',
+        'sport' => 'Basketball',
+        'experience' => '5 Years',
+        'rating' => 4.6,
+        'reviews' => 67,
+        'price' => 2200,
+        'location' => 'Colombo',
+        'bio' => 'Dynamic basketball coach with focus on fundamentals.',
+        'profile_picture' => null,
+        'specialties' => ['Shooting', 'Dribbling', 'Team Play'],
+        'available_times' => ['09:00', '10:00', '11:00', '16:00', '17:00', '18:00']
+    ]
+];
 
 $selected_coach = null;
 if ($coach_id && isset($coaches[$coach_id])) {
@@ -43,9 +72,14 @@ if ($coach_id && isset($coaches[$coach_id])) {
 }
 ?>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-<style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $title ?></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
         :root {
             --primary-color: #2563eb;
             --primary-dark: #1d4ed8;
@@ -73,10 +107,11 @@ if ($coach_id && isset($coaches[$coach_id])) {
             padding: 0;
         }
 
-        #main-content {
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
             background: var(--background-light);
-            min-height: 100vh;
-            padding-top: 2rem;
         }
 
         .container {
@@ -85,20 +120,19 @@ if ($coach_id && isset($coaches[$coach_id])) {
             padding: 2rem;
         }
 
-        .page-header {
+        .header {
             text-align: center;
             margin-bottom: 3rem;
-            background: transparent;
         }
 
-        .page-header h1 {
+        .header h1 {
             font-size: 2.5rem;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 0.5rem;
         }
 
-        .page-header p {
+        .header p {
             font-size: 1.2rem;
             color: var(--text-secondary);
         }
@@ -118,8 +152,8 @@ if ($coach_id && isset($coaches[$coach_id])) {
         }
 
         .section-header {
-            background: var(--primary-color) !important;
-            color: white !important;
+            background: var(--primary-color);
+            color: white;
             padding: 1.5rem;
             text-align: center;
         }
@@ -438,15 +472,16 @@ if ($coach_id && isset($coaches[$coach_id])) {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
-</style>
-
-<div class="container">
+    </style>
+</head>
+<body>
+    <div class="container">
         <a href="/book-coach" class="back-link">
             <i class="fas fa-arrow-left"></i>
             Back to Coach Selection
         </a>
 
-        <div class="page-header">
+        <div class="header">
             <h1><i class="fas fa-calendar-plus"></i> Book Training Session</h1>
             <p>Select a coach and schedule your training session</p>
         </div>
@@ -480,7 +515,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                                         <span><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($coach['location']) ?></span>
                                         <span><i class="fas fa-clock"></i> <?= htmlspecialchars($coach['experience']) ?></span>
                                     </div>
-                                    <div class="coach-price">LKR <?= number_format($coach['price']) ?>/session</div>
+                                    <div class="coach-price">₹<?= number_format($coach['price']) ?>/session</div>
                                 </div>
                             </div>
                         </div>
@@ -566,7 +601,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                             </div>
                             <div class="summary-row">
                                 <span>Total Amount:</span>
-                                <span id="summaryTotal">LKR 0</span>
+                                <span id="summaryTotal">₹0</span>
                             </div>
                         </div>
 
@@ -580,7 +615,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
         </div>
     </div>
 
-<script>
+    <script>
         class SessionBooking {
             constructor() {
                 this.selectedCoach = null;
@@ -711,7 +746,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                 }
 
                 document.getElementById('summaryDuration').textContent = `${this.duration} minutes`;
-                document.getElementById('summaryTotal').textContent = `LKR ${this.selectedCoach.price.toLocaleString()}`;
+                document.getElementById('summaryTotal').textContent = `₹${this.selectedCoach.price.toLocaleString()}`;
 
                 // Enable/disable proceed button
                 const canProceed = this.selectedCoach && this.selectedType && this.selectedDate && this.selectedTime;
@@ -726,56 +761,27 @@ if ($coach_id && isset($coaches[$coach_id])) {
                 document.getElementById('sessionDate').min = tomorrow.toISOString().split('T')[0];
             }
 
-            async proceedToPayment() {
+            proceedToPayment() {
                 if (!this.selectedCoach || !this.selectedType || !this.selectedDate || !this.selectedTime) {
                     alert('Please complete all required fields');
                     return;
                 }
 
-                // Disable button during submission
-                const btn = document.getElementById('proceedToPayment');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Booking...';
-
                 // Create booking data
                 const bookingData = {
                     coach_id: this.selectedCoach.id,
-                    booking_date: this.selectedDate,
-                    start_time: this.selectedTime,
+                    coach_name: this.selectedCoach.name,
                     session_type: this.selectedType,
+                    date: this.selectedDate,
+                    time: this.selectedTime,
                     duration: this.duration,
-                    total_amount: this.selectedCoach.price,
+                    price: this.selectedCoach.price,
                     special_requests: document.getElementById('specialRequests').value
                 };
 
-                try {
-                    // Call API to create booking
-                    const response = await fetch('/api/coach-bookings', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(bookingData)
-                    });
-
-                    const result = await response.json();
-
-                    if (result.success) {
-                        alert('Booking created successfully! Booking ID: ' + result.booking_id);
-                        // Redirect to payment or bookings page
-                        window.location.href = '/my-bookings';
-                    } else {
-                        alert('Error: ' + result.error);
-                        console.error('Booking error:', result);
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-credit-card"></i> Proceed to Payment';
-                    }
-                } catch (error) {
-                    console.error('Error creating booking:', error);
-                    alert('Failed to create booking. Error: ' + error.message + '\nCheck browser console for details.');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-credit-card"></i> Proceed to Payment';
-                }
+                // Redirect to payment with booking data
+                const params = new URLSearchParams(bookingData);
+                window.location.href = `/app/views/payment/session.php?${params.toString()}`;
             }
         }
 
@@ -784,3 +790,5 @@ if ($coach_id && isset($coaches[$coach_id])) {
             new SessionBooking();
         });
     </script>
+</body>
+</html>

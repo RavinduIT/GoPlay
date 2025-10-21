@@ -101,14 +101,6 @@ class BookingController extends BaseController
     }
 
     /**
-     * Display coach booking session page
-     */
-    public function bookSession(Request $request): Response
-    {
-        return $this->view('booking/book-session');
-    }
-
-    /**
      * Display ground details
      */
     public function groundDetails(Request $request): Response

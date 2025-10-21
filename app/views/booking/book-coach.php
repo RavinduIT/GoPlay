@@ -907,7 +907,7 @@ $additionalJS = [];
         function bookSession(coachId) {
             console.log('Book session with coach:', coachId);
             // Redirect to session booking page
-            window.location.href = `/book-session?coach_id=${coachId}`;
+            window.location.href = `/app/views/booking/book-session.php?coach_id=${coachId}`;
         }
         
     
