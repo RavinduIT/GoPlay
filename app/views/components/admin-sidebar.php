@@ -22,32 +22,11 @@ $menuItems = [
         'badge' => $userCount ?? null
     ],
     [
-        'id' => 'bookings',
-        'url' => '/admin/bookings',
-        'icon' => 'fas fa-calendar-alt',
-        'label' => 'Bookings',
-        'badge' => null
-    ],
-    [
-        'id' => 'grounds',
-        'url' => '/admin/grounds',
-        'icon' => 'fas fa-map-marker-alt',
-        'label' => 'Grounds',
-        'badge' => $groundCount ?? null
-    ],
-    [
-        'id' => 'coaches',
-        'url' => '/admin/coaches',
-        'icon' => 'fas fa-user-tie',
-        'label' => 'Coaches',
-        'badge' => $coachCount ?? null
-    ],
-    [
-        'id' => 'shop',
-        'url' => '/admin/shop',
-        'icon' => 'fas fa-store',
-        'label' => 'Shop',
-        'badge' => $shopCount ?? null
+        'id' => 'registrations',
+        'url' => '/admin/registrations',
+        'icon' => 'fas fa-user-plus',
+        'label' => 'Registrations',
+        'badge' => $registrationCount ?? null
     ],
     [
         'id' => 'news',
@@ -59,8 +38,8 @@ $menuItems = [
     [
         'id' => 'payments',
         'url' => '/admin/payments',
-        'icon' => 'fas fa-credit-card',
-        'label' => 'Payments',
+        'icon' => 'fas fa-money-bill-wave',
+        'label' => 'Payments & Earnings',
         'badge' => null
     ],
     [
@@ -157,7 +136,6 @@ $menuItems = [
     width: 80px;
 }
 
-/* Sidebar Header */
 .sidebar-header {
     padding: 24px 20px;
     display: flex;
@@ -172,12 +150,6 @@ $menuItems = [
     align-items: center;
     gap: 12px;
     transition: all 0.3s ease;
-}
-
-.logo-icon {
-    font-size: 28px;
-    color: #3b82f6;
-    min-width: 28px;
 }
 
 .logo-text {
@@ -215,15 +187,6 @@ $menuItems = [
     transform: scale(1.05);
 }
 
-.sidebar-collapse-btn i {
-    transition: transform 0.3s ease;
-}
-
-.admin-sidebar.collapsed .sidebar-collapse-btn i {
-    transform: rotate(180deg);
-}
-
-/* Sidebar Navigation */
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
@@ -339,7 +302,6 @@ $menuItems = [
     padding: 0;
 }
 
-/* Divider */
 .nav-divider {
     margin: 16px 20px;
     position: relative;
@@ -354,7 +316,6 @@ $menuItems = [
         transparent 100%);
 }
 
-/* Logout Link */
 .logout-link {
     color: #f87171 !important;
 }
@@ -364,7 +325,6 @@ $menuItems = [
     color: #fca5a5 !important;
 }
 
-/* Sidebar Footer */
 .sidebar-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding: 16px;
@@ -421,7 +381,6 @@ $menuItems = [
     white-space: nowrap;
 }
 
-/* Adjust main content when sidebar is collapsed */
 .admin-main {
     margin-left: 260px;
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -431,7 +390,6 @@ $menuItems = [
     margin-left: 80px;
 }
 
-/* Mobile Styles */
 @media (max-width: 768px) {
     .desktop-only {
         display: none;
@@ -453,19 +411,6 @@ $menuItems = [
     .admin-main {
         margin-left: 0 !important;
     }
-
-    .mobile-only {
-        display: block !important;
-    }
-
-    .sidebar-header .sidebar-toggle {
-        display: flex !important;
-    }
-}
-
-/* Tooltip for collapsed sidebar */
-.admin-sidebar.collapsed .nav-item a {
-    position: relative;
 }
 
 .admin-sidebar.collapsed .nav-item a:hover::after {
@@ -499,27 +444,20 @@ $menuItems = [
 </style>
 
 <script>
-// Toggle sidebar collapse/expand (Desktop)
 function toggleSidebarCollapse() {
     const sidebar = document.getElementById('adminSidebar');
     const isCollapsed = sidebar.classList.toggle('collapsed');
-    
-    // Save state to localStorage
     localStorage.setItem('sidebarCollapsed', isCollapsed);
-    
-    // Dispatch event for other components
     window.dispatchEvent(new CustomEvent('sidebarToggle', { 
         detail: { collapsed: isCollapsed } 
     }));
 }
 
-// Toggle sidebar visibility (Mobile)
 function toggleSidebar() {
     const sidebar = document.getElementById('adminSidebar');
     sidebar.classList.toggle('active');
 }
 
-// Restore sidebar state on page load
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('adminSidebar');
     const savedState = localStorage.getItem('sidebarCollapsed');
@@ -529,7 +467,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Close sidebar when clicking outside on mobile
 document.addEventListener('click', function(event) {
     const sidebar = document.getElementById('adminSidebar');
     const sidebarToggle = document.querySelector('.sidebar-toggle');
@@ -542,7 +479,6 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Handle window resize
 let resizeTimer;
 window.addEventListener('resize', function() {
     clearTimeout(resizeTimer);

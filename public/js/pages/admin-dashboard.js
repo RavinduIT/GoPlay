@@ -11,14 +11,27 @@ function initializeAdminDashboard() {
         button.addEventListener('click', toggleSidebar);
     });
 
-    // Initialize chart
-    initializeRevenueChart();
+    // Load all dashboard data
+    loadDashboardStats();
+    loadRevenueChart();
+    loadRecentRegistrations();
+    loadRecentContent();
+    loadNotifications();
+    loadAdminProfile();
 
-    // Initialize notifications
-    initializeNotifications();
+    // Initialize time filter for revenue chart
+    const timeFilter = document.querySelector('.time-filter');
+    if (timeFilter) {
+        timeFilter.addEventListener('change', function() {
+            loadRevenueChart(this.value);
+        });
+    }
 
-    // Initialize real-time updates
-    startRealTimeUpdates();
+    // Set up auto-refresh every 30 seconds
+    setInterval(() => {
+        loadDashboardStats();
+        loadNotifications();
+    }, 30000);
 }
 
 function toggleSidebar() {
@@ -26,60 +39,193 @@ function toggleSidebar() {
     sidebar.classList.toggle('open');
 }
 
-function initializeRevenueChart() {
-    const canvas = document.getElementById('revenueChart');
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    
-    // Sample data - in real app, this would come from API
-    const revenueData = {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-            label: 'Revenue (₹)',
-            data: [45000, 52000, 48000, 61000, 55000, 67000],
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4
-        }]
-    };
-
-    // For demo purposes, we'll create a simple chart visualization
-    // In production, you would use Chart.js or similar library
-    drawSimpleChart(ctx, revenueData);
+/**
+ * Load Dashboard Statistics
+ */
+async function loadDashboardStats() {
+    try {
+        const response = await fetch('/admin/api/stats');
+        const data = await response.json();
+        
+        if (data.success && data.stats) {
+            updateStatCard('users', data.stats.users);
+            updateStatCard('revenue', data.stats.revenue);
+            updateStatCard('grounds', data.stats.grounds);
+            updateStatCard('products', data.stats.products);
+        }
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        showToast('Failed to load statistics', 'error');
+    }
 }
 
-function drawSimpleChart(ctx, data) {
-    const canvas = ctx.canvas;
+function updateStatCard(type, stats) {
+    const statCards = document.querySelectorAll('.stat-card');
+    
+    statCards.forEach(card => {
+        const title = card.querySelector('h3')?.textContent.toLowerCase();
+        
+        if (type === 'users' && title.includes('users')) {
+            updateCardContent(card, stats.total, stats.label, stats.growth);
+        } else if (type === 'revenue' && title.includes('revenue')) {
+            updateCardContent(card, `Rs.${formatNumber(stats.total)}`, stats.label, stats.growth);
+        } else if (type === 'grounds' && title.includes('grounds')) {
+            updateCardContent(card, stats.total, stats.label, 0);
+        } else if (type === 'coaches' && title.includes('coaches')) {
+            updateCardContent(card, stats.total, stats.label, 0);
+        } else if (type === 'products' && title.includes('products')) {
+            updateCardContent(card, stats.total, stats.label, 0);
+        }
+    });
+}
+
+function updateCardContent(card, number, label, growth) {
+    const statNumber = card.querySelector('.stat-number');
+    const statChange = card.querySelector('.stat-change span');
+    const changeIcon = card.querySelector('.stat-change i');
+    const changeDiv = card.querySelector('.stat-change');
+    
+    if (statNumber) {
+        // Animate number change
+        animateValue(statNumber, number);
+    }
+    
+    if (statChange && label) {
+        statChange.textContent = label;
+    }
+    
+    if (changeDiv && growth !== undefined) {
+        if (growth >= 0) {
+            changeDiv.classList.remove('negative');
+            changeDiv.classList.add('positive');
+            if (changeIcon) changeIcon.className = 'fas fa-arrow-up';
+        } else {
+            changeDiv.classList.remove('positive');
+            changeDiv.classList.add('negative');
+            if (changeIcon) changeIcon.className = 'fas fa-arrow-down';
+        }
+    }
+}
+
+function animateValue(element, newValue) {
+    const currentText = element.textContent;
+    const hasRupee = currentText.includes('Rs.');
+    const currentValue = parseInt(currentText.replace(/[^0-9]/g, '')) || 0;
+    const targetValue = typeof newValue === 'string' ? 
+        parseInt(newValue.replace(/[^0-9]/g, '')) : newValue;
+    
+    if (currentValue === targetValue) return;
+    
+    const duration = 500;
+    const steps = 20;
+    const increment = (targetValue - currentValue) / steps;
+    let current = currentValue;
+    let step = 0;
+    
+    const timer = setInterval(() => {
+        step++;
+        current += increment;
+        
+        if (step >= steps) {
+            clearInterval(timer);
+            current = targetValue;
+        }
+        
+        if (hasRupee) {
+            element.textContent = `Rs.${formatNumber(Math.round(current))}`;
+        } else {
+            element.textContent = formatNumber(Math.round(current));
+        }
+    }, duration / steps);
+}
+
+/**
+ * Load Revenue Chart
+ */
+async function loadRevenueChart(period = '7') {
+    try {
+        const response = await fetch(`/admin/api/revenue-chart?period=${period}`);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            drawRevenueChart(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading revenue chart:', error);
+    }
+}
+
+function drawRevenueChart(data) {
+    const canvas = document.getElementById('revenueChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
     
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
     
+    if (!data || data.length === 0) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '14px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data available', width / 2, height / 2);
+        return;
+    }
+    
+    const values = data.map(d => d.revenue);
+    const labels = data.map(d => d.label);
+    const max = Math.max(...values, 100);
+    const min = Math.min(...values, 0);
+    const range = max - min || 1;
+    
+    // Margins
+    const marginTop = 40;
+    const marginBottom = 50;
+    const marginLeft = 60;
+    const marginRight = 30;
+    
+    const chartWidth = width - marginLeft - marginRight;
+    const chartHeight = height - marginTop - marginBottom;
+    
     // Draw gradient background
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    const gradient = ctx.createLinearGradient(0, marginTop, 0, height - marginBottom);
     gradient.addColorStop(0, 'rgba(59, 130, 246, 0.1)');
-    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.02)');
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.01)');
     
-    const values = data.datasets[0].data;
-    const max = Math.max(...values);
-    const min = Math.min(...values);
-    const range = max - min;
+    // Draw the line path first for fill
+    ctx.beginPath();
+    const step = chartWidth / (values.length - 1 || 1);
     
-    // Draw chart
+    values.forEach((value, index) => {
+        const x = marginLeft + (index * step);
+        const y = marginTop + chartHeight - ((value - min) / range * chartHeight);
+        
+        if (index === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+    
+    // Close path for fill
+    ctx.lineTo(marginLeft + chartWidth, height - marginBottom);
+    ctx.lineTo(marginLeft, height - marginBottom);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    // Draw the line
     ctx.beginPath();
     ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 3;
-    
-    const step = (width - 60) / (values.length - 1);
-    const heightScale = (height - 80) / range;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
     
     values.forEach((value, index) => {
-        const x = 30 + (index * step);
-        const y = height - 40 - ((value - min) * heightScale);
+        const x = marginLeft + (index * step);
+        const y = marginTop + chartHeight - ((value - min) / range * chartHeight);
         
         if (index === 0) {
             ctx.moveTo(x, y);
@@ -90,15 +236,25 @@ function drawSimpleChart(ctx, data) {
     
     ctx.stroke();
     
-    // Draw data points
+    // Draw data points and values
     ctx.fillStyle = '#3b82f6';
+    ctx.font = 'bold 11px Inter';
+    ctx.textAlign = 'center';
+    
     values.forEach((value, index) => {
-        const x = 30 + (index * step);
-        const y = height - 40 - ((value - min) * heightScale);
+        const x = marginLeft + (index * step);
+        const y = marginTop + chartHeight - ((value - min) / range * chartHeight);
         
+        // Draw point
         ctx.beginPath();
         ctx.arc(x, y, 4, 0, 2 * Math.PI);
         ctx.fill();
+        
+        // Draw value above point
+        ctx.fillStyle = '#0f172a';
+        const formattedValue = value >= 1000 ? 'Rs.' + (value / 1000).toFixed(1) + 'k' : 'Rs.' + value.toFixed(0);
+        ctx.fillText(formattedValue, x, y - 12);
+        ctx.fillStyle = '#3b82f6';
     });
     
     // Draw labels
@@ -106,57 +262,182 @@ function drawSimpleChart(ctx, data) {
     ctx.font = '12px Inter';
     ctx.textAlign = 'center';
     
-    data.labels.forEach((label, index) => {
-        const x = 30 + (index * step);
-        ctx.fillText(label, x, height - 10);
+    labels.forEach((label, index) => {
+        const x = marginLeft + (index * step);
+        ctx.fillText(label, x, height - marginBottom + 20);
     });
     
-    // Draw values
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 11px Inter';
-    
-    values.forEach((value, index) => {
-        const x = 30 + (index * step);
-        const y = height - 40 - ((value - min) * heightScale) - 10;
-        ctx.fillText('₹' + (value / 1000).toFixed(0) + 'k', x, y);
-    });
+    // Draw Y-axis labels
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#64748b';
+    const ySteps = 5;
+    for (let i = 0; i <= ySteps; i++) {
+        const value = min + (range / ySteps) * i;
+        const y = height - marginBottom - (chartHeight / ySteps) * i;
+        const label = value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value.toFixed(0);
+        ctx.fillText(label, marginLeft - 10, y + 4);
+        
+        // Draw grid line
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(marginLeft, y);
+        ctx.lineTo(width - marginRight, y);
+        ctx.stroke();
+    }
 }
 
+/**
+ * Load Recent Registrations
+ */
+async function loadRecentRegistrations() {
+    try {
+        const response = await fetch('/admin/api/recent-registrations?limit=5');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            displayRecentRegistrations(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading recent registrations:', error);
+    }
+}
+
+function displayRecentRegistrations(registrations) {
+    const container = document.querySelector('.booking-list');
+    if (!container) return;
+    
+    if (registrations.length === 0) {
+        container.innerHTML = '<div class="empty-state">No recent registrations</div>';
+        return;
+    }
+    
+    container.innerHTML = registrations.map(reg => `
+        <div class="booking-item">
+            <div class="booking-info">
+                <h4>${escapeHtml(reg.name)}</h4>
+                <p>${escapeHtml(reg.email)}</p>
+                <span class="booking-time">${escapeHtml(reg.timeAgo)}</span>
+            </div>
+            <span class="status-badge ${reg.typeClass}">${escapeHtml(reg.type)}</span>
+        </div>
+    `).join('');
+}
+
+/**
+ * Load Recent Content
+ */
+async function loadRecentContent() {
+    try {
+        const response = await fetch('/admin/api/recent-content?limit=5');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            displayRecentContent(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading recent content:', error);
+    }
+}
+
+function displayRecentContent(content) {
+    const container = document.querySelector('.order-list');
+    if (!container) return;
+    
+    if (content.length === 0) {
+        container.innerHTML = '<div class="empty-state">No recent content</div>';
+        return;
+    }
+    
+    container.innerHTML = content.map(item => `
+        <div class="order-item">
+            <div class="order-info">
+                <h4><i class="fas ${escapeHtml(item.icon)}"></i> ${escapeHtml(item.name)}</h4>
+                <p>${escapeHtml(item.type)}</p>
+                <span class="order-amount">${escapeHtml(item.timeAgo)}</span>
+            </div>
+            <span class="status-badge ${item.typeClass}">${escapeHtml(item.type)}</span>
+        </div>
+    `).join('');
+}
+
+/**
+ * Load Notifications
+ */
+async function loadNotifications() {
+    try {
+        const response = await fetch('/admin/api/notifications');
+        const result = await response.json();
+        
+        if (result.success) {
+            updateNotificationBadge(result.count);
+        }
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+    }
+}
+
+function updateNotificationBadge(count) {
+    const badge = document.querySelector('.notification-count');
+    if (badge) {
+        badge.textContent = count;
+        if (count === 0) {
+            badge.style.display = 'none';
+        } else {
+            badge.style.display = 'flex';
+        }
+    }
+}
+
+/**
+ * Load Admin Profile
+ */
+async function loadAdminProfile() {
+    try {
+        const response = await fetch('/admin/api/profile');
+        const result = await response.json();
+        
+        if (result.success && result.profile) {
+            updateAdminProfile(result.profile);
+        }
+    } catch (error) {
+        console.error('Error loading admin profile:', error);
+    }
+}
+
+function updateAdminProfile(profile) {
+    const nameElement = document.querySelector('.profile-name');
+    const roleElement = document.querySelector('.profile-role');
+    const avatarElement = document.querySelector('.profile-avatar');
+    
+    if (nameElement) nameElement.textContent = profile.name;
+    if (roleElement) roleElement.textContent = profile.role;
+    if (avatarElement) avatarElement.src = profile.avatar;
+}
+
+/**
+ * Initialize Notification Click Handler
+ */
 function initializeNotifications() {
     const notificationBtn = document.querySelector('.notification-btn');
     if (!notificationBtn) return;
 
     notificationBtn.addEventListener('click', function() {
-        // In a real app, this would show a notifications dropdown
-        console.log('Notifications clicked');
-        showToast('Notifications feature coming soon!', 'info');
+        showToast('View all notifications in the notifications page', 'info');
     });
 }
 
-function startRealTimeUpdates() {
-    // Simulate real-time updates every 30 seconds
-    setInterval(() => {
-        updateDashboardStats();
-    }, 30000);
+/**
+ * Utility Functions
+ */
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-function updateDashboardStats() {
-    // Simulate random stat updates
-    const statNumbers = document.querySelectorAll('.stat-number');
-    
-    statNumbers.forEach(stat => {
-        const currentValue = parseInt(stat.textContent.replace(/[^0-9]/g, ''));
-        const change = Math.floor(Math.random() * 10) - 5; // Random change between -5 and +5
-        const newValue = Math.max(0, currentValue + change);
-        
-        // Format the new value
-        if (stat.textContent.includes('₹')) {
-            stat.textContent = `₹${newValue.toLocaleString()}`;
-        } else {
-            stat.textContent = newValue.toLocaleString();
-        }
-    });
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function showToast(message, type = 'info') {
@@ -199,7 +480,7 @@ function showToast(message, type = 'info') {
     toast.innerHTML = `
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             <i class="fas fa-${icon}" style="color: ${color}; font-size: 1.25rem;"></i>
-            <span style="color: #0f172a; font-weight: 500;">${message}</span>
+            <span style="color: #0f172a; font-weight: 500;">${escapeHtml(message)}</span>
         </div>
     `;
 
@@ -229,6 +510,14 @@ window.addEventListener('resize', function() {
     if (window.innerWidth > 768) {
         sidebar.classList.remove('open');
     }
+    
+    // Redraw chart on resize
+    const canvas = document.getElementById('revenueChart');
+    if (canvas) {
+        const timeFilter = document.querySelector('.time-filter');
+        const period = timeFilter ? timeFilter.value : '7';
+        loadRevenueChart(period);
+    }
 });
 
 // Close sidebar when clicking outside on mobile
@@ -236,7 +525,7 @@ document.addEventListener('click', function(e) {
     const sidebar = document.getElementById('adminSidebar');
     const sidebarToggle = document.querySelectorAll('.sidebar-toggle');
     
-    if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+    if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
         let clickedToggle = false;
         sidebarToggle.forEach(toggle => {
             if (toggle.contains(e.target)) {

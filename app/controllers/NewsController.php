@@ -28,12 +28,12 @@ class NewsController extends BaseController
         try {
             // Get query parameters
             $page = max(1, (int)$request->getParam('page', 1));
-            $category = $request->getParam('category');
-            $search = $request->getParam('search');
+            $category = $request->getParam('category', 'all');
+            $search = $request->getParam('q', '');
             $limit = 9; // News per page
             
             // Get published news based on filters
-            if ($search) {
+            if (!empty($search)) {
                 $news = $this->newsModel->search($search);
             } elseif ($category && $category !== 'all') {
                 $news = $this->newsModel->getByCategory($category);
@@ -46,7 +46,8 @@ class NewsController extends BaseController
                 return strtotime($b['published_at']) - strtotime($a['published_at']);
             });
 
-            // Get featured news for hero section
+            // Get featured news for hero section (exclude from category filter)
+            $allNews = $this->newsModel->getPublished();
             $featuredNews = $this->newsModel->getFeatured(1);
             $featured = $featuredNews[0] ?? null;
 
@@ -88,7 +89,78 @@ class NewsController extends BaseController
     }
 
     /**
-     * Display specific news article - FIXED VERSION
+     * AJAX Real-time search endpoint
+     */
+    public function liveSearch(Request $request): Response
+    {
+        try {
+            $query = trim($request->getParam('q', ''));
+            $category = $request->getParam('category', 'all');
+            $limit = min(20, max(1, (int)$request->getParam('limit', 10)));
+
+            if (empty($query)) {
+                // If no query, return by category or all
+                if ($category && $category !== 'all') {
+                    $news = $this->newsModel->getByCategory($category);
+                } else {
+                    $news = $this->newsModel->getPublished();
+                }
+            } else {
+                // Search with query
+                $news = $this->newsModel->search($query);
+                
+                // Further filter by category if specified
+                if ($category && $category !== 'all') {
+                    $news = array_filter($news, function($article) use ($category) {
+                        return strcasecmp($article['category'], $category) === 0;
+                    });
+                }
+            }
+
+            // Sort by date
+            usort($news, function($a, $b) {
+                return strtotime($b['published_at']) - strtotime($a['published_at']);
+            });
+
+            // Limit results
+            $news = array_slice($news, 0, $limit);
+
+            // Format for JSON response
+            $formattedNews = array_map(function($article) {
+                return [
+                    'id' => $article['id'],
+                    'title' => $article['title'],
+                    'slug' => $article['slug'],
+                    'excerpt' => $article['excerpt'] ?? '',
+                    'category' => $article['category'],
+                    'featured_image' => $article['featured_image'] ?? '/public/assets/images/default-news.jpg',
+                    'published_at' => $article['published_at'],
+                    'views' => $article['views'] ?? 0,
+                    'formatted_date' => $this->formatPublishedDate($article['published_at']),
+                    'url' => '/news/' . $article['slug']
+                ];
+            }, $news);
+
+            return $this->json([
+                'success' => true,
+                'news' => $formattedNews,
+                'count' => count($formattedNews),
+                'query' => $query,
+                'category' => $category
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Live search error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'error' => 'Search failed',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Display specific news article
      */
     public function show(Request $request): Response
     {
@@ -110,10 +182,8 @@ class NewsController extends BaseController
                 ]);
             }
 
-            // FIXED: Increment view count using the model method
+            // Increment view count
             $this->newsModel->incrementViews($news['id']);
-            
-            // Update the news array with incremented views for display
             $news['views'] = ($news['views'] ?? 0) + 1;
 
             // Get related news
@@ -128,9 +198,6 @@ class NewsController extends BaseController
             // Format published date and calculate reading time
             $news['formatted_date'] = $this->formatPublishedDate($news['published_at']);
             $news['reading_time'] = $this->calculateReadingTime($news['content']);
-
-            // Track reading session (for analytics)
-            $this->trackReadingSession($news['id']);
 
             $data = [
                 'news' => $news,
@@ -175,7 +242,7 @@ class NewsController extends BaseController
     {
         try {
             $page = max(1, (int)$request->getParam('page', 1));
-            $category = $request->getParam('category');
+            $category = $request->getParam('category', 'all');
             $limit = 6;
 
             if ($category && $category !== 'all') {
@@ -290,30 +357,6 @@ class NewsController extends BaseController
     }
 
     /**
-     * Track reading session for analytics
-     */
-    private function trackReadingSession(int $newsId): void
-    {
-        try {
-            // You can expand this to track reading time, user sessions, etc.
-            // For now, we'll just log the reading session
-            $sessionData = [
-                'news_id' => $newsId,
-                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-                'timestamp' => date('Y-m-d H:i:s'),
-                'referer' => $_SERVER['HTTP_REFERER'] ?? null
-            ];
-            
-            // Log to file or database for analytics
-            error_log("Reading session: " . json_encode($sessionData));
-            
-        } catch (\Exception $e) {
-            error_log("Failed to track reading session: " . $e->getMessage());
-        }
-    }
-
-    /**
      * Format published date for display
      */
     private function formatPublishedDate(string $date): string
@@ -322,13 +365,13 @@ class NewsController extends BaseController
         $now = time();
         $diff = $now - $publishedTime;
 
-        if ($diff < 3600) { // Less than 1 hour
+        if ($diff < 3600) {
             $minutes = floor($diff / 60);
             return $minutes <= 1 ? '1 minute ago' : $minutes . ' minutes ago';
-        } elseif ($diff < 86400) { // Less than 1 day
+        } elseif ($diff < 86400) {
             $hours = floor($diff / 3600);
             return $hours == 1 ? '1 hour ago' : $hours . ' hours ago';
-        } elseif ($diff < 604800) { // Less than 1 week
+        } elseif ($diff < 604800) {
             $days = floor($diff / 86400);
             return $days == 1 ? '1 day ago' : $days . ' days ago';
         } else {
@@ -342,7 +385,7 @@ class NewsController extends BaseController
     private function calculateReadingTime(string $content): string
     {
         $wordCount = str_word_count(strip_tags($content));
-        $minutes = ceil($wordCount / 200); // Average reading speed
+        $minutes = ceil($wordCount / 200);
         return $minutes . ' min read';
     }
 }

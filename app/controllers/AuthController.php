@@ -135,7 +135,7 @@ class AuthController extends BaseController
     }
 
     /**
-     * Handle registration
+     * Handle registration - FIXED VERSION
      */
     public function handleRegister(Request $request): Response
     {
@@ -144,15 +144,24 @@ class AuthController extends BaseController
         try {
             $data = $request->getJsonBody();
 
-            // Validate required fields
-            $required = ['username', 'email', 'password', 'first_name', 'last_name'];
+            // Validate required fields (username is now optional, will be auto-generated)
+            $required = ['email', 'password', 'first_name', 'last_name', 'user_type'];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
                     return $this->json([
                         'success' => false,
-                        'message' => ucfirst($field) . ' is required'
+                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
                     ], 400);
                 }
+            }
+
+            // Validate user_type
+            $allowedTypes = ['user', 'coach', 'ground_owner', 'shop_owner'];
+            if (!in_array($data['user_type'], $allowedTypes)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid user type'
+                ], 400);
             }
 
             // Validate email format
@@ -180,27 +189,54 @@ class AuthController extends BaseController
                 ], 409);
             }
 
-            // Check if username already exists
-            $existingUsername = $this->userModel->where(['username' => $data['username']]);
-            if (!empty($existingUsername)) {
-                return $this->json([
-                    'success' => false,
-                    'message' => 'Username already taken'
-                ], 409);
+            // Generate username from email if not provided
+            $username = $data['username'] ?? null;
+            
+            if (!$username) {
+                // Extract username from email and make it unique
+                $emailParts = explode('@', $data['email']);
+                $baseUsername = preg_replace('/[^a-zA-Z0-9_]/', '', strtolower($emailParts[0]));
+                $username = $baseUsername;
+                
+                // Check if username exists and add numbers if needed
+                $counter = 1;
+                while (true) {
+                    $existingUsername = $this->userModel->where(['username' => $username]);
+                    if (empty($existingUsername)) {
+                        break;
+                    }
+                    $username = $baseUsername . $counter;
+                    $counter++;
+                    
+                    // Prevent infinite loop
+                    if ($counter > 1000) {
+                        $username = $baseUsername . '_' . uniqid();
+                        break;
+                    }
+                }
+            } else {
+                // If username was provided, check if it's already taken
+                $existingUsername = $this->userModel->where(['username' => $username]);
+                if (!empty($existingUsername)) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => 'Username already taken'
+                    ], 409);
+                }
             }
 
             // Hash password
             $hashedPassword = $this->userModel->hashPassword($data['password']);
 
-            // Create user
+            // Create user with all required fields
             $userData = [
-                'username' => $data['username'],
+                'username' => $username,
                 'email' => $data['email'],
                 'password_hash' => $hashedPassword,
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
                 'phone' => $data['phone'] ?? null,
-                'user_type' => 'user',
+                'user_type' => $data['user_type'], // Use the user_type from form
                 'status' => 'active'
             ];
 
@@ -221,29 +257,33 @@ class AuthController extends BaseController
             // Set session
             $_SESSION['user_id'] = $userId;
             $_SESSION['user_email'] = $data['email'];
-            $_SESSION['user_type'] = 'user';
+            $_SESSION['user_type'] = $data['user_type'];
             $_SESSION['user_name'] = $data['first_name'] . ' ' . $data['last_name'];
             $_SESSION['user'] = [
                 'id' => $userId,
                 'name' => $data['first_name'] . ' ' . $data['last_name'],
                 'email' => $data['email'],
-                'type' => 'user',
+                'type' => $data['user_type'],
                 'avatar' => null
             ];
+
+            // Determine redirect based on user type
+            $redirectUrl = $this->getDashboardUrl($data['user_type']);
 
             return $this->json([
                 'success' => true,
                 'message' => 'Account created successfully',
-                'redirect' => '/',
+                'redirect' => $redirectUrl,
                 'user' => [
                     'id' => $userId,
                     'name' => $data['first_name'] . ' ' . $data['last_name'],
                     'email' => $data['email'],
-                    'type' => 'user'
+                    'type' => $data['user_type']
                 ]
             ], 201);
 
         } catch (\Exception $e) {
+            error_log("Registration Error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
                 'message' => 'Registration failed: ' . $e->getMessage()

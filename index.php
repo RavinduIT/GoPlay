@@ -189,12 +189,12 @@ try {
     $router->get('/api/shop-owner/analytics', 'ShopOwnerController@getAnalytics');
     $router->get('/api/shop-owner/categories', 'ShopOwnerController@getCategories');
 
-    //News model methods
-    // Add these news routes after your existing news route
+    // News Routes - Updated
 $router->get('/news', 'NewsController@index');
 $router->get('/news/search', 'NewsController@search');
 $router->get('/news/load-more', 'NewsController@loadMore');
-$router->get('/news/{slug}', 'NewsController@show'); // This is the missing route!
+$router->get('/api/news/live-search', 'NewsController@liveSearch'); // NEW!
+$router->get('/news/{slug}', 'NewsController@show');
 
     // USER PROFILE ROUTES - Add these to your existing routes in index.php
     
@@ -250,6 +250,38 @@ $router->put('/api/admin/users/{id}/status', 'Admin\AdminUserController@updateSt
 $router->post('/api/admin/users/{id}/reset-password', 'Admin\AdminUserController@resetPassword');
 $router->delete('/api/admin/users/{id}', 'Admin\AdminUserController@deleteUser');
     
+// Admin Dashboard API Routes
+$router->get('/admin/api/stats', 'AdminController@getStats');
+$router->get('/admin/api/revenue-chart', 'AdminController@getRevenueChart');
+$router->get('/admin/api/recent-registrations', 'AdminController@getRecentRegistrations');
+$router->get('/admin/api/recent-content', 'AdminController@getRecentContent');
+$router->get('/admin/api/user-breakdown', 'AdminController@getUserBreakdown');
+$router->get('/admin/api/notifications', 'AdminController@getNotifications');
+$router->get('/admin/api/profile', 'AdminController@getProfile');
+
+
+// Admin Analytics Routes
+$router->get('/admin/analytics', 'Admin\AnalyticsController@index');
+$router->get('/api/admin/analytics/overview', 'Admin\AnalyticsController@getOverviewStats');
+$router->get('/api/admin/analytics/users', 'Admin\AnalyticsController@getUserAnalytics');
+$router->get('/api/admin/analytics/revenue', 'Admin\AnalyticsController@getRevenueAnalytics');
+$router->get('/api/admin/analytics/bookings', 'Admin\AnalyticsController@getBookingAnalytics');
+$router->get('/api/admin/analytics/products', 'Admin\AnalyticsController@getProductAnalytics');
+$router->get('/api/admin/analytics/export', 'Admin\AnalyticsController@exportData');
+$router->get('/api/admin/analytics/activity', 'Admin\AnalyticsController@getActivityLogs');
+
+// Admin Settings Routes
+$router->get('/admin/settings', 'Admin\AdminSettingsController@index');
+$router->get('/api/admin/settings', 'Admin\AdminSettingsController@getSettings');
+$router->post('/api/admin/settings/update', 'Admin\AdminSettingsController@updateSetting');
+$router->post('/api/admin/settings/bulk', 'Admin\AdminSettingsController@updateBulk');
+$router->get('/api/admin/settings/system-info', 'Admin\AdminSettingsController@getSystemInfo');
+$router->post('/api/admin/settings/clear-cache', 'Admin\AdminSettingsController@clearCache');
+$router->post('/api/admin/settings/test-email', 'Admin\AdminSettingsController@testEmail');
+$router->post('/api/admin/settings/backup-database', 'Admin\AdminSettingsController@backupDatabase');
+$router->get('/api/admin/settings/activity-logs', 'Admin\AdminSettingsController@getActivityLogs');
+
+
     /* Debug routes
     $router->get('/debug', function() {
         require_once 'debug.php';
