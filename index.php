@@ -282,6 +282,26 @@ $router->post('/api/admin/settings/backup-database', 'Admin\AdminSettingsControl
 $router->get('/api/admin/settings/activity-logs', 'Admin\AdminSettingsController@getActivityLogs');
 
 
+// Admin Payments & Earnings Routes
+$router->get('/admin/payments', 'Admin\AdminPaymentController@index');
+
+// Admin Payment API Routes
+$router->get('/api/admin/payments/overview', 'Admin\AdminPaymentController@getOverviewStats');
+$router->get('/api/admin/payments/earnings', 'Admin\AdminPaymentController@getEarningsHistory');
+$router->get('/api/admin/payments/breakdown', 'Admin\AdminPaymentController@getEarningsBreakdown');
+$router->get('/api/admin/payments/daily', 'Admin\AdminPaymentController@getDailyEarnings');
+$router->post('/api/admin/payments/service-fee', 'Admin\AdminPaymentController@updateServiceFee');
+
+// Withdrawal Management Routes
+$router->get('/api/admin/payments/withdrawals', 'Admin\AdminPaymentController@getWithdrawalRequests');
+$router->post('/api/admin/payments/withdrawal', 'Admin\AdminPaymentController@createWithdrawal');
+$router->put('/api/admin/payments/withdrawal/{id}/process', 'Admin\AdminPaymentController@processWithdrawal');
+$router->put('/api/admin/payments/withdrawal/{id}/reject', 'Admin\AdminPaymentController@rejectWithdrawal');
+$router->put('/api/admin/payments/withdrawal/{id}/cancel', 'Admin\AdminPaymentController@cancelWithdrawal');
+
+// Export Routes
+$router->get('/api/admin/payments/export', 'Admin\AdminPaymentController@exportEarnings');
+
     /* Debug routes
     $router->get('/debug', function() {
         require_once 'debug.php';
