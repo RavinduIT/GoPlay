@@ -10,7 +10,7 @@ $coach_id = $_GET['coach_id'] ?? null;
 $coaches = [
     1 => [
         'id' => 1,
-        'name' => 'John Smith',
+        'name' => 'Lasith Malinga',
         'sport' => 'Cricket',
         'experience' => '8 Years',
         'rating' => 4.8,
@@ -24,7 +24,7 @@ $coaches = [
     ],
     2 => [
         'id' => 2,
-        'name' => 'Sarah Williams',
+        'name' => 'Angelo Mathews',
         'sport' => 'Tennis',
         'experience' => '6 Years',
         'rating' => 4.9,
@@ -38,7 +38,7 @@ $coaches = [
     ],
     3 => [
         'id' => 3,
-        'name' => 'Mike Johnson',
+        'name' => 'Thisara Perera',
         'sport' => 'Football',
         'experience' => '10 Years',
         'rating' => 4.7,
@@ -52,7 +52,7 @@ $coaches = [
     ],
     4 => [
         'id' => 4,
-        'name' => 'Emma Davis',
+        'name' => 'Muttiah Muralitharan',
         'sport' => 'Basketball',
         'experience' => '5 Years',
         'rating' => 4.6,
@@ -515,7 +515,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                                         <span><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($coach['location']) ?></span>
                                         <span><i class="fas fa-clock"></i> <?= htmlspecialchars($coach['experience']) ?></span>
                                     </div>
-                                    <div class="coach-price">₹<?= number_format($coach['price']) ?>/session</div>
+                                    <div class="coach-price">LKR. <?= number_format($coach['price']) ?>/session</div>
                                 </div>
                             </div>
                         </div>
@@ -601,7 +601,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                             </div>
                             <div class="summary-row">
                                 <span>Total Amount:</span>
-                                <span id="summaryTotal">₹0</span>
+                                <span id="summaryTotal">LKR 0</span>
                             </div>
                         </div>
 
@@ -746,7 +746,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                 }
 
                 document.getElementById('summaryDuration').textContent = `${this.duration} minutes`;
-                document.getElementById('summaryTotal').textContent = `₹${this.selectedCoach.price.toLocaleString()}`;
+                document.getElementById('summaryTotal').textContent = `LKR ${this.selectedCoach.price.toLocaleString()}`;
 
                 // Enable/disable proceed button
                 const canProceed = this.selectedCoach && this.selectedType && this.selectedDate && this.selectedTime;
