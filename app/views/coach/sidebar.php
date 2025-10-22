@@ -28,7 +28,6 @@
                 <a href="/coach/sessions">
                     <i class="fas fa-dumbbell"></i>
                     <span>Training Sessions</span>
-                    <span class="badge" id="sessionsCount">0</span>
                 </a>
             </li>
             <!-- <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/book-session') !== false ? 'active' : '' ?>">
@@ -41,7 +40,6 @@
                 <a href="/coach/clients">
                     <i class="fas fa-users"></i>
                     <span>My Clients</span>
-                    <span class="badge" id="clientsCount">0</span>
                 </a>
             </li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/programs') !== false ? 'active' : '' ?>">
@@ -72,7 +70,6 @@
                 <a href="/coach/reviews">
                     <i class="fas fa-star"></i>
                     <span>Reviews</span>
-                    <span class="badge" id="reviewsCount">0</span>
                 </a>
             </li>
             <!-- <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/notifications') !== false ? 'active' : '' ?>">

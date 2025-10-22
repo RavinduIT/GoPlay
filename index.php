@@ -65,7 +65,11 @@ try {
     $router->get('/coach/dashboard', 'CoachController@dashboard');
     $router->get('/shop-owner/dashboard', 'ShopOwnerController@dashboard');
     
-    // Coach page routes
+    // Public Coach Routes (no authentication required)
+    $router->get('/coaches', 'CoachController@index');
+    $router->get('/coaches/{id}', 'CoachController@publicProfile');
+    
+    // Coach page routes (authentication required)
     $router->get('/coach/profile', 'CoachController@profilePage');
     $router->get('/coach/sessions', 'CoachController@sessionsPage');
     $router->get('/coach/clients', 'CoachController@clientsPage');
@@ -76,6 +80,7 @@ try {
     $router->get('/coach/reviews', 'CoachController@reviewsPage');
     $router->get('/coach/resources', 'CoachController@resourcesPage');
     $router->get('/coach/notifications', 'CoachController@notificationsPage');
+    $router->get('/coach/orders', 'CoachController@ordersPage');
     $router->get('/coach/settings', 'CoachController@settingsPage');
     $router->get('/coach/help', 'CoachController@helpPage');
     

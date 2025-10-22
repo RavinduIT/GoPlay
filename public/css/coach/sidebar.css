@@ -46,14 +46,31 @@ body {
 /* ===============================
    SIDEBAR STYLES
    =============================== */
+
+/* Navbar positioning for coach pages */
+body:has(.coach-dashboard) .navbar,
+body:has(.dashboard-sidebar) .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1100;
+}
+
+/* Hide footer on coach pages */
+body:has(.coach-dashboard) footer,
+body:has(.dashboard-sidebar) footer {
+    display: none;
+}
+
 .dashboard-sidebar {
     width: var(--sidebar-width);
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
     color: white;
     position: fixed;
-    top: 0;
+    top: 70px;
     left: 0;
-    height: 100vh;
+    height: calc(100vh - 70px);
     z-index: 1000;
     transition: var(--transition);
     overflow-y: auto;
@@ -193,12 +210,31 @@ body {
 /* ===============================
    MAIN CONTENT AREA
    =============================== */
+
+/* Ensure coach dashboard takes full viewport and accounts for navbar */
+.coach-dashboard {
+    display: flex;
+    min-height: calc(100vh - 70px);
+    width: 100%;
+    position: relative;
+    margin-top: 70px;
+}
+
 .dashboard-main {
     flex: 1;
     margin-left: var(--sidebar-width);
     transition: var(--transition);
+    min-height: calc(100vh - 70px);
 }
 
-.dashboard-sidebar.collapsed ~ .dashboard-main {
+.main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    transition: var(--transition);
+    min-height: calc(100vh - 70px);
+}
+
+.dashboard-sidebar.collapsed ~ .dashboard-main,
+.dashboard-sidebar.collapsed ~ .main-content {
     margin-left: var(--sidebar-collapsed-width);
 }

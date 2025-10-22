@@ -38,6 +38,40 @@ function getDashboardUrl($userType) {
     }
 }
 
+// Function to get notifications URL based on user role
+function getNotificationsUrl($userType) {
+    switch($userType) {
+        case 'admin':
+            return '/admin/notifications';
+        case 'coach':
+            return '/coach/notifications';
+        case 'ground_owner':
+            return '/ground-owner/notifications';
+        case 'shop_owner':
+            return '/shop-owner/notifications';
+        case 'user':
+        default:
+            return '/notifications';
+    }
+}
+
+// Function to get orders URL based on user role
+function getOrdersUrl($userType) {
+    switch($userType) {
+        case 'admin':
+            return '/admin/orders';
+        case 'coach':
+            return '/coach/orders';
+        case 'ground_owner':
+            return '/ground-owner/orders';
+        case 'shop_owner':
+            return '/shop-owner/orders';
+        case 'user':
+        default:
+            return '/my-orders';
+    }
+}
+
 // Function to get user initials for default avatar
 function getUserInitials($name) {
     $words = explode(' ', trim($name));
@@ -53,6 +87,22 @@ function getUserInitials($name) {
 // Check if user has a profile picture
 $hasProfilePicture = isset($_SESSION['user']['avatar']) && !empty($_SESSION['user']['avatar']);
 $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_name']) : 'U';
+
+// Get current page URL for active nav highlighting
+$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+
+// Function to check if nav link is active
+function isActiveLink($linkPath, $currentPath) {
+    // Exact match for home
+    if ($linkPath === '/' && $currentPath === '/') {
+        return true;
+    }
+    // For other pages, check if current path starts with link path (excluding home)
+    if ($linkPath !== '/' && strpos($currentPath, $linkPath) === 0) {
+        return true;
+    }
+    return false;
+}
 ?>
 
 <nav class="navbar">
@@ -69,19 +119,19 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
         <!-- Navigation Menu -->
         <ul class="nav-menu">
             <li class="nav-item">
-                <a href="/" class="nav-link">Home</a>
+                <a href="/" class="nav-link <?= isActiveLink('/', $currentPath) ? 'active' : '' ?>">Home</a>
             </li>
             <li class="nav-item">
-                <a href="/book-ground" class="nav-link">Book Ground</a>
+                <a href="/book-ground" class="nav-link <?= isActiveLink('/book-ground', $currentPath) ? 'active' : '' ?>">Book Ground</a>
             </li>
             <li class="nav-item">
-                <a href="/book-coach" class="nav-link">Book Coach</a>
+                <a href="/book-coach" class="nav-link <?= isActiveLink('/book-coach', $currentPath) ? 'active' : '' ?>">Book Coach</a>
             </li>
             <li class="nav-item">
-                <a href="/shop" class="nav-link">Shop</a>
+                <a href="/shop" class="nav-link <?= isActiveLink('/shop', $currentPath) ? 'active' : '' ?>">Shop</a>
             </li>
             <li class="nav-item">
-                <a href="/news" class="nav-link">News</a>
+                <a href="/news" class="nav-link <?= isActiveLink('/news', $currentPath) ? 'active' : '' ?>">News</a>
             </li>
         </ul>
         
@@ -114,7 +164,7 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
                         
                         <a href="/my-bookings"><i class="fas fa-calendar-alt"></i> My Bookings</a>
                         <a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a>
-                        <a href="/my-orders"><i class="fas fa-receipt"></i> My Orders</a>
+                        <a href="<?= getOrdersUrl($_SESSION['user_type'] ?? 'user') ?>"><i class="fas fa-receipt"></i> My Orders</a>
                         
                         <?php if (($_SESSION['user_type'] ?? '') === 'admin'): ?>
                             <hr>
@@ -122,7 +172,7 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
                         <?php endif; ?>
                         
                         <hr>
-                        <a href="/notifications"><i class="fas fa-bell"></i> Notifications</a>
+                        <a href="<?= getNotificationsUrl($_SESSION['user_type'] ?? 'user') ?>"><i class="fas fa-bell"></i> Notifications</a>
                         <a href="/settings"><i class="fas fa-cog"></i> Settings</a>
                         <hr>
                         <a href="#" onclick="logout(); return false;" class="logout-btn">
@@ -154,11 +204,11 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
 <!-- Mobile Menu -->
 <div class="mobile-menu">
     <ul class="mobile-nav-menu">
-        <li><a href="/">Home</a></li>
-        <li><a href="/book-ground">Book Ground</a></li>
-        <li><a href="/book-coach">Book Coach</a></li>
-        <li><a href="/shop">Shop</a></li>
-        <li><a href="/news">News</a></li>
+        <li><a href="/" class="<?= isActiveLink('/', $currentPath) ? 'active' : '' ?>">Home</a></li>
+        <li><a href="/book-ground" class="<?= isActiveLink('/book-ground', $currentPath) ? 'active' : '' ?>">Book Ground</a></li>
+        <li><a href="/book-coach" class="<?= isActiveLink('/book-coach', $currentPath) ? 'active' : '' ?>">Book Coach</a></li>
+        <li><a href="/shop" class="<?= isActiveLink('/shop', $currentPath) ? 'active' : '' ?>">Shop</a></li>
+        <li><a href="/news" class="<?= isActiveLink('/news', $currentPath) ? 'active' : '' ?>">News</a></li>
         <?php if (isset($_SESSION['user_id'])): ?>
             <li><a href="<?= getProfileUrl($_SESSION['user_type'] ?? 'user') ?>">Profile</a></li>
             <?php if (($_SESSION['user_type'] ?? 'user') !== 'user'): ?>
@@ -369,6 +419,25 @@ console.log('Session check - User Name:', <?= json_encode($_SESSION['user_name']
 .nav-link:hover {
     color: var(--primary-color);
     background: var(--primary-light);
+}
+
+.nav-link.active {
+    color: var(--primary-color);
+    background: var(--primary-light);
+    font-weight: 600;
+    position: relative;
+}
+
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: var(--primary-color);
+    border-radius: 2px;
 }
 
 /* User Menu */
@@ -602,6 +671,13 @@ console.log('Session check - User Name:', <?= json_encode($_SESSION['user_name']
     background: var(--primary-light);
     color: var(--primary-color);
     padding-left: 32px;
+}
+
+.mobile-nav-menu a.active {
+    background: var(--primary-light);
+    color: var(--primary-color);
+    font-weight: 600;
+    border-left: 3px solid var(--primary-color);
 }
 
 /* Responsive Design */

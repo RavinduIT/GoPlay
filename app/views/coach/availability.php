@@ -9,17 +9,20 @@ $additionalJS = ['/public/js/pages/coach-availability.js'];
 <style>
     /* Professional Availability Styles */
     :root {
-        --primary-color: #2563eb;
-        --primary-dark: #1d4ed8;
-        --primary-light: #dbeafe;
-        --secondary-color: #10b981;
+        --primary-color: #3b82f6;
+        --primary-dark: #2563eb;
+        --primary-light: #60a5fa;
+        --primary-hover: #2563eb;
+        --secondary-color: #06b6d4;
         --accent-color: #f59e0b;
         --danger-color: #ef4444;
         --warning-color: #f59e0b;
         --success-color: #10b981;
+        --info-color: #0ea5e9;
         --text-primary: #1f2937;
         --text-secondary: #6b7280;
         --text-light: #9ca3af;
+        --text-muted: #94a3b8;
         --background-white: #ffffff;
         --background-light: #f9fafb;
         --background-gray: #f3f4f6;
@@ -27,9 +30,11 @@ $additionalJS = ['/public/js/pages/coach-availability.js'];
         --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        --border-radius: 8px;
-        --border-radius-lg: 12px;
-        --transition: all 0.3s ease;
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        --border-radius: 10px;
+        --border-radius-lg: 16px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-fast: all 0.15s ease-in-out;
     }
 
     .dashboard-container {
@@ -45,30 +50,76 @@ $additionalJS = ['/public/js/pages/coach-availability.js'];
     }
 
     .page-header {
+        background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+        padding: 2.5rem;
+        border-bottom: none;
+        border-radius: 0 0 20px 20px;
+        margin-bottom: 2rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid var(--border-color);
+        box-shadow: var(--shadow-xl);
+        color: white;
+        position: relative;
+        overflow: hidden;
+        animation: slideDown 0.5s ease-out;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 0.5;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
     }
 
     .page-title {
         font-size: 2rem;
         font-weight: 700;
-        color: var(--text-primary);
+        color: white;
         margin: 0;
+        position: relative;
+        z-index: 1;
     }
 
     .page-subtitle {
-        color: var(--text-secondary);
+        color: rgba(255, 255, 255, 0.9);
         margin-top: 0.5rem;
+        position: relative;
+        z-index: 1;
     }
 
     .header-actions {
         display: flex;
         gap: 1rem;
         align-items: center;
+        position: relative;
+        z-index: 1;
     }
 
     .btn {
@@ -86,24 +137,26 @@ $additionalJS = ['/public/js/pages/coach-availability.js'];
     }
 
     .btn-primary {
-        background: var(--primary-color);
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
+        background: white;
+        color: var(--primary-color);
         box-shadow: var(--shadow-md);
     }
 
+    .btn-primary:hover {
+        background: rgba(255, 255, 255, 0.95);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
     .btn-secondary {
-        background: var(--background-white);
-        color: var(--text-primary);
-        border: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .btn-secondary:hover {
-        background: var(--background-gray);
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
     }
 
     .btn-sm {

@@ -31,6 +31,28 @@ class CoachController extends BaseController
     }
 
     /**
+     * Public coach profile page (no authentication required)
+     * Anyone can view this to see coach details before booking
+     */
+    public function publicProfile(Request $request): Response
+    {
+        $id = $request->getParam('id');
+        
+        if (!$id) {
+            return $this->redirect('/coaches');
+        }
+        
+        $coachModel = new Coach();
+        $coach = $coachModel->getPublicProfile((int)$id);
+        
+        if (!$coach) {
+            return $this->view('errors/404');
+        }
+        
+        return $this->view('coach/public-profile', ['coach' => $coach]);
+    }
+
+    /**
      * Book a coach
      */
     public function book(Request $request): Response
@@ -180,6 +202,19 @@ class CoachController extends BaseController
         }
         
         return $this->view('coach/notifications');
+    }
+
+    /**
+     * Coach orders page
+     */
+    public function ordersPage(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->redirect('/login');
+        }
+        
+        return $this->view('coach/orders');
     }
 
     /**

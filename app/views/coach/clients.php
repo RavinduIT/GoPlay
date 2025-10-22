@@ -20,10 +20,6 @@
                     <p class="header-subtitle">Manage your clients and track their progress</p>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-secondary" id="exportClientsBtn">
-                        <i class="fas fa-download"></i>
-                        Export
-                    </button>
                     <button class="btn btn-primary" id="addClientBtn">
                         <i class="fas fa-user-plus"></i>
                         Add Client

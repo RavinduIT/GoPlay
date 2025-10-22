@@ -273,4 +273,41 @@ class Coach extends BaseModel
         $results = $this->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
         return $results;
     }
+
+    /**
+     * Get coach public profile by ID (no authentication required)
+     * Does not expose sensitive information like email and phone
+     */
+    public function getPublicProfile(int $id): ?array
+    {
+        $sql = "SELECT 
+                    c.*,
+                    u.first_name,
+                    u.last_name,
+                    u.profile_picture,
+                    sc.name as sport_name,
+                    sc.icon as sport_icon
+                FROM {$this->table} c 
+                JOIN users u ON c.user_id = u.id 
+                JOIN sports_categories sc ON c.sport_category_id = sc.id
+                WHERE c.id = ? AND c.status = 'active'";
+        
+        $result = $this->queryFirst($sql, [$id]);
+        
+        if (!$result) {
+            return null;
+        }
+        
+        // Get reviews
+        $reviews = $this->getReviews($id);
+        
+        // Get bookings count
+        $bookingsSql = "SELECT COUNT(*) as total FROM coach_bookings WHERE coach_id = ? AND status = 'completed'";
+        $bookingsResult = $this->queryFirst($bookingsSql, [$id]);
+        
+        $result['completed_sessions'] = $bookingsResult['total'] ?? 0;
+        $result['reviews_list'] = $reviews;
+        
+        return $this->castAttributes($result);
+    }
 }

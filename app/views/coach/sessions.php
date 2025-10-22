@@ -14,90 +14,136 @@
         <?php include 'sidebar.php'; ?>
         
         <main class="main-content">
+            <!-- Enhanced Page Header with Gradient -->
             <div class="page-header">
                 <div class="header-content">
-                    <h1>Training Sessions</h1>
-                    <p class="header-subtitle">Manage your coaching sessions and track progress</p>
+                    <div class="header-icon-wrapper">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div>
+                        <h1>Training Sessions</h1>
+                        <p class="header-subtitle">
+                            <i class="fas fa-info-circle"></i>
+                            Manage your coaching sessions and track progress
+                        </p>
+                    </div>
                 </div>
                 <div class="header-actions">
                     <button class="btn btn-secondary" id="exportSessionsBtn">
                         <i class="fas fa-download"></i>
-                        Export
+                        <span>Export</span>
                     </button>
                     <a href="/coach/book-session" class="btn btn-primary">
                         <i class="fas fa-calendar-plus"></i>
-                        Book New Session
+                        <span>New Session</span>
                     </a>
                 </div>
             </div>
 
-            <!-- Session Stats -->
+            <!-- Enhanced Session Stats with Icons and Animations -->
             <div class="session-stats">
-                <div class="stat-card">
+                <div class="stat-card stat-total">
                     <div class="stat-icon">
                         <i class="fas fa-calendar-check"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-number" id="totalSessions">87</div>
+                        <div class="stat-number" id="totalSessions">4</div>
                         <div class="stat-label">Total Sessions</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>12% from last month</span>
+                        </div>
                     </div>
+                    <div class="stat-sparkline"></div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card stat-upcoming">
                     <div class="stat-icon">
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-number" id="upcomingSessions">8</div>
+                        <div class="stat-number" id="upcomingSessions">1</div>
                         <div class="stat-label">Upcoming</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Next in 12 hours</span>
+                        </div>
                     </div>
+                    <div class="stat-sparkline"></div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card stat-completed">
                     <div class="stat-icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-number" id="completedSessions">76</div>
+                        <div class="stat-number" id="completedSessions">2</div>
                         <div class="stat-label">Completed</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>95% completion rate</span>
+                        </div>
                     </div>
+                    <div class="stat-sparkline"></div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card stat-cancelled">
                     <div class="stat-icon">
                         <i class="fas fa-times-circle"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-number" id="cancelledSessions">3</div>
+                        <div class="stat-number" id="cancelledSessions">1</div>
                         <div class="stat-label">Cancelled</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>5% cancellation rate</span>
+                        </div>
                     </div>
+                    <div class="stat-sparkline"></div>
                 </div>
             </div>
 
-            <!-- Filters and Search -->
+            <!-- Enhanced Filters and Search -->
             <div class="sessions-filters">
-                <div class="filter-group">
-                    <select id="statusFilter">
-                        <option value="">All Status</option>
-                        <option value="upcoming">Upcoming</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                        <option value="in-progress">In Progress</option>
-                    </select>
-                    
-                    <select id="typeFilter">
-                        <option value="">All Types</option>
-                        <option value="individual">Individual</option>
-                        <option value="group">Group</option>
-                        <option value="assessment">Assessment</option>
-                    </select>
-                    
-                    <input type="date" id="dateFilter" placeholder="Filter by date">
-                </div>
-                
-                <div class="search-group">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="sessionSearch" placeholder="Search sessions...">
+                <div class="filters-wrapper">
+                    <div class="filter-section">
+                        <label class="filter-label">
+                            <i class="fas fa-filter"></i>
+                            Filters
+                        </label>
+                        <div class="filter-group">
+                            <div class="filter-item">
+                                <select id="statusFilter" class="filter-select">
+                                    <option value="">All Status</option>
+                                    <option value="upcoming">📅 Upcoming</option>
+                                    <option value="completed">✅ Completed</option>
+                                    <option value="cancelled">❌ Cancelled</option>
+                                    <option value="in-progress">⏳ In Progress</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-item">
+                                <select id="typeFilter" class="filter-select">
+                                    <option value="">All Types</option>
+                                    <option value="individual">👤 Individual</option>
+                                    <option value="group">👥 Group</option>
+                                    <option value="assessment">📋 Assessment</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-item">
+                                <input type="date" id="dateFilter" class="filter-date" placeholder="Filter by date">
+                            </div>
+                        </div>
                     </div>
-                    <button class="btn btn-outline" id="clearFilters">Clear Filters</button>
+                    
+                    <div class="search-section">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="sessionSearch" placeholder="Search by client, title or description...">
+                        </div>
+                        <button class="btn btn-outline" id="clearFilters">
+                            <i class="fas fa-redo"></i>
+                            Reset
+                        </button>
+                    </div>
                 </div>
             </div>
 

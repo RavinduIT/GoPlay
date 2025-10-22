@@ -153,7 +153,7 @@
                                 </div>
                                 <div class="info-item">
                                     <label>Hourly Rate</label>
-                                    <span>₹800 - ₹1,500</span>
+                                    <span>LKR 800 - LKR 1,500</span>
                                 </div>
                             </div>
                         </div>
@@ -312,7 +312,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Hourly Rate Range</label>
-                                <input type="text" name="hourlyRate" value="₹800 - ₹1,500">
+                                <input type="text" name="hourlyRate" value="LKR 800 - LKR 1,500">
                             </div>
                             <div class="form-group">
                                 <label>Languages</label>

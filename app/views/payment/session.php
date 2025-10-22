@@ -10,11 +10,12 @@ $session_type = $_GET['session_type'] ?? 'Individual';
 $date = $_GET['date'] ?? '';
 $time = $_GET['time'] ?? '';
 $duration = intval($_GET['duration'] ?? 60);
-$price = floatval($_GET['price'] ?? 0);
+$total_amount = floatval($_GET['total_amount'] ?? 0);
+$hourly_rate = floatval($_GET['hourly_rate'] ?? 0);
 $special_requests = $_GET['special_requests'] ?? '';
 
 // Calculate totals
-$subtotal = $price;
+$subtotal = $total_amount; // Use the calculated total_amount from booking page
 $service_fee = round($subtotal * 0.05, 2); // 5% service fee
 $total = $subtotal + $service_fee;
 
@@ -427,15 +428,15 @@ if ($time) {
                     <?php endif; ?>
                     <div class="summary-row">
                         <label>Session Fee:</label>
-                        <span>₹<?= number_format($subtotal, 2) ?></span>
+                        <span>LKR <?= number_format($subtotal, 2) ?></span>
                     </div>
                     <div class="summary-row">
                         <label>Service Fee:</label>
-                        <span>₹<?= number_format($service_fee, 2) ?></span>
+                        <span>LKR <?= number_format($service_fee, 2) ?></span>
                     </div>
                     <div class="summary-row">
                         <label>Total Amount:</label>
-                        <span>₹<?= number_format($total, 2) ?></span>
+                        <span>LKR <?= number_format($total, 2) ?></span>
                     </div>
                 </div>
             </div>
@@ -512,7 +513,7 @@ if ($time) {
                             </div>
                             <button type="button" class="btn btn-success" onclick="processPayment()">
                                 <i class="fas fa-lock"></i>
-                                Pay ₹<?= number_format($total, 2) ?>
+                                Pay LKR <?= number_format($total, 2) ?>
                             </button>
                         </div>
                     </form>

@@ -1,5 +1,89 @@
 /* Coach Dashboard - Earnings Page Styles */
 
+:root {
+    --primary-color: #3b82f6;
+    --primary-dark: #2563eb;
+    --primary-light: #60a5fa;
+    --primary-hover: #2563eb;
+    --secondary-color: #06b6d4;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #0ea5e9;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --text-muted: #94a3b8;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --border-color: #e5e7eb;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    --radius: 10px;
+    --radius-lg: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dashboard Header */
+.dashboard-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    padding: 2rem;
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-xl);
+    color: white;
+    position: relative;
+    overflow: hidden;
+    animation: slideDown 0.5s ease-out;
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+.dashboard-header .header-left,
+.dashboard-header .header-right {
+    position: relative;
+    z-index: 1;
+}
+
+.page-title {
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
 /* Stats Grid */
 .stats-grid {
     display: grid;
@@ -41,11 +125,11 @@
 }
 
 .stat-card.total-earnings::before {
-    background: linear-gradient(180deg, #f59e0b, #d97706);
+    background: linear-gradient(180deg, #3b82f6, #2563eb);
 }
 
 .stat-card.pending-payments::before {
-    background: linear-gradient(180deg, #3b82f6, #2563eb);
+    background: linear-gradient(180deg, #06b6d4, #0891b2);
 }
 
 .stat-card.completed-sessions::before {
@@ -53,7 +137,7 @@
 }
 
 .stat-card.avg-rate::before {
-    background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+    background: linear-gradient(180deg, #0ea5e9, #0284c7);
 }
 
 .stat-icon {
@@ -69,11 +153,11 @@
 }
 
 .stat-card.total-earnings .stat-icon {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
 .stat-card.pending-payments .stat-icon {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
 }
 
 .stat-card.completed-sessions .stat-icon {
@@ -81,7 +165,7 @@
 }
 
 .stat-card.avg-rate .stat-icon {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
 }
 
 .stat-content {
