@@ -649,7 +649,7 @@ class UserController extends BaseController
             return $this->redirect('/login');
         }
 
-        return $this->view('user/ground-bookings', [
+        return $this->view('user/ground-bookings'   , [
             'user' => $user,
             'title' => 'My Ground Bookings - GoPlay Sports Platform',
             'additionalCSS' => [
