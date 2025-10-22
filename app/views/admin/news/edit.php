@@ -19,38 +19,7 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
 <body>
 
 <div class="admin-dashboard">
-    <!-- Sidebar -->
-    <aside class="admin-sidebar" id="adminSidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>GoPlay Admin</span>
-            </div>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <ul>
-                <li>
-                    <a href="/admin/dashboard">
-                        <i class="fas fa-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="active">
-                    <a href="/admin/news">
-                        <i class="fas fa-newspaper"></i>
-                        <span>Manage News</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/logout" class="logout-link">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </aside>
+    <?php include __DIR__ . '/../../components/admin-sidebar.php'; ?>
 
     <!-- Main Content -->
     <main class="admin-main">

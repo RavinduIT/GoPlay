@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="/public/css/pages/admin-analytics.css">
+<link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
 <div class="admin-dashboard">
     <?php include __DIR__ . '/../components/admin-sidebar.php'; ?>
 
