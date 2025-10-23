@@ -120,7 +120,7 @@ function populateCategoryDropdowns(categories) {
 function displayGrounds(grounds) {
     const container = document.getElementById('groundsContainer');
     if (!container) return;
-    
+
     if (grounds.length === 0) {
         container.innerHTML = `
             <div class="no-grounds">
@@ -137,7 +137,8 @@ function displayGrounds(grounds) {
         `;
         return;
     }
-    
+
+    console.log('Grounds data:', grounds); // Debug log
     const groundsHTML = grounds.map(ground => createGroundCard(ground)).join('');
     container.innerHTML = groundsHTML;
 }
@@ -145,13 +146,29 @@ function displayGrounds(grounds) {
 function createGroundCard(ground) {
     const amenitiesList = ground.amenities ? ground.amenities.slice(0, 3).join(', ') : '';
     const moreAmenities = ground.amenities && ground.amenities.length > 3 ? `+${ground.amenities.length - 3} more` : '';
-    
+
+    // Get appropriate ground image based on sport category
+    const categoryName = ground.category_name ? ground.category_name.toLowerCase() : 'general';
+    const groundImages = {
+        'football': '/public/assets/images/grounds/football-ground.jpg',
+        'cricket': '/public/assets/images/grounds/cricket-ground.jpg',
+        'tennis': '/public/assets/images/grounds/tennis-court.jpg',
+        'basketball': '/public/assets/images/grounds/basketball-court.jpg',
+        'badminton': '/public/assets/images/grounds/badminton-court.jpg',
+        'volleyball': '/public/assets/images/grounds/volleyball-court.jpg',
+        'swimming': '/public/assets/images/grounds/swimming-pool.jpg'
+    };
+    const defaultImage = groundImages[categoryName] || '/public/assets/images/ground.jpeg';
+
+    // Debug logging
+    console.log(`Ground: ${ground.name}, Category: ${categoryName}, Has custom images: ${ground.images && ground.images.length > 0}, Default image: ${defaultImage}`);
+
     return `
         <div class="ground-card" data-ground-id="${ground.id}">
             <div class="ground-image">
-                ${ground.images && ground.images.length > 0 
-                    ? `<img src="/public/assets/images/grounds/${ground.images[0]}" alt="${ground.name}">` 
-                    : `<div class="ground-placeholder"><i class="fas fa-image"></i></div>`
+                ${ground.images && ground.images.length > 0
+                    ? `<img src="/public/assets/images/grounds/${ground.images[0]}" alt="${ground.name}">`
+                    : `<img src="${defaultImage}" alt="${ground.name}">`
                 }
                 <div class="ground-status status-${ground.status}">
                     ${ground.status.charAt(0).toUpperCase() + ground.status.slice(1)}

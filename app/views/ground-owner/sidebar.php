@@ -63,12 +63,12 @@
                     <span>Profile</span>
                 </a>
             </li>
-            <li class="<?= strpos($_SERVER['REQUEST_URI'], '/ground-owner/settings') !== false ? 'active' : '' ?>">
+            <!--<li class="<?= strpos($_SERVER['REQUEST_URI'], '/ground-owner/settings') !== false ? 'active' : '' ?>">
                 <a href="/ground-owner/settings">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </a>
-            </li>
+            </li>-->
             <li>
                 <a href="/logout" class="logout-link">
                     <i class="fas fa-sign-out-alt"></i>

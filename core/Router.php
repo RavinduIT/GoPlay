@@ -80,24 +80,33 @@ class Router
             $parts = explode('@', $handler);
             $controllerClass = 'App\\Controllers\\' . $parts[0];
             $method = $parts[1];
-            
+
             if (!class_exists($controllerClass)) {
                 throw new \Exception("Controller not found: {$controllerClass}");
             }
-            
+
             $controller = new $controllerClass();
-            
+
             if (!method_exists($controller, $method)) {
                 throw new \Exception("Method not found: {$method}");
             }
-            
-            return $controller->$method($request);
+
+            // Get route parameters and pass them as method arguments
+            $routeParams = $request->getRouteParams();
+            $args = [$request];
+
+            // Add route parameters as additional arguments (for methods like getApplicationDetails($request, $id))
+            foreach ($routeParams as $param) {
+                $args[] = $param;
+            }
+
+            return call_user_func_array([$controller, $method], $args);
         }
-        
+
         if (is_callable($handler)) {
             return $handler($request);
         }
-        
+
         throw new \Exception("Invalid route handler");
     }
     

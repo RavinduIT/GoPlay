@@ -229,6 +229,21 @@ $router->get('/news/{slug}', 'NewsController@show');
     $router->post('/auth/logout', 'AuthController@logout');
     $router->get('/logout', 'AuthController@logout'); // Add GET version as fallback
 
+    // Provider Registration Routes
+    $router->get('/provider/join', 'ProviderController@join');
+    $router->get('/provider/apply/ground-owner', 'ProviderController@applyGroundOwner');
+    $router->get('/provider/apply/coach', 'ProviderController@applyCoach');
+    $router->get('/provider/apply/shop-owner', 'ProviderController@applyShopOwner');
+    $router->post('/provider/submit-application', 'ProviderController@submitApplication');
+
+    // Admin Provider Applications Routes
+    $router->get('/admin/provider-applications', 'AdminController@providerApplications');
+    $router->get('/admin/provider-applications/list', 'AdminController@getApplicationsList');
+    $router->get('/admin/provider-applications/statistics', 'AdminController@getApplicationsStatistics');
+    $router->get('/admin/provider-applications/details/{id}', 'AdminController@getApplicationDetails');
+    $router->post('/admin/provider-applications/approve/{id}', 'AdminController@approveApplication');
+    $router->post('/admin/provider-applications/reject/{id}', 'AdminController@rejectApplication');
+
     // Admin News Management Routes
 $router->get('/admin/news', 'Admin\AdminNewsController@index');
 $router->get('/admin/news/create', 'Admin\AdminNewsController@create');

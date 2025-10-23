@@ -102,24 +102,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="userType" class="form-label">I want to register as</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-user-tag input-icon"></i>
-                            <select
-                                id="userType"
-                                class="form-input"
-                                required
-                            >
-                                <option value="">Select your role</option>
-                                <option value="user">User </option>
-                                <option value="coach">Coach </option>
-                                <option value="ground_owner">Ground Owner </option>
-                                <option value="shop_owner">Shop Owner </option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
                         <label for="password" class="form-label">Password</label>
                         <div class="input-wrapper">
                             <i class="fas fa-lock input-icon"></i>
@@ -266,11 +248,11 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
     const phone = document.getElementById('phone').value.trim();
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    const userType = document.getElementById('userType').value;
-    
+    const userType = 'user'; // Always register as regular user
+
 
     // Validation
-    if (!firstName || !lastName || !email || !phone || !userType) {
+    if (!firstName || !lastName || !email || !phone) {
         showToast('Please fill in all required fields', 'error');
         return;
     }
