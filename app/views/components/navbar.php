@@ -83,6 +83,18 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
             <li class="nav-item">
                 <a href="/news" class="nav-link">News</a>
             </li>
+            <?php if (!isset($_SESSION['user_id']) || ($_SESSION['user_type'] ?? 'user') === 'user'): ?>
+    <li class="nav-item">
+        <a 
+            href="<?= isset($_SESSION['user_id']) ? '/provider/join' : '/signup' ?>" 
+            class="nav-link join-provider"
+            onclick="<?php if (!isset($_SESSION['user_id'])) echo 'alert(\'Please sign up or log in before joining as a provider.\');'; ?>"
+        >
+            <i class="fas fa-briefcase"></i> Join as Provider
+        </a>
+    </li>
+<?php endif; ?>
+
         </ul>
         
         <!-- User Menu -->
@@ -159,6 +171,9 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
         <li><a href="/book-coach">Book Coach</a></li>
         <li><a href="/shop">Shop</a></li>
         <li><a href="/news">News</a></li>
+        <?php if (!isset($_SESSION['user_id']) || ($_SESSION['user_type'] ?? 'user') === 'user'): ?>
+            <li><a href="/provider/join">Join as Provider</a></li>
+        <?php endif; ?>
         <?php if (isset($_SESSION['user_id'])): ?>
             <li><a href="<?= getProfileUrl($_SESSION['user_type'] ?? 'user') ?>">Profile</a></li>
             <?php if (($_SESSION['user_type'] ?? 'user') !== 'user'): ?>
@@ -525,6 +540,20 @@ console.log('Session check - User Name:', <?= json_encode($_SESSION['user_name']
 .logout-btn:hover {
     background: #fef2f2 !important;
     color: #dc2626 !important;
+}
+
+.join-provider {
+    background: linear-gradient(135deg, #495eb9ff 0%, #535b7cff 100%);
+    color: white !important;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    padding: 8px 16px !important;
+}
+
+.join-provider:hover {
+    background: linear-gradient(135deg, #37418fff 0%, #3d4f9fff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Mobile Toggle */

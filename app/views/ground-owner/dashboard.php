@@ -48,7 +48,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Total Earnings</h3>
-                        <p class="stat-number">Rs.45,670</p>
+                        <p class="stat-number">LKR 45,670</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
                             <span>15% this month</span>
@@ -130,7 +130,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Football Ground A</h4>
                                 <p>Kavinda Ranasighe</p>
                                 <span class="booking-details">Today, 3:00 PM - 5:00 PM</span>
-                                <span class="booking-amount">₹1,200</span>
+                                <span class="booking-amount">LKR 1,200</span>
                             </div>
                             <span class="status-badge confirmed">Confirmed</span>
                         </div>
@@ -139,7 +139,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Cricket Ground B</h4>
                                 <p>Sanduni Rajapakse</p>
                                 <span class="booking-details">Tomorrow, 10:00 AM - 1:00 PM</span>
-                                <span class="booking-amount">₹1,800</span>
+                                <span class="booking-amount">LKR 1,800</span>
                             </div>
                             <span class="status-badge pending">Pending</span>
                         </div>
@@ -148,7 +148,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Tennis Court 1</h4>
                                 <p>Dilan Wijesinghe</p>
                                 <span class="booking-details">Dec 25, 4:00 PM - 5:00 PM</span>
-                                <span class="booking-amount">₹600</span>
+                                <span class="booking-amount">LKR 600</span>
                             </div>
                             <span class="status-badge confirmed">Confirmed</span>
                         </div>
@@ -167,7 +167,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Football Ground A</h4>
                                 <div class="performance-stats">
                                     <span class="bookings">68 bookings</span>
-                                    <span class="earnings">₹20,400</span>
+                                    <span class="earnings">LKR 20,400</span>
                                 </div>
                             </div>
                             <div class="performance-chart">
@@ -180,7 +180,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Cricket Ground B</h4>
                                 <div class="performance-stats">
                                     <span class="bookings">45 bookings</span>
-                                    <span class="earnings">₹13,500</span>
+                                    <span class="earnings">LKR.13,500</span>
                                 </div>
                             </div>
                             <div class="performance-chart">
@@ -193,7 +193,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Tennis Court 1</h4>
                                 <div class="performance-stats">
                                     <span class="bookings">43 bookings</span>
-                                    <span class="earnings">₹11,770</span>
+                                    <span class="earnings">LKR 11,770</span>
                                 </div>
                             </div>
                             <div class="performance-chart">

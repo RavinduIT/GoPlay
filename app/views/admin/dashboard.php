@@ -253,3 +253,30 @@
 </style>
 
 <script src="/public/js/pages/admin-dashboard.js"></script>
+<script>
+// Load pending applications count
+async function loadPendingApplicationsCount() {
+    try {
+        const response = await fetch('/admin/provider-applications/statistics');
+        const data = await response.json();
+
+        if (data.success && data.stats) {
+            const pendingCount = data.stats.pending || 0;
+            const badge = document.querySelector('.pending-applications');
+            if (badge) {
+                badge.textContent = pendingCount;
+                if (pendingCount > 0) {
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading pending applications count:', error);
+    }
+}
+
+// Load count on page load
+document.addEventListener('DOMContentLoaded', loadPendingApplicationsCount);
+</script>
