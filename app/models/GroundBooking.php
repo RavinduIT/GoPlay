@@ -86,7 +86,7 @@ class GroundBooking extends BaseModel
         return array_map([$this, 'castAttributes'], $results);
     }
 
-    /**
+    /** get fetch(/bookings/user/:id  create ground)
      * Get bookings for a specific user
      */
     public function getBookingsByUser(int $userId): array
@@ -170,6 +170,56 @@ class GroundBooking extends BaseModel
 
         $result = $this->queryFirst($sql, $params);
         return ($result['count'] ?? 0) == 0;
+    }
+
+    /**
+     * Update booking details (reschedule)
+     */
+    public function updateBooking(int $bookingId, array $updateData): bool
+    {
+        // Get existing booking
+        $booking = $this->find($bookingId);
+        if (!$booking) {
+            error_log("GroundBooking::updateBooking - Booking not found: " . $bookingId);
+            return false;
+        }
+
+        // If time is being changed, check availability
+        if (isset($updateData['booking_date']) || isset($updateData['start_time']) || isset($updateData['end_time'])) {
+            $newDate = $updateData['booking_date'] ?? $booking['booking_date'];
+            $newStartTime = $updateData['start_time'] ?? $booking['start_time'];
+            $newEndTime = $updateData['end_time'] ?? $booking['end_time'];
+
+            error_log("Checking availability for: date=$newDate, start=$newStartTime, end=$newEndTime");
+
+            // Check if new time slot is available (excluding current booking)
+            $isAvailable = $this->isTimeSlotAvailable(
+                $booking['facility_id'],
+                $newDate,
+                $newStartTime,
+                $newEndTime,
+                $bookingId
+            );
+
+            if (!$isAvailable) {
+                error_log("Time slot not available");
+                return false;
+            }
+
+            // Recalculate duration if time changed
+            if (isset($updateData['start_time']) || isset($updateData['end_time'])) {
+                $startTime = strtotime($newStartTime);
+                $endTime = strtotime($newEndTime);
+                $updateData['duration_hours'] = ($endTime - $startTime) / 3600;
+                error_log("Recalculated duration: " . $updateData['duration_hours'] . " hours");
+            }
+        }
+
+        // Perform update
+        error_log("Updating booking " . $bookingId . " with data: " . json_encode($updateData));
+        $result = $this->update($bookingId, $updateData);
+        error_log("Update result: " . ($result ? 'success' : 'failed'));
+        return $result;
     }
 
     /**

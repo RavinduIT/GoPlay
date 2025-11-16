@@ -397,6 +397,147 @@ $additionalJS = [];
         box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
+    .btn-edit {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background: #047857;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.6);
+        animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 3% auto;
+        padding: 0;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 700px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        animation: slideDown 0.4s;
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 2rem;
+        border-radius: 16px 16px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+
+    .close {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s;
+        line-height: 1;
+    }
+
+    .close:hover {
+        transform: scale(1.2) rotate(90deg);
+    }
+
+    .modal-body {
+        padding: 2.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.75rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-group input:disabled {
+        background-color: var(--background-light);
+        cursor: not-allowed;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .modal-footer {
+        padding: 2rem 2.5rem;
+        background-color: var(--background-light);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        border-radius: 0 0 16px 16px;
+    }
+
     /* Loading & Empty States */
     .loading-state, .empty-state {
         text-align: center;
@@ -556,6 +697,55 @@ $additionalJS = [];
     </div>
 </div>
 
+<!-- Edit Ground Booking Modal -->
+<div id="editGroundModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> Edit Ground Booking</h2>
+            <span class="close" onclick="dashboard.closeEditModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="editGroundForm">
+                <input type="hidden" id="editBookingId">
+
+                <div class="form-group">
+                    <label><i class="fas fa-building"></i> Facility Name</label>
+                    <input type="text" id="editFacilityName" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label for="editBookingDate"><i class="fas fa-calendar"></i> Booking Date *</label>
+                    <input type="date" id="editBookingDate" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editStartTime"><i class="fas fa-clock"></i> Start Time *</label>
+                        <input type="time" id="editStartTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEndTime"><i class="fas fa-clock"></i> End Time *</label>
+                        <input type="time" id="editEndTime" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editSpecialRequests"><i class="fas fa-comment"></i> Special Requests</label>
+                    <textarea id="editSpecialRequests" placeholder="Any special requirements or notes..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-view" onclick="dashboard.closeEditModal()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="button" class="btn btn-primary" onclick="dashboard.saveGroundBookingChanges()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     class MyBookingsDashboard {
         constructor() {
@@ -694,6 +884,9 @@ $additionalJS = [];
 
                     <div class="booking-actions">
                         ${(booking.status === 'confirmed' || booking.status === 'pending') ? `
+                            <button class="btn btn-edit" onclick="dashboard.editGroundBooking(${booking.id})">
+                                <i class="fas fa-edit"></i> Edit Booking
+                            </button>
                             <button class="btn btn-cancel" onclick="dashboard.cancelGroundBooking(${booking.id})">
                                 <i class="fas fa-times"></i> Cancel Booking
                             </button>
@@ -796,6 +989,108 @@ $additionalJS = [];
             `}).join('');
         }
 
+        editGroundBooking(bookingId) {
+            const booking = this.groundBookings.find(b => b.id === bookingId);
+            if (!booking) {
+                alert('Booking not found');
+                return;
+            }
+
+            // Populate form with current booking data
+            document.getElementById('editBookingId').value = booking.id;
+            document.getElementById('editFacilityName').value = booking.facility_name;
+            document.getElementById('editBookingDate').value = booking.booking_date;
+            document.getElementById('editStartTime').value = booking.start_time;
+            document.getElementById('editEndTime').value = booking.end_time;
+            document.getElementById('editSpecialRequests').value = booking.special_requests || '';
+
+            // Set minimum date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('editBookingDate').min = tomorrow.toISOString().split('T')[0];
+
+            // Show modal
+            document.getElementById('editGroundModal').style.display = 'block';
+        }
+
+        closeEditModal() {
+            document.getElementById('editGroundModal').style.display = 'none';
+        }
+
+        async saveGroundBookingChanges() {
+            const bookingId = document.getElementById('editBookingId').value;
+            const bookingDate = document.getElementById('editBookingDate').value;
+            const startTime = document.getElementById('editStartTime').value;
+            const endTime = document.getElementById('editEndTime').value;
+            const specialRequests = document.getElementById('editSpecialRequests').value;
+
+            // Validation
+            if (!bookingDate || !startTime || !endTime) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            if (startTime >= endTime) {
+                alert('End time must be after start time');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to update this booking?')) {
+                return;
+            }
+
+            try {
+                const requestData = {
+                    booking_date: bookingDate,
+                    start_time: startTime,
+                    end_time: endTime,
+                    special_requests: specialRequests
+                };
+
+                console.log('Sending update request:', requestData);
+                console.log('Request URL:', `/api/user/ground-bookings/${bookingId}`);
+
+                const response = await fetch(`/api/user/ground-bookings/${bookingId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers.get('content-type'));
+
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                    console.log('Parsed response data:', data);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    alert('❌ Server returned invalid response. Check console.');
+                    return;
+                }
+
+                if (data.success) {
+                    alert('✅ Booking updated successfully!');
+                    this.closeEditModal();
+                    await this.loadGroundBookings();
+                    this.updateStats();
+                    this.renderGroundBookings();
+                } else {
+                    alert('❌ Error: ' + data.message);
+                    console.error('Server error:', data);
+                }
+            } catch (error) {
+                console.error('Error updating booking:', error);
+                console.error('Error stack:', error.stack);
+                alert('❌ Failed to update booking. Error: ' + error.message);
+            }
+        }
+
         async cancelGroundBooking(bookingId) {
             if (!confirm('Are you sure you want to cancel this booking?')) return;
 
@@ -869,6 +1164,14 @@ $additionalJS = [];
         // Update tab content
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         document.getElementById(tab + 'Content').classList.add('active');
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('editGroundModal');
+        if (event.target === modal) {
+            dashboard.closeEditModal();
+        }
     }
 
     // Initialize dashboard

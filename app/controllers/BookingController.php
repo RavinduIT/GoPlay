@@ -92,13 +92,7 @@ class BookingController extends BaseController
         }
     }
 
-    /**
-     * Display booking form for coach
-     */
-    public function bookCoach(Request $request): Response
-    {
-        return $this->view('booking/book-coach');
-    }
+   
 
     /**
      * Display ground details

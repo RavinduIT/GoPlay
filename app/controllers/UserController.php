@@ -365,7 +365,7 @@ class UserController extends BaseController
     /**
      * My orders page  
      */
-    public function myOrders(Request $request): Response
+    public function myOrderss(Request $request): Response
     {
         $session = $this->requireAuth();
         return $this->view('user/orders', [
@@ -637,6 +637,107 @@ class UserController extends BaseController
     }
 
     /**
+     * Update ground booking
+     */
+    public function updateGroundBooking(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $bookingId = (int)$request->getParam('id');
+            $userId = $_SESSION['user_id'];
+
+            // Try getBody first, fallback to getJsonBody
+            $data = $request->getBody();
+            if (empty($data)) {
+                $data = $request->getJsonBody();
+            }
+
+            error_log("=== Update Ground Booking Request ===");
+            error_log("Booking ID: " . $bookingId);
+            error_log("User ID: " . $userId);
+            error_log("Content-Type: " . ($request->getHeader('content-type') ?? 'not set'));
+            error_log("Raw body count: " . count($data));
+            error_log("Update Data: " . json_encode($data));
+
+            if (!$bookingId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid booking ID'
+                ], 400);
+            }
+
+            // Verify booking belongs to user
+            $booking = $this->groundBookingModel->find($bookingId);
+            if (!$booking) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Booking not found'
+                ], 404);
+            }
+
+            if ($booking['user_id'] != $userId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Unauthorized - This booking does not belong to you'
+                ], 403);
+            }
+
+            // Check if booking can be updated
+            if (in_array($booking['status'], ['completed', 'cancelled'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Cannot update completed or cancelled bookings'
+                ], 400);
+            }
+
+            // Prepare update data
+            $updateData = [];
+            if (isset($data['booking_date'])) $updateData['booking_date'] = $data['booking_date'];
+            if (isset($data['start_time'])) $updateData['start_time'] = $data['start_time'];
+            if (isset($data['end_time'])) $updateData['end_time'] = $data['end_time'];
+            if (isset($data['special_requests'])) $updateData['special_requests'] = $data['special_requests'];
+
+            if (empty($updateData)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'No update data provided'
+                ], 400);
+            }
+
+            error_log("Update data prepared: " . json_encode($updateData));
+
+            $success = $this->groundBookingModel->updateBooking($bookingId, $updateData);
+
+            if (!$success) {
+                error_log("Update failed - possibly time slot not available");
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to update booking. The time slot may not be available.'
+                ], 400);
+            }
+
+            error_log("Booking updated successfully");
+            return $this->json([
+                'success' => true,
+                'message' => 'Booking updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Error updating ground booking: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to update booking',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Ground bookings dashboard page
      */
     public function groundBookingsDashboard(Request $request): Response
@@ -649,9 +750,9 @@ class UserController extends BaseController
             return $this->redirect('/login');
         }
 
-        return $this->view('user/ground-bookings'   , [
+        return $this->view('user/my-bookings', [
             'user' => $user,
-            'title' => 'My Ground Bookings - GoPlay Sports Platform',
+            'title' => 'My Bookings - GoPlay Sports Platform',
             'additionalCSS' => [
                 '/public/css/pages/user-bookings.css',
                 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
