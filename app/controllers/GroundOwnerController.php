@@ -666,4 +666,112 @@ class GroundOwnerController extends BaseController
             ], 500);
         }
     }
+
+    // ======================
+    // PROFILE MANAGEMENT
+    // ======================
+
+    /**
+     * Get ground owner profile with statistics
+     */
+    public function getProfile(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+
+            // Get user data
+            $userModel = new \App\Models\User();
+            $user = $userModel->find($ownerId);
+
+            if (!$user) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'User not found'
+                ], 404);
+            }
+
+            // Get ground owner profile
+            $profileModel = new \App\Models\GroundOwnerProfile();
+            $ownerProfile = $profileModel->getByUserId($ownerId);
+
+            // Get statistics
+            $facilities = $this->getFacilityModel()->getByOwnerId($ownerId);
+            $bookingStats = $this->getBookingModel()->getOwnerBookingStats($ownerId);
+
+            // Calculate average rating across all facilities
+            $totalRating = 0;
+            $totalReviews = 0;
+            foreach ($facilities as $facility) {
+                $totalRating += ($facility['rating'] ?? 0) * ($facility['total_reviews'] ?? 0);
+                $totalReviews += $facility['total_reviews'] ?? 0;
+            }
+            $averageRating = $totalReviews > 0 ? $totalRating / $totalReviews : 0;
+
+            $stats = [
+                'total_facilities' => count($facilities),
+                'total_bookings' => $bookingStats['total_bookings'] ?? 0,
+                'average_rating' => round($averageRating, 2)
+            ];
+
+            // Remove sensitive data
+            unset($user['password_hash']);
+
+            return $this->json([
+                'success' => true,
+                'profile' => [
+                    'user' => $user,
+                    'owner_profile' => $ownerProfile,
+                    'stats' => $stats
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load profile',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update ground owner profile
+     */
+    public function updateProfile(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+
+            $profileModel = new \App\Models\GroundOwnerProfile();
+            $success = $profileModel->updateProfile($ownerId, $data);
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to update profile'
+                ], 500);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Profile updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to update profile',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

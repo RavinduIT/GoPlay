@@ -6,10 +6,13 @@ function initializeGroundOwnerDashboard() {
     // Initialize sidebar toggle
     const sidebarToggle = document.querySelectorAll('.sidebar-toggle');
     const sidebar = document.getElementById('dashboardSidebar');
-    
+
     sidebarToggle.forEach(button => {
         button.addEventListener('click', toggleSidebar);
     });
+
+    // Load dashboard data from API
+    updateDashboardStats();
 
     // Initialize earnings chart
     initializeEarningsChart();
@@ -296,33 +299,73 @@ function startRealTimeUpdates() {
     }, 30000);
 }
 
-function updateDashboardStats() {
-    // Simulate small changes in stats
-    const statNumbers = document.querySelectorAll('.stat-number');
-    
-    statNumbers.forEach(stat => {
-        const currentText = stat.textContent;
-        
-        if (currentText.includes('₹')) {
-            // Update earnings
-            const currentValue = parseInt(currentText.replace(/[^0-9]/g, ''));
-            const change = Math.floor(Math.random() * 1000) - 500;
-            const newValue = Math.max(0, currentValue + change);
-            stat.textContent = `₹${newValue.toLocaleString()}`;
-        } else if (currentText.includes('%')) {
-            // Update percentages
-            const currentValue = parseFloat(currentText.replace('%', ''));
-            const change = (Math.random() - 0.5) * 2; // ±1%
-            const newValue = Math.max(0, Math.min(100, currentValue + change));
-            stat.textContent = `${newValue.toFixed(1)}%`;
-        } else if (!currentText.includes('.')) {
-            // Update counts
-            const currentValue = parseInt(currentText.replace(/[^0-9]/g, ''));
-            const change = Math.floor(Math.random() * 3) - 1; // ±1
-            const newValue = Math.max(0, currentValue + change);
-            stat.textContent = newValue.toString();
+async function updateDashboardStats() {
+    try {
+        const response = await fetch('/api/ground-owner/dashboard-stats');
+
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
         }
-    });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const { stats, recent_bookings } = data;
+
+            // Update booking stats if elements exist
+            updateStatIfExists('.stat-card.bookings .stat-number', stats.bookings.total_bookings || 0);
+            updateStatIfExists('.stat-card.bookings .stat-change span', stats.bookings.this_month_bookings + ' this month');
+
+            // Update recent bookings
+            if (recent_bookings && recent_bookings.length > 0) {
+                updateRecentBookings(recent_bookings);
+            }
+        }
+    } catch (error) {
+        console.error('Error updating dashboard stats:', error);
+    }
+}
+
+function updateStatIfExists(selector, value) {
+    const element = document.querySelector(selector);
+    if (element) {
+        element.textContent = value;
+    }
+}
+
+function updateRecentBookings(bookings) {
+    const container = document.querySelector('.booking-list');
+    if (!container) return;
+
+    const html = bookings.slice(0, 3).map(booking => `
+        <div class="booking-item">
+            <div class="booking-info">
+                <h4>${booking.facility_name || 'Facility'}</h4>
+                <p>${booking.first_name || ''} ${booking.last_name || ''}</p>
+                <span class="booking-details">${formatBookingDate(booking.booking_date)}, ${booking.start_time} - ${booking.end_time}</span>
+                <span class="booking-amount">LKR ${parseFloat(booking.total_amount || 0).toLocaleString()}</span>
+            </div>
+            <span class="status-badge ${booking.status}">${booking.status}</span>
+        </div>
+    `).join('');
+
+    container.innerHTML = html;
+}
+
+function formatBookingDate(dateString) {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+        return 'Tomorrow';
+    } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
 }
 
 function updateBookingStatuses() {
