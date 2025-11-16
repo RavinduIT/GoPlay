@@ -215,6 +215,7 @@ $router->get('/news/{slug}', 'NewsController@show');
     $router->get('/api/user/ground-bookings', 'UserController@getGroundBookings');
     $router->post('/api/user/ground-bookings', 'UserController@createGroundBooking');
     $router->get('/api/user/ground-bookings/{id}', 'UserController@getGroundBookingDetails');
+    $router->put('/api/user/ground-bookings/{id}', 'UserController@updateGroundBooking');
     $router->put('/api/user/ground-bookings/{id}/cancel', 'UserController@cancelGroundBooking');
     
     // Additional user routes
