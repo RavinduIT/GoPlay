@@ -131,6 +131,10 @@ try {
     $router->delete('/api/ground-owner/grounds/{id}', 'GroundOwnerController@deleteGround');
     $router->get('/api/ground-owner/categories', 'GroundOwnerController@getSportsCategories');
 
+    // Ground Owner Profile API routes
+    $router->get('/api/ground-owner/profile', 'GroundOwnerController@getProfile');
+    $router->put('/api/ground-owner/profile', 'GroundOwnerController@updateProfile');
+
     // Ground Owner Booking Management API routes
     $router->get('/api/ground-owner/dashboard-stats', 'GroundOwnerController@getDashboardStats');
     $router->get('/api/ground-owner/bookings', 'GroundOwnerController@getBookings');
