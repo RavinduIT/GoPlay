@@ -568,6 +568,72 @@ $additionalJS = [];
         margin-bottom: 2rem;
     }
 
+    /* Star Rating Styles */
+    .star-rating {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin: 1.5rem 0;
+    }
+
+    .star-rating i {
+        font-size: 2.5rem;
+        color: #d1d5db;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .star-rating i:hover,
+    .star-rating i.active {
+        color: #fbbf24;
+        transform: scale(1.1);
+    }
+
+    .star-rating i.hover {
+        color: #fbbf24;
+    }
+
+    .rating-label {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .rating-description {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        min-height: 24px;
+    }
+
+    .character-counter {
+        text-align: right;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+    }
+
+    .facility-review-info {
+        background: var(--background-light);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .facility-review-info h4 {
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .facility-review-info p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .page-container {
@@ -605,6 +671,10 @@ $additionalJS = [];
         .btn {
             width: 100%;
             justify-content: center;
+        }
+
+        .star-rating i {
+            font-size: 2rem;
         }
     }
 </style>
@@ -741,6 +811,55 @@ $additionalJS = [];
             </button>
             <button type="button" class="btn btn-primary" onclick="dashboard.saveGroundBookingChanges()">
                 <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Write Review Modal -->
+<div id="reviewModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-star"></i> Write a Review</h2>
+            <span class="close" onclick="dashboard.closeReviewModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="reviewForm">
+                <input type="hidden" id="reviewFacilityId">
+                <input type="hidden" id="reviewBookingId">
+
+                <div class="facility-review-info">
+                    <h4 id="reviewFacilityName"></h4>
+                    <p>Share your experience with this facility</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="rating-label">How would you rate this facility?</div>
+                    <div class="star-rating" id="starRating">
+                        <i class="fas fa-star" data-rating="1"></i>
+                        <i class="fas fa-star" data-rating="2"></i>
+                        <i class="fas fa-star" data-rating="3"></i>
+                        <i class="fas fa-star" data-rating="4"></i>
+                        <i class="fas fa-star" data-rating="5"></i>
+                    </div>
+                    <div class="rating-description" id="ratingDescription">Select a rating</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reviewText"><i class="fas fa-comment"></i> Your Review (Optional)</label>
+                    <textarea id="reviewText" placeholder="Share details of your experience with this facility..." rows="5" maxlength="500"></textarea>
+                    <div class="character-counter">
+                        <span id="reviewCharCount">0</span>/500 characters
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-view" onclick="dashboard.closeReviewModal()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="button" class="btn btn-primary" onclick="dashboard.submitReview()" id="submitReviewBtn" disabled>
+                <i class="fas fa-paper-plane"></i> Submit Review
             </button>
         </div>
     </div>
@@ -889,6 +1008,11 @@ $additionalJS = [];
                             </button>
                             <button class="btn btn-cancel" onclick="dashboard.cancelGroundBooking(${booking.id})">
                                 <i class="fas fa-times"></i> Cancel Booking
+                            </button>
+                        ` : ''}
+                        ${booking.status === 'completed' ? `
+                            <button class="btn btn-primary" onclick="dashboard.openReviewModal(${booking.facility_id}, ${booking.id}, '${booking.facility_name}')">
+                                <i class="fas fa-star"></i> Write Review
                             </button>
                         ` : ''}
                         <button class="btn btn-view" onclick="dashboard.viewGroundDetails(${booking.id})">
@@ -1154,6 +1278,130 @@ $additionalJS = [];
             const coachName = `${booking.coach_first_name} ${booking.coach_last_name}`;
             alert(`Coach Session Details\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCoach: ${coachName}\nSport: ${booking.sport_name || 'General'}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nType: ${booking.session_type}\nFee: LKR ${parseFloat(booking.total_amount).toLocaleString()}\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
         }
+
+        openReviewModal(facilityId, bookingId, facilityName) {
+            // Set the modal data
+            document.getElementById('reviewFacilityId').value = facilityId;
+            document.getElementById('reviewBookingId').value = bookingId;
+            document.getElementById('reviewFacilityName').textContent = facilityName;
+
+            // Reset the form
+            this.selectedRating = 0;
+            document.getElementById('reviewText').value = '';
+            document.getElementById('reviewCharCount').textContent = '0';
+            document.getElementById('ratingDescription').textContent = 'Select a rating';
+            document.getElementById('submitReviewBtn').disabled = true;
+
+            // Reset star ratings
+            const stars = document.querySelectorAll('#starRating i');
+            stars.forEach(star => star.classList.remove('active'));
+
+            // Setup star rating click handlers
+            this.setupStarRating();
+
+            // Setup character counter
+            const reviewText = document.getElementById('reviewText');
+            reviewText.addEventListener('input', (e) => {
+                document.getElementById('reviewCharCount').textContent = e.target.value.length;
+            });
+
+            // Show the modal
+            document.getElementById('reviewModal').style.display = 'block';
+        }
+
+        setupStarRating() {
+            const stars = document.querySelectorAll('#starRating i');
+            const ratingDescriptions = ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+
+            stars.forEach((star, index) => {
+                // Click handler
+                star.onclick = () => {
+                    this.selectedRating = index + 1;
+
+                    // Update star display
+                    stars.forEach((s, i) => {
+                        if (i <= index) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+
+                    // Update description
+                    document.getElementById('ratingDescription').textContent = ratingDescriptions[index];
+
+                    // Enable submit button
+                    document.getElementById('submitReviewBtn').disabled = false;
+                };
+
+                // Hover effect
+                star.onmouseenter = () => {
+                    stars.forEach((s, i) => {
+                        if (i <= index) {
+                            s.classList.add('hover');
+                        } else {
+                            s.classList.remove('hover');
+                        }
+                    });
+                };
+
+                star.onmouseleave = () => {
+                    stars.forEach(s => s.classList.remove('hover'));
+                };
+            });
+        }
+
+        closeReviewModal() {
+            document.getElementById('reviewModal').style.display = 'none';
+            this.selectedRating = 0;
+        }
+
+        async submitReview() {
+            const facilityId = document.getElementById('reviewFacilityId').value;
+            const bookingId = document.getElementById('reviewBookingId').value;
+            const reviewText = document.getElementById('reviewText').value.trim();
+
+            if (!this.selectedRating) {
+                alert('Please select a rating');
+                return;
+            }
+
+            try {
+                const requestData = {
+                    facility_id: parseInt(facilityId),
+                    rating: this.selectedRating,
+                    review_text: reviewText,
+                    booking_id: parseInt(bookingId)
+                };
+
+                console.log('Submitting review:', requestData);
+
+                const response = await fetch('/api/user/reviews', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ Review submitted successfully! Thank you for your feedback.');
+                    this.closeReviewModal();
+
+                    // Reload bookings to update UI
+                    await this.loadGroundBookings();
+                    this.renderGroundBookings();
+                } else {
+                    alert('❌ Error: ' + data.message);
+                    console.error('Server error:', data);
+                }
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                alert('❌ Failed to submit review. Please try again.');
+            }
+        }
     }
 
     function switchTab(tab) {
@@ -1168,9 +1416,14 @@ $additionalJS = [];
 
     // Close modal when clicking outside
     window.onclick = function(event) {
-        const modal = document.getElementById('editGroundModal');
-        if (event.target === modal) {
+        const editModal = document.getElementById('editGroundModal');
+        const reviewModal = document.getElementById('reviewModal');
+
+        if (event.target === editModal) {
             dashboard.closeEditModal();
+        }
+        if (event.target === reviewModal) {
+            dashboard.closeReviewModal();
         }
     }
 
