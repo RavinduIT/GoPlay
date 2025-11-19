@@ -1156,6 +1156,118 @@
     outline-offset: 2px;
 }
 
+/* Facility Sections */
+.facility-reviews-section {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.facility-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.facility-header:hover {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+.facility-info {
+    flex: 1;
+}
+
+.facility-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.75rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.facility-name i {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+.facility-stats {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.facility-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: white;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.938rem;
+}
+
+.facility-rating i {
+    font-size: 1rem;
+}
+
+.facility-review-count {
+    color: var(--text-secondary);
+    font-size: 0.938rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #e2e8f0;
+    border-radius: 20px;
+}
+
+.facility-review-count::before {
+    content: '📊';
+}
+
+.facility-toggle {
+    padding: 0.5rem;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.facility-toggle i {
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+.facility-reviews-content {
+    padding: 1.5rem;
+    background: #f9fafb;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.facility-reviews-content .review-card {
+    margin: 0;
+}
+
+/* Animation for facility toggle */
+.facility-header:active .facility-toggle {
+    transform: scale(0.95);
+}
+
 /* Print Styles */
 @media print {
     .reviews-filters,
@@ -1164,12 +1276,69 @@
     .btn-primary,
     .btn-secondary,
     .sidebar,
-    .dashboard-header {
+    .dashboard-header,
+    .facility-toggle {
         display: none !important;
     }
 
     .reviews-overview,
-    .review-card {
+    .review-card,
+    .facility-reviews-section {
         page-break-inside: avoid;
+    }
+
+    .facility-header {
+        background: white;
+        border-bottom: 2px solid #000;
+    }
+
+    .facility-reviews-content {
+        display: block !important;
+    }
+}
+
+/* Responsive for Facility Sections */
+@media (max-width: 768px) {
+    .facility-header {
+        padding: 1.25rem;
+    }
+
+    .facility-name {
+        font-size: 1.125rem;
+    }
+
+    .facility-stats {
+        gap: 1rem;
+    }
+
+    .facility-rating,
+    .facility-review-count {
+        font-size: 0.875rem;
+        padding: 0.4rem 0.85rem;
+    }
+
+    .facility-reviews-content {
+        padding: 1rem;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .facility-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .facility-toggle {
+        position: absolute;
+        top: 1.25rem;
+        right: 1.25rem;
+    }
+
+    .facility-stats {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
     }
 }

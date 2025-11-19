@@ -103,7 +103,7 @@ $additionalJS = ['/public/js/pages/ground-owner-reviews.js'];
                     </div>
                 </div>
 
-                <!--<div class="overview-card recent-reviews">
+                <div class="overview-card recent-reviews">
                     <div class="card-icon">
                         <i class="fas fa-history"></i>
                     </div>
@@ -112,7 +112,7 @@ $additionalJS = ['/public/js/pages/ground-owner-reviews.js'];
                         <p class="stat-number" id="recentCount">0</p>
                         <span class="period-indicator">Last 7 days</span>
                     </div>
-                </div>-->
+                </div>
             </div>
 
             <!-- Rating Distribution -->
