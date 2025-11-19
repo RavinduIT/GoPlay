@@ -92,13 +92,19 @@ class ReviewsManager {
 
     updateOverview() {
         const stats = this.calculateStats();
-        
-        document.getElementById('overallRating').textContent = stats.averageRating.toFixed(1);
-        document.getElementById('totalReviews').textContent = `Based on ${stats.totalReviews} reviews`;
-        document.getElementById('reviewsCount').textContent = stats.totalReviews;
-        document.getElementById('pendingResponses').textContent = stats.pendingResponses;
-        document.getElementById('recentCount').textContent = stats.recentReviews;
-        
+
+        // Safely update elements with null checks
+        const setTextContent = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        };
+
+        setTextContent('overallRating', stats.averageRating.toFixed(1));
+        setTextContent('totalReviews', `Based on ${stats.totalReviews} reviews`);
+        setTextContent('reviewsCount', stats.totalReviews);
+        setTextContent('pendingResponses', stats.pendingResponses);
+        setTextContent('recentCount', stats.recentReviews);
+
         // Update growth indicator
         const growthElement = document.getElementById('reviewsGrowth');
         if (growthElement) {
@@ -176,37 +182,120 @@ class ReviewsManager {
             return;
         }
 
-        const startIndex = 0;
-        const endIndex = this.currentPage * this.itemsPerPage;
-        const reviewsToShow = this.filteredReviews.slice(startIndex, endIndex);
+        // Group reviews by facility
+        const groupedReviews = this.groupReviewsByFacility(this.filteredReviews);
 
-        reviewsList.innerHTML = reviewsToShow.map(review => this.createReviewCard(review)).join('');
-        
-        // Show/hide load more button
+        // Render grouped reviews
+        reviewsList.innerHTML = Object.entries(groupedReviews).map(([facilityName, facilityData]) =>
+            this.createFacilitySection(facilityName, facilityData)
+        ).join('');
+
+        // Hide load more button when using grouped view
         const loadMoreBtn = document.getElementById('loadMoreBtn');
         if (loadMoreBtn) {
-            loadMoreBtn.style.display = endIndex < this.filteredReviews.length ? 'block' : 'none';
+            loadMoreBtn.style.display = 'none';
+        }
+    }
+
+    groupReviewsByFacility(reviews) {
+        const grouped = {};
+
+        reviews.forEach(review => {
+            const facilityKey = review.facility_name || review.ground_name;
+
+            if (!grouped[facilityKey]) {
+                grouped[facilityKey] = {
+                    facility_id: review.facility_id || review.ground_id,
+                    facility_name: review.facility_name || review.ground_name,
+                    reviews: [],
+                    averageRating: 0,
+                    totalReviews: 0
+                };
+            }
+
+            grouped[facilityKey].reviews.push(review);
+        });
+
+        // Calculate stats for each facility
+        Object.values(grouped).forEach(facility => {
+            facility.totalReviews = facility.reviews.length;
+            const totalRating = facility.reviews.reduce((sum, r) => sum + r.rating, 0);
+            facility.averageRating = totalRating / facility.totalReviews;
+
+            // Sort reviews by date (newest first)
+            facility.reviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        });
+
+        return grouped;
+    }
+
+    createFacilitySection(facilityName, facilityData) {
+        const sectionId = `facility-${facilityData.facility_id}`;
+        const isExpanded = true; // Default expanded
+
+        return `
+            <div class="facility-reviews-section">
+                <div class="facility-header" onclick="reviewsManager.toggleFacilitySection('${sectionId}')">
+                    <div class="facility-info">
+                        <h3 class="facility-name">
+                            <i class="fas fa-building"></i>
+                            ${facilityData.facility_name}
+                        </h3>
+                        <div class="facility-stats">
+                            <span class="facility-rating">
+                                <i class="fas fa-star"></i>
+                                ${facilityData.averageRating.toFixed(1)}
+                            </span>
+                            <span class="facility-review-count">
+                                ${facilityData.totalReviews} review${facilityData.totalReviews !== 1 ? 's' : ''}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="facility-toggle">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="facility-reviews-content" id="${sectionId}" style="display: ${isExpanded ? 'block' : 'none'}">
+                    ${facilityData.reviews.map(review => this.createReviewCard(review)).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    toggleFacilitySection(sectionId) {
+        const section = document.getElementById(sectionId);
+        const header = section.previousElementSibling;
+        const chevron = header.querySelector('.facility-toggle i');
+
+        if (section.style.display === 'none') {
+            section.style.display = 'block';
+            chevron.style.transform = 'rotate(0deg)';
+        } else {
+            section.style.display = 'none';
+            chevron.style.transform = 'rotate(-90deg)';
         }
     }
 
     createReviewCard(review) {
         const hasResponse = review.response && review.response.text;
         const statusClass = hasResponse ? 'responded' : 'pending';
-        
+        const customerName = review.customer_name || `${review.first_name || ''} ${review.last_name || ''}`.trim() || 'Anonymous';
+        const customerAvatar = review.customer_avatar || review.profile_picture || '/public/assets/images/default-avatar.jpg';
+
         return `
             <div class="review-card rating-${review.rating}">
                 <div class="review-header">
                     <div class="reviewer-info">
-                        <img src="${review.customer_avatar || '/public/assets/images/default-avatar.jpg'}" 
+                        <img src="${customerAvatar}"
                              alt="Reviewer" class="reviewer-avatar">
                         <div class="reviewer-details">
-                            <h5>${review.customer_name}</h5>
+                            <h5>${customerName}</h5>
                             <div class="review-rating">
                                 ${this.generateStars(review.rating)}
                             </div>
                             <div class="review-meta">
-                                <span class="ground-name">${review.ground_name}</span>
                                 <span class="review-date">${this.formatDate(review.created_at)}</span>
+                                ${review.booking_date ? `<span>Booking: ${this.formatDate(review.booking_date)}</span>` : ''}
                             </div>
                         </div>
                     </div>
@@ -222,11 +311,11 @@ class ReviewsManager {
                     </div>
                 </div>
                 <div class="review-content">
-                    <p class="review-text">${review.review_text}</p>
+                    <p class="review-text">${review.review_text || 'No review text provided.'}</p>
                     ${review.images && review.images.length > 0 ? `
                         <div class="review-images">
                             ${review.images.map(img => `
-                                <img src="${img}" alt="Review image" class="review-image" 
+                                <img src="${img}" alt="Review image" class="review-image"
                                      onclick="reviewsManager.viewImage('${img}')">
                             `).join('')}
                         </div>
@@ -246,7 +335,6 @@ class ReviewsManager {
                     <span class="status-indicator ${statusClass}">
                         ${hasResponse ? 'Responded' : 'Pending Response'}
                     </span>
-                    ${review.booking_date ? `<span>Booking: ${this.formatDate(review.booking_date)}</span>` : ''}
                 </div>
             </div>
         `;
@@ -275,8 +363,11 @@ class ReviewsManager {
                 matches = false;
             }
 
-            if (this.filters.ground && review.ground_id !== parseInt(this.filters.ground)) {
-                matches = false;
+            if (this.filters.ground) {
+                const facilityId = review.facility_id || review.ground_id;
+                if (facilityId !== parseInt(this.filters.ground)) {
+                    matches = false;
+                }
             }
 
             if (this.filters.status) {
@@ -315,13 +406,17 @@ class ReviewsManager {
         if (!query.trim()) {
             this.filteredReviews = [...this.reviews];
         } else {
-            this.filteredReviews = this.reviews.filter(review => 
-                review.review_text.toLowerCase().includes(query.toLowerCase()) ||
-                review.customer_name.toLowerCase().includes(query.toLowerCase()) ||
-                review.ground_name.toLowerCase().includes(query.toLowerCase())
-            );
+            this.filteredReviews = this.reviews.filter(review => {
+                const reviewText = review.review_text || '';
+                const customerName = `${review.first_name || ''} ${review.last_name || ''}`.trim() || review.customer_name || '';
+                const facilityName = review.facility_name || review.ground_name || '';
+
+                return reviewText.toLowerCase().includes(query.toLowerCase()) ||
+                       customerName.toLowerCase().includes(query.toLowerCase()) ||
+                       facilityName.toLowerCase().includes(query.toLowerCase());
+            });
         }
-        
+
         this.currentPage = 1;
         this.renderReviews();
     }
@@ -335,15 +430,24 @@ class ReviewsManager {
         const groundFilter = document.getElementById('groundFilter');
         if (!groundFilter) return;
 
-        const grounds = [...new Set(this.reviews.map(r => ({ id: r.ground_id, name: r.ground_name })))];
-        
+        // Create unique facilities map
+        const facilitiesMap = new Map();
+        this.reviews.forEach(r => {
+            const facilityId = r.facility_id || r.ground_id;
+            const facilityName = r.facility_name || r.ground_name;
+            if (!facilitiesMap.has(facilityId)) {
+                facilitiesMap.set(facilityId, facilityName);
+            }
+        });
+
         // Clear existing options except first one
         groundFilter.innerHTML = '<option value="">All Grounds</option>';
-        
-        grounds.forEach(ground => {
+
+        // Add facilities as options
+        facilitiesMap.forEach((name, id) => {
             const option = document.createElement('option');
-            option.value = ground.id;
-            option.textContent = ground.name;
+            option.value = id;
+            option.textContent = name;
             groundFilter.appendChild(option);
         });
     }
@@ -353,19 +457,22 @@ class ReviewsManager {
         if (!review) return;
 
         // Populate modal with review data
-        document.getElementById('modalReviewerAvatar').src = review.customer_avatar || '/public/assets/images/default-avatar.jpg';
-        document.getElementById('modalReviewerName').textContent = review.customer_name;
+        const customerName = review.customer_name || `${review.first_name || ''} ${review.last_name || ''}`.trim() || 'Anonymous';
+        const customerAvatar = review.customer_avatar || review.profile_picture || '/public/assets/images/default-avatar.jpg';
+
+        document.getElementById('modalReviewerAvatar').src = customerAvatar;
+        document.getElementById('modalReviewerName').textContent = customerName;
         document.getElementById('modalReviewRating').innerHTML = this.generateStars(review.rating);
         document.getElementById('modalReviewDate').textContent = this.formatDate(review.created_at);
-        document.getElementById('modalReviewText').textContent = review.review_text;
-        
+        document.getElementById('modalReviewText').textContent = review.review_text || 'No review text provided.';
+
         // Clear response text and reset character count
         document.getElementById('responseText').value = '';
         document.getElementById('charCount').textContent = '0';
-        
+
         // Store current review ID
         this.currentReviewId = reviewId;
-        
+
         document.getElementById('responseModal').classList.add('active');
     }
 
@@ -505,17 +612,23 @@ class ReviewsManager {
 
     generateReviewsCSV() {
         const headers = ['Review ID', 'Customer', 'Ground', 'Rating', 'Review Text', 'Date', 'Response Status'];
-        const rows = this.filteredReviews.map(review => [
-            review.id,
-            review.customer_name,
-            review.ground_name,
-            review.rating,
-            review.review_text.replace(/"/g, '""'), // Escape quotes
-            review.created_at,
-            review.response && review.response.text ? 'Responded' : 'Pending'
-        ]);
+        const rows = this.filteredReviews.map(review => {
+            const customerName = review.customer_name || `${review.first_name || ''} ${review.last_name || ''}`.trim() || 'Anonymous';
+            const facilityName = review.facility_name || review.ground_name || 'Unknown';
+            const reviewText = (review.review_text || '').replace(/"/g, '""'); // Escape quotes
 
-        return [headers, ...rows].map(row => 
+            return [
+                review.id,
+                customerName,
+                facilityName,
+                review.rating,
+                reviewText,
+                review.created_at,
+                review.response && review.response.text ? 'Responded' : 'Pending'
+            ];
+        });
+
+        return [headers, ...rows].map(row =>
             row.map(field => `"${field}"`).join(',')
         ).join('\n');
     }
