@@ -135,6 +135,10 @@ try {
     $router->get('/api/ground-owner/profile', 'GroundOwnerController@getProfile');
     $router->put('/api/ground-owner/profile', 'GroundOwnerController@updateProfile');
 
+    // Ground Owner Reviews API routes
+    $router->get('/api/ground-owner/reviews', 'GroundOwnerController@getReviews');
+    $router->get('/api/ground-owner/reviews/stats', 'GroundOwnerController@getReviewStats');
+
     // Ground Owner Booking Management API routes
     $router->get('/api/ground-owner/dashboard-stats', 'GroundOwnerController@getDashboardStats');
     $router->get('/api/ground-owner/bookings', 'GroundOwnerController@getBookings');
@@ -149,6 +153,9 @@ try {
     // Public booking API routes
     $router->post('/api/booking/ground', 'BookingController@createGroundBooking');
     $router->get('/api/booking/availability', 'BookingController@checkAvailability');
+
+    // Public reviews API route
+    $router->get('/api/facility/reviews', 'BookingController@getFacilityReviews');
     $router->get('/coaches', 'CoachController@index');
     $router->get('/shop', 'ProductController@index');
     $router->get('/api/products', 'ProductController@getProducts');
@@ -221,6 +228,12 @@ $router->get('/news/{slug}', 'NewsController@show');
     $router->get('/api/user/ground-bookings/{id}', 'UserController@getGroundBookingDetails');
     $router->put('/api/user/ground-bookings/{id}', 'UserController@updateGroundBooking');
     $router->put('/api/user/ground-bookings/{id}/cancel', 'UserController@cancelGroundBooking');
+
+    // User Reviews API routes
+    $router->post('/api/user/reviews', 'UserController@submitReview');
+    $router->get('/api/user/reviews', 'UserController@getMyReviews');
+    $router->put('/api/user/reviews/{id}', 'UserController@updateReview');
+    $router->delete('/api/user/reviews/{id}', 'UserController@deleteReview');
     
     // Additional user routes
     $router->get('/my-bookings', 'UserController@groundBookingsDashboard');

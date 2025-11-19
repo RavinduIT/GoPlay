@@ -327,4 +327,39 @@ class BookingController extends BaseController
 
         return $this->redirect('/ground-details?id=' . $id);
     }
+
+    /**
+     * Get reviews for a facility (public endpoint)
+     */
+    public function getFacilityReviews(Request $request): Response
+    {
+        try {
+            $facilityId = $request->getQuery('facility_id');
+
+            if (!$facilityId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Facility ID is required'
+                ], 400);
+            }
+
+            $reviewModel = new \App\Models\FacilityReview();
+
+            $reviews = $reviewModel->getByFacilityId((int)$facilityId);
+            $stats = $reviewModel->getReviewStats((int)$facilityId);
+
+            return $this->json([
+                'success' => true,
+                'reviews' => $reviews,
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error loading reviews',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
