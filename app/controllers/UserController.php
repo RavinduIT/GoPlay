@@ -762,4 +762,225 @@ class UserController extends BaseController
             ]
         ]);
     }
+
+    // ======================
+    // FACILITY REVIEWS
+    // ======================
+
+    /**
+     * Submit a review for a facility (users only)
+     */
+    public function submitReview(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'user') {
+            return $this->json([
+                'success' => false,
+                'message' => 'Only users can submit reviews'
+            ], 403);
+        }
+
+        try {
+            $userId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+
+            // Validate required fields
+            if (empty($data['facility_id']) || empty($data['rating'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Facility ID and rating are required'
+                ], 400);
+            }
+
+            $facilityId = (int)$data['facility_id'];
+            $rating = (int)$data['rating'];
+            $reviewText = $data['review_text'] ?? '';
+            $bookingId = !empty($data['booking_id']) ? (int)$data['booking_id'] : null;
+
+            // Validate rating
+            if ($rating < 1 || $rating > 5) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Rating must be between 1 and 5'
+                ], 400);
+            }
+
+            $reviewModel = new \App\Models\FacilityReview();
+
+            // Check if user has completed booking for this facility
+            if (!$reviewModel->canUserReview($userId, $facilityId)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'You can only review facilities you have booked and completed'
+                ], 403);
+            }
+
+            // Check if user already reviewed this facility
+            if ($reviewModel->hasUserReviewed($userId, $facilityId, $bookingId)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'You have already reviewed this facility'
+                ], 400);
+            }
+
+            // Create review
+            $reviewId = $reviewModel->createReview([
+                'facility_id' => $facilityId,
+                'user_id' => $userId,
+                'booking_id' => $bookingId,
+                'rating' => $rating,
+                'review_text' => $reviewText
+            ]);
+
+            if (!$reviewId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to submit review'
+                ], 500);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Review submitted successfully',
+                'review_id' => $reviewId
+            ], 201);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error submitting review',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get user's reviews
+     */
+    public function getMyReviews(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        try {
+            $userId = $_SESSION['user_id'];
+            $reviewModel = new \App\Models\FacilityReview();
+
+            $reviews = $reviewModel->getByUserId($userId);
+
+            return $this->json([
+                'success' => true,
+                'reviews' => $reviews
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error loading reviews',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update user's review
+     */
+    public function updateReview(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        try {
+            $reviewId = (int)$request->getParam('id');
+            $userId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+
+            if (!$reviewId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid review ID'
+                ], 400);
+            }
+
+            $reviewModel = new \App\Models\FacilityReview();
+            $success = $reviewModel->updateReview($reviewId, $userId, $data);
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to update review or unauthorized'
+                ], 403);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Review updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error updating review',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete user's review
+     */
+    public function deleteReview(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        try {
+            $reviewId = (int)$request->getParam('id');
+            $userId = $_SESSION['user_id'];
+
+            if (!$reviewId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid review ID'
+                ], 400);
+            }
+
+            $reviewModel = new \App\Models\FacilityReview();
+            $success = $reviewModel->deleteReview($reviewId, $userId);
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to delete review or unauthorized'
+                ], 403);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Review deleted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error deleting review',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

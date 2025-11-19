@@ -774,4 +774,85 @@ class GroundOwnerController extends BaseController
             ], 500);
         }
     }
+
+    // ======================
+    // REVIEWS MANAGEMENT
+    // ======================
+
+    /**
+     * Get all reviews for ground owner's facilities
+     */
+    public function getReviews(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $facilityId = $request->getQuery('facility_id');
+
+            $reviewModel = new \App\Models\FacilityReview();
+
+            if ($facilityId) {
+                // Verify facility belongs to owner
+                $facility = $this->getFacilityModel()->find((int)$facilityId);
+                if (!$facility || $facility['owner_id'] != $ownerId) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => 'Facility not found'
+                    ], 404);
+                }
+
+                $reviews = $reviewModel->getByFacilityId((int)$facilityId);
+                $stats = $reviewModel->getReviewStats((int)$facilityId);
+            } else {
+                // Get all reviews for all owner's facilities
+                $reviews = $reviewModel->getByOwnerId($ownerId);
+                $stats = $reviewModel->getOwnerReviewStats($ownerId);
+            }
+
+            return $this->json([
+                'success' => true,
+                'reviews' => $reviews,
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load reviews',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get review statistics for owner's facilities
+     */
+    public function getReviewStats(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $reviewModel = new \App\Models\FacilityReview();
+
+            $stats = $reviewModel->getOwnerReviewStats($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load review statistics',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
