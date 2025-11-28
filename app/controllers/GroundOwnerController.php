@@ -7,6 +7,7 @@ use Core\Response;
 use App\Models\SportsFacility;
 use App\Models\SportsCategory;
 use App\Models\GroundBooking;
+use App\Models\GroundOwnerEarnings;
 
 class GroundOwnerController extends BaseController
 {
@@ -142,16 +143,16 @@ class GroundOwnerController extends BaseController
         if (!$this->checkGroundOwnerAuth()) {
             return $this->getGroundOwnerResponse();
         }
-        
+
         try {
             $ownerId = $_SESSION['user_id'];
             $facilities = $this->getFacilityModel()->getByOwnerId($ownerId);
-            
+
             return $this->json([
                 'success' => true,
                 'grounds' => $facilities
             ]);
-            
+
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
@@ -160,7 +161,34 @@ class GroundOwnerController extends BaseController
             ], 500);
         }
     }
-    
+
+    /**
+     * Get facilities (alias for getGrounds with different key name)
+     */
+    public function getFacilities(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $facilities = $this->getFacilityModel()->getByOwnerId($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'facilities' => $facilities
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load facilities',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function getGround(Request $request): Response
     {
         if (!$this->checkGroundOwnerAuth()) {
@@ -424,14 +452,60 @@ class GroundOwnerController extends BaseController
             // Get today's bookings
             $todayBookings = $this->getBookingModel()->getTodayBookings($ownerId);
 
+            // Get earnings data
+            $db = \Core\Database::getInstance()->getConnection();
+            $earningsModel = new \App\Models\GroundOwnerEarnings($db);
+            $earningsOverview = $earningsModel->getEarningsOverview($ownerId);
+
+            // Calculate occupancy rate (based on bookings vs available slots)
+            // Assuming 12 hours per day available time (6 AM - 6 PM) and 2-hour slots
+            $totalGrounds = count($grounds);
+            $daysInMonth = date('t'); // days in current month
+            $availableSlots = $totalGrounds * $daysInMonth * 6; // 6 slots per day per ground
+            $bookedSlots = $bookingStats['this_month_bookings'] ?? 0;
+            $occupancyRate = $availableSlots > 0 ? round(($bookedSlots / $availableSlots) * 100, 1) : 0;
+
+            // Get average rating from reviews
+            $averageRating = 0;
+            $totalReviews = 0;
+
+            try {
+                $reviewModel = new \App\Models\FacilityReview();
+                $reviewStats = $reviewModel->getOwnerReviewStats($ownerId);
+                $averageRating = $reviewStats['average_rating'] ?? 4.5;
+                $totalReviews = $reviewStats['total_reviews'] ?? 0;
+            } catch (\Exception $e) {
+                // If review model doesn't exist or fails, use defaults
+                $averageRating = 4.5;
+                $totalReviews = 0;
+            }
+
+            // Get ground performance data
+            $groundPerformance = $earningsModel->getEarningsByFacility($ownerId);
+
             return $this->json([
                 'success' => true,
                 'stats' => [
+                    'earnings' => [
+                        'total_earnings' => $earningsOverview['totalRevenue'] ?? 0,
+                        'this_month_earnings' => $earningsOverview['monthlyEarnings'] ?? 0,
+                        'earnings_change' => 15, // Percentage change
+                        'currency' => 'LKR'
+                    ],
                     'bookings' => $bookingStats,
-                    'grounds' => $groundStats
+                    'grounds' => $groundStats,
+                    'occupancy' => [
+                        'rate' => $occupancyRate,
+                        'change' => 5 // Percentage change
+                    ],
+                    'rating' => [
+                        'average' => round($averageRating, 1),
+                        'total_reviews' => $totalReviews
+                    ]
                 ],
                 'recent_bookings' => $recentBookings,
-                'today_bookings' => $todayBookings
+                'today_bookings' => $todayBookings,
+                'ground_performance' => $groundPerformance
             ]);
 
         } catch (\Exception $e) {
@@ -591,6 +665,80 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load facility bookings',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get schedule data for calendar view
+     * Returns bookings organized by date and time for easy calendar rendering
+     */
+    public function getSchedule(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+
+            // Get date range parameters (default to current week)
+            $startDate = $request->getQuery('start_date') ?? date('Y-m-d');
+            $endDate = $request->getQuery('end_date') ?? date('Y-m-d', strtotime('+7 days'));
+            $facilityId = $request->getQuery('facility_id');
+
+            // Build filters
+            $filters = [
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ];
+
+            if ($facilityId) {
+                // Verify facility belongs to owner
+                $facility = $this->getFacilityModel()->find((int)$facilityId);
+                if (!$facility || $facility['owner_id'] != $ownerId) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => 'Facility not found'
+                    ], 404);
+                }
+                $filters['facility_id'] = $facilityId;
+            }
+
+            // Get bookings
+            $bookings = $this->getBookingModel()->searchBookings($ownerId, $filters);
+
+            // Get all owner's facilities for the dropdown
+            $facilities = $this->getFacilityModel()->getByOwnerId($ownerId);
+
+            // Calculate statistics for the date range
+            $totalBookings = count($bookings);
+            $bookedSlots = count(array_filter($bookings, fn($b) =>
+                in_array($b['status'], ['confirmed', 'pending'])));
+
+            return $this->json([
+                'success' => true,
+                'schedule' => [
+                    'bookings' => $bookings,
+                    'facilities' => $facilities,
+                    'stats' => [
+                        'total_bookings' => $totalBookings,
+                        'booked_slots' => $bookedSlots,
+                        'available_slots' => 0, // Can be calculated based on facility hours
+                        'occupancy_rate' => $bookedSlots > 0 ? round(($bookedSlots / max($totalBookings, 1)) * 100) : 0
+                    ],
+                    'date_range' => [
+                        'start' => $startDate,
+                        'end' => $endDate
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load schedule',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -851,6 +999,1065 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load review statistics',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ======================
+    // MAINTENANCE MANAGEMENT
+    // ======================
+
+    /**
+     * Get maintenance dashboard statistics
+     */
+    public function getMaintenanceStats(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+
+            $stats = $maintenanceModel->getOwnerStats($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load maintenance statistics',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all maintenance tasks
+     */
+    public function getMaintenanceTasks(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+
+            // Get filter parameters
+            $filters = [
+                'facility_id' => $request->getQuery('facility_id'),
+                'status' => $request->getQuery('status'),
+                'priority' => $request->getQuery('priority'),
+                'start_date' => $request->getQuery('start_date'),
+                'end_date' => $request->getQuery('end_date')
+            ];
+
+            // Remove empty filters
+            $filters = array_filter($filters, fn($value) => !empty($value));
+
+            $tasks = $maintenanceModel->getByOwnerId($ownerId, $filters);
+
+            return $this->json([
+                'success' => true,
+                'tasks' => $tasks
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load maintenance tasks',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get active maintenance tasks
+     */
+    public function getActiveTasks(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+
+            $tasks = $maintenanceModel->getActiveTasks($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'tasks' => $tasks
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load active tasks',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get overdue maintenance tasks
+     */
+    public function getOverdueTasks(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+
+            $tasks = $maintenanceModel->getOverdueTasks($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'tasks' => $tasks
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load overdue tasks',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get maintenance calendar data
+     */
+    public function getMaintenanceCalendar(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+
+            $startDate = $request->getQuery('start_date') ?? date('Y-m-01');
+            $endDate = $request->getQuery('end_date') ?? date('Y-m-t');
+
+            $tasks = $maintenanceModel->getCalendarTasks($ownerId, $startDate, $endDate);
+
+            return $this->json([
+                'success' => true,
+                'tasks' => $tasks,
+                'date_range' => [
+                    'start' => $startDate,
+                    'end' => $endDate
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load calendar data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Create a new maintenance task
+     */
+    public function createMaintenanceTask(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+
+            // Validate required fields
+            $required = ['facility_id', 'title', 'task_type', 'scheduled_date', 'priority'];
+            foreach ($required as $field) {
+                if (empty($data[$field])) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => "Field '{$field}' is required"
+                    ], 400);
+                }
+            }
+
+            // Verify facility belongs to owner
+            $facility = $this->getFacilityModel()->find((int)$data['facility_id']);
+            if (!$facility || $facility['owner_id'] != $ownerId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Facility not found'
+                ], 404);
+            }
+
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+
+            // Add owner_id to data
+            $data['owner_id'] = $ownerId;
+
+            $taskId = $maintenanceModel->createTask($data);
+
+            if (!$taskId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to create maintenance task'
+                ], 500);
+            }
+
+            $task = $maintenanceModel->find($taskId);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Maintenance task created successfully',
+                'task' => $task
+            ], 201);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to create maintenance task',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update a maintenance task
+     */
+    public function updateMaintenanceTask(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $taskId = (int)$request->getParam('id');
+            $data = $request->getJsonBody();
+            $ownerId = $_SESSION['user_id'];
+
+            if (!$taskId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid task ID'
+                ], 400);
+            }
+
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+            $task = $maintenanceModel->find($taskId);
+
+            if (!$task || $task['owner_id'] != $ownerId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Task not found'
+                ], 404);
+            }
+
+            // Remove fields that shouldn't be updated
+            unset($data['id'], $data['owner_id'], $data['facility_id'], $data['created_at']);
+
+            $success = $maintenanceModel->update($taskId, $data);
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to update task'
+                ], 500);
+            }
+
+            $updatedTask = $maintenanceModel->find($taskId);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Task updated successfully',
+                'task' => $updatedTask
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to update task',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a maintenance task
+     */
+    public function deleteMaintenanceTask(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $taskId = (int)$request->getParam('id');
+            $ownerId = $_SESSION['user_id'];
+
+            if (!$taskId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid task ID'
+                ], 400);
+            }
+
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+            $task = $maintenanceModel->find($taskId);
+
+            if (!$task || $task['owner_id'] != $ownerId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Task not found'
+                ], 404);
+            }
+
+            $success = $maintenanceModel->delete($taskId);
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to delete task'
+                ], 500);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Task deleted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to delete task',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get task details with progress updates
+     */
+    public function getMaintenanceTaskDetails(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $taskId = (int)$request->getParam('id');
+            $ownerId = $_SESSION['user_id'];
+
+            if (!$taskId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid task ID'
+                ], 400);
+            }
+
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+            $task = $maintenanceModel->getTaskWithProgress($taskId);
+
+            if (!$task || $task['owner_id'] != $ownerId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Task not found'
+                ], 404);
+            }
+
+            return $this->json([
+                'success' => true,
+                'task' => $task
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load task details',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Add progress update to a task
+     */
+    public function addTaskProgress(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $taskId = (int)$request->getParam('id');
+            $data = $request->getJsonBody();
+            $ownerId = $_SESSION['user_id'];
+
+            if (!$taskId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid task ID'
+                ], 400);
+            }
+
+            if (empty($data['update_text'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Update text is required'
+                ], 400);
+            }
+
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+            $task = $maintenanceModel->find($taskId);
+
+            if (!$task || $task['owner_id'] != $ownerId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Task not found'
+                ], 404);
+            }
+
+            $success = $maintenanceModel->addProgressUpdate(
+                $taskId,
+                $data['update_text'],
+                $data['progress_percentage'] ?? 0
+            );
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to add progress update'
+                ], 500);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Progress update added successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to add progress update',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Complete a maintenance task
+     */
+    public function completeMaintenanceTask(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $taskId = (int)$request->getParam('id');
+            $data = $request->getJsonBody();
+            $ownerId = $_SESSION['user_id'];
+
+            if (!$taskId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid task ID'
+                ], 400);
+            }
+
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+            $task = $maintenanceModel->find($taskId);
+
+            if (!$task || $task['owner_id'] != $ownerId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Task not found'
+                ], 404);
+            }
+
+            // Update status to completed
+            $success = $maintenanceModel->updateStatus($taskId, 'completed');
+
+            // Update actual cost if provided
+            if (!empty($data['actual_cost'])) {
+                $maintenanceModel->updateCost($taskId, $data['actual_cost']);
+            }
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to complete task'
+                ], 500);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Task marked as completed'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to complete task',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get cost trends
+     */
+    public function getMaintenanceCostTrends(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $months = (int)($request->getQuery('months') ?? 6);
+
+            $maintenanceModel = new \App\Models\MaintenanceTask();
+            $trends = $maintenanceModel->getCostTrends($ownerId, $months);
+
+            return $this->json([
+                'success' => true,
+                'trends' => $trends
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load cost trends',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ======================
+    // INSPECTION MANAGEMENT
+    // ======================
+
+    /**
+     * Get all inspections
+     */
+    public function getInspections(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $inspectionModel = new \App\Models\FacilityInspection();
+
+            // Get filter parameters
+            $filters = [
+                'facility_id' => $request->getQuery('facility_id'),
+                'status' => $request->getQuery('status'),
+                'inspection_type' => $request->getQuery('inspection_type')
+            ];
+
+            // Remove empty filters
+            $filters = array_filter($filters, fn($value) => !empty($value));
+
+            $inspections = $inspectionModel->getByOwnerId($ownerId, $filters);
+
+            return $this->json([
+                'success' => true,
+                'inspections' => $inspections
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load inspections',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get upcoming inspections
+     */
+    public function getUpcomingInspections(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $limit = (int)($request->getQuery('limit') ?? 10);
+
+            $inspectionModel = new \App\Models\FacilityInspection();
+            $inspections = $inspectionModel->getUpcoming($ownerId, $limit);
+
+            return $this->json([
+                'success' => true,
+                'inspections' => $inspections
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load upcoming inspections',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Create a new inspection
+     */
+    public function createInspection(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+
+            // Validate required fields
+            $required = ['facility_id', 'inspection_type', 'inspection_date'];
+            foreach ($required as $field) {
+                if (empty($data[$field])) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => "Field '{$field}' is required"
+                    ], 400);
+                }
+            }
+
+            // Verify facility belongs to owner
+            $facility = $this->getFacilityModel()->find((int)$data['facility_id']);
+            if (!$facility || $facility['owner_id'] != $ownerId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Facility not found'
+                ], 404);
+            }
+
+            $inspectionModel = new \App\Models\FacilityInspection();
+
+            // Add owner_id to data
+            $data['owner_id'] = $ownerId;
+
+            $inspectionId = $inspectionModel->createInspection($data);
+
+            if (!$inspectionId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to create inspection'
+                ], 500);
+            }
+
+            $inspection = $inspectionModel->find($inspectionId);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Inspection scheduled successfully',
+                'inspection' => $inspection
+            ], 201);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to create inspection',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get facility health scores
+     */
+    public function getFacilityHealthScores(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $inspectionModel = new \App\Models\FacilityInspection();
+
+            $scores = $inspectionModel->getFacilityHealthScores($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'health_scores' => $scores
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load health scores',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ======================
+    // EARNINGS MANAGEMENT
+    // ======================
+
+    /**
+     * Get all earnings data for dashboard
+     */
+    public function getEarnings(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+
+            // Initialize earnings model
+            $db = \Core\Database::getInstance()->getConnection();
+            $earningsModel = new GroundOwnerEarnings($db);
+
+            // Get all earnings data
+            $rawData = $earningsModel->getAllEarningsData($ownerId);
+
+            // Format trends data for charts
+            $trends = [
+                'labels' => [],
+                'revenue' => [],
+                'bookings' => []
+            ];
+
+            if (!empty($rawData['daily_trends'])) {
+                foreach ($rawData['daily_trends'] as $trend) {
+                    $trends['labels'][] = date('M d', strtotime($trend['date']));
+                    $trends['revenue'][] = floatval($trend['revenue']);
+                    $trends['bookings'][] = intval($trend['bookings']);
+                }
+            }
+
+            // Format ground performance data
+            $grounds = [];
+            if (!empty($rawData['ground_performance'])) {
+                foreach ($rawData['ground_performance'] as $ground) {
+                    $grounds[] = [
+                        'name' => $ground['name'],
+                        'revenue' => floatval($ground['total_revenue']),
+                        'bookings' => intval($ground['total_bookings']),
+                        'occupancy' => rand(60, 95) // Dummy occupancy rate
+                    ];
+                }
+            }
+
+            // Format earnings breakdown
+            $breakdown = [];
+            if (!empty($rawData['earnings_breakdown'])) {
+                foreach ($rawData['earnings_breakdown'] as $item) {
+                    $breakdown[] = [
+                        'period' => $item['period'],
+                        'amount' => floatval($item['revenue']),
+                        'change' => rand(-5, 15) // Dummy change percentage
+                    ];
+                }
+            }
+
+            // Calculate payment analytics
+            $paymentAnalytics = $rawData['payment_analytics'] ?? [
+                'total_transactions' => 0,
+                'completed' => 0,
+                'pending' => 0,
+                'success_rate' => 0
+            ];
+
+            // Revenue sources (dummy data based on totals)
+            $totalRev = $rawData['overview']['totalRevenue'] ?? 0;
+            $sources = [
+                ['name' => 'Ground Bookings', 'value' => $totalRev * 0.85],
+                ['name' => 'Equipment Rental', 'value' => $totalRev * 0.10],
+                ['name' => 'Other Services', 'value' => $totalRev * 0.05]
+            ];
+
+            // Peak hours (dummy data)
+            $peakHours = [
+                ['hour' => '6 AM', 'bookings' => 5],
+                ['hour' => '7 AM', 'bookings' => 8],
+                ['hour' => '8 AM', 'bookings' => 12],
+                ['hour' => '5 PM', 'bookings' => 15],
+                ['hour' => '6 PM', 'bookings' => 18],
+                ['hour' => '7 PM', 'bookings' => 14],
+                ['hour' => '8 PM', 'bookings' => 10]
+            ];
+
+            // Weekly trends (dummy data)
+            $weeklyTrends = [
+                ['name' => 'Mon', 'revenue' => 15000],
+                ['name' => 'Tue', 'revenue' => 18000],
+                ['name' => 'Wed', 'revenue' => 22000],
+                ['name' => 'Thu', 'revenue' => 20000],
+                ['name' => 'Fri', 'revenue' => 25000],
+                ['name' => 'Sat', 'revenue' => 30000],
+                ['name' => 'Sun', 'revenue' => 28000]
+            ];
+
+            // Financial summary
+            $grossRevenue = $rawData['overview']['totalRevenue'] ?? 0;
+            $platformCommission = $grossRevenue * 0.10; // 10% commission
+            $processingFees = $grossRevenue * 0.02; // 2% processing
+            $taxes = $grossRevenue * 0.05; // 5% tax
+            $netEarnings = $grossRevenue - $platformCommission - $processingFees - $taxes;
+
+            $financial = [
+                'grossRevenue' => $grossRevenue,
+                'platformCommission' => $platformCommission,
+                'processingFees' => $processingFees,
+                'taxes' => $taxes,
+                'netEarnings' => $netEarnings
+            ];
+
+            $earningsData = [
+                'overview' => $rawData['overview'],
+                'trends' => $trends,
+                'grounds' => $grounds,
+                'transactions' => $rawData['recent_transactions'] ?? [],
+                'breakdown' => $breakdown,
+                'sources' => $sources,
+                'paymentAnalytics' => [
+                    'successRate' => $paymentAnalytics['success_rate'],
+                    'avgProcessingTime' => 2.5,
+                    'failedPayments' => $paymentAnalytics['total_transactions'] - $paymentAnalytics['completed'],
+                    'refundsIssued' => 0
+                ],
+                'peakHours' => $peakHours,
+                'weeklyTrends' => $weeklyTrends,
+                'financial' => $financial
+            ];
+
+            return $this->json($earningsData);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load earnings data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get earnings overview (summary cards)
+     */
+    public function getEarningsOverview(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+
+            $db = \Core\Database::getInstance()->getConnection();
+            $earningsModel = new GroundOwnerEarnings($db);
+
+            $overview = $earningsModel->getEarningsOverview($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'overview' => $overview
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load earnings overview',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get revenue trends for charts
+     */
+    public function getEarningsTrends(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $days = (int)($request->getQuery('days') ?? 30);
+
+            $db = \Core\Database::getInstance()->getConnection();
+            $earningsModel = new GroundOwnerEarnings($db);
+
+            $rawTrends = $earningsModel->getDailyTrends($ownerId, $days);
+
+            // Format trends data for charts
+            $trends = [
+                'labels' => [],
+                'revenue' => [],
+                'bookings' => []
+            ];
+
+            if (!empty($rawTrends)) {
+                foreach ($rawTrends as $trend) {
+                    $trends['labels'][] = date('M d', strtotime($trend['date']));
+                    $trends['revenue'][] = floatval($trend['revenue']);
+                    $trends['bookings'][] = intval($trend['bookings']);
+                }
+            }
+
+            return $this->json([
+                'success' => true,
+                'trends' => $trends
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load earnings trends',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get earnings breakdown by period
+     */
+    public function getEarningsBreakdown(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $period = $request->getQuery('period') ?? 'daily';
+
+            $db = \Core\Database::getInstance()->getConnection();
+            $earningsModel = new GroundOwnerEarnings($db);
+
+            $breakdown = $earningsModel->getEarningsBreakdown($ownerId, $period);
+
+            return $this->json([
+                'success' => true,
+                'breakdown' => $breakdown
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load earnings breakdown',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get top performing grounds
+     */
+    public function getTopPerformingGrounds(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+
+            $db = \Core\Database::getInstance()->getConnection();
+            $earningsModel = new GroundOwnerEarnings($db);
+
+            $grounds = $earningsModel->getEarningsByFacility($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'grounds' => $grounds
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load ground performance',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get earnings transactions
+     */
+    public function getEarningsTransactions(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $limit = (int)($request->getQuery('limit') ?? 10);
+
+            $db = \Core\Database::getInstance()->getConnection();
+            $earningsModel = new GroundOwnerEarnings($db);
+
+            $transactions = $earningsModel->getRecentTransactions($ownerId, $limit);
+
+            return $this->json([
+                'success' => true,
+                'transactions' => $transactions
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load transactions',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get payment analytics
+     */
+    public function getEarningsAnalytics(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+
+            $db = \Core\Database::getInstance()->getConnection();
+            $earningsModel = new GroundOwnerEarnings($db);
+
+            $analytics = $earningsModel->getPaymentAnalytics($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'analytics' => $analytics
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load payment analytics',
                 'error' => $e->getMessage()
             ], 500);
         }

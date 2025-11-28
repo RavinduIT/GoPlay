@@ -1,678 +1,538 @@
+/**
+ * Ground Owner Maintenance Management
+ * Connects to real backend APIs
+ */
 class MaintenanceManager {
     constructor() {
-        this.currentView = 'tasks';
-        this.maintenanceTasks = [];
+        this.currentMonth = new Date();
+        this.tasks = [];
         this.inspections = [];
-        this.maintenanceRecords = [];
+        this.facilities = [];
+        this.stats = {};
+        this.currentFilterStatus = '';
+        this.currentFilterPriority = '';
         this.init();
     }
 
-    init() {
-        this.bindEvents();
-        this.loadMaintenanceData();
-        this.renderCurrentView();
-        this.updateSummaryStats();
-    }
-
-    bindEvents() {
-        // View switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const view = e.target.dataset.tab;
-                this.switchView(view);
-            });
-        });
-
-        // Action buttons
-        document.getElementById('addTaskBtn').addEventListener('click', () => this.openAddTaskModal());
-        document.getElementById('scheduleInspectionBtn').addEventListener('click', () => this.openScheduleInspectionModal());
-        document.getElementById('exportReportBtn').addEventListener('click', () => this.exportMaintenanceReport());
-
-        // Filter and search
-        document.getElementById('statusFilter').addEventListener('change', () => this.filterTasks());
-        document.getElementById('priorityFilter').addEventListener('change', () => this.filterTasks());
-        document.getElementById('maintenanceSearch').addEventListener('input', () => this.filterTasks());
-
-        // Modal events
-        document.getElementById('saveTask').addEventListener('click', () => this.saveMaintenanceTask());
-        document.getElementById('saveInspection').addEventListener('click', () => this.saveInspection());
-
-        // Close modals
-        document.querySelectorAll('.modal-close, .btn-secondary').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const modal = e.target.closest('.modal');
-                if (modal) this.closeModal(modal);
-            });
-        });
-
-        // Calendar navigation
-        document.getElementById('prevMonth').addEventListener('click', () => this.navigateMonth(-1));
-        document.getElementById('nextMonth').addEventListener('click', () => this.navigateMonth(1));
-    }
-
-    switchView(view) {
-        this.currentView = view;
-        
-        // Update active tab
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-tab="${view}"]`).classList.add('active');
-        
-        // Show/hide content sections
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.getElementById(`${view}Tab`).classList.add('active');
-        
-        this.renderCurrentView();
-    }
-
-    renderCurrentView() {
-        switch (this.currentView) {
-            case 'tasks':
-                this.renderTasksView();
-                break;
-            case 'calendar':
-                this.renderCalendarView();
-                break;
-            case 'costs':
-                this.renderCostsView();
-                break;
-            case 'health':
-                this.renderHealthView();
-                break;
+    async init() {
+        try {
+            await this.loadFacilities();
+            await this.loadStats();
+            await this.loadActiveTasks();
+            await this.loadUpcomingInspections();
+            await this.renderCalendar();
+            this.bindEvents();
+        } catch (error) {
+            console.error('Initialization error:', error);
+            this.showToast('Failed to initialize maintenance dashboard', 'error');
         }
     }
 
-    renderTasksView() {
-        const container = document.getElementById('tasksContainer');
-        const filteredTasks = this.getFilteredTasks();
-        
-        if (filteredTasks.length === 0) {
+    bindEvents() {
+        // Forms
+        const maintenanceForm = document.getElementById('maintenanceForm');
+        if (maintenanceForm) {
+            maintenanceForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveMaintenanceTask();
+            });
+        }
+
+        const inspectionForm = document.getElementById('inspectionForm');
+        if (inspectionForm) {
+            inspectionForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveInspection();
+            });
+        }
+
+        // Filters
+        const priorityFilter = document.getElementById('taskPriorityFilter');
+        const statusFilter = document.getElementById('taskStatusFilter');
+        const groundFilter = document.getElementById('groundFilter');
+
+        if (priorityFilter) {
+            priorityFilter.addEventListener('change', (e) => {
+                this.currentFilterPriority = e.target.value;
+                this.loadActiveTasks();
+            });
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener('change', (e) => {
+                this.currentFilterStatus = e.target.value;
+                this.loadActiveTasks();
+            });
+        }
+
+        if (groundFilter) {
+            groundFilter.addEventListener('change', (e) => {
+                this.selectedFacilityId = e.target.value;
+                this.loadActiveTasks();
+            });
+        }
+
+        // Calendar navigation
+        const prevBtn = document.getElementById('prevCalendarMonth');
+        const nextBtn = document.getElementById('nextCalendarMonth');
+
+        if (prevBtn) prevBtn.addEventListener('click', () => this.navigateMonth(-1));
+        if (nextBtn) nextBtn.addEventListener('click', () => this.navigateMonth(1));
+    }
+
+    async loadFacilities() {
+        try {
+            const response = await fetch('/api/ground-owner/facilities');
+            const data = await response.json();
+
+            if (data.success) {
+                this.facilities = data.facilities || [];
+                this.updateFacilityDropdowns();
+            }
+        } catch (error) {
+            console.error('Error loading facilities:', error);
+        }
+    }
+
+    async loadStats() {
+        try {
+            const response = await fetch('/api/ground-owner/maintenance/stats');
+            const data = await response.json();
+
+            if (data.success) {
+                this.stats = data.stats;
+                this.updateStatsDisplay();
+            }
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
+    async loadActiveTasks() {
+        try {
+            let url = '/api/ground-owner/maintenance/tasks/active';
+            const params = [];
+
+            if (this.currentFilterPriority) params.push(`priority=${this.currentFilterPriority}`);
+            if (this.currentFilterStatus) params.push(`status=${this.currentFilterStatus}`);
+            if (this.selectedFacilityId) params.push(`facility_id=${this.selectedFacilityId}`);
+
+            if (params.length > 0) {
+                url = `/api/ground-owner/maintenance/tasks?${params.join('&')}`;
+            }
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.success) {
+                this.tasks = data.tasks || [];
+                this.renderTasksList();
+            }
+        } catch (error) {
+            console.error('Error loading tasks:', error);
+            this.showToast('Failed to load tasks', 'error');
+        }
+    }
+
+    async loadUpcomingInspections() {
+        try {
+            const response = await fetch('/api/ground-owner/inspections/upcoming?limit=5');
+            const data = await response.json();
+
+            if (data.success) {
+                this.inspections = data.inspections || [];
+                this.renderInspectionsList();
+            }
+        } catch (error) {
+            console.error('Error loading inspections:', error);
+        }
+    }
+
+    updateStatsDisplay() {
+        // Update stat cards
+        const activeTasks = document.getElementById('activeTasks');
+        const highPriority = document.getElementById('highPriorityTasks');
+        const mediumPriority = document.getElementById('mediumPriorityTasks');
+        const overdueTasks = document.getElementById('overdueTasks');
+        const completedMonth = document.getElementById('completedMonth');
+        const completionRate = document.getElementById('completionRate');
+        const monthlyCost = document.getElementById('monthlyCost');
+
+        if (activeTasks) activeTasks.textContent = this.stats.active_tasks || 0;
+        if (highPriority) highPriority.textContent = this.stats.high_priority_tasks || 0;
+        if (mediumPriority) mediumPriority.textContent = this.stats.medium_priority_tasks || 0;
+        if (overdueTasks) overdueTasks.textContent = this.stats.overdue_tasks || 0;
+        if (completedMonth) completedMonth.textContent = this.stats.completed_month || 0;
+        if (completionRate) completionRate.textContent = `${this.stats.completion_rate || 0}%`;
+        if (monthlyCost) monthlyCost.textContent = `LKR ${(this.stats.monthly_cost || 0).toLocaleString()}`;
+    }
+
+    updateFacilityDropdowns() {
+        const taskGround = document.getElementById('taskGround');
+        const inspectionGround = document.getElementById('inspectionGround');
+        const groundFilter = document.getElementById('groundFilter');
+
+        [taskGround, inspectionGround].forEach(select => {
+            if (select) {
+                select.innerHTML = '<option value="">Select Ground</option>';
+                this.facilities.forEach(facility => {
+                    const option = document.createElement('option');
+                    option.value = facility.id;
+                    option.textContent = facility.name;
+                    select.appendChild(option);
+                });
+            }
+        });
+
+        if (groundFilter && this.facilities.length > 0) {
+            groundFilter.innerHTML = '<option value="">All Grounds</option>';
+            this.facilities.forEach(facility => {
+                const option = document.createElement('option');
+                option.value = facility.id;
+                option.textContent = facility.name;
+                groundFilter.appendChild(option);
+            });
+        }
+    }
+
+    renderTasksList() {
+        const container = document.getElementById('activeTasksList');
+        if (!container) return;
+
+        if (this.tasks.length === 0) {
             container.innerHTML = `
-                <div class="no-data">
-                    <i class="fas fa-tasks"></i>
-                    <h3>No maintenance tasks</h3>
-                    <p>Create your first maintenance task to get started.</p>
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    <i class="fas fa-tasks" style="font-size: 48px; margin-bottom: 16px;"></i>
+                    <h3>No Active Tasks</h3>
+                    <p>All maintenance tasks are up to date!</p>
                 </div>
             `;
             return;
         }
-        
-        container.innerHTML = filteredTasks.map(task => `
-            <div class="task-card ${task.status}" data-task-id="${task.id}">
-                <div class="task-header">
-                    <div class="task-info">
-                        <h4>${task.title}</h4>
-                        <div class="task-meta">
-                            <span class="task-ground">
-                                <i class="fas fa-map-marker-alt"></i>
-                                ${task.groundName}
-                            </span>
-                            <span class="task-priority priority-${task.priority}">
-                                <i class="fas fa-flag"></i>
-                                ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="task-status">
-                        <span class="status-badge status-${task.status}">${this.getStatusLabel(task.status)}</span>
-                        <div class="task-actions">
-                            <button class="btn-action" onclick="maintenanceManager.editTask(${task.id})" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-action" onclick="maintenanceManager.deleteTask(${task.id})" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
+
+        container.innerHTML = this.tasks.map(task => `
+            <div class="task-card" style="border-left: 4px solid ${this.getPriorityColor(task.priority)}; padding: 16px; margin-bottom: 12px; background: white; border-radius: 8px; cursor: pointer;" onclick="maintenanceManager.viewTaskDetails(${task.id})">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                    <h4 style="margin: 0; font-size: 16px;">${task.title}</h4>
+                    <span class="priority-badge" style="padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; background: ${this.getPriorityColor(task.priority)}20; color: ${this.getPriorityColor(task.priority)}; text-transform: uppercase;">
+                        ${task.priority}
+                    </span>
                 </div>
-                
-                <div class="task-content">
-                    <p class="task-description">${task.description}</p>
-                    
-                    <div class="task-details">
-                        <div class="detail-item">
-                            <strong>Due Date:</strong>
-                            <span class="due-date ${this.isDueDate(task.dueDate) ? 'overdue' : ''}">${task.dueDate}</span>
-                        </div>
-                        <div class="detail-item">
-                            <strong>Assigned To:</strong>
-                            <span>${task.assignedTo || 'Unassigned'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <strong>Estimated Cost:</strong>
-                            <span>₹${task.estimatedCost}</span>
-                        </div>
-                    </div>
-                    
-                    ${task.status === 'pending' ? `
-                        <div class="task-quick-actions">
-                            <button class="btn btn-primary" onclick="maintenanceManager.startTask(${task.id})">
-                                <i class="fas fa-play"></i> Start Task
-                            </button>
-                            <button class="btn btn-secondary" onclick="maintenanceManager.postponeTask(${task.id})">
-                                <i class="fas fa-clock"></i> Postpone
-                            </button>
-                        </div>
-                    ` : ''}
-                    
-                    ${task.status === 'in_progress' ? `
-                        <div class="task-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${task.progress || 0}%"></div>
-                            </div>
-                            <span class="progress-text">${task.progress || 0}% Complete</span>
-                            <button class="btn btn-success" onclick="maintenanceManager.completeTask(${task.id})">
-                                <i class="fas fa-check"></i> Complete
-                            </button>
-                        </div>
-                    ` : ''}
+                <div style="color: #6b7280; font-size: 14px; margin-bottom: 8px;">
+                    <i class="fas fa-map-marker-alt"></i> ${task.facility_name}
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                    <span><i class="fas fa-calendar"></i> ${this.formatDate(task.scheduled_date)}</span>
+                    <span><i class="fas fa-tools"></i> ${task.task_type}</span>
+                    <span style="color: ${this.getStatusColor(task.status)}; font-weight: 600;">
+                        <i class="fas fa-circle" style="font-size: 8px;"></i> ${task.status}
+                    </span>
                 </div>
             </div>
         `).join('');
     }
 
-    renderCalendarView() {
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        
-        const firstDay = new Date(currentYear, currentMonth, 1);
-        const lastDay = new Date(currentYear, currentMonth + 1, 0);
-        const startDate = new Date(firstDay);
-        startDate.setDate(startDate.getDate() - firstDay.getDay());
-        
-        const container = document.getElementById('maintenanceCalendar');
-        let html = '<div class="calendar-grid">';
-        
-        // Day headers
-        const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        dayHeaders.forEach(day => {
-            html += `<div class="calendar-day-header">${day}</div>`;
-        });
-        
-        // Calendar days
-        let currentDate = new Date(startDate);
-        for (let week = 0; week < 6; week++) {
-            for (let day = 0; day < 7; day++) {
-                const isCurrentMonth = currentDate.getMonth() === currentMonth;
-                const dayTasks = this.getTasksForDate(currentDate);
-                const dayInspections = this.getInspectionsForDate(currentDate);
-                
+    renderInspectionsList() {
+        const container = document.getElementById('inspectionsList');
+        if (!container) return;
+
+        if (this.inspections.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    <i class="fas fa-clipboard-check" style="font-size: 48px; margin-bottom: 16px;"></i>
+                    <h3>No Upcoming Inspections</h3>
+                    <p>Schedule your next inspection</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.inspections.map(inspection => `
+            <div class="inspection-card" style="padding: 16px; margin-bottom: 12px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <h4 style="margin: 0; font-size: 15px;">${inspection.facility_name}</h4>
+                    <span style="padding: 4px 10px; background: #3b82f6; color: white; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                        ${inspection.inspection_type}
+                    </span>
+                </div>
+                <div style="color: #6b7280; font-size: 13px;">
+                    <div><i class="fas fa-calendar"></i> ${this.formatDate(inspection.inspection_date)} ${inspection.inspection_time ? `at ${inspection.inspection_time.substring(0, 5)}` : ''}</div>
+                    ${inspection.inspector ? `<div><i class="fas fa-user"></i> ${inspection.inspector}</div>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async renderCalendar() {
+        try {
+            const startDate = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), 1);
+            const endDate = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 0);
+
+            const response = await fetch(`/api/ground-owner/maintenance/calendar?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`);
+            const data = await response.json();
+
+            if (!data.success) return;
+
+            const calendarTasks = data.tasks || [];
+
+            // Update month display
+            const monthDisplay = document.getElementById('calendarMonth');
+            if (monthDisplay) {
+                monthDisplay.textContent = this.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            }
+
+            const container = document.getElementById('maintenanceCalendar');
+            if (!container) return;
+
+            // Generate calendar
+            const firstDay = startDate.getDay();
+            const daysInMonth = endDate.getDate();
+
+            let html = '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">';
+
+            // Day headers
+            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                html += `<div style="text-align: center; font-weight: 600; padding: 8px; background: #f3f4f6; border-radius: 4px;">${day}</div>`;
+            });
+
+            // Empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div></div>';
+            }
+
+            // Calendar days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const currentDate = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), day);
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const dayTasks = calendarTasks.filter(t => t.scheduled_date === dateStr);
+                const isToday = this.isToday(currentDate);
+
                 html += `
-                    <div class="calendar-day ${!isCurrentMonth ? 'other-month' : ''}" 
-                         data-date="${currentDate.toISOString().split('T')[0]}">
-                        <div class="day-number">${currentDate.getDate()}</div>
-                        <div class="day-events">
-                            ${dayTasks.slice(0, 2).map(task => `
-                                <div class="event-item task-event priority-${task.priority}" 
-                                     onclick="maintenanceManager.showTaskDetails(${task.id})">
-                                    ${task.title}
-                                </div>
-                            `).join('')}
-                            ${dayInspections.slice(0, 1).map(inspection => `
-                                <div class="event-item inspection-event"
-                                     onclick="maintenanceManager.showInspectionDetails(${inspection.id})">
-                                    <i class="fas fa-search"></i> ${inspection.type}
-                                </div>
-                            `).join('')}
-                            ${(dayTasks.length + dayInspections.length) > 3 ? `
-                                <div class="more-events">+${(dayTasks.length + dayInspections.length) - 3} more</div>
-                            ` : ''}
-                        </div>
+                    <div style="min-height: 80px; padding: 8px; background: white; border: 2px solid ${isToday ? '#3b82f6' : '#e5e7eb'}; border-radius: 8px; ${isToday ? 'box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);' : ''}">
+                        <div style="font-weight: bold; margin-bottom: 4px; ${isToday ? 'color: #3b82f6;' : ''}">${day}</div>
+                        ${dayTasks.slice(0, 2).map(task => `
+                            <div style="font-size: 10px; padding: 2px 4px; margin: 2px 0; background: ${this.getStatusColorLight(task.status)}; border-left: 3px solid ${this.getStatusColor(task.status)}; border-radius: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${task.title}">
+                                ${task.title.substring(0, 15)}${task.title.length > 15 ? '...' : ''}
+                            </div>
+                        `).join('')}
+                        ${dayTasks.length > 2 ? `<div style="font-size: 10px; color: #6b7280; margin-top: 2px;">+${dayTasks.length - 2} more</div>` : ''}
                     </div>
                 `;
-                currentDate.setDate(currentDate.getDate() + 1);
             }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+        } catch (error) {
+            console.error('Error rendering calendar:', error);
         }
-        
-        html += '</div>';
-        container.innerHTML = html;
-        
-        document.getElementById('currentMonthYear').textContent = 
-            now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     }
 
-    renderCostsView() {
-        const container = document.getElementById('costsAnalysis');
-        const monthlyData = this.calculateMonthlyCosts();
-        const categoryData = this.calculateCategoryCosts();
-        
-        container.innerHTML = `
-            <div class="costs-summary">
-                <div class="cost-card">
-                    <h4>This Month</h4>
-                    <div class="cost-amount">₹${monthlyData.current.toLocaleString()}</div>
-                    <div class="cost-change ${monthlyData.change >= 0 ? 'positive' : 'negative'}">
-                        <i class="fas fa-arrow-${monthlyData.change >= 0 ? 'up' : 'down'}"></i>
-                        ${Math.abs(monthlyData.change)}% from last month
-                    </div>
-                </div>
-                
-                <div class="cost-card">
-                    <h4>Year to Date</h4>
-                    <div class="cost-amount">₹${monthlyData.yearTotal.toLocaleString()}</div>
-                    <div class="cost-subtitle">Total maintenance spending</div>
-                </div>
-                
-                <div class="cost-card">
-                    <h4>Average per Ground</h4>
-                    <div class="cost-amount">₹${monthlyData.avgPerGround.toLocaleString()}</div>
-                    <div class="cost-subtitle">Monthly average</div>
-                </div>
-            </div>
-            
-            <div class="costs-charts">
-                <div class="chart-container">
-                    <h4>Monthly Costs Trend</h4>
-                    <canvas id="monthlyTrendChart"></canvas>
-                </div>
-                
-                <div class="chart-container">
-                    <h4>Costs by Category</h4>
-                    <canvas id="categoryChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="cost-breakdown">
-                <h4>Recent Expenses</h4>
-                <div class="expenses-list">
-                    ${this.maintenanceRecords.slice(0, 10).map(record => `
-                        <div class="expense-item">
-                            <div class="expense-info">
-                                <div class="expense-title">${record.description}</div>
-                                <div class="expense-details">
-                                    <span>${record.groundName}</span> • 
-                                    <span>${record.date}</span> • 
-                                    <span class="expense-category">${record.category}</span>
-                                </div>
-                            </div>
-                            <div class="expense-amount">₹${record.amount.toLocaleString()}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-        
-        // Initialize charts
-        setTimeout(() => this.initializeCostCharts(), 100);
-    }
-
-    renderHealthView() {
-        const container = document.getElementById('healthAnalysis');
-        const healthData = this.calculateGroundHealth();
-        
-        container.innerHTML = `
-            <div class="health-overview">
-                <div class="health-card">
-                    <h4>Overall Health Score</h4>
-                    <div class="health-score ${this.getHealthClass(healthData.overall)}">
-                        ${healthData.overall}%
-                    </div>
-                    <div class="health-status">${this.getHealthStatus(healthData.overall)}</div>
-                </div>
-                
-                <div class="health-metrics">
-                    <div class="metric">
-                        <span class="metric-label">Maintenance Compliance</span>
-                        <div class="metric-bar">
-                            <div class="metric-fill" style="width: ${healthData.compliance}%"></div>
-                        </div>
-                        <span class="metric-value">${healthData.compliance}%</span>
-                    </div>
-                    
-                    <div class="metric">
-                        <span class="metric-label">Safety Rating</span>
-                        <div class="metric-bar">
-                            <div class="metric-fill" style="width: ${healthData.safety}%"></div>
-                        </div>
-                        <span class="metric-value">${healthData.safety}%</span>
-                    </div>
-                    
-                    <div class="metric">
-                        <span class="metric-label">Equipment Condition</span>
-                        <div class="metric-bar">
-                            <div class="metric-fill" style="width: ${healthData.equipment}%"></div>
-                        </div>
-                        <span class="metric-value">${healthData.equipment}%</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="grounds-health-list">
-                <h4>Ground Health Details</h4>
-                ${healthData.grounds.map(ground => `
-                    <div class="ground-health-card">
-                        <div class="ground-info">
-                            <h5>${ground.name}</h5>
-                            <div class="ground-meta">
-                                <span>${ground.sport}</span> • 
-                                <span>Last inspection: ${ground.lastInspection}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="health-indicators">
-                            <div class="indicator">
-                                <span class="indicator-label">Surface</span>
-                                <div class="indicator-score ${this.getHealthClass(ground.surface)}">${ground.surface}%</div>
-                            </div>
-                            <div class="indicator">
-                                <span class="indicator-label">Facilities</span>
-                                <div class="indicator-score ${this.getHealthClass(ground.facilities)}">${ground.facilities}%</div>
-                            </div>
-                            <div class="indicator">
-                                <span class="indicator-label">Safety</span>
-                                <div class="indicator-score ${this.getHealthClass(ground.safety)}">${ground.safety}%</div>
-                            </div>
-                        </div>
-                        
-                        <div class="ground-actions">
-                            <button class="btn btn-primary" onclick="maintenanceManager.scheduleInspection(${ground.id})">
-                                <i class="fas fa-calendar-plus"></i> Schedule Inspection
-                            </button>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-            
-            <div class="health-recommendations">
-                <h4>Maintenance Recommendations</h4>
-                <div class="recommendations-list">
-                    ${this.generateRecommendations().map(rec => `
-                        <div class="recommendation-item priority-${rec.priority}">
-                            <div class="rec-header">
-                                <div class="rec-title">${rec.title}</div>
-                                <div class="rec-priority">${rec.priority.toUpperCase()}</div>
-                            </div>
-                            <div class="rec-description">${rec.description}</div>
-                            <div class="rec-actions">
-                                <button class="btn btn-sm btn-primary" onclick="maintenanceManager.createTaskFromRecommendation('${rec.id}')">
-                                    Create Task
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
+    navigateMonth(direction) {
+        this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + direction, 1);
+        this.renderCalendar();
     }
 
     async saveMaintenanceTask() {
-        const formData = new FormData(document.getElementById('addTaskForm'));
-        const taskData = Object.fromEntries(formData.entries());
-        
+        const form = document.getElementById('maintenanceForm');
+        const formData = new FormData(form);
+
+        const data = {
+            facility_id: formData.get('ground_id'),
+            title: formData.get('title'),
+            description: formData.get('description'),
+            task_type: formData.get('task_type'),
+            category: formData.get('category'),
+            priority: formData.get('priority'),
+            scheduled_date: formData.get('scheduled_date'),
+            estimated_duration: formData.get('estimated_duration'),
+            estimated_cost: formData.get('estimated_cost'),
+            assigned_to: formData.get('assigned_to'),
+            required_tools: formData.get('required_tools'),
+            block_bookings: formData.get('block_bookings') === 'on',
+            send_notifications: formData.get('send_notifications') === 'on'
+        };
+
         try {
-            const response = await fetch('/api/maintenance/tasks', {
+            const response = await fetch('/api/ground-owner/maintenance/tasks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(taskData)
+                body: JSON.stringify(data)
             });
-            
-            if (response.ok) {
-                const newTask = await response.json();
-                this.maintenanceTasks.push(newTask);
+
+            const result = await response.json();
+
+            if (result.success) {
                 this.showToast('Maintenance task created successfully', 'success');
-                this.closeModal(document.getElementById('addTaskModal'));
-                this.renderCurrentView();
+                this.closeModal(document.getElementById('maintenanceModal'));
+                await this.loadStats();
+                await this.loadActiveTasks();
+                await this.renderCalendar();
+                form.reset();
             } else {
-                throw new Error('Failed to create task');
+                this.showToast(result.message || 'Failed to create task', 'error');
             }
         } catch (error) {
+            console.error('Error creating task:', error);
             this.showToast('Error creating maintenance task', 'error');
         }
     }
 
-    async startTask(taskId) {
-        try {
-            const response = await fetch(`/api/maintenance/tasks/${taskId}/start`, {
-                method: 'POST'
-            });
-            
-            if (response.ok) {
-                const task = this.maintenanceTasks.find(t => t.id === taskId);
-                if (task) task.status = 'in_progress';
-                this.showToast('Task started', 'success');
-                this.renderCurrentView();
-            }
-        } catch (error) {
-            this.showToast('Error starting task', 'error');
-        }
-    }
+    async saveInspection() {
+        const form = document.getElementById('inspectionForm');
+        const formData = new FormData(form);
 
-    async completeTask(taskId) {
-        const cost = prompt('Enter actual cost for this task:');
-        if (!cost) return;
-        
+        const data = {
+            facility_id: formData.get('ground_id'),
+            inspection_type: formData.get('inspection_type'),
+            inspector: formData.get('inspector'),
+            inspection_date: formData.get('inspection_date'),
+            inspection_time: formData.get('inspection_time'),
+            notes: formData.get('notes')
+        };
+
         try {
-            const response = await fetch(`/api/maintenance/tasks/${taskId}/complete`, {
+            const response = await fetch('/api/ground-owner/inspections', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ actualCost: parseFloat(cost) })
+                body: JSON.stringify(data)
             });
-            
-            if (response.ok) {
-                const task = this.maintenanceTasks.find(t => t.id === taskId);
-                if (task) {
-                    task.status = 'completed';
-                    task.actualCost = parseFloat(cost);
-                }
-                this.showToast('Task completed successfully', 'success');
-                this.renderCurrentView();
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showToast('Inspection scheduled successfully', 'success');
+                this.closeModal(document.getElementById('inspectionModal'));
+                await this.loadUpcomingInspections();
+                form.reset();
+            } else {
+                this.showToast(result.message || 'Failed to schedule inspection', 'error');
             }
         } catch (error) {
-            this.showToast('Error completing task', 'error');
+            console.error('Error scheduling inspection:', error);
+            this.showToast('Error scheduling inspection', 'error');
         }
     }
 
-    getFilteredTasks() {
-        const statusFilter = document.getElementById('statusFilter').value;
-        const priorityFilter = document.getElementById('priorityFilter').value;
-        const searchTerm = document.getElementById('maintenanceSearch').value.toLowerCase();
-        
-        return this.maintenanceTasks.filter(task => {
-            const matchesStatus = !statusFilter || task.status === statusFilter;
-            const matchesPriority = !priorityFilter || task.priority === priorityFilter;
-            const matchesSearch = !searchTerm || 
-                task.title.toLowerCase().includes(searchTerm) ||
-                task.description.toLowerCase().includes(searchTerm) ||
-                task.groundName.toLowerCase().includes(searchTerm);
-            
-            return matchesStatus && matchesPriority && matchesSearch;
-        });
-    }
-
-    async loadMaintenanceData() {
+    async viewTaskDetails(taskId) {
         try {
-            const [tasksResponse, inspectionsResponse, recordsResponse] = await Promise.all([
-                fetch('/api/maintenance/tasks'),
-                fetch('/api/maintenance/inspections'),
-                fetch('/api/maintenance/records')
-            ]);
-            
-            this.maintenanceTasks = await tasksResponse.json();
-            this.inspections = await inspectionsResponse.json();
-            this.maintenanceRecords = await recordsResponse.json();
-            
-            this.renderCurrentView();
-        } catch (error) {
-            console.error('Error loading maintenance data:', error);
-            this.showToast('Error loading maintenance data', 'error');
-        }
-    }
+            const response = await fetch(`/api/ground-owner/maintenance/tasks/${taskId}`);
+            const data = await response.json();
 
-    updateSummaryStats() {
-        const stats = {
-            totalTasks: this.maintenanceTasks.length,
-            pendingTasks: this.maintenanceTasks.filter(t => t.status === 'pending').length,
-            completedTasks: this.maintenanceTasks.filter(t => t.status === 'completed').length,
-            totalCosts: this.maintenanceRecords.reduce((sum, r) => sum + r.amount, 0)
-        };
-        
-        document.getElementById('totalTasks').textContent = stats.totalTasks;
-        document.getElementById('pendingTasks').textContent = stats.pendingTasks;
-        document.getElementById('completedTasks').textContent = stats.completedTasks;
-        document.getElementById('totalCosts').textContent = `₹${stats.totalCosts.toLocaleString()}`;
+            if (data.success) {
+                const task = data.task;
+
+                // Populate modal
+                document.getElementById('detailTaskTitle').textContent = task.title;
+                document.getElementById('detailTaskGround').textContent = task.facility_name;
+                document.getElementById('detailTaskType').textContent = task.task_type;
+                document.getElementById('detailTaskPriority').textContent = task.priority;
+                document.getElementById('detailTaskStatus').textContent = task.status;
+                document.getElementById('detailScheduledDate').textContent = this.formatDate(task.scheduled_date);
+                document.getElementById('detailDuration').textContent = `${task.estimated_duration || 0} hours`;
+                document.getElementById('detailEstimatedCost').textContent = `LKR ${(task.estimated_cost || 0).toLocaleString()}`;
+                document.getElementById('detailActualCost').textContent = task.actual_cost ? `LKR ${task.actual_cost.toLocaleString()}` : '-';
+                document.getElementById('detailAssignedTo').textContent = task.assigned_to || '-';
+                document.getElementById('detailTaskDescription').textContent = task.description || '-';
+                document.getElementById('detailRequiredTools').textContent = task.required_tools || '-';
+
+                // Show modal
+                document.getElementById('taskDetailsModal').style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error loading task details:', error);
+            this.showToast('Failed to load task details', 'error');
+        }
     }
 
     // Helper methods
-    getStatusLabel(status) {
-        const labels = {
-            'pending': 'Pending',
-            'in_progress': 'In Progress',
-            'completed': 'Completed',
-            'cancelled': 'Cancelled'
+    getPriorityColor(priority) {
+        const colors = {
+            urgent: '#ef4444',
+            high: '#f59e0b',
+            medium: '#3b82f6',
+            low: '#10b981'
         };
-        return labels[status] || status;
+        return colors[priority] || '#6b7280';
     }
 
-    isDueDate(dateString) {
-        return new Date(dateString) < new Date();
+    getStatusColor(status) {
+        const colors = {
+            scheduled: '#3b82f6',
+            'in-progress': '#f59e0b',
+            completed: '#10b981',
+            cancelled: '#ef4444',
+            overdue: '#dc2626'
+        };
+        return colors[status] || '#6b7280';
     }
 
-    getHealthClass(score) {
-        if (score >= 80) return 'excellent';
-        if (score >= 60) return 'good';
-        if (score >= 40) return 'fair';
-        return 'poor';
+    getStatusColorLight(status) {
+        const colors = {
+            scheduled: '#dbeafe',
+            'in-progress': '#fef3c7',
+            completed: '#d1fae5',
+            cancelled: '#fee2e2',
+            overdue: '#fecaca'
+        };
+        return colors[status] || '#f3f4f6';
     }
 
-    getHealthStatus(score) {
-        if (score >= 80) return 'Excellent';
-        if (score >= 60) return 'Good';
-        if (score >= 40) return 'Needs Attention';
-        return 'Critical';
+    formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
-    exportMaintenanceReport() {
-        const data = this.maintenanceTasks.map(task => ({
-            'Task': task.title,
-            'Ground': task.groundName,
-            'Status': task.status,
-            'Priority': task.priority,
-            'Due Date': task.dueDate,
-            'Estimated Cost': task.estimatedCost,
-            'Actual Cost': task.actualCost || '',
-            'Assigned To': task.assignedTo || ''
-        }));
-        
-        this.downloadCSV(data, 'maintenance-report.csv');
-    }
-
-    downloadCSV(data, filename) {
-        const csv = this.arrayToCSV(data);
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        
-        window.URL.revokeObjectURL(url);
-    }
-
-    arrayToCSV(data) {
-        if (!data.length) return '';
-        
-        const headers = Object.keys(data[0]);
-        const csvContent = [
-            headers.join(','),
-            ...data.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
-        ].join('\n');
-        
-        return csvContent;
-    }
-
-    openAddTaskModal() {
-        document.getElementById('addTaskModal').style.display = 'flex';
-    }
-
-    openScheduleInspectionModal() {
-        document.getElementById('scheduleInspectionModal').style.display = 'flex';
+    isToday(date) {
+        const today = new Date();
+        return date.toDateString() === today.toDateString();
     }
 
     closeModal(modal) {
-        modal.style.display = 'none';
-        const forms = modal.querySelectorAll('form');
-        forms.forEach(form => form.reset());
+        if (modal) modal.style.display = 'none';
     }
 
     showToast(message, type = 'info') {
         const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'}"></i>
-            <span>${message}</span>
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 10000;
         `;
-        
+        toast.textContent = message;
         document.body.appendChild(toast);
-        
-        setTimeout(() => toast.classList.add('show'), 100);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    // Placeholder methods for complex calculations
-    calculateMonthlyCosts() {
-        return {
-            current: 45000,
-            change: 12,
-            yearTotal: 540000,
-            avgPerGround: 15000
-        };
-    }
-
-    calculateCategoryCosts() {
-        return [
-            { category: 'Surface Maintenance', amount: 20000 },
-            { category: 'Equipment Repair', amount: 15000 },
-            { category: 'Facility Upkeep', amount: 10000 }
-        ];
-    }
-
-    calculateGroundHealth() {
-        return {
-            overall: 78,
-            compliance: 85,
-            safety: 92,
-            equipment: 67,
-            grounds: [
-                {
-                    id: 1,
-                    name: 'Football Ground A',
-                    sport: 'Football',
-                    lastInspection: '2024-01-15',
-                    surface: 85,
-                    facilities: 78,
-                    safety: 92
-                }
-            ]
-        };
-    }
-
-    generateRecommendations() {
-        return [
-            {
-                id: 'rec_1',
-                title: 'Field Surface Inspection',
-                description: 'Regular field surface inspection needed for optimal playing conditions',
-                priority: 'high'
-            }
-        ];
-    }
-
-    getTasksForDate(date) {
-        const dateStr = date.toISOString().split('T')[0];
-        return this.maintenanceTasks.filter(task => task.dueDate === dateStr);
-    }
-
-    getInspectionsForDate(date) {
-        const dateStr = date.toISOString().split('T')[0];
-        return this.inspections.filter(inspection => inspection.date === dateStr);
+        setTimeout(() => toast.remove(), 3000);
     }
 }
 
-// Initialize when DOM is loaded
+// Global functions for HTML onclick handlers
+function addMaintenanceTask() {
+    document.getElementById('maintenanceModal').style.display = 'block';
+}
+
+function scheduleInspection() {
+    document.getElementById('inspectionModal').style.display = 'block';
+}
+
+function closeMaintenanceModal() {
+    document.getElementById('maintenanceModal').style.display = 'none';
+}
+
+function closeInspectionModal() {
+    document.getElementById('inspectionModal').style.display = 'none';
+}
+
+function closeTaskDetailsModal() {
+    document.getElementById('taskDetailsModal').style.display = 'none';
+}
+
+// Initialize when DOM is ready
 let maintenanceManager;
 document.addEventListener('DOMContentLoaded', () => {
     maintenanceManager = new MaintenanceManager();
