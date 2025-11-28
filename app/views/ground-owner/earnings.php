@@ -5,8 +5,8 @@ $additionalCSS = [
     '/public/css/pages/ground-owner-earnings.css'
 ];
 $additionalJS = [
-    '/public/js/pages/ground-owner-earnings.js',
-    '/public/js/libraries/chart.min.js'
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+    '/public/js/pages/ground-owner-earnings.js'
 ];
 ?>
 

@@ -188,55 +188,6 @@ $additionalJS = ['/public/js/pages/ground-owner-maintenance.js'];
                 </div>
             </div>
 
-            <!-- Maintenance History & Analytics -->
-            <div class="maintenance-analytics">
-                <div class="analytics-section maintenance-trends">
-                    <div class="section-header">
-                        <h3>Maintenance Trends</h3>
-                        <select id="trendsTimeframe" class="filter-select">
-                            <option value="3">Last 3 months</option>
-                            <option value="6" selected>Last 6 months</option>
-                            <option value="12">Last year</option>
-                        </select>
-                    </div>
-                    <canvas id="maintenanceTrendsChart"></canvas>
-                </div>
-
-                <div class="analytics-section cost-analysis">
-                    <div class="section-header">
-                        <h3>Cost Analysis</h3>
-                    </div>
-                    <div class="cost-breakdown-chart">
-                        <canvas id="costBreakdownChart"></canvas>
-                    </div>
-                    <div class="cost-categories" id="costCategories">
-                        <!-- Cost categories will be displayed here -->
-                    </div>
-                </div>
-
-                <div class="analytics-section ground-health">
-                    <div class="section-header">
-                        <h3>Ground Health Scores</h3>
-                    </div>
-                    <div class="health-scores" id="groundHealthScores">
-                        <!-- Ground health scores will be displayed here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Maintenance Checklist Templates -->
-            <div class="maintenance-templates">
-                <div class="section-header">
-                    <h3>Maintenance Checklists</h3>
-                    <button class="btn-secondary" onclick="createTemplate()">
-                        <i class="fas fa-plus"></i>
-                        Create Template
-                    </button>
-                </div>
-                <div class="templates-grid" id="maintenanceTemplates">
-                    <!-- Templates will be loaded here -->
-                </div>
-            </div>
         </div>
     </main>
 

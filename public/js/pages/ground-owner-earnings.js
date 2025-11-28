@@ -80,10 +80,10 @@ class EarningsManager {
         if (!overview) return;
 
         // Update overview cards
-        document.getElementById('totalRevenue').textContent = `₹${overview.totalRevenue?.toLocaleString() || 0}`;
-        document.getElementById('monthlyEarnings').textContent = `₹${overview.monthlyEarnings?.toLocaleString() || 0}`;
-        document.getElementById('averageBooking').textContent = `₹${overview.averageBooking?.toLocaleString() || 0}`;
-        document.getElementById('pendingPayments').textContent = `₹${overview.pendingPayments?.toLocaleString() || 0}`;
+        document.getElementById('totalRevenue').textContent = `LKR ${overview.totalRevenue?.toLocaleString() || 0}`;
+        document.getElementById('monthlyEarnings').textContent = `LKR ${overview.monthlyEarnings?.toLocaleString() || 0}`;
+        document.getElementById('averageBooking').textContent = `LKR ${overview.averageBooking?.toLocaleString() || 0}`;
+        document.getElementById('pendingPayments').textContent = `LKR ${overview.pendingPayments?.toLocaleString() || 0}`;
 
         // Update change indicators
         this.updateChangeIndicator('revenueChange', overview.revenueChange);
@@ -145,7 +145,7 @@ class EarningsManager {
                         beginAtZero: true,
                         ticks: {
                             callback: function(value) {
-                                return '₹' + value.toLocaleString();
+                                return 'LKR ' + value.toLocaleString();
                             }
                         }
                     }
@@ -287,7 +287,7 @@ class EarningsManager {
             <div class="legend-item">
                 <div class="legend-color" style="background: ${this.getChartColor(index)}"></div>
                 <span class="legend-label">${source.name}</span>
-                <span class="legend-value">₹${source.value.toLocaleString()}</span>
+                <span class="legend-value">LKR ${source.value.toLocaleString()}</span>
             </div>
         `).join('');
     }
@@ -319,7 +319,7 @@ class EarningsManager {
                     <div class="breakdown-date">${item.period}</div>
                     <div class="breakdown-change">${item.change}% vs previous</div>
                 </div>
-                <div class="breakdown-amount">₹${item.amount.toLocaleString()}</div>
+                <div class="breakdown-amount">LKR ${item.amount.toLocaleString()}</div>
             </div>
         `).join('');
     }
@@ -338,7 +338,7 @@ class EarningsManager {
                         <span>${ground.occupancy}% occupancy</span>
                     </div>
                 </div>
-                <div class="ranking-revenue">₹${ground.revenue.toLocaleString()}</div>
+                <div class="ranking-revenue">LKR ${ground.revenue.toLocaleString()}</div>
             </div>
         `).join('');
     }
@@ -351,7 +351,7 @@ class EarningsManager {
         document.getElementById('paymentSuccessBar').style.width = `${paymentAnalytics.successRate}%`;
         document.getElementById('avgProcessingTime').textContent = `${paymentAnalytics.avgProcessingTime}s`;
         document.getElementById('failedPayments').textContent = paymentAnalytics.failedPayments;
-        document.getElementById('refundsIssued').textContent = `₹${paymentAnalytics.refundsIssued.toLocaleString()}`;
+        document.getElementById('refundsIssued').textContent = `LKR ${paymentAnalytics.refundsIssued.toLocaleString()}`;
     }
 
     updateBookingPatterns() {
@@ -384,7 +384,7 @@ class EarningsManager {
                 <div class="day-bar">
                     <div class="day-fill" style="width: ${day.percentage}%"></div>
                 </div>
-                <div class="day-value">₹${day.revenue.toLocaleString()}</div>
+                <div class="day-value">LKR ${day.revenue.toLocaleString()}</div>
             </div>
         `).join('');
     }
@@ -393,11 +393,11 @@ class EarningsManager {
         const { financial } = this.earningsData;
         if (!financial) return;
 
-        document.getElementById('grossRevenue').textContent = `₹${financial.grossRevenue.toLocaleString()}`;
-        document.getElementById('platformCommission').textContent = `-₹${financial.platformCommission.toLocaleString()}`;
-        document.getElementById('processingFees').textContent = `-₹${financial.processingFees.toLocaleString()}`;
-        document.getElementById('taxes').textContent = `-₹${financial.taxes.toLocaleString()}`;
-        document.getElementById('netEarnings').textContent = `₹${financial.netEarnings.toLocaleString()}`;
+        document.getElementById('grossRevenue').textContent = `LKR ${financial.grossRevenue.toLocaleString()}`;
+        document.getElementById('platformCommission').textContent = `-LKR ${financial.platformCommission.toLocaleString()}`;
+        document.getElementById('processingFees').textContent = `-LKR ${financial.processingFees.toLocaleString()}`;
+        document.getElementById('taxes').textContent = `-LKR ${financial.taxes.toLocaleString()}`;
+        document.getElementById('netEarnings').textContent = `LKR ${financial.netEarnings.toLocaleString()}`;
     }
 
     async loadTransactions() {
@@ -422,9 +422,9 @@ class EarningsManager {
                 <td>${this.formatDate(transaction.date)}</td>
                 <td>${transaction.ground}</td>
                 <td>${transaction.customer}</td>
-                <td>₹${transaction.amount.toLocaleString()}</td>
-                <td>₹${transaction.fee.toLocaleString()}</td>
-                <td>₹${transaction.net.toLocaleString()}</td>
+                <td>LKR ${transaction.amount.toLocaleString()}</td>
+                <td>LKR ${transaction.fee.toLocaleString()}</td>
+                <td>LKR ${transaction.net.toLocaleString()}</td>
                 <td><span class="status-badge ${transaction.status}">${transaction.status}</span></td>
             </tr>
         `).join('');

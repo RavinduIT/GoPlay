@@ -60,23 +60,23 @@ $additionalJS = ['/public/js/pages/ground-owner-schedule.js'];
             <div class="schedule-stats">
                 <div class="stat-card available-slots">
                     <div class="stat-icon">
-                        <i class="fas fa-calendar-check"></i>
+                        <i class="fas fa-calendar"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>Available Slots</h3>
+                        <h3>Total Bookings</h3>
                         <p class="stat-number" id="availableSlots">0</p>
-                        <span class="stat-period">Next 7 days</span>
+                        <span class="stat-period">In date range</span>
                     </div>
                 </div>
 
                 <div class="stat-card booked-slots">
                     <div class="stat-icon">
-                        <i class="fas fa-calendar-times"></i>
+                        <i class="fas fa-calendar-check"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>Booked Slots</h3>
+                        <h3>Active Bookings</h3>
                         <p class="stat-number" id="bookedSlots">0</p>
-                        <span class="stat-period">Next 7 days</span>
+                        <span class="stat-period">Confirmed & Pending</span>
                     </div>
                 </div>
 
@@ -87,7 +87,7 @@ $additionalJS = ['/public/js/pages/ground-owner-schedule.js'];
                     <div class="stat-content">
                         <h3>Occupancy Rate</h3>
                         <p class="stat-number" id="occupancyRate">0%</p>
-                        <span class="stat-period">This week</span>
+                        <span class="stat-period">Active vs Total</span>
                     </div>
                 </div>
 

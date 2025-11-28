@@ -17,9 +17,6 @@ function initializeGroundOwnerDashboard() {
     // Initialize earnings chart
     initializeEarningsChart();
 
-    // Initialize time filter
-    initializeTimeFilter();
-
     // Initialize notifications
     initializeNotifications();
 
@@ -32,32 +29,185 @@ function toggleSidebar() {
     sidebar.classList.toggle('open');
 }
 
-function initializeEarningsChart() {
+async function initializeEarningsChart() {
     const canvas = document.getElementById('earningsChart');
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    
-    // Sample earnings data for the last 30 days
-    const earningsData = {
-        labels: generateDateLabels(30),
-        datasets: [{
-            label: 'Daily Earnings (₹)',
-            data: generateEarningsData(30),
-            borderColor: '#059669',
-            backgroundColor: 'rgba(5, 150, 105, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#059669',
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6
-        }]
-    };
 
-    drawEarningsChart(ctx, earningsData);
+    // Load real earnings data from API
+    await loadRealEarningsData(ctx);
+}
+
+async function loadRealEarningsData(ctx) {
+    try {
+        const response = await fetch('/api/ground-owner/earnings/trends?days=30');
+        const data = await response.json();
+
+        let chartData;
+        let chartLabels;
+
+        if (data.success !== false && data.trends) {
+            // Use real data from API
+            chartLabels = data.trends.labels || [];
+            chartData = data.trends.revenue || [];
+        } else {
+            // Fallback to sample data if API fails
+            chartLabels = generateDateLabels(30);
+            chartData = generateEarningsData(30);
+        }
+
+        // Create professional Chart.js chart
+        if (window.earningsChartInstance) {
+            window.earningsChartInstance.destroy();
+        }
+
+        window.earningsChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Daily Earnings',
+                    data: chartData,
+                    borderColor: '#10b981',
+                    backgroundColor: function(context) {
+                        const ctx = context.chart.ctx;
+                        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
+                        gradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.15)');
+                        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
+                        return gradient;
+                    },
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 3,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#059669',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            padding: 15,
+                            font: {
+                                size: 13,
+                                weight: '500',
+                                family: "'Inter', 'Segoe UI', sans-serif"
+                            },
+                            color: '#374151',
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#e5e7eb',
+                        borderColor: '#10b981',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        boxPadding: 6,
+                        titleFont: {
+                            size: 13,
+                            weight: '600',
+                            family: "'Inter', 'Segoe UI', sans-serif"
+                        },
+                        bodyFont: {
+                            size: 14,
+                            weight: '500',
+                            family: "'Inter', 'Segoe UI', sans-serif"
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += 'LKR ' + context.parsed.y.toLocaleString('en-US', {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
+                                });
+                                return label;
+                            },
+                            title: function(context) {
+                                return context[0].label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 11,
+                                weight: '500'
+                            },
+                            maxRotation: 0,
+                            autoSkipPadding: 20
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(156, 163, 175, 0.1)',
+                            drawBorder: false,
+                            lineWidth: 1
+                        },
+                        border: {
+                            display: false,
+                            dash: [5, 5]
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 12,
+                                weight: '500'
+                            },
+                            padding: 10,
+                            callback: function(value) {
+                                return 'LKR ' + value.toLocaleString('en-US', {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error loading real earnings data:', error);
+        // Show error state
+        ctx.canvas.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;">Failed to load earnings data</div>';
+    }
 }
 
 function generateDateLabels(days) {
@@ -311,15 +461,40 @@ async function updateDashboardStats() {
         const data = await response.json();
 
         if (data.success) {
-            const { stats, recent_bookings } = data;
+            const { stats, recent_bookings, ground_performance } = data;
 
-            // Update booking stats if elements exist
-            updateStatIfExists('.stat-card.bookings .stat-number', stats.bookings.total_bookings || 0);
-            updateStatIfExists('.stat-card.bookings .stat-change span', stats.bookings.this_month_bookings + ' this month');
+            // Update earnings stats
+            if (stats.earnings) {
+                updateStatIfExists('#totalEarnings', `LKR ${stats.earnings.total_earnings.toLocaleString()}`);
+                updateStatIfExists('#earningsChange', `${stats.earnings.earnings_change}% this month`);
+            }
+
+            // Update booking stats
+            if (stats.bookings) {
+                updateStatIfExists('#totalBookings', stats.bookings.total_bookings || 0);
+                updateStatIfExists('#bookingsChange', `${stats.bookings.this_month_bookings || 0} this month`);
+            }
+
+            // Update occupancy stats
+            if (stats.occupancy) {
+                updateStatIfExists('#occupancyRate', `${stats.occupancy.rate}%`);
+                updateStatIfExists('#occupancyChange', `${stats.occupancy.change}% this month`);
+            }
+
+            // Update rating stats
+            if (stats.rating) {
+                updateStatIfExists('#averageRating', stats.rating.average.toFixed(1));
+                updateStatIfExists('#ratingInfo', `Based on ${stats.rating.total_reviews} reviews`);
+            }
 
             // Update recent bookings
             if (recent_bookings && recent_bookings.length > 0) {
                 updateRecentBookings(recent_bookings);
+            }
+
+            // Update ground performance
+            if (ground_performance && ground_performance.length > 0) {
+                updateGroundPerformance(ground_performance);
             }
         }
     } catch (error) {
@@ -366,6 +541,38 @@ function formatBookingDate(dateString) {
     } else {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
+}
+
+function updateGroundPerformance(grounds) {
+    const container = document.querySelector('.performance-list');
+    if (!container) return;
+
+    // Take top 3 grounds by revenue
+    const topGrounds = grounds.slice(0, 3);
+    const maxRevenue = Math.max(...topGrounds.map(g => parseFloat(g.total_revenue)));
+
+    const html = topGrounds.map(ground => {
+        const revenue = parseFloat(ground.total_revenue);
+        const percentage = maxRevenue > 0 ? Math.round((revenue / maxRevenue) * 100) : 0;
+
+        return `
+            <div class="performance-item">
+                <div class="ground-info">
+                    <h4>${ground.name}</h4>
+                    <div class="performance-stats">
+                        <span class="bookings">${ground.total_bookings} bookings</span>
+                        <span class="earnings">LKR ${revenue.toLocaleString()}</span>
+                    </div>
+                </div>
+                <div class="performance-chart">
+                    <div class="chart-bar" style="width: ${percentage}%"></div>
+                    <span class="performance-rate">${percentage}%</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
 }
 
 function updateBookingStatuses() {
@@ -456,15 +663,6 @@ window.addEventListener('resize', function() {
     if (window.innerWidth > 768) {
         sidebar.classList.remove('open');
     }
-    
-    // Redraw chart on resize
-    setTimeout(() => {
-        const filter = document.getElementById('earningsFilter');
-        if (filter) {
-            const days = parseInt(filter.value);
-            updateEarningsChart(days);
-        }
-    }, 100);
 });
 
 // Close sidebar when clicking outside on mobile

@@ -130,6 +130,7 @@ try {
     $router->put('/api/ground-owner/grounds/{id}', 'GroundOwnerController@updateGround');
     $router->delete('/api/ground-owner/grounds/{id}', 'GroundOwnerController@deleteGround');
     $router->get('/api/ground-owner/categories', 'GroundOwnerController@getSportsCategories');
+    $router->get('/api/ground-owner/facilities', 'GroundOwnerController@getFacilities');
 
     // Ground Owner Profile API routes
     $router->get('/api/ground-owner/profile', 'GroundOwnerController@getProfile');
@@ -142,9 +143,42 @@ try {
     // Ground Owner Booking Management API routes
     $router->get('/api/ground-owner/dashboard-stats', 'GroundOwnerController@getDashboardStats');
     $router->get('/api/ground-owner/bookings', 'GroundOwnerController@getBookings');
+    $router->get('/api/ground-owner/schedule', 'GroundOwnerController@getSchedule');
     $router->put('/api/ground-owner/bookings/{id}/cancel', 'GroundOwnerController@cancelBooking');
     $router->get('/api/ground-owner/facilities/{id}/bookings', 'GroundOwnerController@getFacilityBookings');
     $router->put('/api/ground-owner/bookings/{id}/status', 'GroundOwnerController@updateBookingStatus');
+
+    // Ground Owner Maintenance API routes
+    $router->get('/api/ground-owner/maintenance/stats', 'GroundOwnerController@getMaintenanceStats');
+    $router->get('/api/ground-owner/maintenance/tasks', 'GroundOwnerController@getMaintenanceTasks');
+    $router->post('/api/ground-owner/maintenance/tasks', 'GroundOwnerController@createMaintenanceTask');
+    $router->get('/api/ground-owner/maintenance/tasks/active', 'GroundOwnerController@getActiveTasks');
+    $router->get('/api/ground-owner/maintenance/tasks/overdue', 'GroundOwnerController@getOverdueTasks');
+    $router->get('/api/ground-owner/maintenance/tasks/{id}', 'GroundOwnerController@getMaintenanceTaskDetails');
+    $router->put('/api/ground-owner/maintenance/tasks/{id}', 'GroundOwnerController@updateMaintenanceTask');
+    $router->delete('/api/ground-owner/maintenance/tasks/{id}', 'GroundOwnerController@deleteMaintenanceTask');
+    $router->post('/api/ground-owner/maintenance/tasks/{id}/progress', 'GroundOwnerController@addTaskProgress');
+    $router->put('/api/ground-owner/maintenance/tasks/{id}/complete', 'GroundOwnerController@completeMaintenanceTask');
+    $router->get('/api/ground-owner/maintenance/calendar', 'GroundOwnerController@getMaintenanceCalendar');
+    $router->get('/api/ground-owner/maintenance/cost-trends', 'GroundOwnerController@getMaintenanceCostTrends');
+
+    // Ground Owner Inspection API routes
+    $router->get('/api/ground-owner/inspections', 'GroundOwnerController@getInspections');
+    $router->get('/api/ground-owner/inspections/upcoming', 'GroundOwnerController@getUpcomingInspections');
+    $router->post('/api/ground-owner/inspections', 'GroundOwnerController@createInspection');
+    $router->get('/api/ground-owner/inspections/health-scores', 'GroundOwnerController@getFacilityHealthScores');
+
+    // Ground Owner Earnings API routes
+    $router->get('/api/ground-owner/earnings', 'GroundOwnerController@getEarnings');
+    $router->get('/api/ground-owner/earnings/overview', 'GroundOwnerController@getEarningsOverview');
+    $router->get('/api/ground-owner/earnings/trends', 'GroundOwnerController@getEarningsTrends');
+    $router->get('/api/ground-owner/earnings/breakdown', 'GroundOwnerController@getEarningsBreakdown');
+    $router->get('/api/ground-owner/earnings/grounds', 'GroundOwnerController@getTopPerformingGrounds');
+    $router->get('/api/ground-owner/earnings/transactions', 'GroundOwnerController@getEarningsTransactions');
+    $router->get('/api/ground-owner/earnings/analytics', 'GroundOwnerController@getEarningsAnalytics');
+    // Backward compatible route for transactions
+    $router->get('/api/ground-owner/transactions', 'GroundOwnerController@getEarningsTransactions');
+
     $router->get('/book-ground', 'BookingController@bookGround');
     $router->get('/ground-details', 'BookingController@groundDetails');
     $router->get('/book/{id}', 'BookingController@redirectToGroundDetails');

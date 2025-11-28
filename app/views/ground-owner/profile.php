@@ -1,6 +1,9 @@
 <?php
 $title = 'Ground Owner Profile - GoPlay';
-$additionalCSS = ['/public/css/pages/ground-owner-profile.css'];
+$additionalCSS = [
+    '/public/css/pages/ground-owner-dashboard.css',
+    '/public/css/pages/ground-owner-profile.css'
+];
 $additionalJS = ['/public/js/pages/ground-owner-profile.js'];
 ?>
 

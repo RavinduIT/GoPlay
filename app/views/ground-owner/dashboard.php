@@ -1,7 +1,10 @@
-<?php 
+<?php
 $title = 'Ground Owner Dashboard - GoPlay';
 $additionalCSS = ['/public/css/pages/ground-owner-dashboard.css'];
-$additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
+$additionalJS = [
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+    '/public/js/pages/ground-owner-dashboard.js'
+];
 ?>
 
 <div class="ground-owner-dashboard">
@@ -48,10 +51,10 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Total Earnings</h3>
-                        <p class="stat-number">LKR 45,670</p>
+                        <p class="stat-number" id="totalEarnings">LKR 0</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>15% this month</span>
+                            <span id="earningsChange">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -62,10 +65,10 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Total Bookings</h3>
-                        <p class="stat-number">156</p>
+                        <p class="stat-number" id="totalBookings">0</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>8% this month</span>
+                            <span id="bookingsChange">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -76,10 +79,10 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Occupancy Rate</h3>
-                        <p class="stat-number">78%</p>
+                        <p class="stat-number" id="occupancyRate">0%</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>5% this month</span>
+                            <span id="occupancyChange">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -90,10 +93,10 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Average Rating</h3>
-                        <p class="stat-number">4.8</p>
+                        <p class="stat-number" id="averageRating">0</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>Based on 23 reviews</span>
+                            <span id="ratingInfo">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -105,13 +108,6 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                 <div class="dashboard-card earnings-chart">
                     <div class="card-header">
                         <h3>Earnings Overview</h3>
-                        <div class="card-actions">
-                            <select class="time-filter" id="earningsFilter">
-                                <option value="7">Last 7 days</option>
-                                <option value="30" selected>Last 30 days</option>
-                                <option value="90">Last 90 days</option>
-                            </select>
-                        </div>
                     </div>
                     <div class="chart-container">
                         <canvas id="earningsChart"></canvas>
