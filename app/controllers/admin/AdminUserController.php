@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use Core\Request;
 use Core\Response;
 use App\Models\User;
+use App\Services\EmailService;
 
 /**
  * Admin User Controller
@@ -221,6 +222,28 @@ class AdminUserController extends BaseController
                     $userId,
                     ['new_role' => $data['user_type']]
                 );
+
+                // Send email notification if user is upgraded to service provider
+                $providerTypes = ['ground_owner', 'coach', 'shop_owner'];
+                if (in_array($data['user_type'], $providerTypes)) {
+                    try {
+                        // Get user details for email
+                        $user = $this->userModel->getUserDetails($userId);
+                        if ($user) {
+                            $emailService = new EmailService();
+                            $fullName = $user['first_name'] . ' ' . $user['last_name'];
+                            $emailService->sendProviderApprovalEmail(
+                                $user['email'],
+                                $fullName,
+                                $data['user_type']
+                            );
+                            error_log("Provider approval email sent to: {$user['email']}");
+                        }
+                    } catch (\Exception $e) {
+                        // Log error but don't fail the role update if email fails
+                        error_log("Failed to send provider approval email: " . $e->getMessage());
+                    }
+                }
 
                 return $this->json([
                     'success' => true,
