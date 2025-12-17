@@ -5,6 +5,7 @@ namespace App\Controllers;
 use Core\Request;
 use Core\Response;
 use App\Models\User;
+use App\Services\EmailService;
 
 class AuthController extends BaseController
 {
@@ -247,6 +248,21 @@ class AuthController extends BaseController
                     'success' => false,
                     'message' => 'Failed to create account'
                 ], 500);
+            }
+
+            // Send registration confirmation email
+            try {
+                $emailService = new EmailService();
+                $fullName = $data['first_name'] . ' ' . $data['last_name'];
+                $emailService->sendRegistrationConfirmation(
+                    $data['email'],
+                    $fullName,
+                    $data['user_type']
+                );
+                error_log("Registration confirmation email sent to: {$data['email']}");
+            } catch (\Exception $e) {
+                // Log error but don't fail registration if email fails
+                error_log("Failed to send registration email: " . $e->getMessage());
             }
 
             // Record initial login
