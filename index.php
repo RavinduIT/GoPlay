@@ -208,6 +208,11 @@ try {
     $router->get('/shop-owner/reviews', 'ShopOwnerController@reviewsPage');
     $router->get('/shop-owner/profile', 'ShopOwnerController@profilePage');
     $router->get('/shop-owner/sales', 'ShopOwnerController@salesPage');
+    
+    // Shop Owner product CRUD form submission routes
+    $router->post('/shop-owner/products/create', 'ShopOwnerController@handleCreateProduct');
+    $router->post('/shop-owner/products/update', 'ShopOwnerController@handleUpdateProduct');
+    $router->post('/shop-owner/products/delete', 'ShopOwnerController@handleDeleteProduct');
 
     // Redirect old .php URLs to new routes
     $router->get('/shop-owner/products.php', 'ShopOwnerController@productsPage');

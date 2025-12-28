@@ -47,4 +47,15 @@ class Category extends BaseModel
         
         return $this->query($sql)->fetchAll();
     }
+
+    public function getActiveCategories(): array
+    {
+        $sql = "SELECT * FROM {$this->table} ORDER BY name ASC";
+        return $this->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function getCategoriesWithCount(): array
+    {
+        return $this->getCategoriesWithProductCounts();
+    }
 }

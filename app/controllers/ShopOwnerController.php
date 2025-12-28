@@ -116,9 +116,10 @@ class ShopOwnerController extends BaseController
             $shopOwnerId = $_SESSION['user_id'];
             
             // Get basic stats
-            $totalProducts = $this->getProductModel()->count(['shop_owner_id' => $shopOwnerId]);
-            $activeProducts = $this->getProductModel()->count(['shop_owner_id' => $shopOwnerId, 'status' => 'active']);
-            $lowStockProducts = count($this->getProductModel()->getLowStockProducts());
+            $stats = $this->getProductModel()->getShopOwnerStats($shopOwnerId);
+            $totalProducts = $stats['total_products'] ?? 0;
+            $activeProducts = $stats['active_products'] ?? 0;
+            $lowStockProducts = $stats['low_stock'] ?? 0;
             
             return $this->json([
                 'success' => true,
@@ -166,7 +167,8 @@ class ShopOwnerController extends BaseController
             if ($category) $filters['category'] = $category;
             
             $products = $this->getProductModel()->getActiveProducts($filters);
-            $total = $this->getProductModel()->count(['shop_owner_id' => $shopOwnerId]);
+            $stats = $this->getProductModel()->getShopOwnerStats($shopOwnerId);
+            $total = $stats['total_products'] ?? 0;
             
             return $this->json([
                 'success' => true,
@@ -593,7 +595,7 @@ class ShopOwnerController extends BaseController
         }
         
         try {
-            $categories = $this->getCategoryModel()->getAllActive();
+            $categories = $this->getCategoryModel()->getActiveCategories();
             
             return $this->json([
                 'success' => true,
@@ -612,5 +614,260 @@ class ShopOwnerController extends BaseController
     private function generateSku(): string
     {
         return 'SKU' . strtoupper(substr(uniqid(), -8));
+    }
+
+    public function handleCreateProduct(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            
+            // Validate required fields
+            $name = trim($_POST['name'] ?? '');
+            $categoryId = (int)($_POST['category_id'] ?? 0);
+            $price = floatval($_POST['price'] ?? 0);
+            
+            if (empty($name) || $categoryId <= 0 || $price <= 0) {
+                $_SESSION['error'] = 'Please fill in all required fields';
+                return $this->redirect('/shop-owner/products');
+            }
+            
+            // Handle image uploads
+            $imagePaths = [];
+            if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
+                $imagePaths = $this->handleMultipleImageUploads($_FILES['images']);
+            }
+            
+            // Prepare product data
+            $productData = [
+                'name' => $name,
+                'description' => $_POST['description'] ?? '',
+                'category_id' => $categoryId,
+                'price' => $price,
+                'stock_quantity' => (int)($_POST['stock_quantity'] ?? 0),
+                'images' => $imagePaths,
+                'status' => $_POST['status'] ?? 'active',
+                'brand' => $_POST['brand'] ?? '',
+                'sku' => $_POST['sku'] ?? '',
+                'min_stock_level' => (int)($_POST['min_stock_level'] ?? 10)
+            ];
+            
+            // Create product
+            $productModel = $this->getProductModel();
+            $productId = $productModel->createProductForShopOwner($productData, $shopOwnerId);
+            
+            if ($productId) {
+                $_SESSION['success'] = 'Product created successfully' . (count($imagePaths) > 0 ? ' with ' . count($imagePaths) . ' image(s)' : '');
+            } else {
+                $_SESSION['error'] = 'Failed to create product';
+            }
+            
+            return $this->redirect('/shop-owner/products');
+            
+        } catch (\Exception $e) {
+            $_SESSION['error'] = 'Error: ' . $e->getMessage();
+            return $this->redirect('/shop-owner/products');
+        }
+    }
+    
+    public function handleUpdateProduct(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $productId = (int)($_POST['product_id'] ?? 0);
+            
+            if ($productId <= 0) {
+                $_SESSION['error'] = 'Invalid product ID';
+                return $this->redirect('/shop-owner/products');
+            }
+            
+            // Validate required fields
+            $name = trim($_POST['name'] ?? '');
+            $categoryId = (int)($_POST['category_id'] ?? 0);
+            $price = floatval($_POST['price'] ?? 0);
+            
+            if (empty($name) || $categoryId <= 0 || $price <= 0) {
+                $_SESSION['error'] = 'Please fill in all required fields';
+                return $this->redirect('/shop-owner/products');
+            }
+            
+            // Get existing product to check images
+            $productModel = $this->getProductModel();
+            $existingProduct = $productModel->find($productId);
+            
+            if (!$existingProduct) {
+                $_SESSION['error'] = 'Product not found';
+                return $this->redirect('/shop-owner/products');
+            }
+            
+            // Handle image uploads
+            $replaceImages = isset($_POST['replace_images']) && $_POST['replace_images'] == '1';
+            $newImages = [];
+            
+            if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
+                $newImages = $this->handleMultipleImageUploads($_FILES['images']);
+            }
+            
+            // Determine final images based on replace flag
+            if (!empty($newImages)) {
+                if ($replaceImages) {
+                    // Replace: use only new images and delete old ones
+                    $allImages = $newImages;
+                    
+                    // Delete old image files
+                    $oldImages = is_array($existingProduct['images']) 
+                        ? $existingProduct['images'] 
+                        : json_decode($existingProduct['images'] ?? '[]', true);
+                    
+                    foreach ($oldImages as $oldImagePath) {
+                        $fullPath = __DIR__ . '/../../' . ltrim($oldImagePath, '/');
+                        if (file_exists($fullPath)) {
+                            @unlink($fullPath);
+                        }
+                    }
+                } else {
+                    // Merge: keep existing images and add new ones
+                    $existingImages = is_array($existingProduct['images']) 
+                        ? $existingProduct['images'] 
+                        : json_decode($existingProduct['images'] ?? '[]', true);
+                    $allImages = array_merge($existingImages, $newImages);
+                }
+            } else {
+                // No new images uploaded, keep existing ones
+                $allImages = is_array($existingProduct['images']) 
+                    ? $existingProduct['images'] 
+                    : json_decode($existingProduct['images'] ?? '[]', true);
+            }
+            
+            // Prepare product data
+            $productData = [
+                'name' => $name,
+                'description' => $_POST['description'] ?? '',
+                'category_id' => $categoryId,
+                'price' => $price,
+                'stock_quantity' => (int)($_POST['stock_quantity'] ?? $existingProduct['stock_quantity']),
+                'images' => $allImages,
+                'status' => $_POST['status'] ?? $existingProduct['status']
+            ];
+            
+            // Update product
+            $success = $productModel->updateProductForShopOwner($productId, $productData, $shopOwnerId);
+            
+            if ($success) {
+                $_SESSION['success'] = 'Product updated successfully';
+            } else {
+                $_SESSION['error'] = 'Failed to update product';
+            }
+            
+            return $this->redirect('/shop-owner/products');
+            
+        } catch (\Exception $e) {
+            $_SESSION['error'] = 'Error: ' . $e->getMessage();
+            return $this->redirect('/shop-owner/products');
+        }
+    }
+    
+    public function handleDeleteProduct(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $productId = (int)($_POST['product_id'] ?? 0);
+            
+            if ($productId <= 0) {
+                $_SESSION['error'] = 'Invalid product ID';
+                return $this->redirect('/shop-owner/products');
+            }
+            
+            // Get product to delete images
+            $productModel = $this->getProductModel();
+            $product = $productModel->find($productId);
+            
+            if (!$product) {
+                $_SESSION['error'] = 'Product not found';
+                return $this->redirect('/shop-owner/products');
+            }
+            
+            // Delete product from database
+            $success = $productModel->deleteProductForShopOwner($productId, $shopOwnerId);
+            
+            if ($success) {
+                // Delete image files
+                $images = is_array($product['images']) 
+                    ? $product['images'] 
+                    : json_decode($product['images'] ?? '[]', true);
+                
+                foreach ($images as $imagePath) {
+                    $fullPath = __DIR__ . '/../../public/' . ltrim($imagePath, '/');
+                    if (file_exists($fullPath)) {
+                        @unlink($fullPath);
+                    }
+                }
+                
+                $_SESSION['success'] = 'Product deleted successfully';
+            } else {
+                $_SESSION['error'] = 'Failed to delete product';
+            }
+            
+            return $this->redirect('/shop-owner/products');
+            
+        } catch (\Exception $e) {
+            $_SESSION['error'] = 'Error: ' . $e->getMessage();
+            return $this->redirect('/shop-owner/products');
+        }
+    }
+    
+    private function handleMultipleImageUploads(array $files): array
+    {
+        $uploadedPaths = [];
+        $uploadDir = __DIR__ . '/../../public/assets/images/products/';
+        
+        // Create directory if it doesn't exist
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        
+        $fileCount = count($files['name']);
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        
+        for ($i = 0; $i < $fileCount; $i++) {
+            if (empty($files['name'][$i]) || $files['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+            
+            // Validate file type
+            $fileType = mime_content_type($files['tmp_name'][$i]);
+            if (!in_array($fileType, $allowedTypes)) {
+                continue;
+            }
+            
+            // Validate file size
+            if ($files['size'][$i] > $maxSize) {
+                continue;
+            }
+            
+            // Generate unique filename
+            $extension = pathinfo($files['name'][$i], PATHINFO_EXTENSION);
+            $filename = uniqid('product_', true) . '.' . $extension;
+            $destination = $uploadDir . $filename;
+            
+            // Move uploaded file
+            if (move_uploaded_file($files['tmp_name'][$i], $destination)) {
+                $uploadedPaths[] = '/public/assets/images/products/' . $filename;
+            }
+        }
+        
+        return $uploadedPaths;
     }
 }
