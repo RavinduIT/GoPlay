@@ -433,4 +433,88 @@ class Product extends BaseModel
         $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
         return array_map([$this, 'castAttributes'], $results);
     }
+
+    /**
+     * INVENTORY MANAGEMENT METHODS
+     */
+
+    /**
+     * Get inventory with stock status for shop owner
+     */
+    public function getInventoryWithStatus(int $shopOwnerId): array
+    {
+        $sql = "SELECT 
+                    p.id, p.name, p.sku, p.stock_quantity, 
+                    p.min_stock_level, p.status, p.updated_at,
+                    c.name as category_name,
+                    CASE 
+                        WHEN p.stock_quantity = 0 THEN 'out-of-stock'
+                        WHEN p.stock_quantity <= p.min_stock_level THEN 'low-stock'
+                        ELSE 'in-stock'
+                    END as stock_status
+                FROM {$this->table} p
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.shop_owner_id = ?
+                ORDER BY 
+                    CASE 
+                        WHEN p.stock_quantity = 0 THEN 1
+                        WHEN p.stock_quantity <= p.min_stock_level THEN 2
+                        ELSE 3
+                    END,
+                    p.name ASC";
+        
+        $statement = $this->query($sql, [$shopOwnerId]);
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Add stock quantity to product
+     */
+    public function addStock(int $productId, int $quantity, int $shopOwnerId): bool
+    {
+        $sql = "UPDATE {$this->table} 
+                SET stock_quantity = stock_quantity + ?,
+                    updated_at = NOW()
+                WHERE id = ? AND shop_owner_id = ?";
+        $statement = $this->query($sql, [$quantity, $productId, $shopOwnerId]);
+        return $statement && $statement->rowCount() > 0;
+    }
+
+    /**
+     * Reduce stock quantity (for orders or removal)
+     */
+    public function removeStock(int $productId, int $quantity, string $reason, int $shopOwnerId): bool
+    {
+        $sql = "UPDATE {$this->table} 
+                SET stock_quantity = GREATEST(0, stock_quantity - ?),
+                    updated_at = NOW()
+                WHERE id = ? AND shop_owner_id = ?";
+        $statement = $this->query($sql, [$quantity, $productId, $shopOwnerId]);
+        return $statement && $statement->rowCount() > 0;
+    }
+
+    /**
+     * Update minimum stock level (reorder level)
+     */
+    public function updateMinStockLevel(int $productId, int $minLevel, int $shopOwnerId): bool
+    {
+        $sql = "UPDATE {$this->table} 
+                SET min_stock_level = ?
+                WHERE id = ? AND shop_owner_id = ?";
+        $statement = $this->query($sql, [$minLevel, $productId, $shopOwnerId]);
+        return $statement && $statement->rowCount() > 0;
+    }
+
+    /**
+     * Reduce stock for order placement
+     */
+    public function reduceStockForOrder(int $productId, int $quantity, int $shopOwnerId): bool
+    {
+        $sql = "UPDATE {$this->table} 
+                SET stock_quantity = GREATEST(0, stock_quantity - ?),
+                    updated_at = NOW()
+                WHERE id = ? AND shop_owner_id = ? AND stock_quantity >= ?";
+        $statement = $this->query($sql, [$quantity, $productId, $shopOwnerId, $quantity]);
+        return $statement && $statement->rowCount() > 0;
+    }
 }

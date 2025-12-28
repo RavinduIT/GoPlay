@@ -492,15 +492,12 @@ class ShopOwnerController extends BaseController
         try {
             $shopOwnerId = $_SESSION['user_id'];
             
-            // Get low stock products
-            $lowStockProducts = $this->getProductModel()->getLowStockProducts();
+            // Get inventory with status for shop owner
+            $inventory = $this->getProductModel()->getInventoryWithStatus($shopOwnerId);
             
             return $this->json([
                 'success' => true,
-                'inventory' => [
-                    'low_stock_products' => $lowStockProducts,
-                    'total_low_stock' => count($lowStockProducts)
-                ]
+                'inventory' => $inventory
             ]);
             
         } catch (\Exception $e) {
@@ -869,5 +866,115 @@ class ShopOwnerController extends BaseController
         }
         
         return $uploadedPaths;
+    }
+
+    // ============================================
+    // INVENTORY MANAGEMENT METHODS
+    // ============================================
+
+    /**
+     * Handle adding stock to a product
+     */
+    public function handleAddStock(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $productId = (int)($_POST['product_id'] ?? 0);
+            $quantity = (int)($_POST['quantity'] ?? 0);
+            
+            if ($productId <= 0 || $quantity <= 0) {
+                $_SESSION['error'] = 'Invalid product ID or quantity';
+                return $this->redirect('/shop-owner/inventory');
+            }
+            
+            $success = $this->getProductModel()->addStock($productId, $quantity, $shopOwnerId);
+            
+            if ($success) {
+                $_SESSION['success'] = "Added {$quantity} units to stock successfully";
+            } else {
+                $_SESSION['error'] = 'Failed to update stock';
+            }
+            
+            return $this->redirect('/shop-owner/inventory');
+            
+        } catch (\Exception $e) {
+            $_SESSION['error'] = 'Error: ' . $e->getMessage();
+            return $this->redirect('/shop-owner/inventory');
+        }
+    }
+
+    /**
+     * Handle updating minimum stock level
+     */
+    public function handleUpdateMinStock(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $productId = (int)($_POST['product_id'] ?? 0);
+            $minLevel = (int)($_POST['min_stock_level'] ?? 0);
+            
+            if ($productId <= 0 || $minLevel < 0) {
+                $_SESSION['error'] = 'Invalid input';
+                return $this->redirect('/shop-owner/inventory');
+            }
+            
+            $success = $this->getProductModel()->updateMinStockLevel($productId, $minLevel, $shopOwnerId);
+            
+            if ($success) {
+                $_SESSION['success'] = 'Reorder level updated successfully';
+            } else {
+                $_SESSION['error'] = 'Failed to update reorder level';
+            }
+            
+            return $this->redirect('/shop-owner/inventory');
+            
+        } catch (\Exception $e) {
+            $_SESSION['error'] = 'Error: ' . $e->getMessage();
+            return $this->redirect('/shop-owner/inventory');
+        }
+    }
+
+    /**
+     * Handle removing stock (damaged/expired)
+     */
+    public function handleRemoveStock(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $productId = (int)($_POST['product_id'] ?? 0);
+            $quantity = (int)($_POST['quantity'] ?? 0);
+            $reason = $_POST['reason'] ?? 'damaged';
+            
+            if ($productId <= 0 || $quantity <= 0) {
+                $_SESSION['error'] = 'Invalid input';
+                return $this->redirect('/shop-owner/inventory');
+            }
+            
+            $success = $this->getProductModel()->removeStock($productId, $quantity, $reason, $shopOwnerId);
+            
+            if ($success) {
+                $_SESSION['success'] = "Removed {$quantity} units from stock ({$reason})";
+            } else {
+                $_SESSION['error'] = 'Failed to remove stock';
+            }
+            
+            return $this->redirect('/shop-owner/inventory');
+            
+        } catch (\Exception $e) {
+            $_SESSION['error'] = 'Error: ' . $e->getMessage();
+            return $this->redirect('/shop-owner/inventory');
+        }
     }
 }
