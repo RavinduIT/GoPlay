@@ -239,6 +239,11 @@ try {
     $router->get('/api/shop-owner/analytics', 'ShopOwnerController@getAnalytics');
     $router->get('/api/shop-owner/categories', 'ShopOwnerController@getCategories');
 
+    // Inventory management form handler routes
+    $router->post('/shop-owner/inventory/add-stock', 'ShopOwnerController@handleAddStock');
+    $router->post('/shop-owner/inventory/update-min-stock', 'ShopOwnerController@handleUpdateMinStock');
+    $router->post('/shop-owner/inventory/remove-stock', 'ShopOwnerController@handleRemoveStock');
+
     // News Routes - Updated
 $router->get('/news', 'NewsController@index');
 $router->get('/news/search', 'NewsController@search');
