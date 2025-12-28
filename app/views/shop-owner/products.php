@@ -43,9 +43,10 @@ if (!empty($products)) {
 // echo "<!-- DEBUG: Total Products Stat: " . ($stats['total_products'] ?? 0) . " -->";
 
 $title = 'Products Management - Shop Owner Dashboard';
-$additionalCSS = ['/public/css/pages/shop-owner-products.css'];
+$additionalCSS = ['/public/css/pages/shop-owner-dashboard.css', '/public/css/pages/shop-owner-products.css'];
 $additionalJS = ['/public/js/pages/shop-owner-products.js'];
 ?>
+<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
 <link rel="stylesheet" href="/public/css/pages/shop-owner-products.css">
 
 <div class="shop-owner-dashboard">
@@ -208,7 +209,7 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
                                 if (!empty($product['images'])) {
                                     $images = is_array($product['images']) ? $product['images'] : json_decode($product['images'], true);
                                 }
-                                $firstImage = !empty($images) ? $images[0] : '/public/assets/images/placeholder-product.jpg';
+                                $firstImage = !empty($images) ? $images[0] : '/public/assets/images/placeholder-product.svg';
                                 
                                 // Determine stock status
                                 $stockClass = 'in-stock';
@@ -253,7 +254,7 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
                                         <img src="<?= htmlspecialchars($firstImage) ?>" 
                                              alt="<?= htmlspecialchars($product['name']) ?>" 
                                              class="product-image"
-                                             onerror="this.src='/public/assets/images/placeholder-product.jpg'">
+                                             onerror="this.src='/public/assets/images/placeholder-product.svg';">
                                         <div class="product-details">
                                             <h4><?= htmlspecialchars($product['name']) ?></h4>
                                             <span class="brand-tag"><?= htmlspecialchars($product['brand'] ?? 'No Brand') ?></span>
@@ -501,10 +502,16 @@ $additionalJS = ['/public/js/pages/shop-owner-products.js'];
                         <option value="discontinued">Discontinued</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="editProductImages">Add More Images</label>
+                <div class="form-group full-width">
+                    <label for="editProductImages">Product Images</label>
                     <input type="file" id="editProductImages" name="images[]" accept="image/*" multiple onchange="previewImages(this, 'imagePreviewEdit')">
-                    <small class="form-hint">Leave empty to keep existing images</small>
+                    <div style="margin-top: 8px;">
+                        <label style="display: inline-flex; align-items: center; font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" name="replace_images" value="1" style="margin-right: 8px;">
+                            Replace existing images (uncheck to add more images)
+                        </label>
+                    </div>
+                    <small class="form-hint">Upload new images. Check the box above to replace all existing images, or leave unchecked to add more.</small>
                 </div>
             </div>
 
