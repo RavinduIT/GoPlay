@@ -6,11 +6,13 @@ use Core\Request;
 use Core\Response;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductReview;
 
 class ShopOwnerController extends BaseController
 {
     private ?Product $productModel = null;
     private ?Category $categoryModel = null;
+    private ?ProductReview $reviewModel = null;
     
     private function getProductModel(): Product
     {
@@ -26,6 +28,14 @@ class ShopOwnerController extends BaseController
             $this->categoryModel = new Category();
         }
         return $this->categoryModel;
+    }
+    
+    private function getReviewModel(): ProductReview
+    {
+        if ($this->reviewModel === null) {
+            $this->reviewModel = new ProductReview();
+        }
+        return $this->reviewModel;
     }
     
     private function checkShopOwnerAuth(): bool
@@ -975,6 +985,94 @@ class ShopOwnerController extends BaseController
         } catch (\Exception $e) {
             $_SESSION['error'] = 'Error: ' . $e->getMessage();
             return $this->redirect('/shop-owner/inventory');
+        }
+    }
+
+    /**
+     * Get all reviews for shop owner's products (API endpoint)
+     */
+    public function getReviews(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            
+            // Get all reviews for shop owner's products
+            $reviews = $this->getReviewModel()->getShopOwnerReviews($shopOwnerId);
+            
+            // Get review statistics
+            $stats = $this->getReviewModel()->getShopOwnerReviewStats($shopOwnerId);
+            
+            return $this->json([
+                'success' => true,
+                'reviews' => $reviews,
+                'stats' => $stats
+            ]);
+            
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load reviews',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a product review (shop owner can delete reviews on their products)
+     */
+    public function deleteProductReview(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            $_SESSION['error_message'] = 'Unauthorized access';
+            return $this->redirect('/login');
+        }
+
+        try {
+            $reviewId = (int)($_POST['review_id'] ?? 0);
+            $shopOwnerId = $_SESSION['user_id'];
+            
+            if ($reviewId <= 0) {
+                $_SESSION['error_message'] = 'Invalid review ID';
+                return $this->redirect('/shop-owner/reviews');
+            }
+            
+            // Get review with product info to verify ownership
+            $review = $this->getReviewModel()->getReviewWithProduct($reviewId);
+            
+            if (!$review) {
+                $_SESSION['error_message'] = 'Review not found';
+                return $this->redirect('/shop-owner/reviews');
+            }
+            
+            // Verify that the product belongs to this shop owner
+            $product = $this->getProductModel()->find($review['product_id']);
+            if (!$product || $product['shop_owner_id'] != $shopOwnerId) {
+                $_SESSION['error_message'] = 'You can only delete reviews on your own products';
+                return $this->redirect('/shop-owner/reviews');
+            }
+            
+            // Delete the review
+            $success = $this->getReviewModel()->deleteReview($reviewId);
+            
+            if ($success) {
+                $_SESSION['success_message'] = 'Review deleted successfully';
+            } else {
+                $_SESSION['error_message'] = 'Failed to delete review';
+            }
+            
+            return $this->redirect('/shop-owner/reviews');
+            
+        } catch (\Exception $e) {
+            error_log("Delete review error: " . $e->getMessage());
+            $_SESSION['error_message'] = 'An error occurred while deleting the review';
+            return $this->redirect('/shop-owner/reviews');
         }
     }
 }

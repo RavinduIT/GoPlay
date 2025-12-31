@@ -751,11 +751,154 @@ body {
                     <div class="rating">
                         <div id="reviews-stars" class="stars"></div>
                         <span id="reviews-average" class="rating-text">4.5</span>
-                        <span class="reviews-text">based on <span id="reviews-count">24</span> reviews</span>
+                        <span class="reviews-text">based on <span id="reviews-count">0</span> reviews</span>
                     </div>
                 </div>
-                <div id="reviews-list">
-                    <!-- Reviews will be populated dynamically -->
+                
+                <!-- Review Form (for logged-in users who haven't reviewed yet) -->
+                <?php 
+                // Session is already started by the controller
+                $isLoggedIn = isset($_SESSION['user_id']);
+                $userReview = $userReview ?? null;
+                
+                // Display success/error messages
+                if (isset($_SESSION['success_message'])): ?>
+                    <div class="alert alert-success" style="margin: 1rem 0; padding: 1rem; background: #d1fae5; color: #065f46; border-radius: 8px; border-left: 4px solid #10b981;">
+                        <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['success_message']); unset($_SESSION['success_message']); ?>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if (isset($_SESSION['error_message'])): ?>
+                    <div class="alert alert-error" style="margin: 1rem 0; padding: 1rem; background: #fee2e2; color: #991b1b; border-radius: 8px; border-left: 4px solid #ef4444;">
+                        <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($_SESSION['error_message']); unset($_SESSION['error_message']); ?>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if (!$isLoggedIn): ?>
+                    <!-- Guest user - show login prompt -->
+                    <div class="review-login-prompt" style="margin: 2rem 0; padding: 2rem; background: var(--primary-light); border-radius: var(--border-radius); text-align: center;">
+                        <i class="fas fa-lock" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                        <h4 style="margin-bottom: 0.5rem;">Want to leave a review?</h4>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Please log in to write a review for this product</p>
+                        <a href="/login" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login to Review
+                        </a>
+                    </div>
+                <?php elseif ($userReview): ?>
+                    <!-- User has already reviewed - show their review with edit/delete options -->
+                    <div class="user-review-card" style="margin: 2rem 0; padding: 1.5rem; background: #fef3c7; border-radius: var(--border-radius); border-left: 4px solid var(--accent-color);">
+                        <h4 style="margin-bottom: 1rem;"><i class="fas fa-edit"></i> Your Review</h4>
+                        <div id="user-review-display">
+                            <div class="review-rating-display">
+                                <?php 
+                                for ($i = 1; $i <= 5; $i++) {
+                                    echo $i <= $userReview['rating'] ? '<i class="fas fa-star" style="color: var(--accent-color);"></i>' : '<i class="far fa-star" style="color: var(--accent-color);"></i>';
+                                }
+                                ?>
+                            </div>
+                            <?php if ($userReview['title']): ?>
+                                <h5 style="margin-top: 0.5rem;"><?php echo htmlspecialchars($userReview['title']); ?></h5>
+                            <?php endif; ?>
+                            <?php if ($userReview['review_text']): ?>
+                                <p style="margin-top: 0.5rem; color: var(--text-secondary);"><?php echo nl2br(htmlspecialchars($userReview['review_text'])); ?></p>
+                            <?php endif; ?>
+                            <div style="margin-top: 1rem;">
+                                <button onclick="showEditReviewForm()" class="btn btn-secondary" style="margin-right: 0.5rem;">
+                                    <i class="fas fa-edit"></i> Edit Review
+                                </button>
+                                <button onclick="deleteReview(<?php echo $userReview['id']; ?>)" class="btn btn-secondary" style="background: var(--danger-color); color: white; border-color: var(--danger-color);">
+                                    <i class="fas fa-trash"></i> Delete Review
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Edit form (hidden by default) -->
+                        <form id="edit-review-form" action="/product/review/update" method="POST" style="display: none;">
+                            <input type="hidden" name="review_id" value="<?php echo $userReview['id']; ?>">
+                            <input type="hidden" name="product_id" value="<?php echo $product['id'] ?? 0; ?>">
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Rating *</label>
+                                <div class="star-rating-input" id="edit-star-rating">
+                                    <i class="far fa-star" data-rating="1"></i>
+                                    <i class="far fa-star" data-rating="2"></i>
+                                    <i class="far fa-star" data-rating="3"></i>
+                                    <i class="far fa-star" data-rating="4"></i>
+                                    <i class="far fa-star" data-rating="5"></i>
+                                </div>
+                                <input type="hidden" name="rating" id="edit-rating-value" value="<?php echo $userReview['rating']; ?>" required>
+                            </div>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <label for="edit-title" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Review Title</label>
+                                <input type="text" id="edit-title" name="title" value="<?php echo htmlspecialchars($userReview['title'] ?? ''); ?>" 
+                                       style="width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: var(--border-radius);" 
+                                       maxlength="200" placeholder="Sum up your experience (optional)">
+                            </div>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <label for="edit-review-text" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Your Review</label>
+                                <textarea id="edit-review-text" name="review_text" rows="4" 
+                                          style="width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: var(--border-radius);" 
+                                          maxlength="2000" placeholder="Share your thoughts about this product (optional)"><?php echo htmlspecialchars($userReview['review_text'] ?? ''); ?></textarea>
+                            </div>
+                            
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Update Review
+                                </button>
+                                <button type="button" onclick="hideEditReviewForm()" class="btn btn-secondary" style="margin-left: 0.5rem;">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <!-- Logged-in user hasn't reviewed yet - show review form -->
+                    <div class="write-review-card" style="margin: 2rem 0; padding: 2rem; background: var(--background-light); border-radius: var(--border-radius);">
+                        <h4 style="margin-bottom: 1.5rem;"><i class="fas fa-pencil-alt"></i> Write a Review</h4>
+                        <form id="review-form" action="/product/<?php echo $product['id'] ?? 0; ?>/review" method="POST">
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Rating *</label>
+                                <div class="star-rating-input" id="star-rating">
+                                    <i class="far fa-star" data-rating="1"></i>
+                                    <i class="far fa-star" data-rating="2"></i>
+                                    <i class="far fa-star" data-rating="3"></i>
+                                    <i class="far fa-star" data-rating="4"></i>
+                                    <i class="far fa-star" data-rating="5"></i>
+                                </div>
+                                <input type="hidden" name="rating" id="rating-value" required>
+                                <small style="color: var(--text-secondary);">Click on the stars to rate this product</small>
+                            </div>
+                            
+                            <div style="margin-bottom: 1.5rem;">
+                                <label for="review-title" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Review Title</label>
+                                <input type="text" id="review-title" name="title" 
+                                       style="width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 1rem;" 
+                                       maxlength="200" placeholder="Sum up your experience (optional)">
+                            </div>
+                            
+                            <div style="margin-bottom: 1.5rem;">
+                                <label for="review-text" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Your Review</label>
+                                <textarea id="review-text" name="review_text" rows="5" 
+                                          style="width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 1rem;" 
+                                          maxlength="2000" placeholder="Share your thoughts about this product (optional)"></textarea>
+                                <small style="color: var(--text-secondary);">Maximum 2000 characters</small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Submit Review
+                            </button>
+                        </form>
+                    </div>
+                <?php endif; ?>
+                
+                <!-- All Reviews List -->
+                <div style="margin-top: 2rem;">
+                    <h4 style="margin-bottom: 1rem;">All Reviews</h4>
+                    <div id="reviews-list">
+                        <!-- Reviews will be populated dynamically -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -1074,29 +1217,195 @@ function displayRelatedProducts(products) {
 // Display reviews
 function displayReviews(reviews) {
     if (!reviews || reviews.length === 0) {
-        document.getElementById('reviews-list').innerHTML = '<p>No reviews yet. Be the first to review this product!</p>';
+        document.getElementById('reviews-list').innerHTML = '<p style="color: var(--text-secondary); padding: 1rem; text-align: center;">No reviews yet. Be the first to review this product!</p>';
         return;
     }
 
     document.getElementById('reviews-count').textContent = reviews.length;
 
     const reviewsHTML = reviews.map(review => `
-        <div class="review-item">
-            <div class="review-header">
+        <div class="review-item" style="padding: 1.5rem 0; border-bottom: 1px solid var(--border-color);">
+            <div class="review-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
                 <div>
-                    <div class="reviewer-name">${review.user_name || 'Anonymous'}</div>
+                    <div class="reviewer-name" style="font-weight: 600; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem;">
+                        ${escapeHtml(review.user_name || 'Anonymous')}
+                    </div>
                     <div class="rating">
                         ${generateStars(review.rating || 5)}
                     </div>
                 </div>
-                <div class="review-date">${formatDate(review.created_at)}</div>
+                <div class="review-date" style="color: var(--text-light); font-size: 0.9rem;">
+                    ${formatDate(review.created_at)}
+                </div>
             </div>
-            <div class="review-text">${review.comment || 'Great product!'}</div>
+            ${review.title ? `<h5 style="margin-bottom: 0.5rem; font-weight: 600;">${escapeHtml(review.title)}</h5>` : ''}
+            ${review.review_text ? `<div class="review-text" style="color: var(--text-secondary); line-height: 1.6;">${escapeHtml(review.review_text).replace(/\n/g, '<br>')}</div>` : ''}
+            ${review.is_verified_purchase ? '<span style="color: var(--success-color); font-size: 0.85rem; margin-top: 0.5rem; display: inline-block;"><i class="fas fa-check-circle"></i> Verified Purchase</span>' : ''}
         </div>
     `).join('');
 
     document.getElementById('reviews-list').innerHTML = reviewsHTML;
 }
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Initialize star rating inputs
+document.addEventListener('DOMContentLoaded', function() {
+    // For new review form
+    const starRating = document.getElementById('star-rating');
+    if (starRating) {
+        initStarRating(starRating, 'rating-value');
+    }
+    
+    // For edit review form
+    const editStarRating = document.getElementById('edit-star-rating');
+    if (editStarRating) {
+        const currentRating = document.getElementById('edit-rating-value').value;
+        initStarRating(editStarRating, 'edit-rating-value', parseInt(currentRating));
+    }
+});
+
+// Initialize interactive star rating
+function initStarRating(container, inputId, defaultRating = 0) {
+    const stars = container.querySelectorAll('i');
+    const input = document.getElementById(inputId);
+    
+    // Set default rating if provided
+    if (defaultRating > 0) {
+        stars.forEach((star, index) => {
+            if (index < defaultRating) {
+                star.classList.remove('far');
+                star.classList.add('fas');
+            }
+        });
+    }
+    
+    stars.forEach(star => {
+        // Hover effect
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            highlightStars(stars, rating);
+        });
+        
+        // Click to select
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            input.value = rating;
+            setStars(stars, rating);
+        });
+    });
+    
+    // Reset on mouse leave
+    container.addEventListener('mouseleave', function() {
+        const currentRating = input.value ? parseInt(input.value) : 0;
+        setStars(stars, currentRating);
+    });
+}
+
+// Highlight stars on hover
+function highlightStars(stars, rating) {
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.remove('far');
+            star.classList.add('fas');
+            star.style.color = 'var(--accent-color)';
+        } else {
+            star.classList.remove('fas');
+            star.classList.add('far');
+            star.style.color = 'var(--text-light)';
+        }
+    });
+}
+
+// Set stars permanently
+function setStars(stars, rating) {
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.remove('far');
+            star.classList.add('fas');
+            star.style.color = 'var(--accent-color)';
+        } else {
+            star.classList.remove('fas');
+            star.classList.add('far');
+            star.style.color = 'var(--text-light)';
+        }
+    });
+}
+
+// Show edit review form
+function showEditReviewForm() {
+    document.getElementById('user-review-display').style.display = 'none';
+    document.getElementById('edit-review-form').style.display = 'block';
+}
+
+// Hide edit review form
+function hideEditReviewForm() {
+    document.getElementById('user-review-display').style.display = 'block';
+    document.getElementById('edit-review-form').style.display = 'none';
+}
+
+// Delete review with confirmation
+function deleteReview(reviewId) {
+    if (!confirm('Are you sure you want to delete your review? This action cannot be undone.')) {
+        return;
+    }
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/product/review/delete';
+    
+    const reviewIdInput = document.createElement('input');
+    reviewIdInput.type = 'hidden';
+    reviewIdInput.name = 'review_id';
+    reviewIdInput.value = reviewId;
+    
+    const productIdInput = document.createElement('input');
+    productIdInput.type = 'hidden';
+    productIdInput.name = 'product_id';
+    productIdInput.value = productData.id;
+    
+    form.appendChild(reviewIdInput);
+    form.appendChild(productIdInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Add CSS for star rating
+const starRatingStyles = document.createElement('style');
+starRatingStyles.innerHTML = `
+    .star-rating-input {
+        display: flex;
+        gap: 0.5rem;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .star-rating-input i {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--text-light);
+    }
+    
+    .star-rating-input i:hover {
+        transform: scale(1.2);
+        color: var(--accent-color);
+    }
+    
+    .star-rating-input i.fas {
+        color: var(--accent-color);
+    }
+    
+    .review-item:last-child {
+        border-bottom: none !important;
+    }
+`;
+document.head.appendChild(starRatingStyles);
+
 
 // Generate stars for reviews
 function generateStars(rating) {

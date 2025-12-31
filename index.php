@@ -196,6 +196,12 @@ try {
     $router->get('/api/categories', 'ProductController@getCategories');
     $router->get('/api/products/search', 'ProductController@search');
     $router->get('/product/{id}', 'ProductController@show');
+    
+    // Product Review Routes (Form Submissions)
+    $router->post('/product/{id}/review', 'ProductController@submitReview');
+    $router->post('/product/review/update', 'ProductController@updateReview');
+    $router->post('/product/review/delete', 'ProductController@deleteReview');
+    
     $router->get('/news', 'NewsController@index');
     $router->get('/payment', 'PaymentController@payment');
     $router->get('/payment/success', 'PaymentController@success');
@@ -213,6 +219,10 @@ try {
     $router->post('/shop-owner/products/create', 'ShopOwnerController@handleCreateProduct');
     $router->post('/shop-owner/products/update', 'ShopOwnerController@handleUpdateProduct');
     $router->post('/shop-owner/products/delete', 'ShopOwnerController@handleDeleteProduct');
+
+    // Shop Owner review management routes
+    $router->get('/api/shop-owner/reviews', 'ShopOwnerController@getReviews');
+    $router->post('/shop-owner/reviews/delete', 'ShopOwnerController@deleteProductReview');
 
     // Redirect old .php URLs to new routes
     $router->get('/shop-owner/products.php', 'ShopOwnerController@productsPage');
