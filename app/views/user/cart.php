@@ -919,7 +919,7 @@ $additionalJS = [];
         }
 
         // Redirect to checkout page
-        window.location.href = '/payment';
+        window.location.href = '/checkout/contact-details';
     }
 
     // Show/hide loading state

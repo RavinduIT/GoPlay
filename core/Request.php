@@ -46,6 +46,19 @@ class Request
         return $this->query[$key] ?? $default;
     }
     
+    /**
+     * Get value from query params or body (unified method)
+     */
+    public function get(?string $key = null, $default = null)
+    {
+        if ($key === null) {
+            return array_merge($this->query, $this->body);
+        }
+        
+        // Check query first, then body
+        return $this->query[$key] ?? $this->body[$key] ?? $default;
+    }
+    
     public function getBody(?string $key = null, $default = null)
     {
         if ($key === null) {

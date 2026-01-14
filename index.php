@@ -182,7 +182,7 @@ try {
     $router->get('/book-ground', 'BookingController@bookGround');
     $router->get('/ground-details', 'BookingController@groundDetails');
     $router->get('/book/{id}', 'BookingController@redirectToGroundDetails');
-    $router->get('/book-coach', 'BookingController@bookCoach');
+    $router->get('/book-coach', 'CoachController@book');
 
     // Public booking API routes
     $router->post('/api/booking/ground', 'BookingController@createGroundBooking');
@@ -203,8 +203,22 @@ try {
     $router->post('/product/review/delete', 'ProductController@deleteReview');
     
     $router->get('/news', 'NewsController@index');
-    $router->get('/payment', 'PaymentController@payment');
-    $router->get('/payment/success', 'PaymentController@success');
+    
+    // ===== CHECKOUT & PAYMENT ROUTES =====
+    // Checkout pages
+    $router->get('/checkout/contact-details', 'PaymentController@contactDetails');
+    $router->get('/checkout/payment-method', 'PaymentController@paymentMethod');
+    $router->get('/checkout/payment-processing', 'PaymentController@paymentProcessing');
+    $router->get('/checkout/order-success', 'PaymentController@orderSuccess');
+    
+    // API endpoints for checkout
+    $router->post('/api/checkout/save-contact', 'PaymentController@saveContactDetails');
+    $router->post('/api/checkout/process-cod', 'PaymentController@processCashOnDelivery');
+    $router->post('/api/checkout/process-card', 'PaymentController@processCardPayment');
+    $router->post('/api/checkout/payment-webhook', 'PaymentController@paymentWebhook');
+    
+    // Cart checkout redirect
+    $router->get('/cart/checkout', 'CartController@checkout');
     
     
     // Shop Owner page routes
@@ -244,6 +258,9 @@ try {
     $router->get('/api/shop-owner/orders', 'ShopOwnerController@getOrders');
     $router->get('/api/shop-owner/orders/{id}', 'ShopOwnerController@getOrder');
     $router->put('/api/shop-owner/orders/{id}/status', 'ShopOwnerController@updateOrderStatus');
+    $router->get('/shop-owner/get-order', 'ShopOwnerController@getOrder');
+    $router->post('/shop-owner/update-order-status', 'ShopOwnerController@updateOrderStatus');
+    $router->post('/shop-owner/delete-order', 'ShopOwnerController@deleteOrder');
     $router->get('/api/shop-owner/inventory', 'ShopOwnerController@getInventory');
     $router->put('/api/shop-owner/inventory/{id}', 'ShopOwnerController@updateStock');
     $router->get('/api/shop-owner/analytics', 'ShopOwnerController@getAnalytics');

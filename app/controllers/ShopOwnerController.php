@@ -7,12 +7,15 @@ use Core\Response;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductReview;
+use App\Models\Order;
+use App\Models\OrderItem;
 
 class ShopOwnerController extends BaseController
 {
     private ?Product $productModel = null;
     private ?Category $categoryModel = null;
     private ?ProductReview $reviewModel = null;
+    private ?Order $orderModel = null;
     
     private function getProductModel(): Product
     {
@@ -38,9 +41,22 @@ class ShopOwnerController extends BaseController
         return $this->reviewModel;
     }
     
+    private function getOrderModel(): Order
+    {
+        if ($this->orderModel === null) {
+            $this->orderModel = new Order();
+        }
+        return $this->orderModel;
+    }
+    
     private function checkShopOwnerAuth(): bool
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        error_log("Auth check - User ID: " . ($_SESSION['user_id'] ?? 'none') . ", User Type: " . ($_SESSION['user_type'] ?? 'none'));
+        
         return isset($_SESSION['user_id']) && $_SESSION['user_type'] === 'shop_owner';
     }
     
@@ -461,36 +477,259 @@ class ShopOwnerController extends BaseController
             return $this->getShopOwnerResponse();
         }
         
-        return $this->json([
-            'success' => true,
-            'orders' => [],
-            'message' => 'Orders endpoint - to be implemented with Order model'
-        ]);
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            
+            // Get filters from request
+            $filters = [
+                'search' => $request->get('search', ''),
+                'status' => $request->get('status', ''),
+                'payment_method' => $request->get('payment_method', ''),
+                'payment_status' => $request->get('payment_status', ''),
+                'date_from' => $request->get('date_from', ''),
+                'date_to' => $request->get('date_to', '')
+            ];
+            
+            // Remove empty filters
+            $filters = array_filter($filters);
+            
+            $orders = $this->getOrderModel()->getOrdersByShopOwner($shopOwnerId, $filters);
+            $stats = $this->getOrderModel()->getShopOwnerOrderStats($shopOwnerId);
+            
+            return $this->json([
+                'success' => true,
+                'orders' => $orders,
+                'stats' => $stats
+            ]);
+            
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load orders',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
     
     public function getOrder(Request $request): Response
     {
+        // Clear any output buffering to prevent header issues
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Ensure session is started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        error_log("=== GET ORDER REQUEST ===");
+        error_log("Session status: " . session_status());
+        error_log("Session ID: " . session_id());
+        error_log("User ID: " . ($_SESSION['user_id'] ?? 'not set'));
+        error_log("User type: " . ($_SESSION['user_type'] ?? 'not set'));
+        error_log("REQUEST_URI: " . $_SERVER['REQUEST_URI']);
+        error_log("GET params: " . json_encode($_GET));
+        
         if (!$this->checkShopOwnerAuth()) {
+            error_log("Auth check failed - returning unauthorized");
             return $this->getShopOwnerResponse();
         }
         
-        return $this->json([
-            'success' => true,
-            'order' => null,
-            'message' => 'Order details endpoint - to be implemented with Order model'
-        ]);
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $orderId = (int)$request->get('id', 0);
+            
+            error_log("Getting order - Shop Owner ID: $shopOwnerId, Order ID: $orderId");
+            
+            if ($orderId <= 0) {
+                error_log("Invalid order ID: $orderId");
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid order ID'
+                ], 400);
+            }
+            
+            $order = $this->getOrderModel()->getOrderDetailsForShopOwner($orderId, $shopOwnerId);
+            
+            error_log("Order result: " . ($order ? json_encode($order) : "Not found"));
+            
+            if (!$order) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Order not found or access denied'
+                ], 404);
+            }
+            
+            error_log("Returning order successfully");
+            return $this->json([
+                'success' => true,
+                'order' => $order
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("Error in getOrder: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load order details',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
     
     public function updateOrderStatus(Request $request): Response
     {
+        // Clear any output buffering to prevent header issues
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Ensure session is started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        error_log("=== UPDATE ORDER STATUS REQUEST ===");
+        error_log("Method: " . $_SERVER['REQUEST_METHOD']);
+        error_log("URI: " . $_SERVER['REQUEST_URI']);
+        
         if (!$this->checkShopOwnerAuth()) {
+            error_log("Auth check failed");
             return $this->getShopOwnerResponse();
         }
         
-        return $this->json([
-            'success' => true,
-            'message' => 'Order status update endpoint - to be implemented with Order model'
-        ]);
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $rawInput = file_get_contents('php://input');
+            error_log("Raw input: " . $rawInput);
+            
+            $data = json_decode($rawInput, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                error_log("JSON decode error: " . json_last_error_msg());
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid JSON data'
+                ], 400);
+            }
+            
+            error_log("Parsed data: " . json_encode($data));
+            
+            $orderId = (int)($data['order_id'] ?? 0);
+            $newStatus = $data['status'] ?? '';
+            $paymentStatus = $data['payment_status'] ?? '';
+            
+            error_log("Order ID: $orderId, New Status: $newStatus, Payment Status: $paymentStatus");
+            
+            if ($orderId <= 0) {
+                error_log("Invalid order ID");
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid order ID'
+                ], 400);
+            }
+            
+            $messages = [];
+            $hasUpdates = false;
+            
+            // Update order status if provided
+            if (!empty($newStatus)) {
+                error_log("Updating order status to: $newStatus");
+                $result = $this->getOrderModel()->updateOrderStatusWithValidation($orderId, $newStatus, $shopOwnerId);
+                error_log("Update result: " . json_encode($result));
+                if (!$result['success']) {
+                    error_log("Order status update failed: " . $result['message']);
+                    return $this->json($result, 400);
+                }
+                $messages[] = $result['message'];
+                $hasUpdates = true;
+            }
+            
+            // Update payment status if provided
+            if (!empty($paymentStatus)) {
+                error_log("Updating payment status to: $paymentStatus");
+                $result = $this->getOrderModel()->updatePaymentStatusForOrder($orderId, $paymentStatus, $shopOwnerId);
+                error_log("Payment update result: " . json_encode($result));
+                if (!$result['success']) {
+                    error_log("Payment status update failed: " . $result['message']);
+                    return $this->json($result, 400);
+                }
+                $messages[] = $result['message'];
+                $hasUpdates = true;
+            }
+            
+            if (!$hasUpdates) {
+                error_log("No updates provided");
+                return $this->json([
+                    'success' => false,
+                    'message' => 'No updates provided'
+                ], 400);
+            }
+            
+            $finalMessage = !empty($messages) ? implode('. ', $messages) : 'Order updated successfully';
+            
+            $response = [
+                'success' => true,
+                'message' => $finalMessage
+            ];
+            
+            error_log("Returning success response: " . json_encode($response));
+            return $this->json($response);
+            
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to update order',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function deleteOrder(Request $request): Response
+    {
+        // Ensure session is started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        error_log("=== DELETE ORDER REQUEST ===");
+        
+        if (!$this->checkShopOwnerAuth()) {
+            error_log("Auth check failed");
+            return $this->getShopOwnerResponse();
+        }
+        
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $data = json_decode(file_get_contents('php://input'), true);
+            
+            error_log("Delete request data: " . json_encode($data));
+            
+            $orderId = (int)($data['order_id'] ?? 0);
+            
+            error_log("Deleting order ID: $orderId for shop owner: $shopOwnerId");
+            
+            if ($orderId <= 0) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid order ID'
+                ], 400);
+            }
+            
+            $result = $this->getOrderModel()->deleteOrderWithValidation($orderId, $shopOwnerId);
+            
+            error_log("Delete result: " . json_encode($result));
+            
+            return $this->json($result, $result['success'] ? 200 : 400);
+            
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to delete order',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
     
     public function getInventory(Request $request): Response
