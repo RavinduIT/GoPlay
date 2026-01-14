@@ -384,7 +384,7 @@ class CartAPI {
         }
 
         // Redirect to checkout page
-        window.location.href = '/payment?type=shop';
+        window.location.href = '/checkout/contact-details';
         return true;
     }
 
