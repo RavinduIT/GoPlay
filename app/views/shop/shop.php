@@ -1466,7 +1466,7 @@ $additionalJS = ['/public/js/cart-api.js'];
                 return;
             }
             // Redirect to checkout page
-            window.location.href = '/payment';
+            window.location.href = '/checkout/contact-details';
         }*/
 
 

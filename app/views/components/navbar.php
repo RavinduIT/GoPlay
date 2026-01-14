@@ -5,49 +5,55 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Function to get profile URL based on user role
-function getProfileUrl($userType) {
-    switch($userType) {
-        case 'admin':
-            return '/admin/dashboard';
-        case 'coach':
-            return '/coach/profile';
-        case 'ground_owner':
-            return '/ground-owner/profile';
-        case 'shop_owner':
-            return '/shop-owner/profile';
-        case 'user':
-        default:
-            return '/user/profile';
+if (!function_exists('getProfileUrl')) {
+    function getProfileUrl($userType) {
+        switch($userType) {
+            case 'admin':
+                return '/admin/dashboard';
+            case 'coach':
+                return '/coach/profile';
+            case 'ground_owner':
+                return '/ground-owner/profile';
+            case 'shop_owner':
+                return '/shop-owner/profile';
+            case 'user':
+            default:
+                return '/user/profile';
+        }
     }
 }
 
 // Function to get dashboard URL based on user role
-function getDashboardUrl($userType) {
-    switch($userType) {
-        case 'admin':
-            return '/admin/dashboard';
-        case 'coach':
-            return '/coach/dashboard';
-        case 'ground_owner':
-            return '/ground-owner/dashboard';
-        case 'shop_owner':
-            return '/shop-owner/dashboard';
-        case 'user':
-        default:
-            return '/dashboard';
+if (!function_exists('getDashboardUrl')) {
+    function getDashboardUrl($userType) {
+        switch($userType) {
+            case 'admin':
+                return '/admin/dashboard';
+            case 'coach':
+                return '/coach/dashboard';
+            case 'ground_owner':
+                return '/ground-owner/dashboard';
+            case 'shop_owner':
+                return '/shop-owner/dashboard';
+            case 'user':
+            default:
+                return '/dashboard';
+        }
     }
 }
 
 // Function to get user initials for default avatar
-function getUserInitials($name) {
-    $words = explode(' ', trim($name));
-    $initials = '';
-    foreach ($words as $word) {
-        if (!empty($word)) {
-            $initials .= strtoupper($word[0]);
+if (!function_exists('getUserInitials')) {
+    function getUserInitials($name) {
+        $words = explode(' ', trim($name));
+        $initials = '';
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $initials .= strtoupper($word[0]);
+            }
         }
+        return substr($initials, 0, 2); // Maximum 2 initials
     }
-    return substr($initials, 0, 2); // Maximum 2 initials
 }
 
 // Check if user has a profile picture
