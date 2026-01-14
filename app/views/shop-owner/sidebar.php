@@ -27,21 +27,21 @@ $additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
                 <a href="/shop-owner/products">
                     <i class="fas fa-box"></i>
                     <span>Products</span>
-                    <span class="badge">156</span>
+                    
                 </a>
             </li>
             <li>
                 <a href="/shop-owner/orders">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Orders</span>
-                    <span class="badge new">12</span>
+                    
                 </a>
             </li>
             <li>
                 <a href="/shop-owner/inventory">
                     <i class="fas fa-warehouse"></i>
                     <span>Inventory</span>
-                    <span class="badge warning">5</span>
+                    
                 </a>
             </li>
             <li>
@@ -50,18 +50,12 @@ $additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
                     <span>Sales</span>
                 </a>
             </li>
-            <li>
-                <a href="/shop-owner/customers">
-                    <i class="fas fa-users"></i>
-                    <span>Customers</span>
-                    <span class="badge">234</span>
-                </a>
-            </li>
+            
             <li>
                 <a href="/shop-owner/reviews">
                     <i class="fas fa-star"></i>
                     <span>Reviews</span>
-                    <span class="badge">45</span>
+                    
                 </a>
             </li>
             <li class="nav-divider"></li>
