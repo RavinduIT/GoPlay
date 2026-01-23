@@ -44,7 +44,6 @@ try {
     $stats = $orderModel->getShopOwnerOrderStats($shopOwnerId);
 } catch (\Exception $e) {
     error_log("Error loading orders: " . $e->getMessage());
-    // Display error message for debugging
     $errorMessage = $e->getMessage();
 }
 
@@ -93,7 +92,7 @@ $additionalJS = ['/public/js/pages/shop-owner-orders.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Total Orders</h3>
-                        <p class="stat-value"><?= $stats['total_orders'] ?? 0 ?></p>
+                        <p class="stat-value"><?= isset($stats['total_orders']) ? $stats['total_orders'] : 0 ?></p>
                         <span class="stat-label">All time orders</span>
                     </div>
                 </div>
@@ -104,7 +103,7 @@ $additionalJS = ['/public/js/pages/shop-owner-orders.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Pending</h3>
-                        <p class="stat-value"><?= $stats['pending_orders'] ?? 0 ?></p>
+                        <p class="stat-value"><?= isset($stats['pending_orders']) ? $stats['pending_orders'] : 0 ?></p>
                         <span class="stat-label">Awaiting processing</span>
                     </div>
                 </div>
@@ -115,7 +114,7 @@ $additionalJS = ['/public/js/pages/shop-owner-orders.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Processing</h3>
-                        <p class="stat-value"><?= $stats['processing_orders'] ?? 0 ?></p>
+                        <p class="stat-value"><?= isset($stats['processing_orders']) ? $stats['processing_orders'] : 0 ?></p>
                         <span class="stat-label">Being prepared</span>
                     </div>
                 </div>
@@ -126,7 +125,7 @@ $additionalJS = ['/public/js/pages/shop-owner-orders.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Delivered</h3>
-                        <p class="stat-value"><?= $stats['delivered_orders'] ?? 0 ?></p>
+                        <p class="stat-value"><?= isset($stats['delivered_orders']) ? $stats['delivered_orders'] : 0 ?></p>
                         <span class="stat-label">Successfully completed</span>
                     </div>
                 </div>
@@ -137,7 +136,7 @@ $additionalJS = ['/public/js/pages/shop-owner-orders.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Total Revenue</h3>
-                        <p class="stat-value">Rs. <?= number_format($stats['total_revenue'] ?? 0, 2) ?></p>
+                        <p class="stat-value">Rs. <?= isset($stats['total_revenue']) ? number_format($stats['total_revenue'], 2) : '0.00' ?></p>
                         <span class="stat-label">From your products</span>
                     </div>
                 </div>

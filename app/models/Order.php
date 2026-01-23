@@ -198,36 +198,20 @@ class Order extends BaseModel
      */
     public function getOrdersByShopOwner(int $shopOwnerId, array $filters = []): array
     {
-        // Check if shop_owner_id column exists
-        if (!$this->columnExists('products', 'shop_owner_id')) {
-            // Fallback: Return all orders (you might want to return empty array instead)
-            error_log("Warning: shop_owner_id column doesn't exist in products table");
-            
-            $sql = "SELECT DISTINCT 
-                        o.*,
-                        u.username as customer_name,
-                        u.email as customer_email,
-                        u.phone as customer_phone,
-                        COUNT(DISTINCT oi.id) as total_items
-                    FROM {$this->table} o
-                    INNER JOIN order_items oi ON o.id = oi.order_id
-                    LEFT JOIN users u ON o.user_id = u.id
-                    WHERE 1=1";
-        } else {
-            $sql = "SELECT DISTINCT 
-                        o.*,
-                        u.username as customer_name,
-                        u.email as customer_email,
-                        u.phone as customer_phone,
-                        COUNT(DISTINCT oi.id) as total_items
-                    FROM {$this->table} o
-                    INNER JOIN order_items oi ON o.id = oi.order_id
-                    INNER JOIN products p ON oi.product_id = p.id
-                    LEFT JOIN users u ON o.user_id = u.id
-                    WHERE p.shop_owner_id = ?";
-        }
+        // Build SQL query to get orders containing products from this shop owner
+        $sql = "SELECT 
+                    o.*,
+                    u.username as customer_name,
+                    u.email as customer_email,
+                    u.phone as customer_phone,
+                    COUNT(DISTINCT oi.id) as total_items
+                FROM {$this->table} o
+                INNER JOIN order_items oi ON o.id = oi.order_id
+                INNER JOIN products p ON oi.product_id = p.id
+                LEFT JOIN users u ON o.user_id = u.id
+                WHERE p.shop_owner_id = ?";
         
-        $params = $this->columnExists('products', 'shop_owner_id') ? [$shopOwnerId] : [];
+        $params = [$shopOwnerId];
         
         // Search filter
         if (!empty($filters['search'])) {
@@ -458,50 +442,64 @@ class Order extends BaseModel
      */
     public function getShopOwnerOrderStats(int $shopOwnerId): array
     {
-        if ($this->columnExists('products', 'shop_owner_id')) {
+        try {
             $sql = "SELECT 
                         COUNT(DISTINCT o.id) as total_orders,
-                        SUM(CASE WHEN o.status = 'pending' THEN 1 ELSE 0 END) as pending_orders,
-                        SUM(CASE WHEN o.status = 'processing' THEN 1 ELSE 0 END) as processing_orders,
-                        SUM(CASE WHEN o.status = 'shipped' THEN 1 ELSE 0 END) as shipped_orders,
-                        SUM(CASE WHEN o.status = 'delivered' THEN 1 ELSE 0 END) as delivered_orders,
-                        SUM(CASE WHEN o.status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders,
-                        SUM(CASE WHEN o.payment_status = 'pending' THEN 1 ELSE 0 END) as pending_payments,
-                        SUM(CASE WHEN o.payment_status = 'paid' THEN 1 ELSE 0 END) as paid_orders,
-                        SUM(oi.total_price) as total_revenue
+                        COUNT(DISTINCT CASE WHEN o.status = 'pending' THEN o.id END) as pending_orders,
+                        COUNT(DISTINCT CASE WHEN o.status = 'processing' THEN o.id END) as processing_orders,
+                        COUNT(DISTINCT CASE WHEN o.status = 'shipped' THEN o.id END) as shipped_orders,
+                        COUNT(DISTINCT CASE WHEN o.status = 'delivered' THEN o.id END) as delivered_orders,
+                        COUNT(DISTINCT CASE WHEN o.status = 'cancelled' THEN o.id END) as cancelled_orders,
+                        COUNT(DISTINCT CASE WHEN o.payment_status = 'pending' THEN o.id END) as pending_payments,
+                        COUNT(DISTINCT CASE WHEN o.payment_status = 'paid' THEN o.id END) as paid_orders,
+                        COALESCE(SUM(oi.total_price), 0) as total_revenue
                     FROM orders o
                     INNER JOIN order_items oi ON o.id = oi.order_id
                     INNER JOIN products p ON oi.product_id = p.id
                     WHERE p.shop_owner_id = ?";
-            $result = $this->queryFirst($sql, [$shopOwnerId]);
-        } else {
-            // Fallback: Get all orders stats
-            $sql = "SELECT 
-                        COUNT(DISTINCT o.id) as total_orders,
-                        SUM(CASE WHEN o.status = 'pending' THEN 1 ELSE 0 END) as pending_orders,
-                        SUM(CASE WHEN o.status = 'processing' THEN 1 ELSE 0 END) as processing_orders,
-                        SUM(CASE WHEN o.status = 'shipped' THEN 1 ELSE 0 END) as shipped_orders,
-                        SUM(CASE WHEN o.status = 'delivered' THEN 1 ELSE 0 END) as delivered_orders,
-                        SUM(CASE WHEN o.status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders,
-                        SUM(CASE WHEN o.payment_status = 'pending' THEN 1 ELSE 0 END) as pending_payments,
-                        SUM(CASE WHEN o.payment_status = 'paid' THEN 1 ELSE 0 END) as paid_orders,
-                        SUM(oi.total_price) as total_revenue
-                    FROM orders o
-                    INNER JOIN order_items oi ON o.id = oi.order_id";
-            $result = $this->queryFirst($sql, []);
+            
+            $statement = $this->query($sql, [$shopOwnerId]);
+            $result = $statement->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$result) {
+                return [
+                    'total_orders' => 0,
+                    'pending_orders' => 0,
+                    'processing_orders' => 0,
+                    'shipped_orders' => 0,
+                    'delivered_orders' => 0,
+                    'cancelled_orders' => 0,
+                    'pending_payments' => 0,
+                    'paid_orders' => 0,
+                    'total_revenue' => 0
+                ];
+            }
+            
+            return [
+                'total_orders' => (int)($result['total_orders'] ?? 0),
+                'pending_orders' => (int)($result['pending_orders'] ?? 0),
+                'processing_orders' => (int)($result['processing_orders'] ?? 0),
+                'shipped_orders' => (int)($result['shipped_orders'] ?? 0),
+                'delivered_orders' => (int)($result['delivered_orders'] ?? 0),
+                'cancelled_orders' => (int)($result['cancelled_orders'] ?? 0),
+                'pending_payments' => (int)($result['pending_payments'] ?? 0),
+                'paid_orders' => (int)($result['paid_orders'] ?? 0),
+                'total_revenue' => (float)($result['total_revenue'] ?? 0)
+            ];
+        } catch (\Exception $e) {
+            error_log("Error in getShopOwnerOrderStats: " . $e->getMessage());
+            return [
+                'total_orders' => 0,
+                'pending_orders' => 0,
+                'processing_orders' => 0,
+                'shipped_orders' => 0,
+                'delivered_orders' => 0,
+                'cancelled_orders' => 0,
+                'pending_payments' => 0,
+                'paid_orders' => 0,
+                'total_revenue' => 0
+            ];
         }
-        
-        return [
-            'total_orders' => (int)($result['total_orders'] ?? 0),
-            'pending_orders' => (int)($result['pending_orders'] ?? 0),
-            'processing_orders' => (int)($result['processing_orders'] ?? 0),
-            'shipped_orders' => (int)($result['shipped_orders'] ?? 0),
-            'delivered_orders' => (int)($result['delivered_orders'] ?? 0),
-            'cancelled_orders' => (int)($result['cancelled_orders'] ?? 0),
-            'pending_payments' => (int)($result['pending_payments'] ?? 0),
-            'paid_orders' => (int)($result['paid_orders'] ?? 0),
-            'total_revenue' => (float)($result['total_revenue'] ?? 0)
-        ];
     }
 
     /**
