@@ -505,4 +505,150 @@ class Order extends BaseModel
             return false;
         }
     }
+
+    /**
+     * Get order details for a specific user (validates ownership)
+     */
+    public function getOrderDetailsForUser(int $orderId, int $userId): ?array
+    {
+        // Get order and verify user owns it
+        $sql = "SELECT o.*,
+                    u.username as customer_name,
+                    u.email as customer_email,
+                    u.phone as customer_phone
+                FROM {$this->table} o
+                LEFT JOIN users u ON o.user_id = u.id
+                WHERE o.id = ? AND o.user_id = ?
+                LIMIT 1";
+        $order = $this->queryFirst($sql, [$orderId, $userId]);
+        
+        if (!$order) {
+            error_log("Order not found or user does not own order: $orderId");
+            return null;
+        }
+        
+        // Get all items for this order
+        $itemsSql = "SELECT 
+                        oi.*,
+                        p.name as product_name,
+                        p.sku,
+                        p.images,
+                        p.brand
+                    FROM order_items oi
+                    LEFT JOIN products p ON oi.product_id = p.id
+                    WHERE oi.order_id = ?";
+        $items = $this->query($itemsSql, [$orderId])->fetchAll(\PDO::FETCH_ASSOC);
+        
+        $order['items'] = $items;
+        return $order;
+    }
+
+    /**
+     * Check if an order can be cancelled
+     */
+    public function canBeCancelled(string $status): bool
+    {
+        return in_array($status, ['pending', 'processing']);
+    }
+
+    /**
+     * Cancel an order with user ownership validation
+     */
+    public function cancelOrder(int $orderId, int $userId, string $reason = ''): array
+    {
+        try {
+            // Get order and verify ownership
+            $order = $this->queryFirst(
+                "SELECT * FROM {$this->table} WHERE id = ? AND user_id = ?",
+                [$orderId, $userId]
+            );
+            
+            if (!$order) {
+                return [
+                    'success' => false,
+                    'message' => 'Order not found or access denied'
+                ];
+            }
+            
+            // Check if order can be cancelled
+            if (!$this->canBeCancelled($order['status'])) {
+                return [
+                    'success' => false,
+                    'message' => 'Order cannot be cancelled. It has already been ' . $order['status']
+                ];
+            }
+            
+            // Handle refund logic for paid card payments
+            $paymentStatus = $order['payment_status'];
+            if ($order['payment_method'] === 'card' && $order['payment_status'] === 'paid') {
+                $paymentStatus = 'refund_pending';
+            }
+            
+            // Update order status
+            $updated = $this->update($orderId, [
+                'status' => 'cancelled',
+                'payment_status' => $paymentStatus,
+                'notes' => $order['notes'] . "\n\nCancelled by customer: " . $reason
+            ]);
+            
+            if (!$updated) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to cancel order'
+                ];
+            }
+            
+            return [
+                'success' => true,
+                'message' => 'Order cancelled successfully',
+                'refund_status' => $paymentStatus === 'refund_pending' ? 'Refund will be processed in 5-7 business days' : null
+            ];
+            
+        } catch (\Exception $e) {
+            error_log("Error cancelling order: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Failed to cancel order: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get user order statistics
+     */
+    public function getUserOrderStats(int $userId): array
+    {
+        try {
+            $sql = "SELECT 
+                        COUNT(DISTINCT o.id) as total_orders,
+                        COUNT(DISTINCT CASE WHEN o.status = 'pending' THEN o.id END) as pending_orders,
+                        COUNT(DISTINCT CASE WHEN o.status = 'processing' THEN o.id END) as processing_orders,
+                        COUNT(DISTINCT CASE WHEN o.status = 'delivered' THEN o.id END) as delivered_orders,
+                        COUNT(DISTINCT CASE WHEN o.status = 'cancelled' THEN o.id END) as cancelled_orders,
+                        COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.total_amount ELSE 0 END), 0) as total_spent
+                    FROM orders o
+                    WHERE o.user_id = ?";
+            
+            $result = $this->db->query($sql, [$userId])->fetch(\PDO::FETCH_ASSOC);
+            
+            return $result ?: [
+                'total_orders' => 0,
+                'pending_orders' => 0,
+                'processing_orders' => 0,
+                'delivered_orders' => 0,
+                'cancelled_orders' => 0,
+                'total_spent' => 0
+            ];
+        } catch (\Exception $e) {
+            error_log("Error getting user order stats: " . $e->getMessage());
+            return [
+                'total_orders' => 0,
+                'pending_orders' => 0,
+                'processing_orders' => 0,
+                'delivered_orders' => 0,
+                'cancelled_orders' => 0,
+                'total_spent' => 0
+            ];
+        }
+    }
 }

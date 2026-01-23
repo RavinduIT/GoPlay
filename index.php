@@ -292,6 +292,9 @@ $router->get('/news/{slug}', 'NewsController@show');
     $router->post('/api/user/change-password', 'UserController@changePassword');
     $router->get('/api/user/bookings', 'UserController@getBookings');
     $router->get('/api/user/orders', 'UserController@getOrders');
+    $router->get('/api/user/orders/stats', 'UserController@getOrderStats');
+    $router->get('/api/user/orders/{id}', 'UserController@getOrderDetails');
+    $router->post('/api/user/orders/{id}/cancel', 'UserController@cancelOrder');
 
     // User Ground Booking API routes
     $router->get('/api/user/ground-bookings', 'UserController@getGroundBookings');
