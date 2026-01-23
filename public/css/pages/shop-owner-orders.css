@@ -671,6 +671,29 @@
     color: #1e293b;
 }
 
+/* Multi-seller Notice */
+.multi-seller-notice {
+    padding: 1rem 1.25rem;
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1rem 0;
+}
+
+.multi-seller-notice i {
+    color: #f59e0b;
+    font-size: 1.125rem;
+}
+
+.multi-seller-notice span {
+    color: #92400e;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
 .order-summary {
     padding: 1.5rem;
     background: #f8fafc;
