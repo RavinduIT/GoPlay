@@ -6,6 +6,7 @@ use Core\Request;
 use Core\Response;
 use App\Models\User;
 use App\Models\GroundBooking;
+use App\Models\Order;
 
 /**
  * User Controller
@@ -16,11 +17,13 @@ class UserController extends BaseController
 {
     protected $userModel;
     protected $groundBookingModel;
+    protected $orderModel;
 
     public function __construct()
     {
         $this->userModel = new User();
         $this->groundBookingModel = new GroundBooking();
+        $this->orderModel = new Order();
     }
 
     /**
@@ -340,14 +343,166 @@ class UserController extends BaseController
         }
 
         try {
-            $orders = $this->userModel->getOrders($_SESSION['user_id']);
+            $userId = $_SESSION['user_id'];
+            
+            // Get filter parameters
+            $status = $request->get('status', '');
+            $paymentStatus = $request->get('payment_status', '');
+            $search = $request->get('search', '');
+            $dateFrom = $request->get('date_from', '');
+            $dateTo = $request->get('date_to', '');
+            $sort = $request->get('sort', 'newest');
+            
+            $orders = $this->userModel->getOrders($userId);
+            
+            // Apply filters
+            if ($status) {
+                $orders = array_filter($orders, fn($o) => $o['status'] === $status);
+            }
+            if ($paymentStatus) {
+                $orders = array_filter($orders, fn($o) => $o['payment_status'] === $paymentStatus);
+            }
+            if ($search) {
+                $orders = array_filter($orders, fn($o) => 
+                    stripos($o['order_number'], $search) !== false ||
+                    stripos($o['items'], $search) !== false
+                );
+            }
+            if ($dateFrom) {
+                $orders = array_filter($orders, fn($o) => $o['created_at'] >= $dateFrom);
+            }
+            if ($dateTo) {
+                $orders = array_filter($orders, fn($o) => $o['created_at'] <= $dateTo . ' 23:59:59');
+            }
+            
+            // Apply sorting
+            if ($sort === 'oldest') {
+                usort($orders, fn($a, $b) => strtotime($a['created_at']) - strtotime($b['created_at']));
+            } elseif ($sort === 'highest') {
+                usort($orders, fn($a, $b) => $b['total_amount'] - $a['total_amount']);
+            } elseif ($sort === 'lowest') {
+                usort($orders, fn($a, $b) => $a['total_amount'] - $b['total_amount']);
+            }
+            // Default is newest (already sorted in model)
             
             return $this->json([
                 'success' => true,
-                'orders' => $orders
+                'orders' => array_values($orders)
             ]);
         } catch (\Exception $e) {
             return $this->json(['error' => 'Failed to fetch orders: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get order details
+     */
+    public function getOrderDetails(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            // Get ID from route parameter
+            $orderId = (int)$request->getParam('id', 0);
+            $userId = $_SESSION['user_id'];
+            
+            if ($orderId <= 0) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid order ID'
+                ], 400);
+            }
+            
+            $order = $this->orderModel->getOrderDetailsForUser($orderId, $userId);
+            
+            if (!$order) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Order not found or access denied'
+                ], 404);
+            }
+            
+            return $this->json([
+                'success' => true,
+                'order' => $order
+            ]);
+            
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load order details',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get user order statistics
+     */
+    public function getOrderStats(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $stats = $this->orderModel->getUserOrderStats($_SESSION['user_id']);
+            
+            return $this->json([
+                'success' => true,
+                'stats' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Failed to fetch stats: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Cancel an order
+     */
+    public function cancelOrder(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            // Get ID from route parameter
+            $orderId = (int)$request->getParam('id', 0);
+            $userId = $_SESSION['user_id'];
+            
+            // Get reason from JSON body
+            $body = $request->getJsonBody();
+            $reason = $body['reason'] ?? '';
+            
+            if ($orderId <= 0) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid order ID'
+                ], 400);
+            }
+            
+            $result = $this->orderModel->cancelOrder($orderId, $userId, $reason);
+            
+            return $this->json($result, $result['success'] ? 200 : 400);
+            
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to cancel order',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -365,10 +520,10 @@ class UserController extends BaseController
     /**
      * My orders page  
      */
-    public function myOrderss(Request $request): Response
+    public function myOrders(Request $request): Response
     {
         $session = $this->requireAuth();
-        return $this->view('user/orders', [
+        return $this->view('user/my-orders', [
             'title' => 'My Orders - GoPlay Sports Platform'
         ]);
     }
