@@ -239,11 +239,19 @@ function displayOrderDetails(order) {
                 </table>
             </div>
             
+            ${order.is_multi_seller ? `
+            <div class="multi-seller-notice">
+                <i class="fas fa-info-circle"></i>
+                <span>This order contains products from multiple sellers. Showing only your products (${order.shop_owner_item_count} of ${order.total_item_count} items).</span>
+            </div>
+            ` : ''}
+            
             <div class="order-summary">
                 <div class="summary-row">
-                    <label>Subtotal:</label>
-                    <span>Rs. ${parseFloat(order.subtotal).toFixed(2)}</span>
+                    <label>Your Products Subtotal:</label>
+                    <span>Rs. ${parseFloat(order.shop_owner_subtotal || 0).toFixed(2)}</span>
                 </div>
+                ${!order.is_multi_seller ? `
                 <div class="summary-row">
                     <label>Tax:</label>
                     <span>Rs. ${parseFloat(order.tax_amount || 0).toFixed(2)}</span>
@@ -257,11 +265,11 @@ function displayOrderDetails(order) {
                     <label>Discount:</label>
                     <span>- Rs. ${parseFloat(order.discount_amount).toFixed(2)}</span>
                 </div>
-                ` : ''}
-                <div class="summary-row total">
-                    <label>Total Amount:</label>
+                ` : ''}\n                <div class="summary-row total">
+                    <label>Order Total:</label>
                     <span>Rs. ${parseFloat(order.total_amount).toFixed(2)}</span>
                 </div>
+                ` : ''}
             </div>
             
             <div class="payment-info">

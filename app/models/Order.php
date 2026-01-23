@@ -262,72 +262,55 @@ class Order extends BaseModel
      */
     public function getOrderDetailsForShopOwner(int $orderId, int $shopOwnerId): ?array
     {
-        // Check once if column exists and store result
-        $hasShopOwnerColumn = $this->columnExists('products', 'shop_owner_id');
-        
-        error_log("getOrderDetailsForShopOwner - Column exists: " . ($hasShopOwnerColumn ? 'YES' : 'NO'));
-        
-        // Get order with customer details
-        if ($hasShopOwnerColumn) {
-            $sql = "SELECT DISTINCT o.*,
-                        u.username as customer_name,
-                        u.email as customer_email,
-                        u.phone as customer_phone
-                    FROM {$this->table} o
-                    INNER JOIN order_items oi ON o.id = oi.order_id
-                    INNER JOIN products p ON oi.product_id = p.id
-                    LEFT JOIN users u ON o.user_id = u.id
-                    WHERE o.id = ? AND p.shop_owner_id = ?
-                    LIMIT 1";
-            $order = $this->queryFirst($sql, [$orderId, $shopOwnerId]);
-        } else {
-            // Fallback when shop_owner_id doesn't exist
-            error_log("Using fallback query without shop_owner_id");
-            $sql = "SELECT o.*,
-                        u.username as customer_name,
-                        u.email as customer_email,
-                        u.phone as customer_phone
-                    FROM {$this->table} o
-                    LEFT JOIN users u ON o.user_id = u.id
-                    WHERE o.id = ?
-                    LIMIT 1";
-            $order = $this->queryFirst($sql, [$orderId]);
-        }
+        // Get order with customer details - verify shop owner has at least one product in this order
+        $sql = "SELECT DISTINCT o.*,
+                    u.username as customer_name,
+                    u.email as customer_email,
+                    u.phone as customer_phone
+                FROM {$this->table} o
+                INNER JOIN order_items oi ON o.id = oi.order_id
+                INNER JOIN products p ON oi.product_id = p.id
+                LEFT JOIN users u ON o.user_id = u.id
+                WHERE o.id = ? AND p.shop_owner_id = ?
+                LIMIT 1";
+        $order = $this->queryFirst($sql, [$orderId, $shopOwnerId]);
         
         if (!$order) {
-            error_log("Order not found: $orderId");
+            error_log("Order not found or shop owner has no products in order: $orderId");
             return null;
         }
         
-        // Get items from order using same column check
-        if ($hasShopOwnerColumn) {
-            $itemsSql = "SELECT 
-                            oi.*,
-                            p.name as product_name,
-                            p.sku,
-                            p.images,
-                            p.brand
-                        FROM order_items oi
-                        INNER JOIN products p ON oi.product_id = p.id
-                        WHERE oi.order_id = ? AND p.shop_owner_id = ?";
-            $items = $this->query($itemsSql, [$orderId, $shopOwnerId])->fetchAll(\PDO::FETCH_ASSOC);
-        } else {
-            // Fallback: Get all items
-            error_log("Getting items without shop_owner_id filter");
-            $itemsSql = "SELECT 
-                            oi.*,
-                            p.name as product_name,
-                            p.sku,
-                            p.images,
-                            p.brand
-                        FROM order_items oi
-                        INNER JOIN products p ON oi.product_id = p.id
-                        WHERE oi.order_id = ?";
-            $items = $this->query($itemsSql, [$orderId])->fetchAll(\PDO::FETCH_ASSOC);
+        // Get ONLY items belonging to this shop owner
+        $itemsSql = "SELECT 
+                        oi.*,
+                        p.name as product_name,
+                        p.sku,
+                        p.images,
+                        p.brand
+                    FROM order_items oi
+                    INNER JOIN products p ON oi.product_id = p.id
+                    WHERE oi.order_id = ? AND p.shop_owner_id = ?";
+        $items = $this->query($itemsSql, [$orderId, $shopOwnerId])->fetchAll(\PDO::FETCH_ASSOC);
+        
+        // Calculate shop owner's subtotal from their items only
+        $shopOwnerSubtotal = 0;
+        foreach ($items as $item) {
+            $shopOwnerSubtotal += floatval($item['total_price']);
         }
         
-        error_log("Found " . count($items) . " items for order $orderId");
+        // Check if this is a multi-seller order by counting total items
+        $totalItemsSql = "SELECT COUNT(*) as total_count FROM order_items WHERE order_id = ?";
+        $totalItemsResult = $this->query($totalItemsSql, [$orderId])->fetch(\PDO::FETCH_ASSOC);
+        $isMultiSeller = ($totalItemsResult['total_count'] > count($items));
+        
+        error_log("Found " . count($items) . " items for shop owner $shopOwnerId in order $orderId");
+        
         $order['items'] = $items;
+        $order['shop_owner_subtotal'] = $shopOwnerSubtotal;
+        $order['is_multi_seller'] = $isMultiSeller;
+        $order['shop_owner_item_count'] = count($items);
+        $order['total_item_count'] = $totalItemsResult['total_count'];
+        
         return $order;
     }
 
