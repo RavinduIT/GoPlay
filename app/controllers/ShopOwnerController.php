@@ -9,6 +9,8 @@ use App\Models\Category;
 use App\Models\ProductReview;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\ShopOwnerProfile;
+use App\Models\User;
 
 class ShopOwnerController extends BaseController
 {
@@ -16,6 +18,8 @@ class ShopOwnerController extends BaseController
     private ?Category $categoryModel = null;
     private ?ProductReview $reviewModel = null;
     private ?Order $orderModel = null;
+    private ?ShopOwnerProfile $profileModel = null;
+    private ?User $userModel = null;
     
     private function getProductModel(): Product
     {
@@ -47,6 +51,22 @@ class ShopOwnerController extends BaseController
             $this->orderModel = new Order();
         }
         return $this->orderModel;
+    }
+    
+    private function getProfileModel(): ShopOwnerProfile
+    {
+        if ($this->profileModel === null) {
+            $this->profileModel = new ShopOwnerProfile();
+        }
+        return $this->profileModel;
+    }
+    
+    private function getUserModel(): User
+    {
+        if ($this->userModel === null) {
+            $this->userModel = new User();
+        }
+        return $this->userModel;
     }
     
     private function checkShopOwnerAuth(): bool
@@ -129,7 +149,247 @@ class ShopOwnerController extends BaseController
             return $this->redirect('/login');
         }
         
-        return $this->view('shop-owner/profile');
+        // Get user and profile data
+        $userId = $_SESSION['user_id'];
+        $user = $this->getUserModel()->find($userId);
+        $profile = $this->getProfileModel()->getByUserId($userId);
+        
+        return $this->view('shop-owner/profile', [
+            'user' => $user,
+            'profile' => $profile
+        ]);
+    }
+    
+    public function getProfileData(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+        
+        try {
+            $userId = $_SESSION['user_id'];
+            $user = $this->getUserModel()->find($userId);
+            $profile = $this->getProfileModel()->getByUserId($userId);
+            
+            return $this->json([
+                'success' => true,
+                'user' => $user,
+                'profile' => $profile
+            ]);
+            
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load profile data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function updateProfile(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+        
+        try {
+            $userId = $_SESSION['user_id'];
+            $data = $request->getBody();
+            
+            error_log("ShopOwnerController: Update request from user_id: " . $userId);
+            error_log("ShopOwnerController: Request body: " . json_encode($data));
+            
+            // Update shop owner profile
+            $updated = $this->getProfileModel()->updateProfile($userId, $data);
+            
+            if ($updated) {
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Profile updated successfully',
+                    'profile' => $this->getProfileModel()->getByUserId($userId)
+                ]);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to update profile'
+                ], 400);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Profile update error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'An error occurred while updating profile',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function uploadShopLogo(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+        
+        try {
+            $userId = $_SESSION['user_id'];
+            
+            if (!isset($_FILES['shop_logo']) || $_FILES['shop_logo']['error'] !== UPLOAD_ERR_OK) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'No file uploaded or upload error'
+                ], 400);
+            }
+            
+            $logoPath = $this->getProfileModel()->uploadShopLogo($userId, $_FILES['shop_logo']);
+            
+            if ($logoPath) {
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Shop logo uploaded successfully',
+                    'logo_url' => '/' . $logoPath
+                ]);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to upload logo. Please check file type and size.'
+                ], 400);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Logo upload error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'An error occurred while uploading logo',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function uploadShopBanner(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+        
+        try {
+            $userId = $_SESSION['user_id'];
+            
+            if (!isset($_FILES['shop_banner']) || $_FILES['shop_banner']['error'] !== UPLOAD_ERR_OK) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'No file uploaded or upload error'
+                ], 400);
+            }
+            
+            $bannerPath = $this->getProfileModel()->uploadShopBanner($userId, $_FILES['shop_banner']);
+            
+            if ($bannerPath) {
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Shop banner uploaded successfully',
+                    'banner_url' => '/' . $bannerPath
+                ]);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to upload banner. Please check file type and size.'
+                ], 400);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Banner upload error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'An error occurred while uploading banner',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function uploadDocument(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+        
+        try {
+            $userId = $_SESSION['user_id'];
+            $documentType = $request->getQuery('type', 'license'); // 'license' or 'tax'
+            
+            $fileKey = $documentType === 'license' ? 'business_license' : 'tax_document';
+            
+            if (!isset($_FILES[$fileKey]) || $_FILES[$fileKey]['error'] !== UPLOAD_ERR_OK) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'No file uploaded or upload error'
+                ], 400);
+            }
+            
+            $documentPath = $this->getProfileModel()->uploadDocument($userId, $_FILES[$fileKey], $documentType);
+            
+            if ($documentPath) {
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Document uploaded successfully',
+                    'document_url' => '/' . $documentPath
+                ]);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to upload document. Please check file type and size.'
+                ], 400);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Document upload error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'An error occurred while uploading document',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function uploadShopImages(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+        
+        try {
+            $userId = $_SESSION['user_id'];
+            
+            if (!isset($_FILES['shop_images']) || empty($_FILES['shop_images']['tmp_name'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'No files uploaded'
+                ], 400);
+            }
+            
+            $uploadedImages = $this->getProfileModel()->uploadShopImages($userId, $_FILES['shop_images']);
+            
+            if (!empty($uploadedImages)) {
+                return $this->json([
+                    'success' => true,
+                    'message' => count($uploadedImages) . ' image(s) uploaded successfully',
+                    'images' => array_map(function($path) { return '/' . $path; }, $uploadedImages)
+                ]);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to upload images. Please check file types and sizes.'
+                ], 400);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Shop images upload error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'An error occurred while uploading images',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
     
     public function getDashboardStats(Request $request): Response
