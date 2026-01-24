@@ -186,6 +186,63 @@ class Product extends BaseModel
     }
     
     /**
+     * Get product with category and shop owner details
+     */
+    public function getProductWithShopOwner(int $id): ?array
+    {
+        $sql = "SELECT p.*, 
+                       c.name as category_name, c.slug as category_slug,
+                       sop.shop_name, sop.business_name, sop.business_description,
+                       sop.business_phone, sop.business_email, sop.shop_address,
+                       sop.shop_city, sop.shop_state, sop.shop_postal_code,
+                       sop.shop_logo, sop.website_url, sop.facebook, sop.instagram,
+                       sop.twitter, sop.operating_hours, sop.delivery_options,
+                       sop.total_products, sop.total_sales, sop.average_rating,
+                       sop.total_reviews, sop.return_policy, sop.warranty_policy,
+                       u.first_name as owner_first_name, u.last_name as owner_last_name,
+                       u.email as owner_email
+                FROM {$this->table} p 
+                LEFT JOIN categories c ON p.category_id = c.id 
+                LEFT JOIN shop_owner_profiles sop ON p.shop_owner_id = sop.user_id
+                LEFT JOIN users u ON sop.user_id = u.id
+                WHERE p.id = ? AND p.status = 'active'";
+        
+        $result = $this->query($sql, [$id])->fetch(\PDO::FETCH_ASSOC);
+        
+        if (!$result) {
+            return null;
+        }
+
+        // Cast attributes and ensure arrays are properly handled
+        $product = $this->castAttributes($result);
+        
+        // Ensure images is an array
+        if (!is_array($product['images'])) {
+            $product['images'] = $product['images'] ? [$product['images']] : [];
+        }
+        
+        // Add original_price if compare_price exists
+        if ($product['compare_price'] && $product['compare_price'] > $product['price']) {
+            $product['original_price'] = $product['compare_price'];
+        }
+        
+        // Set default rating if not set
+        if (!$product['rating']) {
+            $product['rating'] = 4.5;
+        }
+        
+        // Parse JSON fields from shop owner profile
+        if (!empty($product['operating_hours']) && is_string($product['operating_hours'])) {
+            $product['operating_hours'] = json_decode($product['operating_hours'], true);
+        }
+        if (!empty($product['delivery_options']) && is_string($product['delivery_options'])) {
+            $product['delivery_options'] = json_decode($product['delivery_options'], true);
+        }
+        
+        return $product;
+    }
+    
+    /**
      * Get related products (same category, different product)
      */
     public function getRelatedProducts(int $productId, int $categoryId, int $limit = 4): array
