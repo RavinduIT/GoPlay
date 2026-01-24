@@ -5,6 +5,8 @@ namespace App\Controllers;
 use Core\Request;
 use Core\Response;
 use App\Models\User;
+use App\Models\ShopOwnerProfile;
+use App\Models\GroundOwnerProfile;
 
 class AdminController extends BaseController
 {
@@ -250,6 +252,9 @@ class AdminController extends BaseController
                 $userUpdateSql = "UPDATE users SET user_type = ? WHERE id = ?";
                 $userUpdateStmt = $db->prepare($userUpdateSql);
                 $userUpdateStmt->execute([$application['provider_type'], $application['user_id']]);
+                
+                // Auto-create profile based on provider type
+                $this->createProviderProfile($application);
             }
 
             // TODO: Send approval email to applicant
@@ -265,6 +270,105 @@ class AdminController extends BaseController
                 'message' => 'Failed to approve application'
             ], 500);
         }
+    }
+    
+    /**
+     * Create provider profile based on application data
+     */
+    private function createProviderProfile(array $application): void
+    {
+        try {
+            $userId = $application['user_id'];
+            $providerType = $application['provider_type'];
+            
+            switch ($providerType) {
+                case 'shop_owner':
+                    $this->createShopOwnerProfile($userId, $application);
+                    break;
+                    
+                case 'ground_owner':
+                    $this->createGroundOwnerProfile($userId, $application);
+                    break;
+                    
+                case 'coach':
+                    // Coach profile creation can be added here if needed
+                    break;
+            }
+        } catch (\Exception $e) {
+            error_log("Error creating provider profile: " . $e->getMessage());
+            // Don't throw error - profile can be completed later by user
+        }
+    }
+    
+    /**
+     * Create shop owner profile from application data
+     */
+    private function createShopOwnerProfile(int $userId, array $application): void
+    {
+        $shopOwnerProfile = new ShopOwnerProfile();
+        
+        // Check if profile already exists
+        $existingProfile = $shopOwnerProfile->getByUserId($userId);
+        if ($existingProfile) {
+            return; // Profile already exists
+        }
+        
+        // Prepare profile data from application
+        $profileData = [
+            'user_id' => $userId,
+            'shop_name' => $application['shop_name'] ?? '',
+            'business_name' => $application['shop_name'] ?? '',
+            'business_registration_number' => $application['business_registration_number'] ?? '',
+            'tax_identification_number' => $application['business_registration_number'] ?? '',
+            'business_type' => $application['business_type'] ?? 'sole_proprietor',
+            'year_established' => $application['year_established'] ?? null,
+            'number_of_employees' => $application['number_of_employees'] ?? 0,
+            'business_phone' => $application['phone'] ?? '',
+            'business_email' => $application['email'] ?? '',
+            'shop_address' => $application['shop_address'] ?? $application['address'] ?? '',
+            'shop_city' => $application['shop_city'] ?? $application['city'] ?? '',
+            'shop_postal_code' => $application['shop_postal'] ?? $application['postal_code'] ?? '',
+            'business_description' => $application['business_description'] ?? '',
+            'product_categories' => $application['product_categories'] ?? null,
+            'brand_names' => $application['brand_names'] ?? '',
+            'website_url' => $application['website_url'] ?? '',
+            'social_media' => $application['social_media'] ?? '',
+            'business_license_document' => $application['business_registration'] ?? '',
+            'tax_document' => $application['tax_document'] ?? '',
+            'shop_images' => $application['shop_images'] ?? null,
+            'delivery_options' => $application['delivery_options'] ?? null,
+            'profile_completion_percentage' => 35 // Base percentage from application
+        ];
+        
+        // Create the profile
+        $shopOwnerProfile->create($profileData);
+    }
+    
+    /**
+     * Create ground owner profile from application data
+     */
+    private function createGroundOwnerProfile(int $userId, array $application): void
+    {
+        $groundOwnerProfile = new GroundOwnerProfile();
+        
+        // Check if profile already exists
+        $existingProfile = $groundOwnerProfile->getByUserId($userId);
+        if ($existingProfile) {
+            return; // Profile already exists
+        }
+        
+        // Prepare profile data from application
+        $profileData = [
+            'user_id' => $userId,
+            'business_name' => $application['facility_name'] ?? '',
+            'business_phone' => $application['phone'] ?? '',
+            'business_email' => $application['email'] ?? '',
+            'business_address' => $application['facility_address'] ?? '',
+            'profile_completion_percentage' => 30
+        ];
+        
+        // Create the profile
+        $groundOwnerProfile->create($profileData);
     }
 
     /**

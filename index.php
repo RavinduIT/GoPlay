@@ -265,6 +265,14 @@ try {
     $router->put('/api/shop-owner/inventory/{id}', 'ShopOwnerController@updateStock');
     $router->get('/api/shop-owner/analytics', 'ShopOwnerController@getAnalytics');
     $router->get('/api/shop-owner/categories', 'ShopOwnerController@getCategories');
+    
+    // Shop Owner Profile API routes
+    $router->get('/api/shop-owner/profile', 'ShopOwnerController@getProfileData');
+    $router->post('/api/shop-owner/profile/update', 'ShopOwnerController@updateProfile');
+    $router->post('/api/shop-owner/profile/upload-logo', 'ShopOwnerController@uploadShopLogo');
+    $router->post('/api/shop-owner/profile/upload-banner', 'ShopOwnerController@uploadShopBanner');
+    $router->post('/api/shop-owner/profile/upload-document', 'ShopOwnerController@uploadDocument');
+    $router->post('/api/shop-owner/profile/upload-images', 'ShopOwnerController@uploadShopImages');
 
     // Inventory management form handler routes
     $router->post('/shop-owner/inventory/add-stock', 'ShopOwnerController@handleAddStock');

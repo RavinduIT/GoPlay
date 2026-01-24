@@ -59,6 +59,18 @@ class Request
         return $this->query[$key] ?? $this->body[$key] ?? $default;
     }
     
+    /**
+     * Get value from query parameters only ($_GET)
+     */
+    public function query(?string $key = null, $default = null)
+    {
+        if ($key === null) {
+            return $this->query;
+        }
+        
+        return $this->query[$key] ?? $default;
+    }
+    
     public function getBody(?string $key = null, $default = null)
     {
         if ($key === null) {
@@ -86,6 +98,11 @@ class Request
         }
 
         $contentType = $this->getHeader('content-type') ?? '';
+        
+        // Debug logging
+        error_log("Request Content-Type: " . $contentType);
+        error_log("Raw Input Length: " . strlen(self::$rawInput));
+        error_log("Raw Input Sample: " . substr(self::$rawInput, 0, 200));
 
         if (strpos($contentType, 'application/json') !== false) {
             $decoded = json_decode(self::$rawInput, true);
@@ -94,10 +111,22 @@ class Request
             if ($decoded === null && !empty(self::$rawInput)) {
                 error_log("JSON Parse Error: " . json_last_error_msg());
                 error_log("Raw Input: " . self::$rawInput);
+            } else if ($decoded !== null) {
+                error_log("JSON Decoded Successfully: " . count($decoded) . " fields");
             }
 
             // Return decoded data if valid, otherwise empty array
             return is_array($decoded) ? $decoded : [];
+        }
+        
+        // If no content-type or not JSON, try to detect JSON anyway
+        if (!empty(self::$rawInput) && (self::$rawInput[0] === '{' || self::$rawInput[0] === '[')) {
+            error_log("Attempting JSON decode without content-type header");
+            $decoded = json_decode(self::$rawInput, true);
+            if (is_array($decoded)) {
+                error_log("JSON decoded successfully: " . count($decoded) . " fields");
+                return $decoded;
+            }
         }
 
         return $_POST;
@@ -112,6 +141,16 @@ class Request
                 $name = strtolower(str_replace('_', '-', substr($key, 5)));
                 $headers[$name] = $value;
             }
+        }
+        
+        // Add Content-Type if exists (doesn't have HTTP_ prefix)
+        if (isset($_SERVER['CONTENT_TYPE'])) {
+            $headers['content-type'] = $_SERVER['CONTENT_TYPE'];
+        }
+        
+        // Add Content-Length if exists
+        if (isset($_SERVER['CONTENT_LENGTH'])) {
+            $headers['content-length'] = $_SERVER['CONTENT_LENGTH'];
         }
         
         return $headers;
