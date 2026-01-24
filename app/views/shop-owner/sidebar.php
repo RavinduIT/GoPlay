@@ -44,12 +44,6 @@ $additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
                     
                 </a>
             </li>
-            <li>
-                <a href="/shop-owner/sales">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Sales</span>
-                </a>
-            </li>
             
             <li>
                 <a href="/shop-owner/reviews">
