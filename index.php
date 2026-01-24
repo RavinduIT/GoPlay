@@ -227,7 +227,6 @@ try {
     $router->get('/shop-owner/orders', 'ShopOwnerController@ordersPage');
     $router->get('/shop-owner/reviews', 'ShopOwnerController@reviewsPage');
     $router->get('/shop-owner/profile', 'ShopOwnerController@profilePage');
-    $router->get('/shop-owner/sales', 'ShopOwnerController@salesPage');
     
     // Shop Owner product CRUD form submission routes
     $router->post('/shop-owner/products/create', 'ShopOwnerController@handleCreateProduct');

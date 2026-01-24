@@ -95,7 +95,74 @@ class ShopOwnerController extends BaseController
             return $this->redirect('/login');
         }
         
-        return $this->view('shop-owner/dashboard');
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            
+            // Get product stats
+            $productStats = $this->getProductModel()->getShopOwnerStats($shopOwnerId);
+            
+            // Get order stats
+            $orderStats = $this->getOrderModel()->getShopOwnerOrderStats($shopOwnerId);
+            
+            // Get recent orders (last 5)
+            $recentOrders = $this->getOrderModel()->getOrdersByShopOwner($shopOwnerId, [], 5);
+            
+            // Get top products
+            $topProducts = $this->getProductModel()->getTopSellingProducts($shopOwnerId, 3);
+            
+            // Get low stock products
+            $lowStockProducts = $this->getProductModel()->getLowStockProducts($shopOwnerId, 3);
+            
+            // Get recent reviews
+            $recentReviews = $this->getReviewModel()->getShopOwnerReviews($shopOwnerId, 2);
+            
+            // Calculate total revenue from orders
+            $totalRevenue = $orderStats['total_revenue'] ?? 0;
+            $monthlyRevenue = $orderStats['monthly_revenue'] ?? 0;
+            
+            return $this->view('shop-owner/dashboard', [
+                'stats' => [
+                    'total_products' => $productStats['total_products'] ?? 0,
+                    'active_products' => $productStats['active_products'] ?? 0,
+                    'low_stock' => $productStats['low_stock'] ?? 0,
+                    'total_orders' => $orderStats['total_orders'] ?? 0,
+                    'pending_orders' => $orderStats['pending_orders'] ?? 0,
+                    'processing_orders' => $orderStats['processing_orders'] ?? 0,
+                    'shipped_orders' => $orderStats['shipped_orders'] ?? 0,
+                    'delivered_orders' => $orderStats['delivered_orders'] ?? 0,
+                    'total_revenue' => $totalRevenue,
+                    'monthly_revenue' => $monthlyRevenue
+                ],
+                'recentOrders' => $recentOrders,
+                'topProducts' => $topProducts,
+                'lowStockProducts' => $lowStockProducts,
+                'recentReviews' => $recentReviews
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("Dashboard error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            
+            // Return view with empty data on error
+            return $this->view('shop-owner/dashboard', [
+                'stats' => [
+                    'total_products' => 0,
+                    'active_products' => 0,
+                    'low_stock' => 0,
+                    'total_orders' => 0,
+                    'pending_orders' => 0,
+                    'processing_orders' => 0,
+                    'shipped_orders' => 0,
+                    'delivered_orders' => 0,
+                    'total_revenue' => 0,
+                    'monthly_revenue' => 0
+                ],
+                'recentOrders' => [],
+                'topProducts' => [],
+                'lowStockProducts' => [],
+                'recentReviews' => []
+            ]);
+        }
     }
     
     public function productsPage(Request $request): Response
@@ -133,15 +200,6 @@ class ShopOwnerController extends BaseController
         
         return $this->view('shop-owner/reviews');
     }
-    public function salesPage(Request $request): Response
-    {
-        if (!$this->checkShopOwnerAuth()) {
-            return $this->redirect('/login');
-        }
-
-        return $this->view('shop-owner/sales');
-    }
-
     
     public function profilePage(Request $request): Response
     {
