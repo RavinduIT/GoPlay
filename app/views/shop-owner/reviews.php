@@ -359,7 +359,7 @@ function displayReviews(reviews) {
     <div class="review-card">
       <div class="review-info">
         <div class="review-meta">
-          <h3 class="reviewer-name">${escapeHtml(review.user_name || 'Anonymous')}</h3>
+          <h3 class="reviewer-name">${escapeHtml(review.customer_name || review.user_name || 'Anonymous')}</h3>
           <span class="review-date">${formatDate(review.created_at)}</span>
         </div>
         <div class="review-rating">
