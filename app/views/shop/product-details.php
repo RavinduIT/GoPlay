@@ -682,7 +682,7 @@ body {
             <div class="price-section">
                 <span id="product-price-current" class="price-current">LKR 0</span>
                 <span id="product-price-original" class="price-original" style="display: none;">LKR 0</span>
-                <span id="product-price-discount" class="price-discount" style="display: none;">0% OFF</span>
+                <!--<span id="product-price-discount" class="price-discount" style="display: none;">0% OFF</span>-->
             </div>
             
             <div id="stock-info" class="stock-info in-stock">
