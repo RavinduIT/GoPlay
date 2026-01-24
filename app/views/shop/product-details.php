@@ -518,6 +518,139 @@ body {
     box-shadow: var(--shadow-light);
 }
 
+/* Shop Owner Sidebar */
+.shop-info-content {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.shop-name-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.shop-business-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0.25rem 0 0 0;
+}
+
+.shop-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.shop-rating .stars {
+    color: var(--accent-color);
+    font-size: 0.9rem;
+}
+
+.shop-rating .rating-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.shop-description {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.shop-description p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.shop-contact {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.contact-item:last-child {
+    margin-bottom: 0;
+}
+
+.contact-item i {
+    color: var(--primary-color);
+    width: 18px;
+    margin-top: 0.15rem;
+    font-size: 0.95rem;
+}
+
+.shop-social {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--background-light);
+    color: var(--text-secondary);
+    transition: var(--transition);
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.social-link:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.visit-shop-btn {
+    width: 100%;
+    padding: 0.875rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.visit-shop-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-medium);
+}
+
+.visit-shop-btn i {
+    font-size: 1rem;
+}
+
 /* Related Products */
 .related-products-grid {
     display: grid;
@@ -650,7 +783,7 @@ body {
 </div>
 
 <!-- Product Details Content -->
-<div id="product-content" class="container product-details" style="display: none;">
+<div id="product-content" class="container" style="display: none;">
     <!-- Product Header -->
     <div class="product-header">
         <div class="product-gallery">
@@ -943,6 +1076,42 @@ body {
                     <span class="spec-value">Free</span>
                 </div>
             </div>
+            
+            <!-- Shop Owner Info -->
+            <div id="shop-owner-section" class="sidebar-section" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-store"></i>
+                    Sold By
+                </h3>
+                
+                <div class="shop-info-content">
+                    <h4 id="shop-name" class="shop-name-title">Shop Name</h4>
+                    <p id="shop-business-name" class="shop-business-subtitle"></p>
+                </div>
+                
+                <div id="shop-rating-section" class="shop-rating" style="display: none;">
+                    <div id="shop-stars" class="stars"></div>
+                    <span id="shop-rating-text" class="rating-text">0 (0 reviews)</span>
+                </div>
+                
+                <div id="shop-description-section" class="shop-description" style="display: none;">
+                    <p id="shop-description-text"></p>
+                </div>
+                
+                <div id="shop-contact-section" class="shop-contact" style="display: none;">
+                    <div id="shop-contact-details">
+                        <!-- Contact items will be added dynamically -->
+                    </div>
+                </div>
+                
+                <div id="shop-social-section" class="shop-social" style="display: none;">
+                    <!-- Social links will be added dynamically -->
+                </div>
+                
+                <button id="visit-shop-btn" class="visit-shop-btn" style="display: none;">
+                    <i class="fas fa-store"></i> Visit Shop
+                </button>
+            </div>
         </div>
     </div>
 
@@ -989,30 +1158,41 @@ function displayProductDetails(product) {
     document.getElementById('product-title').textContent = product.name;
     document.getElementById('product-category').textContent = (product.category_name || 'Product').toUpperCase();
     
-    // Images - use category-specific images
+    // Images - load from database or use fallback
     const mainImage = document.getElementById('main-product-image');
+    let productImages = [];
 
-    // Get category-specific image using existing product images
-    const categoryName = product.category_name ? product.category_name.toLowerCase() : 'general';
-    const productImages = {
-        'football': '/public/assets/images/products/football.jpg',
-        'cricket': '/public/assets/images/products/cricket-bat.jpg',
-        'tennis': '/public/assets/images/products/tennis-racket.jpg',
-        'basketball': '/public/assets/images/products/basketball.jpg',
-        'badminton': '/public/assets/images/products/badminton-racket.jpg',
-        'volleyball': '/public/assets/images/products/football.jpg',
-        'swimming': '/public/assets/images/products/football.jpg',
-        'fitness': '/public/assets/images/products/football.jpg',
-        'gym': '/public/assets/images/products/football.jpg'
-    };
+    // Check if product has images in database
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        productImages = product.images.map(img => {
+            // Handle both relative and absolute paths
+            if (img.startsWith('http')) return img;
+            if (img.startsWith('/public/')) return img;
+            if (img.startsWith('public/')) return '/' + img;
+            return '/public/uploads/products/' + img;
+        });
+    } else {
+        // Fallback to category-specific images if no images in database
+        const categoryName = product.category_name ? product.category_name.toLowerCase() : 'general';
+        const categoryImages = {
+            'football': '/public/assets/images/products/football.jpg',
+            'cricket': '/public/assets/images/products/cricket-bat.jpg',
+            'tennis': '/public/assets/images/products/tennis-racket.jpg',
+            'basketball': '/public/assets/images/products/basketball.jpg',
+            'badminton': '/public/assets/images/products/badminton-racket.jpg',
+            'volleyball': '/public/assets/images/products/football.jpg',
+            'swimming': '/public/assets/images/products/football.jpg',
+            'fitness': '/public/assets/images/products/football.jpg',
+            'gym': '/public/assets/images/products/football.jpg'
+        };
+        productImages = [categoryImages[categoryName] || '/public/assets/images/products/football.jpg'];
+    }
 
-    let imageUrl = productImages[categoryName] || '/public/assets/images/products/football.jpg';
-    mainImage.src = imageUrl;
+    mainImage.src = productImages[0];
     mainImage.alt = product.name;
 
-    // Create thumbnails with category-specific images
-    const thumbnailImages = [imageUrl];
-    displayThumbnails(thumbnailImages);
+    // Create thumbnails
+    displayThumbnails(productImages);
 
     // Rating
     displayRating(product.rating || 4.5);
@@ -1031,6 +1211,153 @@ function displayProductDetails(product) {
 
     // Badge
     displayBadge(product);
+    
+    // Display shop owner information
+    displayShopOwnerInfo(product);
+}
+
+// Display shop owner information
+function displayShopOwnerInfo(product) {
+    const sidebar = document.getElementById('shop-owner-section');
+    
+    // Check if shop owner information exists
+    if (!product.shop_name && !product.business_name && !product.shop_owner_id) {
+        sidebar.style.display = 'none';
+        return;
+    }
+    
+    sidebar.style.display = 'block';
+    
+    // Shop name
+    const shopName = product.shop_name || product.business_name || 'GoPlay Store';
+    document.getElementById('shop-name').textContent = shopName;
+    
+    // Business name (show only if different from shop name)
+    const businessNameEl = document.getElementById('shop-business-name');
+    if (product.business_name && product.shop_name && product.business_name !== product.shop_name) {
+        businessNameEl.textContent = product.business_name;
+        businessNameEl.style.display = 'block';
+    } else {
+        businessNameEl.style.display = 'none';
+    }
+    
+    // Shop rating
+    if (product.average_rating && product.average_rating > 0) {
+        const ratingSection = document.getElementById('shop-rating-section');
+        ratingSection.style.display = 'flex';
+        displayShopRating(product.average_rating);
+        document.getElementById('shop-rating-text').textContent = 
+            `${product.average_rating.toFixed(1)} (${product.total_reviews || 0} reviews)`;
+    }
+    
+    // Shop description
+    if (product.business_description) {
+        document.getElementById('shop-description-section').style.display = 'block';
+        document.getElementById('shop-description-text').textContent = 
+            product.business_description.substring(0, 120) + (product.business_description.length > 120 ? '...' : '');
+    }
+    
+    // Contact information
+    let hasContact = false;
+    let contactHTML = '';
+    
+    if (product.business_phone) {
+        hasContact = true;
+        contactHTML += `
+            <div class="contact-item">
+                <i class="fas fa-phone"></i>
+                <span>${product.business_phone}</span>
+            </div>
+        `;
+    }
+    
+    if (product.business_email) {
+        hasContact = true;
+        contactHTML += `
+            <div class="contact-item">
+                <i class="fas fa-envelope"></i>
+                <span>${product.business_email}</span>
+            </div>
+        `;
+    }
+    
+    if (product.shop_city) {
+        hasContact = true;
+        const location = [product.shop_city, product.shop_state].filter(Boolean).join(', ');
+        contactHTML += `
+            <div class="contact-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>${location}</span>
+            </div>
+        `;
+    }
+    
+    if (hasContact) {
+        document.getElementById('shop-contact-section').style.display = 'block';
+        document.getElementById('shop-contact-details').innerHTML = contactHTML;
+    }
+    
+    // Social media links
+    let hasSocial = false;
+    let socialHTML = '';
+    
+    if (product.facebook) {
+        hasSocial = true;
+        socialHTML += `<a href="${product.facebook}" target="_blank" class="social-link" title="Facebook"><i class="fab fa-facebook-f"></i></a>`;
+    }
+    
+    if (product.instagram) {
+        hasSocial = true;
+        socialHTML += `<a href="${product.instagram}" target="_blank" class="social-link" title="Instagram"><i class="fab fa-instagram"></i></a>`;
+    }
+    
+    if (product.twitter) {
+        hasSocial = true;
+        socialHTML += `<a href="${product.twitter}" target="_blank" class="social-link" title="Twitter"><i class="fab fa-twitter"></i></a>`;
+    }
+    
+    if (product.website_url) {
+        hasSocial = true;
+        socialHTML += `<a href="${product.website_url}" target="_blank" class="social-link" title="Website"><i class="fas fa-globe"></i></a>`;
+    }
+    
+    if (hasSocial) {
+        document.getElementById('shop-social-section').style.display = 'flex';
+        document.getElementById('shop-social-section').innerHTML = socialHTML;
+    }
+    
+    // Visit shop button
+    if (product.shop_owner_id) {
+        const visitBtn = document.getElementById('visit-shop-btn');
+        visitBtn.style.display = 'flex';
+        visitBtn.onclick = function() {
+            window.location.href = `/shop?owner=${product.shop_owner_id}`;
+        };
+    }
+}
+
+// Display shop rating stars
+function displayShopRating(rating) {
+    const starsContainer = document.getElementById('shop-stars');
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+
+    let starsHTML = '';
+    
+    for (let i = 0; i < fullStars; i++) {
+        starsHTML += '<i class="fas fa-star"></i>';
+    }
+    
+    if (hasHalfStar) {
+        starsHTML += '<i class="fas fa-star-half-alt"></i>';
+    }
+    
+    const remainingStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    for (let i = 0; i < remainingStars; i++) {
+        starsHTML += '<i class="far fa-star"></i>';
+    }
+
+    starsContainer.innerHTML = starsHTML;
 }
 
 // Display product images

@@ -172,7 +172,8 @@ class ProductController extends BaseController
                 return new Response('Product ID is required', 400);
             }
             
-            $product = $this->getProductModel()->getProductWithCategory($id);
+            // Get product with shop owner details
+            $product = $this->getProductModel()->getProductWithShopOwner($id);
             
             if (!$product) {
                 return new Response('Product not found', 404);
