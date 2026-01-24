@@ -196,7 +196,7 @@ class Order extends BaseModel
     /**
      * Get orders by shop owner (only orders containing shop owner's products)
      */
-    public function getOrdersByShopOwner(int $shopOwnerId, array $filters = []): array
+    public function getOrdersByShopOwner(int $shopOwnerId, array $filters = [], ?int $limit = null): array
     {
         // Build SQL query to get orders containing products from this shop owner
         $sql = "SELECT 
@@ -252,6 +252,12 @@ class Order extends BaseModel
         }
         
         $sql .= " GROUP BY o.id ORDER BY o.created_at DESC";
+        
+        // Add limit if specified
+        if ($limit !== null) {
+            $sql .= " LIMIT ?";
+            $params[] = $limit;
+        }
         
         $statement = $this->query($sql, $params);
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -435,7 +441,10 @@ class Order extends BaseModel
                         COUNT(DISTINCT CASE WHEN o.status = 'cancelled' THEN o.id END) as cancelled_orders,
                         COUNT(DISTINCT CASE WHEN o.payment_status = 'pending' THEN o.id END) as pending_payments,
                         COUNT(DISTINCT CASE WHEN o.payment_status = 'paid' THEN o.id END) as paid_orders,
-                        COALESCE(SUM(oi.total_price), 0) as total_revenue
+                        COALESCE(SUM(oi.total_price), 0) as total_revenue,
+                        COALESCE(SUM(CASE WHEN MONTH(o.created_at) = MONTH(CURRENT_DATE()) 
+                            AND YEAR(o.created_at) = YEAR(CURRENT_DATE()) 
+                            THEN oi.total_price ELSE 0 END), 0) as monthly_revenue
                     FROM orders o
                     INNER JOIN order_items oi ON o.id = oi.order_id
                     INNER JOIN products p ON oi.product_id = p.id
@@ -454,7 +463,8 @@ class Order extends BaseModel
                     'cancelled_orders' => 0,
                     'pending_payments' => 0,
                     'paid_orders' => 0,
-                    'total_revenue' => 0
+                    'total_revenue' => 0,
+                    'monthly_revenue' => 0
                 ];
             }
             
@@ -467,7 +477,8 @@ class Order extends BaseModel
                 'cancelled_orders' => (int)($result['cancelled_orders'] ?? 0),
                 'pending_payments' => (int)($result['pending_payments'] ?? 0),
                 'paid_orders' => (int)($result['paid_orders'] ?? 0),
-                'total_revenue' => (float)($result['total_revenue'] ?? 0)
+                'total_revenue' => (float)($result['total_revenue'] ?? 0),
+                'monthly_revenue' => (float)($result['monthly_revenue'] ?? 0)
             ];
         } catch (\Exception $e) {
             error_log("Error in getShopOwnerOrderStats: " . $e->getMessage());
@@ -480,7 +491,8 @@ class Order extends BaseModel
                 'cancelled_orders' => 0,
                 'pending_payments' => 0,
                 'paid_orders' => 0,
-                'total_revenue' => 0
+                'total_revenue' => 0,
+                'monthly_revenue' => 0
             ];
         }
     }

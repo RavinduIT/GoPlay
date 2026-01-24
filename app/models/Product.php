@@ -329,13 +329,23 @@ class Product extends BaseModel
     /**
      * Get low stock products
      */
-    public function getLowStockProducts(): array
+    public function getLowStockProducts(?int $shopOwnerId = null, ?int $limit = null): array
     {
+        if ($shopOwnerId !== null) {
+            return $this->getLowStockProductsByOwner($shopOwnerId, $limit ?? 10);
+        }
+        
         $sql = "SELECT * FROM {$this->table} 
                 WHERE stock_quantity <= min_stock_level AND status = 'active' 
                 ORDER BY stock_quantity ASC";
         
-        $results = $this->query($sql)->fetchAll();
+        if ($limit !== null) {
+            $sql .= " LIMIT ?";
+            $results = $this->query($sql, [$limit])->fetchAll();
+        } else {
+            $results = $this->query($sql)->fetchAll();
+        }
+        
         return array_map([$this, 'castAttributes'], $results);
     }
     
@@ -485,6 +495,28 @@ class Product extends BaseModel
                 WHERE p.shop_owner_id = ? 
                 AND (p.stock_quantity = 0 OR p.stock_quantity < 10)
                 ORDER BY p.stock_quantity ASC, p.name ASC
+                LIMIT ?";
+        $statement = $this->query($sql, [$shopOwnerId, $limit]);
+        $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
+    }
+
+    /**
+     * Get top selling products for shop owner
+     */
+    public function getTopSellingProducts(int $shopOwnerId, int $limit = 10): array
+    {
+        $sql = "SELECT p.*, 
+                    c.name as category_name,
+                    COALESCE(SUM(oi.quantity), 0) as sales_count,
+                    COALESCE(SUM(oi.total_price), 0) as total_revenue
+                FROM {$this->table} p 
+                LEFT JOIN categories c ON p.category_id = c.id 
+                LEFT JOIN order_items oi ON p.id = oi.product_id
+                LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'cancelled'
+                WHERE p.shop_owner_id = ? 
+                GROUP BY p.id
+                ORDER BY sales_count DESC, p.total_sales DESC, p.name ASC
                 LIMIT ?";
         $statement = $this->query($sql, [$shopOwnerId, $limit]);
         $results = $statement->fetchAll(\PDO::FETCH_ASSOC);

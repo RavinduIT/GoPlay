@@ -159,17 +159,23 @@ class ProductReview extends BaseModel
     /**
      * Get all reviews for products owned by a shop owner
      */
-    public function getShopOwnerReviews(int $shopOwnerId): array
+    public function getShopOwnerReviews(int $shopOwnerId, int $limit = null): array
     {
         $sql = "SELECT pr.*, p.name as product_name, p.id as product_id,
-                       CONCAT(u.first_name, ' ', u.last_name) as user_name, u.email as user_email
+                       CONCAT(u.first_name, ' ', u.last_name) as customer_name, u.email as user_email
                 FROM {$this->table} pr
                 INNER JOIN products p ON pr.product_id = p.id
                 LEFT JOIN users u ON pr.user_id = u.id
                 WHERE p.shop_owner_id = ?
                 ORDER BY pr.created_at DESC";
         
-        $statement = $this->query($sql, [$shopOwnerId]);
+        if ($limit !== null) {
+            $sql .= " LIMIT ?";
+            $statement = $this->query($sql, [$shopOwnerId, $limit]);
+        } else {
+            $statement = $this->query($sql, [$shopOwnerId]);
+        }
+        
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
