@@ -204,7 +204,7 @@ $recentReviews = $recentReviews ?? [];
                         <div class="revenue-item">
                             <div class="revenue-label">
                                 <i class="fas fa-receipt"></i>
-                                <span>Completed Orders</span>
+                                <span>Completed Order</span>
                             </div>
                             <div class="revenue-value"><?php echo $stats['delivered_orders'] ?? 0; ?></div>
                         </div>
