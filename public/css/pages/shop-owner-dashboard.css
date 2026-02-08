@@ -41,11 +41,15 @@ body {
     background-color: #f8fafc;
     color: #1e293b;
     line-height: 1.6;
+    padding-top: 0;
+    margin-top: 0;
 }
 
 .shop-owner-dashboard {
     display: flex;
     min-height: 100vh;
+    padding-top: 0;
+    margin-top: 0;
 }
 
 /* ===============================
@@ -53,20 +57,23 @@ body {
    =============================== */
 .dashboard-sidebar {
     width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
     color: white;
     position: fixed;
-    top: 0;
+    top: 70px;
     left: 0;
-    height: 100vh;
-    z-index: 1000;
+    height: calc(100vh - 70px);
+    z-index: 999;
     transition: var(--transition);
     overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: var(--shadow-xl);
 }
 
 .sidebar-header {
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: space-between;
@@ -77,7 +84,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 700;
 }
 
@@ -198,6 +205,29 @@ body {
     flex: 1;
     margin-left: var(--sidebar-width);
     transition: var(--transition);
+    min-height: 100vh;
+    width: calc(100% - var(--sidebar-width));
+}
+
+/* Alternative content wrapper */
+.dashboard-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    margin-top: 70px;
+    padding: 2rem;
+    transition: var(--transition);
+    min-height: calc(100vh - 70px);
+    background-color: #f8fafc;
+    width: calc(100% - var(--sidebar-width));
+    box-sizing: border-box;
+}
+
+/* Dashboard content inside dashboard-main */
+.dashboard-main > .dashboard-content {
+    margin-left: 0;
+    margin-top: 0;
+    width: 100%;
+    min-height: auto;
 }
 
 /* Header */
@@ -210,8 +240,9 @@ body {
     justify-content: space-between;
     box-shadow: var(--shadow);
     position: sticky;
-    top: 0;
+    top: 70px;
     z-index: 100;
+    margin: 0;
 }
 
 .header-left {
@@ -220,10 +251,28 @@ body {
     gap: 1rem;
 }
 
-.page-title {
+/*.page-title {
     font-size: 1.5rem;
     font-weight: 600;
     color: #1e293b;
+    margin: 0;
+}*/
+.page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+.page-subtitle {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0.25rem 0 0 0;
+}
+
+.page-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
 .header-right {
@@ -321,8 +370,64 @@ body {
 /* ===============================
    DASHBOARD CONTENT
    =============================== */
-.dashboard-content {
-    padding: 2rem;
+
+/* Page Headers for sub-pages */
+.products-header,
+.reviews-header,
+.inventory-header {
+    background: white;
+    padding: 1.5rem 0;
+    margin: -2rem 0 2rem 0;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.products-header h1,
+.reviews-header h1,
+.inventory-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+/* Alert Messages */
+.alert {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+}
+
+.alert i {
+    font-size: 1.25rem;
+}
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border-left: 4px solid #10b981;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border-left: 4px solid #ef4444;
+}
+
+.alert-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border-left: 4px solid #f59e0b;
+}
+
+.alert-info {
+    background: #dbeafe;
+    color: #1e40af;
+    border-left: 4px solid #3b82f6;
 }
 
 /* Stats Grid */
@@ -1113,7 +1218,10 @@ body {
 
 @media (max-width: 768px) {
     .dashboard-sidebar {
+        top: 70px;
+        height: calc(100vh - 70px);
         transform: translateX(-100%);
+        z-index: 999;
     }
     
     .dashboard-sidebar.active {
@@ -1122,18 +1230,31 @@ body {
     
     .dashboard-main {
         margin-left: 0;
+        width: 100%;
+    }
+    
+    .dashboard-content {
+        margin-left: 0;
+        margin-top: 70px;
+        padding: 1rem;
+        width: 100%;
+    }
+    
+    .dashboard-header {
+        top: 70px;
+        padding: 0.75rem 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.25rem;
+    }
+    
+    .page-subtitle {
+        font-size: 0.75rem;
     }
     
     .mobile-only {
         display: block;
-    }
-    
-    .dashboard-header {
-        padding: 0 1rem;
-    }
-    
-    .dashboard-content {
-        padding: 1rem;
     }
     
     .stats-grid {

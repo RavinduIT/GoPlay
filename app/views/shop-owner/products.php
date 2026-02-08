@@ -44,7 +44,7 @@ if (!empty($products)) {
 
 $title = 'Products Management - Shop Owner Dashboard';
 $additionalCSS = ['/public/css/pages/shop-owner-dashboard.css', '/public/css/pages/shop-owner-products.css'];
-$additionalJS = ['/public/js/pages/shop-owner-products.js'];
+$additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owner-products.js'];
 ?>
 <link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
 <link rel="stylesheet" href="/public/css/pages/shop-owner-products.css">

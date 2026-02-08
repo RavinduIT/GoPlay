@@ -8,27 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeDashboard() {
-    initializeSidebar();
     loadDashboardStats();
     initializeCharts();
     setupEventListeners();
-}
-
-function initializeSidebar() {
-    const sidebar = document.getElementById('dashboardSidebar');
-    const toggleButtons = document.querySelectorAll('.sidebar-toggle');
-    
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', toggleSidebar);
-    });
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('dashboardSidebar');
-    const main = document.querySelector('.dashboard-main');
-    
-    sidebar.classList.toggle('collapsed');
-    main.classList.toggle('sidebar-collapsed');
 }
 
 async function loadDashboardStats() {
