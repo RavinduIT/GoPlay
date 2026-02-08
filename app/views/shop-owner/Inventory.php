@@ -24,18 +24,30 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
 <?php 
 $title = 'Inventory - GoPlay';
 $additionalCSS = ['/public/css/pages/shop-owner-dashboard.css'];
-$additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
+$additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owner-inventory.js'];
 ?>
 
 <div class="shop-owner-dashboard">
   <!-- Sidebar -->
-<?php include 'sidebar.php'; ?>
+  <?php include 'sidebar.php'; ?>
 
   <!-- Main Content -->
-  <main class="dashboard-content">
-    <header class="products-header">
-      <h1>Inventory</h1>
+  <main class="dashboard-main">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="page-title-section">
+          <h1 class="page-title">Inventory Management</h1>
+          <p class="page-subtitle">Track and manage your product stock levels</p>
+        </div>
+      </div>
     </header>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
 
     <!-- Alert Messages -->
     <?php if (isset($_SESSION['success'])): ?>
@@ -117,6 +129,7 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
 
       </div>
     </section>
+    </div>
   </main>
 </div>
 
@@ -184,17 +197,6 @@ $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
 </div>
 
 <style>
-/* ----- Layout base (unchanged) ----- */
-.shop-owner-dashboard { display: flex; min-height: 100vh; }
-.dashboard-sidebar {
-  width: 240px; background: #1e293b; color: #fff;
-  position: fixed; top: 0; left: 0; bottom: 0;
-}
-.dashboard-content { flex: 1; margin-left: 240px; padding: 20px; background: #f9f9f9; }
-
-/* Header */
-.products-header { margin-bottom: 1rem; }
-
 /* Alert Messages */
 .alert {
   padding: 1rem 1.5rem;

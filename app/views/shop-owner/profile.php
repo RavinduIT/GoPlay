@@ -39,14 +39,15 @@ $bankAccountHolder = $profile['bank_account_holder'] ?? '';
 $bankBranch = $profile['bank_branch'] ?? '';
 ?>
 
+<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
+
 <div class="shop-owner-dashboard">
   <!-- Sidebar -->
   <?php include 'sidebar.php'; ?>
 
   <!-- Main Content -->
-  <main class="dashboard-content">
-
-    <!-- Profile Header -->
+  <main class="dashboard-main">
+    
     <div class="profile-header-section">
       <div class="profile-avatar-container">
         <img src="/public/<?php echo htmlspecialchars($shopLogo); ?>" alt="Shop Logo" id="logo-preview" class="profile-avatar">
@@ -73,6 +74,8 @@ $bankBranch = $profile['bank_branch'] ?? '';
         </div>
       </div>
     </div>
+    
+    <div class="dashboard-content">
 
     <!-- Success/Error Messages -->
     <div id="message-container"></div>
@@ -332,14 +335,11 @@ $bankBranch = $profile['bank_branch'] ?? '';
       </div>
 
     </div>
+    </div>
   </main>
 </div>
 
 <style>
-/* Base Layout */
-.shop-owner-dashboard { display: flex; min-height: 100vh; background: #f8fafc; }
-.dashboard-content { flex: 1; margin-left: 280px; padding: 0; }
-
 /* Profile Header Section */
 .profile-header-section {
   background: white;

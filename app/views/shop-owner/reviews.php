@@ -8,6 +8,7 @@ $errorMessage = $_SESSION['error_message'] ?? null;
 unset($_SESSION['success_message'], $_SESSION['error_message']);
 ?>
 
+<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <div class="shop-owner-dashboard">
@@ -16,11 +17,22 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
   <?php include 'sidebar.php'; ?>
 
   <!-- Main Content -->
-  <main class="dashboard-content">
-    <header class="reviews-header">
-      <h1><i class="fas fa-star"></i> Customer Reviews</h1>
-      <p style="color: #666; margin-top: 0.5rem;">Manage reviews for your products</p>
+  <main class="dashboard-main">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="page-title-section">
+          <h1 class="page-title">Customer Reviews</h1>
+          <p class="page-subtitle">Manage reviews for your products</p>
+        </div>
+      </div>
     </header>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
 
     <!-- Success/Error Messages -->
     <?php if ($successMessage): ?>
@@ -80,14 +92,6 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
 </div>
 
 <style>
-/* ---- Layout base ---- */
-.shop-owner-dashboard { display: flex; min-height: 100vh; background: #f9f9f9; }
-.dashboard-content { flex: 1; margin-left: 280px; padding: 20px; }
-
-/* Header */
-.reviews-header { margin-bottom: 2rem; }
-.reviews-header h1 { margin: 0; color: #222; }
-
 /* Alert Messages */
 .alert {
   padding: 1rem 1.5rem;

@@ -49,7 +49,7 @@ try {
 
 $title = 'Order Management - Shop Owner Dashboard';
 $additionalCSS = ['/public/css/pages/shop-owner-dashboard.css', '/public/css/pages/shop-owner-orders.css'];
-$additionalJS = ['/public/js/pages/shop-owner-orders.js'];
+$additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owner-orders.js'];
 ?>
 <link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
 <link rel="stylesheet" href="/public/css/pages/shop-owner-orders.css">
@@ -58,17 +58,12 @@ $additionalJS = ['/public/js/pages/shop-owner-orders.js'];
     <!-- Sidebar -->
     <?php include __DIR__ . '/sidebar.php'; ?>
 
-<!-- Sidebar -->
-    <?php include __DIR__ . '/sidebar.php'; ?>
-
     <!-- Main Content -->
     <main class="dashboard-main">
         <!-- Top Header -->
         <header class="dashboard-header">
             <div class="header-left">
-                <button class="sidebar-toggle" onclick="toggleSidebar()">
-                    <i class="fas fa-bars"></i>
-                </button>
+                
                 <div class="page-title-section">
                     <h1 class="page-title">Order Management</h1>
                     <p class="page-subtitle">Manage and track customer orders</p>
