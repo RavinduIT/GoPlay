@@ -4,7 +4,9 @@ $additionalCSS = ['/public/css/pages/checkout.css'];
 $additionalJS = ['/public/js/pages/checkout.js'];
 
 // Get contact details from session
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 $contactDetails = $_SESSION['checkout_contact'] ?? null;
 
 if (!$contactDetails) {
