@@ -380,6 +380,11 @@ class Order extends BaseModel
             return ['success' => false, 'message' => 'Order not found or access denied'];
         }
         
+        // Prevent changing payment status if already paid (security measure)
+        if ($order['payment_status'] === 'paid') {
+            return ['success' => false, 'message' => 'Cannot modify payment status for paid orders'];
+        }
+        
         // Check if payment status is actually changing
         if ($order['payment_status'] === $paymentStatus) {
             return ['success' => true, 'message' => 'Payment status is already ' . $paymentStatus];

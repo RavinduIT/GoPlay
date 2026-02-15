@@ -217,6 +217,11 @@ try {
     $router->post('/api/checkout/process-card', 'PaymentController@processCardPayment');
     $router->post('/api/checkout/payment-webhook', 'PaymentController@paymentWebhook');
     
+    // PayHere payment gateway routes
+    $router->post('/api/checkout/initialize-payhere', 'PaymentController@initializePayHerePayment');
+    $router->post('/api/payment/payhere/notify', 'PaymentController@payHereNotify');
+    $router->get('/api/payment/payhere/return', 'PaymentController@payHereReturn');
+    
     // Cart checkout redirect
     $router->get('/cart/checkout', 'CartController@checkout');
     
