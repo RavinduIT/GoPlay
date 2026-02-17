@@ -1,0 +1,15 @@
+RewriteEngine On
+
+# Allow direct access to files in public directory
+RewriteCond %{REQUEST_URI} ^/public/
+RewriteRule ^public/(.*)$ public/$1 [L]
+
+# Redirect /assets/ to /public/assets/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^assets/(.*)$ public/assets/$1 [L]
+
+# Redirect all other requests to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]

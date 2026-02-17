@@ -59,15 +59,29 @@ class Application
     private function handleException(\Exception $e): void
     {
         http_response_code(500);
-        
-        if (isset($_ENV['APP_DEBUG']) && $_ENV['APP_DEBUG']) {
-            echo '<pre>';
-            echo 'Error: ' . $e->getMessage() . "\n";
-            echo 'File: ' . $e->getFile() . ':' . $e->getLine() . "\n";
-            echo 'Stack trace:' . "\n" . $e->getTraceAsString();
-            echo '</pre>';
+
+        // Check if this is an API request
+        $isApiRequest = strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/provider-applications') !== false ||
+                       (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
+        if ($isApiRequest) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Internal Server Error',
+                'error' => isset($_ENV['APP_DEBUG']) && $_ENV['APP_DEBUG'] ? $e->getMessage() : null,
+                'file' => isset($_ENV['APP_DEBUG']) && $_ENV['APP_DEBUG'] ? $e->getFile() . ':' . $e->getLine() : null
+            ]);
         } else {
-            echo 'Internal Server Error';
+            if (isset($_ENV['APP_DEBUG']) && $_ENV['APP_DEBUG']) {
+                echo '<pre>';
+                echo 'Error: ' . $e->getMessage() . "\n";
+                echo 'File: ' . $e->getFile() . ':' . $e->getLine() . "\n";
+                echo 'Stack trace:' . "\n" . $e->getTraceAsString();
+                echo '</pre>';
+            } else {
+                echo 'Internal Server Error';
+            }
         }
     }
 }

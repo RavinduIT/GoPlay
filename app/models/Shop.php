@@ -46,7 +46,8 @@ class Shop extends BaseModel
     public function getProducts(int $shopId): array
     {
         $sql = "SELECT p.* FROM products p WHERE p.shop_id = ? AND p.status = 'active' ORDER BY p.created_at DESC";
-        return $this->query($sql, [$shopId]);
+        $statement = $this->query($sql, [$shopId]);
+        return $statement->fetchAll(\PDO::FETCH_ASSOC) ?: [];
     }
 
     public function getOrders(int $shopId): array
@@ -57,7 +58,8 @@ class Shop extends BaseModel
                 WHERE p.shop_id = ? 
                 GROUP BY o.id 
                 ORDER BY o.created_at DESC";
-        return $this->query($sql, [$shopId]);
+        $statement = $this->query($sql, [$shopId]);
+        return $statement->fetchAll(\PDO::FETCH_ASSOC) ?: [];
     }
 
     public function getStatistics(int $shopId): array

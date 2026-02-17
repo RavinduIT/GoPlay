@@ -12,7 +12,9 @@ class Product extends BaseModel
         'name',
         'sku',
         'description',
+        'short_description',
         'category_id',
+        'shop_owner_id',
         'brand',
         'price',
         'compare_price',
@@ -32,6 +34,9 @@ class Product extends BaseModel
     ];
     
     protected array $casts = [
+        'id' => 'int',
+        'category_id' => 'int',
+        'shop_owner_id' => 'int',
         'price' => 'float',
         'compare_price' => 'float',
         'cost_price' => 'float',
@@ -181,6 +186,63 @@ class Product extends BaseModel
     }
     
     /**
+     * Get product with category and shop owner details
+     */
+    public function getProductWithShopOwner(int $id): ?array
+    {
+        $sql = "SELECT p.*, 
+                       c.name as category_name, c.slug as category_slug,
+                       sop.shop_name, sop.business_name, sop.business_description,
+                       sop.business_phone, sop.business_email, sop.shop_address,
+                       sop.shop_city, sop.shop_state, sop.shop_postal_code,
+                       sop.shop_logo, sop.website_url, sop.facebook, sop.instagram,
+                       sop.twitter, sop.operating_hours, sop.delivery_options,
+                       sop.total_products, sop.total_sales, sop.average_rating,
+                       sop.total_reviews, sop.return_policy, sop.warranty_policy,
+                       u.first_name as owner_first_name, u.last_name as owner_last_name,
+                       u.email as owner_email
+                FROM {$this->table} p 
+                LEFT JOIN categories c ON p.category_id = c.id 
+                LEFT JOIN shop_owner_profiles sop ON p.shop_owner_id = sop.user_id
+                LEFT JOIN users u ON sop.user_id = u.id
+                WHERE p.id = ? AND p.status = 'active'";
+        
+        $result = $this->query($sql, [$id])->fetch(\PDO::FETCH_ASSOC);
+        
+        if (!$result) {
+            return null;
+        }
+
+        // Cast attributes and ensure arrays are properly handled
+        $product = $this->castAttributes($result);
+        
+        // Ensure images is an array
+        if (!is_array($product['images'])) {
+            $product['images'] = $product['images'] ? [$product['images']] : [];
+        }
+        
+        // Add original_price if compare_price exists
+        if ($product['compare_price'] && $product['compare_price'] > $product['price']) {
+            $product['original_price'] = $product['compare_price'];
+        }
+        
+        // Set default rating if not set
+        if (!$product['rating']) {
+            $product['rating'] = 4.5;
+        }
+        
+        // Parse JSON fields from shop owner profile
+        if (!empty($product['operating_hours']) && is_string($product['operating_hours'])) {
+            $product['operating_hours'] = json_decode($product['operating_hours'], true);
+        }
+        if (!empty($product['delivery_options']) && is_string($product['delivery_options'])) {
+            $product['delivery_options'] = json_decode($product['delivery_options'], true);
+        }
+        
+        return $product;
+    }
+    
+    /**
      * Get related products (same category, different product)
      */
     public function getRelatedProducts(int $productId, int $categoryId, int $limit = 4): array
@@ -267,13 +329,23 @@ class Product extends BaseModel
     /**
      * Get low stock products
      */
-    public function getLowStockProducts(): array
+    public function getLowStockProducts(?int $shopOwnerId = null, ?int $limit = null): array
     {
+        if ($shopOwnerId !== null) {
+            return $this->getLowStockProductsByOwner($shopOwnerId, $limit ?? 10);
+        }
+        
         $sql = "SELECT * FROM {$this->table} 
                 WHERE stock_quantity <= min_stock_level AND status = 'active' 
                 ORDER BY stock_quantity ASC";
         
-        $results = $this->query($sql)->fetchAll();
+        if ($limit !== null) {
+            $sql .= " LIMIT ?";
+            $results = $this->query($sql, [$limit])->fetchAll();
+        } else {
+            $results = $this->query($sql)->fetchAll();
+        }
+        
         return array_map([$this, 'castAttributes'], $results);
     }
     
@@ -292,4 +364,246 @@ class Product extends BaseModel
     }
 
 
+
+    /**
+     * Get products by shop owner with filters
+     */
+    public function getProductsByShopOwner(int $shopOwnerId, array $filters = []): array
+    {
+        $sql = "SELECT p.*, c.name as category_name 
+                FROM {$this->table} p 
+                LEFT JOIN categories c ON p.category_id = c.id 
+                WHERE (p.shop_owner_id = ? OR p.shop_owner_id IS NULL)";
+        
+        $params = [$shopOwnerId];
+        
+        if (!empty($filters['search'])) {
+            $sql .= " AND (p.name LIKE ? OR p.sku LIKE ? OR p.brand LIKE ?)";
+            $search = '%' . $filters['search'] . '%';
+            $params[] = $search;
+            $params[] = $search;
+            $params[] = $search;
+        }
+        
+        if (!empty($filters['category'])) {
+            $sql .= " AND p.category_id = ?";
+            $params[] = $filters['category'];
+        }
+        
+        if (!empty($filters['status'])) {
+            $sql .= " AND p.status = ?";
+            $params[] = $filters['status'];
+        }
+        
+        if (!empty($filters['stock'])) {
+            if ($filters['stock'] === 'in-stock') {
+                $sql .= " AND p.stock_quantity > p.min_stock_level";
+            } elseif ($filters['stock'] === 'low-stock') {
+                $sql .= " AND p.stock_quantity > 0 AND p.stock_quantity <= p.min_stock_level";
+            } elseif ($filters['stock'] === 'out-of-stock') {
+                $sql .= " AND p.stock_quantity = 0";
+            }
+        }
+        
+        $sql .= " ORDER BY p.created_at DESC";
+        
+        $statement = $this->query($sql, $params);
+        $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
+    }
+
+    public function createProductForShopOwner(array $data, int $shopOwnerId): ?int
+    {
+        $data['shop_owner_id'] = $shopOwnerId;
+        if (empty($data['sku'])) {
+            $data['sku'] = 'PRD-' . strtoupper(uniqid());
+        }
+        if (!isset($data['rating'])) {
+            $data['rating'] = 0;
+        }
+        if (!isset($data['total_reviews'])) {
+            $data['total_reviews'] = 0;
+        }
+        if (isset($data['images']) && is_array($data['images'])) {
+            $data['images'] = json_encode($data['images']);
+        }
+        return $this->create($data);
+    }
+
+    public function updateProductForShopOwner(int $id, array $data, int $shopOwnerId): bool
+    {
+        $product = $this->find($id);
+        if (!$product) {
+            return false;
+        }
+        if ($product['shop_owner_id'] !== null && $product['shop_owner_id'] != $shopOwnerId) {
+            return false;
+        }
+        if ($product['shop_owner_id'] === null) {
+            $data['shop_owner_id'] = $shopOwnerId;
+        }
+        if (isset($data['images']) && is_array($data['images'])) {
+            $data['images'] = json_encode($data['images']);
+        }
+        return $this->update($id, $data);
+    }
+
+    public function deleteProductForShopOwner(int $id, int $shopOwnerId): bool
+    {
+        $product = $this->find($id);
+        if (!$product) {
+            return false;
+        }
+        if ($product['shop_owner_id'] !== null && $product['shop_owner_id'] != $shopOwnerId) {
+            return false;
+        }
+        return $this->delete($id);
+    }
+
+    public function getShopOwnerStats(int $shopOwnerId): array
+    {
+        $sql = "SELECT 
+                    COUNT(*) as total_products,
+                    SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_products,
+                    SUM(CASE WHEN stock_quantity > min_stock_level THEN 1 ELSE 0 END) as in_stock,
+                    SUM(CASE WHEN stock_quantity > 0 AND stock_quantity <= min_stock_level THEN 1 ELSE 0 END) as low_stock,
+                    SUM(CASE WHEN stock_quantity = 0 THEN 1 ELSE 0 END) as out_of_stock
+                FROM {$this->table} 
+                WHERE (shop_owner_id = ? OR shop_owner_id IS NULL)";
+        $result = $this->queryFirst($sql, [$shopOwnerId]);
+        return $result ? $result : ['total_products' => 0, 'active_products' => 0, 'in_stock' => 0, 'low_stock' => 0, 'out_of_stock' => 0];
+    }
+
+    public function getRecentProducts(int $shopOwnerId, int $limit = 5): array
+    {
+        $sql = "SELECT p.*, c.name as category_name 
+                FROM {$this->table} p 
+                LEFT JOIN categories c ON p.category_id = c.id 
+                WHERE p.shop_owner_id = ? 
+                ORDER BY p.created_at DESC 
+                LIMIT ?";
+        $statement = $this->query($sql, [$shopOwnerId, $limit]);
+        $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
+    }
+
+    public function getLowStockProductsByOwner(int $shopOwnerId, int $limit = 10): array
+    {
+        $sql = "SELECT p.*, c.name as category_name 
+                FROM {$this->table} p 
+                LEFT JOIN categories c ON p.category_id = c.id 
+                WHERE p.shop_owner_id = ? 
+                AND (p.stock_quantity = 0 OR p.stock_quantity < 10)
+                ORDER BY p.stock_quantity ASC, p.name ASC
+                LIMIT ?";
+        $statement = $this->query($sql, [$shopOwnerId, $limit]);
+        $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
+    }
+
+    /**
+     * Get top selling products for shop owner
+     */
+    public function getTopSellingProducts(int $shopOwnerId, int $limit = 10): array
+    {
+        $sql = "SELECT p.*, 
+                    c.name as category_name,
+                    COALESCE(SUM(oi.quantity), 0) as sales_count,
+                    COALESCE(SUM(oi.total_price), 0) as total_revenue
+                FROM {$this->table} p 
+                LEFT JOIN categories c ON p.category_id = c.id 
+                LEFT JOIN order_items oi ON p.id = oi.product_id
+                LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'cancelled'
+                WHERE p.shop_owner_id = ? 
+                GROUP BY p.id
+                ORDER BY sales_count DESC, p.total_sales DESC, p.name ASC
+                LIMIT ?";
+        $statement = $this->query($sql, [$shopOwnerId, $limit]);
+        $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map([$this, 'castAttributes'], $results);
+    }
+
+    /**
+     * INVENTORY MANAGEMENT METHODS
+     */
+
+    /**
+     * Get inventory with stock status for shop owner
+     */
+    public function getInventoryWithStatus(int $shopOwnerId): array
+    {
+        $sql = "SELECT 
+                    p.id, p.name, p.sku, p.stock_quantity, 
+                    p.min_stock_level, p.status, p.updated_at,
+                    c.name as category_name,
+                    CASE 
+                        WHEN p.stock_quantity = 0 THEN 'out-of-stock'
+                        WHEN p.stock_quantity <= p.min_stock_level THEN 'low-stock'
+                        ELSE 'in-stock'
+                    END as stock_status
+                FROM {$this->table} p
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.shop_owner_id = ?
+                ORDER BY 
+                    CASE 
+                        WHEN p.stock_quantity = 0 THEN 1
+                        WHEN p.stock_quantity <= p.min_stock_level THEN 2
+                        ELSE 3
+                    END,
+                    p.name ASC";
+        
+        $statement = $this->query($sql, [$shopOwnerId]);
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Add stock quantity to product
+     */
+    public function addStock(int $productId, int $quantity, int $shopOwnerId): bool
+    {
+        $sql = "UPDATE {$this->table} 
+                SET stock_quantity = stock_quantity + ?,
+                    updated_at = NOW()
+                WHERE id = ? AND shop_owner_id = ?";
+        $statement = $this->query($sql, [$quantity, $productId, $shopOwnerId]);
+        return $statement && $statement->rowCount() > 0;
+    }
+
+    /**
+     * Reduce stock quantity (for orders or removal)
+     */
+    public function removeStock(int $productId, int $quantity, string $reason, int $shopOwnerId): bool
+    {
+        $sql = "UPDATE {$this->table} 
+                SET stock_quantity = GREATEST(0, stock_quantity - ?),
+                    updated_at = NOW()
+                WHERE id = ? AND shop_owner_id = ?";
+        $statement = $this->query($sql, [$quantity, $productId, $shopOwnerId]);
+        return $statement && $statement->rowCount() > 0;
+    }
+
+    /**
+     * Update minimum stock level (reorder level)
+     */
+    public function updateMinStockLevel(int $productId, int $minLevel, int $shopOwnerId): bool
+    {
+        $sql = "UPDATE {$this->table} 
+                SET min_stock_level = ?
+                WHERE id = ? AND shop_owner_id = ?";
+        $statement = $this->query($sql, [$minLevel, $productId, $shopOwnerId]);
+        return $statement && $statement->rowCount() > 0;
+    }
+
+    /**
+     * Reduce stock for order placement
+     */
+    public function reduceStockForOrder(int $productId, int $quantity, int $shopOwnerId): bool
+    {
+        $sql = "UPDATE {$this->table} 
+                SET stock_quantity = GREATEST(0, stock_quantity - ?),
+                    updated_at = NOW()
+                WHERE id = ? AND shop_owner_id = ? AND stock_quantity >= ?";
+        $statement = $this->query($sql, [$quantity, $productId, $shopOwnerId, $quantity]);
+        return $statement && $statement->rowCount() > 0;
+    }
 }

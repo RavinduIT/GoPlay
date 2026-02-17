@@ -1,7 +1,10 @@
-<?php 
+<?php
 $title = 'Ground Owner Dashboard - GoPlay';
 $additionalCSS = ['/public/css/pages/ground-owner-dashboard.css'];
-$additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
+$additionalJS = [
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+    '/public/js/pages/ground-owner-dashboard.js'
+];
 ?>
 
 <div class="ground-owner-dashboard">
@@ -48,10 +51,10 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Total Earnings</h3>
-                        <p class="stat-number">Rs.45,670</p>
+                        <p class="stat-number" id="totalEarnings">LKR 0</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>15% this month</span>
+                            <span id="earningsChange">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -62,10 +65,10 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Total Bookings</h3>
-                        <p class="stat-number">156</p>
+                        <p class="stat-number" id="totalBookings">0</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>8% this month</span>
+                            <span id="bookingsChange">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -76,10 +79,10 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Occupancy Rate</h3>
-                        <p class="stat-number">78%</p>
+                        <p class="stat-number" id="occupancyRate">0%</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>5% this month</span>
+                            <span id="occupancyChange">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -90,10 +93,10 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                     </div>
                     <div class="stat-content">
                         <h3>Average Rating</h3>
-                        <p class="stat-number">4.8</p>
+                        <p class="stat-number" id="averageRating">0</p>
                         <div class="stat-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>Based on 23 reviews</span>
+                            <span id="ratingInfo">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -105,13 +108,6 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                 <div class="dashboard-card earnings-chart">
                     <div class="card-header">
                         <h3>Earnings Overview</h3>
-                        <div class="card-actions">
-                            <select class="time-filter" id="earningsFilter">
-                                <option value="7">Last 7 days</option>
-                                <option value="30" selected>Last 30 days</option>
-                                <option value="90">Last 90 days</option>
-                            </select>
-                        </div>
                     </div>
                     <div class="chart-container">
                         <canvas id="earningsChart"></canvas>
@@ -130,7 +126,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Football Ground A</h4>
                                 <p>Kavinda Ranasighe</p>
                                 <span class="booking-details">Today, 3:00 PM - 5:00 PM</span>
-                                <span class="booking-amount">₹1,200</span>
+                                <span class="booking-amount">LKR 1,200</span>
                             </div>
                             <span class="status-badge confirmed">Confirmed</span>
                         </div>
@@ -139,7 +135,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Cricket Ground B</h4>
                                 <p>Sanduni Rajapakse</p>
                                 <span class="booking-details">Tomorrow, 10:00 AM - 1:00 PM</span>
-                                <span class="booking-amount">₹1,800</span>
+                                <span class="booking-amount">LKR 1,800</span>
                             </div>
                             <span class="status-badge pending">Pending</span>
                         </div>
@@ -148,7 +144,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Tennis Court 1</h4>
                                 <p>Dilan Wijesinghe</p>
                                 <span class="booking-details">Dec 25, 4:00 PM - 5:00 PM</span>
-                                <span class="booking-amount">₹600</span>
+                                <span class="booking-amount">LKR 600</span>
                             </div>
                             <span class="status-badge confirmed">Confirmed</span>
                         </div>
@@ -167,7 +163,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Football Ground A</h4>
                                 <div class="performance-stats">
                                     <span class="bookings">68 bookings</span>
-                                    <span class="earnings">₹20,400</span>
+                                    <span class="earnings">LKR 20,400</span>
                                 </div>
                             </div>
                             <div class="performance-chart">
@@ -180,7 +176,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Cricket Ground B</h4>
                                 <div class="performance-stats">
                                     <span class="bookings">45 bookings</span>
-                                    <span class="earnings">₹13,500</span>
+                                    <span class="earnings">LKR.13,500</span>
                                 </div>
                             </div>
                             <div class="performance-chart">
@@ -193,7 +189,7 @@ $additionalJS = ['/public/js/pages/ground-owner-dashboard.js'];
                                 <h4>Tennis Court 1</h4>
                                 <div class="performance-stats">
                                     <span class="bookings">43 bookings</span>
-                                    <span class="earnings">₹11,770</span>
+                                    <span class="earnings">LKR 11,770</span>
                                 </div>
                             </div>
                             <div class="performance-chart">

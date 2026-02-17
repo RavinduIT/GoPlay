@@ -1,4 +1,6 @@
 <?php
+use App\Models\Coach;
+
 $title = 'Book Training Session - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
@@ -6,136 +8,69 @@ $additionalJS = [];
 // Get coach ID from URL parameter
 $coach_id = $_GET['coach_id'] ?? null;
 
-// Coach data matching the actual database coaches
-$coaches = [
-    1 => [
-        'id' => 1,
-        'name' => 'Lasith Malinga',
-        'sport' => 'Cricket',
-        'experience' => '15 Years',
-        'rating' => 4.9,
-        'reviews' => 156,
-        'price' => 3500,
-        'location' => 'Colombo',
-        'bio' => 'Former international cricket player with extensive coaching experience in cricket fundamentals and advanced techniques.',
-        'profile_picture' => null,
-        'specialties' => ['Fast Bowling', 'Cricket Fundamentals', 'Match Strategy', 'Youth Development'],
-        'available_times' => ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00']
-    ],
-    2 => [
-        'id' => 2,
-        'name' => 'Angelo Mathews',
-        'sport' => 'Tennis',
-        'experience' => '8 Years',
-        'rating' => 4.8,
-        'reviews' => 89,
-        'price' => 4000,
-        'location' => 'Kandy',
-        'bio' => 'Professional tennis coach specializing in junior development and competitive training programs.',
-        'profile_picture' => null,
-        'specialties' => ['Technique', 'Strategy', 'Match Play', 'Fitness'],
-        'available_times' => ['08:00', '09:00', '10:00', '15:00', '16:00', '17:00']
-    ],
-    3 => [
-        'id' => 3,
-        'name' => 'Thisara Perera',
-        'sport' => 'Football',
-        'experience' => '10 Years',
-        'rating' => 4.7,
-        'reviews' => 203,
-        'price' => 2800,
-        'location' => 'Galle',
-        'bio' => 'Former professional footballer now dedicated to developing the next generation of players.',
-        'profile_picture' => null,
-        'specialties' => ['Technical Skills', 'Tactical Awareness', 'Physical Conditioning'],
-        'available_times' => ['07:00', '08:00', '17:00', '18:00', '19:00']
-    ],
-    4 => [
-        'id' => 4,
-        'name' => 'Chaminda Vaas',
-        'sport' => 'Swimming',
-        'experience' => '12 Years',
-        'rating' => 4.9,
-        'reviews' => 92,
-        'price' => 3200,
-        'location' => 'Colombo',
-        'bio' => 'Olympic swimmer turned coach, specializing in competitive swimming and stroke technique.',
-        'profile_picture' => null,
-        'specialties' => ['Stroke Technique', 'Endurance', 'Competition Prep'],
-        'available_times' => ['06:00', '07:00', '08:00', '16:00', '17:00', '18:00']
-    ],
-    5 => [
-        'id' => 5,
-        'name' => 'Muttiah Muralitharan',
-        'sport' => 'Basketball',
-        'experience' => '7 Years',
-        'rating' => 4.6,
-        'reviews' => 134,
-        'price' => 3000,
-        'location' => 'Negombo',
-        'bio' => 'Basketball coach with focus on fundamental skills and team play development.',
-        'profile_picture' => null,
-        'specialties' => ['Shooting', 'Defense', 'Team Strategy', 'Youth Development'],
-        'available_times' => ['09:00', '10:00', '11:00', '16:00', '17:00', '18:00']
-    ],
-    6 => [
-        'id' => 6,
-        'name' => 'Chamini De Silva',
-        'sport' => 'Badminton',
-        'experience' => '4 Years',
-        'rating' => 4.8,
-        'reviews' => 67,
-        'price' => 2500,
-        'location' => 'Kandy',
-        'bio' => 'Former national badminton player with expertise in competitive training and technique refinement.',
-        'profile_picture' => null,
-        'specialties' => ['Technique', 'Footwork', 'Game Strategy', 'Mental Preparation'],
-        'available_times' => ['08:00', '09:00', '10:00', '15:00', '16:00', '17:00']
-    ],
-    7 => [
-        'id' => 7,
-        'name' => 'Ruwan Kalpage',
-        'sport' => 'Volleyball',
-        'experience' => '6 Years',
-        'rating' => 4.5,
-        'reviews' => 98,
-        'price' => 2700,
-        'location' => 'Matara',
-        'bio' => 'Professional volleyball coach with experience in team dynamics and competitive play.',
-        'profile_picture' => null,
-        'specialties' => ['Spiking', 'Serving', 'Team Coordination', 'Defense'],
-        'available_times' => ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00']
-    ],
-    8 => [
-        'id' => 8,
-        'name' => 'Sanduni Perera',
-        'sport' => 'Soccer',
-        'experience' => '5 Years',
-        'rating' => 4.7,
-        'reviews' => 123,
-        'price' => 3100,
-        'location' => 'Kurunegala',
-        'bio' => 'Former national soccer player focused on youth development and technical skills.',
-        'profile_picture' => null,
-        'specialties' => ['Ball Control', 'Passing', 'Shooting', 'Tactical Awareness'],
-        'available_times' => ['07:00', '08:00', '09:00', '17:00', '18:00', '19:00']
-    ]
-];
-
+// Fetch coach data from database
 $selected_coach = null;
-if ($coach_id && isset($coaches[$coach_id])) {
-    $selected_coach = $coaches[$coach_id];
+$coaches = [];
+
+try {
+    $coachModel = new Coach();
+
+    if ($coach_id) {
+        // If coach_id is provided, load only that specific coach with user details
+        $coachData = $coachModel->getWithDetails((int)$coach_id);
+
+        if ($coachData) {
+            $selected_coach = [
+                'id' => $coachData['id'],
+                'name' => $coachData['first_name'] . ' ' . $coachData['last_name'],
+                'sport' => $coachData['sport_name'] ?? 'General',
+                'experience' => $coachData['experience_years'] . ' Years',
+                'rating' => round($coachData['rating'] ?? 4.5, 1),
+                'reviews' => $coachData['total_reviews'] ?? 0,
+                'price' => $coachData['hourly_rate'],
+                'location' => $coachData['location'] ?? 'Sri Lanka',
+                'bio' => $coachData['bio'] ?? 'Professional coach with extensive experience.',
+                'profile_picture' => $coachData['profile_picture'] ?? null,
+                'specialties' => !empty($coachData['specializations']) ? explode(', ', $coachData['specializations']) : ['Training', 'Development'],
+                'available_times' => ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00']
+            ];
+
+            // Add to coaches array for JavaScript access
+            $coaches[$coachData['id']] = $selected_coach;
+        } else {
+            error_log("Coach not found with ID: " . $coach_id);
+        }
+    } else {
+        // If no coach_id provided, load all available coaches
+        $allCoaches = $coachModel->getAvailable();
+
+        foreach ($allCoaches as $coach) {
+            $coaches[$coach['id']] = [
+                'id' => $coach['id'],
+                'name' => $coach['first_name'] . ' ' . $coach['last_name'],
+                'sport' => $coach['sport_name'] ?? 'General',
+                'experience' => $coach['experience_years'] . ' Years',
+                'rating' => round($coach['rating'] ?? 4.5, 1),
+                'reviews' => $coach['total_reviews'] ?? 0,
+                'price' => $coach['hourly_rate'],
+                'location' => $coach['location'] ?? 'Sri Lanka',
+                'bio' => $coach['bio'] ?? 'Professional coach.',
+                'profile_picture' => $coach['profile_picture'] ?? null,
+                'specialties' => !empty($coach['specializations']) ? explode(', ', $coach['specializations']) : ['Training'],
+                'available_times' => ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00']
+            ];
+        }
+    }
+} catch (Exception $e) {
+    // Fallback to empty array if database connection fails
+    $coaches = [];
+    error_log("Error loading coaches: " . $e->getMessage());
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
         :root {
             --primary-color: #2563eb;
             --primary-dark: #1d4ed8;
@@ -163,11 +98,10 @@ if ($coach_id && isset($coaches[$coach_id])) {
             padding: 0;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-            line-height: 1.6;
-            color: var(--text-primary);
+        #main-content {
             background: var(--background-light);
+            min-height: 100vh;
+            padding-top: 2rem;
         }
 
         .container {
@@ -176,20 +110,131 @@ if ($coach_id && isset($coaches[$coach_id])) {
             padding: 2rem;
         }
 
-        .header {
-            text-align: center;
+        /* Professional Page Header */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 3rem 2rem;
             margin-bottom: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
         }
 
-        .header h1 {
+        .page-header h1 {
             font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            text-align: center;
+        }
+
+        /* Coach Header Banner */
+        .coach-header-banner {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            border: 2px solid var(--primary-light);
+        }
+
+        .coach-header-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .coach-header-info {
+            flex: 1;
+        }
+
+        .coach-header-name {
+            font-size: 2rem;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .header p {
-            font-size: 1.2rem;
+        .verified-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .coach-header-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .coach-header-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .coach-header-meta-item i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .coach-header-meta-item strong {
+            color: var(--text-primary);
+        }
+
+        .coach-header-price {
+            background: var(--primary-light);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 180px;
+        }
+
+        .coach-header-price-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .coach-header-price-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .coach-header-price-per {
+            font-size: 0.9rem;
             color: var(--text-secondary);
         }
 
@@ -200,12 +245,6 @@ if ($coach_id && isset($coaches[$coach_id])) {
             align-items: start;
         }
 
-        .booking-container.single-column {
-            grid-template-columns: 1fr;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
         .coach-selection, .booking-form {
             background: var(--background-white);
             border-radius: var(--border-radius);
@@ -213,25 +252,31 @@ if ($coach_id && isset($coaches[$coach_id])) {
             overflow: hidden;
         }
 
-        .coach-selection.hidden {
-            display: none;
-        }
-
         .section-header {
-            background: var(--primary-color);
-            color: white;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+            color: white !important;
             padding: 1.5rem;
-            text-align: center;
+            text-align: left;
+            border-bottom: 3px solid var(--primary-dark);
         }
 
         .section-header h2 {
             font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-header h2 i {
+            font-size: 1.3rem;
         }
 
         .section-header p {
             opacity: 0.9;
+            font-size: 0.95rem;
+            margin-left: 2.1rem;
         }
 
         .section-content {
@@ -502,117 +547,6 @@ if ($coach_id && isset($coaches[$coach_id])) {
             border: 1px solid #fcd34d;
         }
 
-        /* Selected Coach Info Banner */
-        .selected-coach-banner {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        .selected-coach-banner .coach-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            font-weight: 700;
-            flex-shrink: 0;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .selected-coach-banner .coach-details {
-            flex: 1;
-        }
-
-        .selected-coach-banner .coach-details h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            color: white;
-        }
-
-        .selected-coach-banner .coach-meta {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            margin-top: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        .selected-coach-banner .coach-meta span {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1rem;
-            color: white;
-            opacity: 0.95;
-        }
-
-        .selected-coach-banner .coach-meta span i {
-            color: white;
-            opacity: 1;
-        }
-
-        .selected-coach-banner .coach-price-tag {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            padding: 1rem 1.5rem;
-            border-radius: var(--border-radius);
-            text-align: center;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .selected-coach-banner .price-label {
-            font-size: 0.85rem;
-            margin-bottom: 0.25rem;
-            color: white;
-            opacity: 0.9;
-        }
-
-        .selected-coach-banner .price-amount {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: white;
-        }
-
-        .selected-coach-banner .change-coach-btn {
-            color: white !important;
-            text-decoration: none;
-            padding: 0.75rem 1.5rem;
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            border-radius: var(--border-radius);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: var(--transition);
-            background: rgba(255, 255, 255, 0.15);
-            font-weight: 600;
-            margin-top: 1rem;
-        }
-
-        .selected-coach-banner .change-coach-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.6);
-            transform: translateY(-2px);
-            color: white !important;
-        }
-
-        .selected-coach-banner .change-coach-btn i {
-            color: white;
-        }
-
         .back-link {
             display: inline-flex;
             align-items: center;
@@ -627,18 +561,62 @@ if ($coach_id && isset($coaches[$coach_id])) {
             color: var(--primary-color);
         }
 
+        @media (max-width: 1024px) {
+            .booking-container {
+                grid-template-columns: 1fr;
+            }
+
+            .coach-header-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .coach-header-info {
+                text-align: center;
+            }
+
+            .coach-header-name {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .coach-header-meta {
+                justify-content: center;
+            }
+        }
+
         @media (max-width: 768px) {
             .booking-container {
                 grid-template-columns: 1fr;
                 gap: 2rem;
             }
 
-            .booking-container.single-column {
-                max-width: 100%;
-            }
-
             .container {
                 padding: 1rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.75rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .coach-header-banner {
+                padding: 1.5rem;
+            }
+
+            .coach-header-name {
+                font-size: 1.5rem;
+            }
+
+            .coach-header-meta {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: center;
+            }
+
+            .coach-header-price-amount {
+                font-size: 1.5rem;
             }
 
             .form-row {
@@ -652,66 +630,64 @@ if ($coach_id && isset($coaches[$coach_id])) {
             .time-slots {
                 grid-template-columns: repeat(3, 1fr);
             }
-
-            .selected-coach-banner {
-                flex-direction: column;
-                text-align: center;
-                padding: 1.5rem;
-            }
-
-            .selected-coach-banner .coach-details h2 {
-                font-size: 1.5rem;
-            }
-
-            .selected-coach-banner .coach-meta {
-                flex-direction: column;
-                gap: 0.75rem;
-                justify-content: center;
-            }
         }
-    </style>
-</head>
-<body>
-    <div class="container">
+</style>
+
+<div class="container">
         <a href="/book-coach" class="back-link">
             <i class="fas fa-arrow-left"></i>
             Back to Coach Selection
         </a>
 
-        <div class="header">
+        <div class="page-header">
             <h1><i class="fas fa-calendar-plus"></i> Book Training Session</h1>
-            <p><?= $selected_coach ? 'Complete your booking with ' . htmlspecialchars($selected_coach['name']) : 'Select a coach and schedule your training session' ?></p>
+            <p>Select a coach and schedule your training session</p>
         </div>
 
         <?php if ($selected_coach): ?>
-        <!-- Selected Coach Banner -->
-        <div class="selected-coach-banner">
-            <div class="coach-avatar">
+        <!-- Coach Header Banner -->
+        <div class="coach-header-banner">
+            <div class="coach-header-avatar">
                 <?= strtoupper(substr($selected_coach['name'], 0, 1)) ?>
             </div>
-            <div class="coach-details">
-                <h2><?= htmlspecialchars($selected_coach['name']) ?></h2>
-                <div class="coach-meta">
-                    <span><i class="fas fa-trophy"></i> <?= htmlspecialchars($selected_coach['sport']) ?> Coach</span>
-                    <span><i class="fas fa-star"></i> <?= $selected_coach['rating'] ?> Rating (<?= $selected_coach['reviews'] ?> reviews)</span>
-                    <span><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($selected_coach['location']) ?></span>
-                    <span><i class="fas fa-clock"></i> <?= htmlspecialchars($selected_coach['experience']) ?> Experience</span>
+            <div class="coach-header-info">
+                <div class="coach-header-name">
+                    <?= htmlspecialchars($selected_coach['name']) ?>
+                    <span class="verified-badge">
+                        <i class="fas fa-check-circle"></i>
+                        Verified
+                    </span>
                 </div>
-                <a href="/book-coach" class="change-coach-btn">
-                    <i class="fas fa-exchange-alt"></i>
-                    Change Coach
-                </a>
+                <div class="coach-header-meta">
+                    <div class="coach-header-meta-item">
+                        <i class="fas fa-trophy"></i>
+                        <span><strong><?= htmlspecialchars($selected_coach['sport']) ?></strong> Coach</span>
+                    </div>
+                    <div class="coach-header-meta-item">
+                        <i class="fas fa-award"></i>
+                        <span><strong><?= htmlspecialchars($selected_coach['experience']) ?></strong> Experience</span>
+                    </div>
+                    <div class="coach-header-meta-item">
+                        <i class="fas fa-star"></i>
+                        <span><strong><?= $selected_coach['rating'] ?>/5.0</strong> (<?= $selected_coach['reviews'] ?> reviews)</span>
+                    </div>
+                    <div class="coach-header-meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span><?= htmlspecialchars($selected_coach['location']) ?></span>
+                    </div>
+                </div>
             </div>
-            <div class="coach-price-tag">
-                <div class="price-label">Session Rate</div>
-                <div class="price-amount">LKR <?= number_format($selected_coach['price']) ?></div>
+            <div class="coach-header-price">
+                <div class="coach-header-price-label">Session Rate</div>
+                <div class="coach-header-price-amount">LKR <?= number_format($selected_coach['price']) ?></div>
+                <div class="coach-header-price-per">per hour</div>
             </div>
         </div>
         <?php endif; ?>
 
-        <div class="booking-container <?= $selected_coach ? 'single-column' : '' ?>">
+        <div class="booking-container">
             <!-- Coach Selection -->
-            <div class="coach-selection <?= $selected_coach ? 'hidden' : '' ?>">
+            <div class="coach-selection">
                 <div class="section-header">
                     <h2><i class="fas fa-user-tie"></i> Select Coach</h2>
                     <p>Choose your preferred trainer</p>
@@ -754,12 +730,12 @@ if ($coach_id && isset($coaches[$coach_id])) {
                     <p>Complete your booking details</p>
                 </div>
                 <div class="section-content">
-                    <div class="alert alert-info" id="selectCoachAlert" <?= $selected_coach ? 'style="display: none;"' : '' ?>>
+                    <div class="alert alert-info" id="selectCoachAlert">
                         <i class="fas fa-info-circle"></i>
                         Please select a coach to continue
                     </div>
 
-                    <form id="bookingForm" style="display: <?= $selected_coach ? 'block' : 'none' ?>;">
+                    <form id="bookingForm" style="display: none;">
                         <div class="form-group">
                             <label>Session Type <span class="required">*</span></label>
                             <div class="session-types">
@@ -823,10 +799,6 @@ if ($coach_id && isset($coaches[$coach_id])) {
                                 <span id="summaryDuration">1 Hour</span>
                             </div>
                             <div class="summary-row">
-                                <span>Session Fee:</span>
-                                <span id="summarySessionFee">LKR 0</span>
-                            </div>
-                            <div class="summary-row">
                                 <span>Total Amount:</span>
                                 <span id="summaryTotal">LKR 0</span>
                             </div>
@@ -842,7 +814,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
         </div>
     </div>
 
-    <script>
+<script>
         class SessionBooking {
             constructor() {
                 this.selectedCoach = null;
@@ -856,21 +828,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
 
                 // Auto-select coach if coach_id is provided
                 <?php if ($selected_coach): ?>
-                // Pre-populate coach data from PHP
-                this.selectedCoach = {
-                    id: <?= $selected_coach['id'] ?>,
-                    name: '<?= addslashes($selected_coach['name']) ?>',
-                    price: <?= $selected_coach['price'] ?>,
-                    sport: '<?= addslashes($selected_coach['sport']) ?>'
-                };
-                
-                // Show booking form immediately
-                document.getElementById('selectCoachAlert').style.display = 'none';
-                document.getElementById('bookingForm').style.display = 'block';
-                
-                // Update time slots and summary
-                this.updateTimeSlots();
-                this.updateSummary();
+                this.selectCoach(<?= $selected_coach['id'] ?>);
                 <?php endif; ?>
             }
 
@@ -987,12 +945,7 @@ if ($coach_id && isset($coaches[$coach_id])) {
                 }
 
                 document.getElementById('summaryDuration').textContent = `${this.duration} minutes`;
-                
-                // Calculate total amount based on duration
-                // Hourly rate is for 60 minutes, so calculate proportionally
-                const totalAmount = Math.round((this.selectedCoach.price / 60) * this.duration);
-                document.getElementById('summarySessionFee').textContent = `LKR ${totalAmount.toLocaleString()}`;
-                document.getElementById('summaryTotal').textContent = `LKR ${totalAmount.toLocaleString()}`;
+                document.getElementById('summaryTotal').textContent = `LKR ${this.selectedCoach.price.toLocaleString()}`;
 
                 // Enable/disable proceed button
                 const canProceed = this.selectedCoach && this.selectedType && this.selectedDate && this.selectedTime;
@@ -1007,31 +960,56 @@ if ($coach_id && isset($coaches[$coach_id])) {
                 document.getElementById('sessionDate').min = tomorrow.toISOString().split('T')[0];
             }
 
-            proceedToPayment() {
+            async proceedToPayment() {
                 if (!this.selectedCoach || !this.selectedType || !this.selectedDate || !this.selectedTime) {
                     alert('Please complete all required fields');
                     return;
                 }
 
-                // Calculate total amount based on duration
-                const totalAmount = Math.round((this.selectedCoach.price / 60) * this.duration);
+                // Disable button during submission
+                const btn = document.getElementById('proceedToPayment');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Booking...';
 
                 // Create booking data
                 const bookingData = {
                     coach_id: this.selectedCoach.id,
-                    coach_name: this.selectedCoach.name,
+                    booking_date: this.selectedDate,
+                    start_time: this.selectedTime,
                     session_type: this.selectedType,
-                    date: this.selectedDate,
-                    time: this.selectedTime,
                     duration: this.duration,
-                    hourly_rate: this.selectedCoach.price,
-                    total_amount: totalAmount,
+                    total_amount: this.selectedCoach.price,
                     special_requests: document.getElementById('specialRequests').value
                 };
 
-                // Redirect to payment with booking data
-                const params = new URLSearchParams(bookingData);
-                window.location.href = `/app/views/payment/session.php?${params.toString()}`;
+                try {
+                    // Call API to create booking
+                    const response = await fetch('/api/coach-bookings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(bookingData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('Booking created successfully! Booking ID: ' + result.booking_id);
+                        // Redirect to payment or bookings page
+                        window.location.href = '/my-bookings';
+                    } else {
+                        alert('Error: ' + result.error);
+                        console.error('Booking error:', result);
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-credit-card"></i> Proceed to Payment';
+                    }
+                } catch (error) {
+                    console.error('Error creating booking:', error);
+                    alert('Failed to create booking. Error: ' + error.message + '\nCheck browser console for details.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-credit-card"></i> Proceed to Payment';
+                }
             }
         }
 
@@ -1040,5 +1018,3 @@ if ($coach_id && isset($coaches[$coach_id])) {
             new SessionBooking();
         });
     </script>
-</body>
-</html>

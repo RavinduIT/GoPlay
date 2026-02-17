@@ -197,6 +197,10 @@
                             <i class="fas fa-calendar-alt"></i>
                             <span>My Bookings</span>
                         </a>
+                        <a href="/my-orders" class="action-btn" title="View your orders">
+                            <i class="fas fa-receipt"></i>
+                            <span>My Orders</span>
+                        </a>
                         <a href="/cart" class="action-btn" title="View shopping cart">
                             <i class="fas fa-shopping-cart"></i>
                             <span>Shopping Cart</span>

@@ -92,17 +92,25 @@ class AdminNewsController extends BaseController
         try {
             $this->startSession();
             
-            // Validate input
-            $title = trim($request->getParam('title', ''));
-            $content = trim($request->getParam('content', ''));
-            $excerpt = trim($request->getParam('excerpt', ''));
-            $category = trim($request->getParam('category', 'General Sports'));
-            $status = $request->getParam('status', 'draft');
+            // Get data from POST (FormData sends via $_POST and $_FILES)
+            $title = trim($_POST['title'] ?? '');
+            $content = trim($_POST['content'] ?? '');
+            $excerpt = trim($_POST['excerpt'] ?? '');
+            $category = trim($_POST['category'] ?? 'General Sports');
+            $status = $_POST['status'] ?? 'draft';
             
-            if (empty($title) || empty($content)) {
+            // Validate required fields
+            if (empty($title)) {
                 return $this->json([
                     'success' => false,
-                    'message' => 'Title and content are required'
+                    'message' => 'Title is required'
+                ], 400);
+            }
+
+            if (empty($content)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Content is required'
                 ], 400);
             }
 
@@ -112,7 +120,19 @@ class AdminNewsController extends BaseController
             // Handle file upload
             $featuredImage = null;
             if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] === UPLOAD_ERR_OK) {
-                $featuredImage = $this->uploadImage($_FILES['featured_image']);
+                try {
+                    $featuredImage = $this->uploadImage($_FILES['featured_image']);
+                } catch (\Exception $e) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => 'Image upload failed: ' . $e->getMessage()
+                    ], 400);
+                }
+            }
+
+            // Auto-generate excerpt if not provided
+            if (empty($excerpt)) {
+                $excerpt = substr(strip_tags($content), 0, 200);
             }
 
             // Prepare data
@@ -120,7 +140,7 @@ class AdminNewsController extends BaseController
                 'title' => $title,
                 'slug' => $slug,
                 'content' => $content,
-                'excerpt' => $excerpt ?: substr(strip_tags($content), 0, 200),
+                'excerpt' => $excerpt,
                 'featured_image' => $featuredImage,
                 'category' => $category,
                 'status' => $status,
@@ -146,6 +166,7 @@ class AdminNewsController extends BaseController
 
         } catch (\Exception $e) {
             error_log("Store news error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return $this->json([
                 'success' => false,
                 'message' => 'An error occurred: ' . $e->getMessage()
@@ -194,7 +215,16 @@ class AdminNewsController extends BaseController
         }
 
         try {
-            $id = $request->getParam('id');
+            // Get ID from URL parameter or POST data
+            $id = $request->getParam('id') ?? $_POST['id'] ?? null;
+            
+            if (!$id) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'News ID is required'
+                ], 400);
+            }
+
             $news = $this->newsModel->find($id);
 
             if (!$news) {
@@ -204,17 +234,25 @@ class AdminNewsController extends BaseController
                 ], 404);
             }
 
-            // Validate input
-            $title = trim($request->getParam('title', ''));
-            $content = trim($request->getParam('content', ''));
-            $excerpt = trim($request->getParam('excerpt', ''));
-            $category = trim($request->getParam('category', 'General Sports'));
-            $status = $request->getParam('status', 'draft');
+            // Get data from POST
+            $title = trim($_POST['title'] ?? '');
+            $content = trim($_POST['content'] ?? '');
+            $excerpt = trim($_POST['excerpt'] ?? '');
+            $category = trim($_POST['category'] ?? 'General Sports');
+            $status = $_POST['status'] ?? 'draft';
 
-            if (empty($title) || empty($content)) {
+            // Validate required fields
+            if (empty($title)) {
                 return $this->json([
                     'success' => false,
-                    'message' => 'Title and content are required'
+                    'message' => 'Title is required'
+                ], 400);
+            }
+
+            if (empty($content)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Content is required'
                 ], 400);
             }
 
@@ -229,9 +267,21 @@ class AdminNewsController extends BaseController
             if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] === UPLOAD_ERR_OK) {
                 // Delete old image
                 if ($featuredImage && file_exists(ROOT_PATH . $featuredImage)) {
-                    unlink(ROOT_PATH . $featuredImage);
+                    @unlink(ROOT_PATH . $featuredImage);
                 }
-                $featuredImage = $this->uploadImage($_FILES['featured_image']);
+                try {
+                    $featuredImage = $this->uploadImage($_FILES['featured_image']);
+                } catch (\Exception $e) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => 'Image upload failed: ' . $e->getMessage()
+                    ], 400);
+                }
+            }
+
+            // Auto-generate excerpt if not provided
+            if (empty($excerpt)) {
+                $excerpt = substr(strip_tags($content), 0, 200);
             }
 
             // Prepare data
@@ -239,7 +289,7 @@ class AdminNewsController extends BaseController
                 'title' => $title,
                 'slug' => $slug,
                 'content' => $content,
-                'excerpt' => $excerpt ?: substr(strip_tags($content), 0, 200),
+                'excerpt' => $excerpt,
                 'featured_image' => $featuredImage,
                 'category' => $category,
                 'status' => $status
@@ -267,6 +317,7 @@ class AdminNewsController extends BaseController
 
         } catch (\Exception $e) {
             error_log("Update news error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return $this->json([
                 'success' => false,
                 'message' => 'An error occurred: ' . $e->getMessage()
@@ -296,7 +347,7 @@ class AdminNewsController extends BaseController
 
             // Delete featured image
             if ($news['featured_image'] && file_exists(ROOT_PATH . $news['featured_image'])) {
-                unlink(ROOT_PATH . $news['featured_image']);
+                @unlink(ROOT_PATH . $news['featured_image']);
             }
 
             // Delete news article
@@ -334,6 +385,11 @@ class AdminNewsController extends BaseController
         $slug = preg_replace('/-+/', '-', $slug);
         $slug = trim($slug, '-');
 
+        // Ensure slug is not empty
+        if (empty($slug)) {
+            $slug = 'news-' . time();
+        }
+
         // Check if slug exists
         $originalSlug = $slug;
         $counter = 1;
@@ -370,8 +426,12 @@ class AdminNewsController extends BaseController
         $maxSize = 5 * 1024 * 1024; // 5MB
 
         // Validate file type
-        if (!in_array($file['type'], $allowedTypes)) {
-            throw new \Exception('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+
+        if (!in_array($mimeType, $allowedTypes)) {
+            throw new \Exception('Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.');
         }
 
         // Validate file size
@@ -382,7 +442,9 @@ class AdminNewsController extends BaseController
         // Create upload directory if it doesn't exist
         $uploadDir = ROOT_PATH . '/public/assets/images/news/';
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+            if (!mkdir($uploadDir, 0755, true)) {
+                throw new \Exception('Failed to create upload directory.');
+            }
         }
 
         // Generate unique filename

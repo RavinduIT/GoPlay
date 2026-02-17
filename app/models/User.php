@@ -81,7 +81,7 @@ class User extends BaseModel
     /**
      * Record user login
      */
-    public function recordLogin(int $userId, string $ipAddress = null, string $userAgent = null): bool
+    public function recordLogin(int $userId,): bool
     {
         try {
             $sql = "INSERT INTO user_logins (user_id, last_login_at, last_login_ip, user_agent) 
@@ -103,7 +103,7 @@ class User extends BaseModel
     /**
      * Log user activity
      */
-    public function logActivity(int $userId, string $activityType, string $description = '', string $ipAddress = null): bool
+    public function logActivity(int $userId, string $activityType, string $description = ''): bool
     {
         try {
             $sql = "INSERT INTO user_activity_log (user_id, activity_type, activity_description, ip_address, created_at) 

@@ -1328,11 +1328,11 @@ $additionalJS = ['/public/js/cart-api.js'];
             if (product.images && product.images.length > 0) {
                 try {
                     const images = typeof product.images === 'string' ? JSON.parse(product.images) : product.images;
-                    if (Array.isArray(images) && images.length > 0) {
+                    if (Array.isArray(images) && images.length > 0 && images[0]) {
                         return `<img src="${images[0]}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
                     }
                 } catch (e) {
-                    //console.log('Error parsing product images:', e);
+                    // Silent error handling
                 }
             }
 
@@ -1466,7 +1466,7 @@ $additionalJS = ['/public/js/cart-api.js'];
                 return;
             }
             // Redirect to checkout page
-            window.location.href = '/payment';
+            window.location.href = '/checkout/contact-details';
         }*/
 
 

@@ -135,30 +135,100 @@ try {
     $router->put('/api/ground-owner/grounds/{id}', 'GroundOwnerController@updateGround');
     $router->delete('/api/ground-owner/grounds/{id}', 'GroundOwnerController@deleteGround');
     $router->get('/api/ground-owner/categories', 'GroundOwnerController@getSportsCategories');
+    $router->get('/api/ground-owner/facilities', 'GroundOwnerController@getFacilities');
+
+    // Ground Owner Profile API routes
+    $router->get('/api/ground-owner/profile', 'GroundOwnerController@getProfile');
+    $router->put('/api/ground-owner/profile', 'GroundOwnerController@updateProfile');
+
+    // Ground Owner Reviews API routes
+    $router->get('/api/ground-owner/reviews', 'GroundOwnerController@getReviews');
+    $router->get('/api/ground-owner/reviews/stats', 'GroundOwnerController@getReviewStats');
 
     // Ground Owner Booking Management API routes
     $router->get('/api/ground-owner/dashboard-stats', 'GroundOwnerController@getDashboardStats');
     $router->get('/api/ground-owner/bookings', 'GroundOwnerController@getBookings');
+    $router->get('/api/ground-owner/schedule', 'GroundOwnerController@getSchedule');
     $router->put('/api/ground-owner/bookings/{id}/cancel', 'GroundOwnerController@cancelBooking');
     $router->get('/api/ground-owner/facilities/{id}/bookings', 'GroundOwnerController@getFacilityBookings');
     $router->put('/api/ground-owner/bookings/{id}/status', 'GroundOwnerController@updateBookingStatus');
+
+    // Ground Owner Maintenance API routes
+    $router->get('/api/ground-owner/maintenance/stats', 'GroundOwnerController@getMaintenanceStats');
+    $router->get('/api/ground-owner/maintenance/tasks', 'GroundOwnerController@getMaintenanceTasks');
+    $router->post('/api/ground-owner/maintenance/tasks', 'GroundOwnerController@createMaintenanceTask');
+    $router->get('/api/ground-owner/maintenance/tasks/active', 'GroundOwnerController@getActiveTasks');
+    $router->get('/api/ground-owner/maintenance/tasks/overdue', 'GroundOwnerController@getOverdueTasks');
+    $router->get('/api/ground-owner/maintenance/tasks/{id}', 'GroundOwnerController@getMaintenanceTaskDetails');
+    $router->put('/api/ground-owner/maintenance/tasks/{id}', 'GroundOwnerController@updateMaintenanceTask');
+    $router->delete('/api/ground-owner/maintenance/tasks/{id}', 'GroundOwnerController@deleteMaintenanceTask');
+    $router->post('/api/ground-owner/maintenance/tasks/{id}/progress', 'GroundOwnerController@addTaskProgress');
+    $router->put('/api/ground-owner/maintenance/tasks/{id}/complete', 'GroundOwnerController@completeMaintenanceTask');
+    $router->get('/api/ground-owner/maintenance/calendar', 'GroundOwnerController@getMaintenanceCalendar');
+    $router->get('/api/ground-owner/maintenance/cost-trends', 'GroundOwnerController@getMaintenanceCostTrends');
+
+    // Ground Owner Inspection API routes
+    $router->get('/api/ground-owner/inspections', 'GroundOwnerController@getInspections');
+    $router->get('/api/ground-owner/inspections/upcoming', 'GroundOwnerController@getUpcomingInspections');
+    $router->post('/api/ground-owner/inspections', 'GroundOwnerController@createInspection');
+    $router->get('/api/ground-owner/inspections/health-scores', 'GroundOwnerController@getFacilityHealthScores');
+
+    // Ground Owner Earnings API routes
+    $router->get('/api/ground-owner/earnings', 'GroundOwnerController@getEarnings');
+    $router->get('/api/ground-owner/earnings/overview', 'GroundOwnerController@getEarningsOverview');
+    $router->get('/api/ground-owner/earnings/trends', 'GroundOwnerController@getEarningsTrends');
+    $router->get('/api/ground-owner/earnings/breakdown', 'GroundOwnerController@getEarningsBreakdown');
+    $router->get('/api/ground-owner/earnings/grounds', 'GroundOwnerController@getTopPerformingGrounds');
+    $router->get('/api/ground-owner/earnings/transactions', 'GroundOwnerController@getEarningsTransactions');
+    $router->get('/api/ground-owner/earnings/analytics', 'GroundOwnerController@getEarningsAnalytics');
+    // Backward compatible route for transactions
+    $router->get('/api/ground-owner/transactions', 'GroundOwnerController@getEarningsTransactions');
+
     $router->get('/book-ground', 'BookingController@bookGround');
     $router->get('/ground-details', 'BookingController@groundDetails');
     $router->get('/book/{id}', 'BookingController@redirectToGroundDetails');
-    $router->get('/book-coach', 'BookingController@bookCoach');
+    $router->get('/book-coach', 'CoachController@book');
 
     // Public booking API routes
     $router->post('/api/booking/ground', 'BookingController@createGroundBooking');
     $router->get('/api/booking/availability', 'BookingController@checkAvailability');
+
+    // Public reviews API route
+    $router->get('/api/facility/reviews', 'BookingController@getFacilityReviews');
     $router->get('/coaches', 'CoachController@index');
     $router->get('/shop', 'ProductController@index');
     $router->get('/api/products', 'ProductController@getProducts');
     $router->get('/api/categories', 'ProductController@getCategories');
     $router->get('/api/products/search', 'ProductController@search');
     $router->get('/product/{id}', 'ProductController@show');
+    
+    // Product Review Routes (Form Submissions)
+    $router->post('/product/{id}/review', 'ProductController@submitReview');
+    $router->post('/product/review/update', 'ProductController@updateReview');
+    $router->post('/product/review/delete', 'ProductController@deleteReview');
+    
     $router->get('/news', 'NewsController@index');
-    $router->get('/payment', 'PaymentController@payment');
-    $router->get('/payment/success', 'PaymentController@success');
+    
+    // ===== CHECKOUT & PAYMENT ROUTES =====
+    // Checkout pages
+    $router->get('/checkout/contact-details', 'PaymentController@contactDetails');
+    $router->get('/checkout/payment-method', 'PaymentController@paymentMethod');
+    $router->get('/checkout/payment-processing', 'PaymentController@paymentProcessing');
+    $router->get('/checkout/order-success', 'PaymentController@orderSuccess');
+    
+    // API endpoints for checkout
+    $router->post('/api/checkout/save-contact', 'PaymentController@saveContactDetails');
+    $router->post('/api/checkout/process-cod', 'PaymentController@processCashOnDelivery');
+    $router->post('/api/checkout/process-card', 'PaymentController@processCardPayment');
+    $router->post('/api/checkout/payment-webhook', 'PaymentController@paymentWebhook');
+    
+    // PayHere payment gateway routes
+    $router->post('/api/checkout/initialize-payhere', 'PaymentController@initializePayHerePayment');
+    $router->post('/api/payment/payhere/notify', 'PaymentController@payHereNotify');
+    $router->get('/api/payment/payhere/return', 'PaymentController@payHereReturn');
+    
+    // Cart checkout redirect
+    $router->get('/cart/checkout', 'CartController@checkout');
     
     
     // Shop Owner page routes
@@ -167,7 +237,15 @@ try {
     $router->get('/shop-owner/orders', 'ShopOwnerController@ordersPage');
     $router->get('/shop-owner/reviews', 'ShopOwnerController@reviewsPage');
     $router->get('/shop-owner/profile', 'ShopOwnerController@profilePage');
-    $router->get('/shop-owner/sales', 'ShopOwnerController@salesPage');
+    
+    // Shop Owner product CRUD form submission routes
+    $router->post('/shop-owner/products/create', 'ShopOwnerController@handleCreateProduct');
+    $router->post('/shop-owner/products/update', 'ShopOwnerController@handleUpdateProduct');
+    $router->post('/shop-owner/products/delete', 'ShopOwnerController@handleDeleteProduct');
+
+    // Shop Owner review management routes
+    $router->get('/api/shop-owner/reviews', 'ShopOwnerController@getReviews');
+    $router->post('/shop-owner/reviews/delete', 'ShopOwnerController@deleteProductReview');
 
     // Redirect old .php URLs to new routes
     $router->get('/shop-owner/products.php', 'ShopOwnerController@productsPage');
@@ -189,17 +267,33 @@ try {
     $router->get('/api/shop-owner/orders', 'ShopOwnerController@getOrders');
     $router->get('/api/shop-owner/orders/{id}', 'ShopOwnerController@getOrder');
     $router->put('/api/shop-owner/orders/{id}/status', 'ShopOwnerController@updateOrderStatus');
+    $router->get('/shop-owner/get-order', 'ShopOwnerController@getOrder');
+    $router->post('/shop-owner/update-order-status', 'ShopOwnerController@updateOrderStatus');
+    $router->post('/shop-owner/delete-order', 'ShopOwnerController@deleteOrder');
     $router->get('/api/shop-owner/inventory', 'ShopOwnerController@getInventory');
     $router->put('/api/shop-owner/inventory/{id}', 'ShopOwnerController@updateStock');
     $router->get('/api/shop-owner/analytics', 'ShopOwnerController@getAnalytics');
     $router->get('/api/shop-owner/categories', 'ShopOwnerController@getCategories');
+    
+    // Shop Owner Profile API routes
+    $router->get('/api/shop-owner/profile', 'ShopOwnerController@getProfileData');
+    $router->post('/api/shop-owner/profile/update', 'ShopOwnerController@updateProfile');
+    $router->post('/api/shop-owner/profile/upload-logo', 'ShopOwnerController@uploadShopLogo');
+    $router->post('/api/shop-owner/profile/upload-banner', 'ShopOwnerController@uploadShopBanner');
+    $router->post('/api/shop-owner/profile/upload-document', 'ShopOwnerController@uploadDocument');
+    $router->post('/api/shop-owner/profile/upload-images', 'ShopOwnerController@uploadShopImages');
 
-    //News model methods
-    // Add these news routes after your existing news route
+    // Inventory management form handler routes
+    $router->post('/shop-owner/inventory/add-stock', 'ShopOwnerController@handleAddStock');
+    $router->post('/shop-owner/inventory/update-min-stock', 'ShopOwnerController@handleUpdateMinStock');
+    $router->post('/shop-owner/inventory/remove-stock', 'ShopOwnerController@handleRemoveStock');
+
+    // News Routes - Updated
 $router->get('/news', 'NewsController@index');
 $router->get('/news/search', 'NewsController@search');
 $router->get('/news/load-more', 'NewsController@loadMore');
-$router->get('/news/{slug}', 'NewsController@show'); // This is the missing route!
+$router->get('/api/news/live-search', 'NewsController@liveSearch'); // NEW!
+$router->get('/news/{slug}', 'NewsController@show');
 
     // USER PROFILE ROUTES - Add these to your existing routes in index.php
     
@@ -215,12 +309,22 @@ $router->get('/news/{slug}', 'NewsController@show'); // This is the missing rout
     $router->post('/api/user/change-password', 'UserController@changePassword');
     $router->get('/api/user/bookings', 'UserController@getBookings');
     $router->get('/api/user/orders', 'UserController@getOrders');
+    $router->get('/api/user/orders/stats', 'UserController@getOrderStats');
+    $router->get('/api/user/orders/{id}', 'UserController@getOrderDetails');
+    $router->post('/api/user/orders/{id}/cancel', 'UserController@cancelOrder');
 
     // User Ground Booking API routes
     $router->get('/api/user/ground-bookings', 'UserController@getGroundBookings');
     $router->post('/api/user/ground-bookings', 'UserController@createGroundBooking');
     $router->get('/api/user/ground-bookings/{id}', 'UserController@getGroundBookingDetails');
+    $router->put('/api/user/ground-bookings/{id}', 'UserController@updateGroundBooking');
     $router->put('/api/user/ground-bookings/{id}/cancel', 'UserController@cancelGroundBooking');
+
+    // User Reviews API routes
+    $router->post('/api/user/reviews', 'UserController@submitReview');
+    $router->get('/api/user/reviews', 'UserController@getMyReviews');
+    $router->put('/api/user/reviews/{id}', 'UserController@updateReview');
+    $router->delete('/api/user/reviews/{id}', 'UserController@deleteReview');
     
     // Additional user routes
     $router->get('/my-bookings', 'UserController@groundBookingsDashboard');
@@ -233,6 +337,21 @@ $router->get('/news/{slug}', 'NewsController@show'); // This is the missing rout
     // LOGOUT ROUTE FIX - Make sure this exists (should already be there)
     $router->post('/auth/logout', 'AuthController@logout');
     $router->get('/logout', 'AuthController@logout'); // Add GET version as fallback
+
+    // Provider Registration Routes
+    $router->get('/provider/join', 'ProviderController@join');
+    $router->get('/provider/apply/ground-owner', 'ProviderController@applyGroundOwner');
+    $router->get('/provider/apply/coach', 'ProviderController@applyCoach');
+    $router->get('/provider/apply/shop-owner', 'ProviderController@applyShopOwner');
+    $router->post('/provider/submit-application', 'ProviderController@submitApplication');
+
+    // Admin Provider Applications Routes
+    $router->get('/admin/provider-applications', 'AdminController@providerApplications');
+    $router->get('/admin/provider-applications/list', 'AdminController@getApplicationsList');
+    $router->get('/admin/provider-applications/statistics', 'AdminController@getApplicationsStatistics');
+    $router->get('/admin/provider-applications/details/{id}', 'AdminController@getApplicationDetails');
+    $router->post('/admin/provider-applications/approve/{id}', 'AdminController@approveApplication');
+    $router->post('/admin/provider-applications/reject/{id}', 'AdminController@rejectApplication');
 
     // Admin News Management Routes
 $router->get('/admin/news', 'Admin\AdminNewsController@index');
@@ -265,6 +384,47 @@ $router->get('/admin/api/notifications', 'AdminController@getNotifications');
 $router->get('/admin/api/profile', 'AdminController@getProfile');
 
 
+// Admin Analytics Routes
+$router->get('/admin/analytics', 'Admin\AnalyticsController@index');
+$router->get('/api/admin/analytics/overview', 'Admin\AnalyticsController@getOverviewStats');
+$router->get('/api/admin/analytics/users', 'Admin\AnalyticsController@getUserAnalytics');
+$router->get('/api/admin/analytics/revenue', 'Admin\AnalyticsController@getRevenueAnalytics');
+$router->get('/api/admin/analytics/bookings', 'Admin\AnalyticsController@getBookingAnalytics');
+$router->get('/api/admin/analytics/products', 'Admin\AnalyticsController@getProductAnalytics');
+$router->get('/api/admin/analytics/export', 'Admin\AnalyticsController@exportData');
+$router->get('/api/admin/analytics/activity', 'Admin\AnalyticsController@getActivityLogs');
+
+// Admin Settings Routes
+$router->get('/admin/settings', 'Admin\AdminSettingsController@index');
+$router->get('/api/admin/settings', 'Admin\AdminSettingsController@getSettings');
+$router->post('/api/admin/settings/update', 'Admin\AdminSettingsController@updateSetting');
+$router->post('/api/admin/settings/bulk', 'Admin\AdminSettingsController@updateBulk');
+$router->get('/api/admin/settings/system-info', 'Admin\AdminSettingsController@getSystemInfo');
+$router->post('/api/admin/settings/clear-cache', 'Admin\AdminSettingsController@clearCache');
+$router->post('/api/admin/settings/test-email', 'Admin\AdminSettingsController@testEmail');
+$router->post('/api/admin/settings/backup-database', 'Admin\AdminSettingsController@backupDatabase');
+$router->get('/api/admin/settings/activity-logs', 'Admin\AdminSettingsController@getActivityLogs');
+
+
+// Admin Payments & Earnings Routes
+$router->get('/admin/payments', 'Admin\AdminPaymentController@index');
+
+// Admin Payment API Routes
+$router->get('/api/admin/payments/overview', 'Admin\AdminPaymentController@getOverviewStats');
+$router->get('/api/admin/payments/earnings', 'Admin\AdminPaymentController@getEarningsHistory');
+$router->get('/api/admin/payments/breakdown', 'Admin\AdminPaymentController@getEarningsBreakdown');
+$router->get('/api/admin/payments/daily', 'Admin\AdminPaymentController@getDailyEarnings');
+$router->post('/api/admin/payments/service-fee', 'Admin\AdminPaymentController@updateServiceFee');
+
+// Withdrawal Management Routes
+$router->get('/api/admin/payments/withdrawals', 'Admin\AdminPaymentController@getWithdrawalRequests');
+$router->post('/api/admin/payments/withdrawal', 'Admin\AdminPaymentController@createWithdrawal');
+$router->put('/api/admin/payments/withdrawal/{id}/process', 'Admin\AdminPaymentController@processWithdrawal');
+$router->put('/api/admin/payments/withdrawal/{id}/reject', 'Admin\AdminPaymentController@rejectWithdrawal');
+$router->put('/api/admin/payments/withdrawal/{id}/cancel', 'Admin\AdminPaymentController@cancelWithdrawal');
+
+// Export Routes
+$router->get('/api/admin/payments/export', 'Admin\AdminPaymentController@exportEarnings');
 
     /* Debug routes
     $router->get('/debug', function() {

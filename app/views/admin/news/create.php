@@ -1,6 +1,5 @@
 <?php
 // This file serves as both create.php and edit.php
-// For edit.php, $data['news'] will be populated
 $news = $data['news'] ?? null;
 $isEdit = !empty($news);
 $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
@@ -15,42 +14,34 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
     <link rel="stylesheet" href="/public/css/pages/admin-news-form.css">
+    <style>
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+    </style>
 </head>
 <body>
 
 <div class="admin-dashboard">
-    <!-- Sidebar -->
-    <aside class="admin-sidebar" id="adminSidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>GoPlay Admin</span>
-            </div>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <ul>
-                <li>
-                    <a href="/admin/dashboard">
-                        <i class="fas fa-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="active">
-                    <a href="/admin/news">
-                        <i class="fas fa-newspaper"></i>
-                        <span>Manage News</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/logout" class="logout-link">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </aside>
+    <?php include __DIR__ . '/../../components/admin-sidebar.php'; ?>
 
     <!-- Main Content -->
     <main class="admin-main">
@@ -68,9 +59,11 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
 
         <!-- Form Content -->
         <div class="dashboard-content">
+            <div id="alertContainer"></div>
+            
             <div class="news-form-container">
                 <form id="newsForm" enctype="multipart/form-data">
-                    <input type="hidden" id="newsId" value="<?= $isEdit ? $news['id'] : '' ?>">
+                    <input type="hidden" id="newsId" name="id" value="<?= $isEdit ? $news['id'] : '' ?>">
                     
                     <div class="form-row">
                         <div class="form-group">
@@ -116,8 +109,11 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
                                       name="excerpt" 
                                       class="form-control" 
                                       rows="3"
-                                      placeholder="Brief summary of the article (optional - will be auto-generated from content if left empty)"><?= $isEdit ? htmlspecialchars($news['excerpt'] ?? '') : '' ?></textarea>
-                            <small class="form-text">Maximum 200 characters recommended</small>
+                                      maxlength="200"
+                                      placeholder="Brief summary (optional - auto-generated if empty)"><?= $isEdit ? htmlspecialchars($news['excerpt'] ?? '') : '' ?></textarea>
+                            <small class="form-text">
+                                <span id="excerptCount">0</span>/200 characters
+                            </small>
                         </div>
                     </div>
 
@@ -140,9 +136,9 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
                                    id="featured_image" 
                                    name="featured_image" 
                                    class="form-control-file" 
-                                   accept="image/*"
+                                   accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                                    onchange="previewImage(this)">
-                            <small class="form-text">Recommended size: 1200x630px. Max file size: 5MB</small>
+                            <small class="form-text">Recommended: 1200x630px. Max: 5MB. Formats: JPG, PNG, GIF, WebP</small>
                             
                             <div id="imagePreview" class="image-preview">
                                 <?php if ($isEdit && !empty($news['featured_image'])): ?>
@@ -168,27 +164,80 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
 </div>
 
 <script>
-function toggleSidebar() {
-    document.getElementById('adminSidebar').classList.toggle('active');
+// Show alert message
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alertContainer');
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type}`;
+    alert.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        ${message}
+    `;
+    alertContainer.innerHTML = '';
+    alertContainer.appendChild(alert);
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        alert.style.opacity = '0';
+        alert.style.transition = 'opacity 0.3s';
+        setTimeout(() => alert.remove(), 300);
+    }, 5000);
 }
 
+// Preview image
 function previewImage(input) {
     const preview = document.getElementById('imagePreview');
     
     if (input.files && input.files[0]) {
-        const reader = new FileReader();
+        const file = input.files[0];
         
+        // Validate file size
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('Image file is too large. Maximum size is 5MB.', 'error');
+            input.value = '';
+            return;
+        }
+        
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            showAlert('Invalid file type. Please upload JPG, PNG, GIF, or WebP image.', 'error');
+            input.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
         reader.onload = function(e) {
             preview.innerHTML = `
                 <img src="${e.target.result}" alt="Preview">
                 <p class="preview-text">New image preview</p>
             `;
         }
-        
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
 }
 
+// Update excerpt character count
+document.getElementById('excerpt').addEventListener('input', function() {
+    const count = this.value.length;
+    document.getElementById('excerptCount').textContent = count;
+    
+    if (count > 200) {
+        this.value = this.value.substring(0, 200);
+        document.getElementById('excerptCount').textContent = '200';
+    }
+});
+
+// Initialize character count
+document.addEventListener('DOMContentLoaded', function() {
+    const excerpt = document.getElementById('excerpt');
+    document.getElementById('excerptCount').textContent = excerpt.value.length;
+});
+
+// Form submission
 document.getElementById('newsForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -196,69 +245,103 @@ document.getElementById('newsForm').addEventListener('submit', async function(e)
     const newsId = document.getElementById('newsId').value;
     const isEdit = newsId !== '';
     
+    // Validate form
+    const title = document.getElementById('title').value.trim();
+    const category = document.getElementById('category').value;
+    const content = document.getElementById('content').value.trim();
+    
+    if (!title) {
+        showAlert('Please enter a title', 'error');
+        document.getElementById('title').focus();
+        return;
+    }
+    
+    if (!category) {
+        showAlert('Please select a category', 'error');
+        document.getElementById('category').focus();
+        return;
+    }
+    
+    if (!content) {
+        showAlert('Please enter article content', 'error');
+        document.getElementById('content').focus();
+        return;
+    }
+    
     // Disable submit button
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
     
     // Create FormData
-    const formData = new FormData();
-    formData.append('title', document.getElementById('title').value);
-    formData.append('category', document.getElementById('category').value);
-    formData.append('status', document.getElementById('status').value);
-    formData.append('excerpt', document.getElementById('excerpt').value);
-    formData.append('content', document.getElementById('content').value);
+    const formData = new FormData(this);
     
-    // Add file if selected
-    const fileInput = document.getElementById('featured_image');
-    if (fileInput.files.length > 0) {
-        formData.append('featured_image', fileInput.files[0]);
-    }
-    
-    // Determine URL and method
+    // Determine URL
     const url = isEdit ? `/admin/news/update/${newsId}` : '/admin/news/store';
-    const method = 'POST';
-    
-    if (isEdit) {
-        formData.append('id', newsId);
-    }
     
     try {
+        console.log('Submitting to:', url);
+        console.log('Is Edit:', isEdit);
+        
         const response = await fetch(url, {
-            method: method,
+            method: 'POST',
             body: formData
         });
         
-        const data = await response.json();
+        console.log('Response status:', response.status);
         
-        if (data.success) {
-            alert(data.message);
-            window.location.href = '/admin/news';
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            if (data.success) {
+                showAlert(data.message, 'success');
+                setTimeout(() => {
+                    window.location.href = '/admin/news';
+                }, 1500);
+            } else {
+                showAlert('Error: ' + data.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> ' + (isEdit ? 'Update Article' : 'Create Article');
+            }
         } else {
-            alert('Error: ' + data.message);
+            const text = await response.text();
+            console.error('Non-JSON response:', text);
+            showAlert('Server returned an invalid response. Please check the error logs.', 'error');
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-save"></i> ' + (isEdit ? 'Update Article' : 'Create Article');
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while saving the article');
+        console.error('Fetch error:', error);
+        showAlert('Network error: ' + error.message, 'error');
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-save"></i> ' + (isEdit ? 'Update Article' : 'Create Article');
     }
 });
 
-// Auto-resize textarea
+// Auto-resize content textarea
 document.getElementById('content').addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = (this.scrollHeight) + 'px';
 });
 
-// Character counter for excerpt
-document.getElementById('excerpt').addEventListener('input', function() {
-    const maxLength = 200;
-    const currentLength = this.value.length;
-    
-    if (currentLength > maxLength) {
-        this.value = this.value.substring(0, maxLength);
+// Form dirty check (warn before leaving if unsaved changes)
+let formDirty = false;
+document.querySelectorAll('#newsForm input, #newsForm textarea, #newsForm select').forEach(field => {
+    field.addEventListener('change', () => formDirty = true);
+});
+
+window.addEventListener('beforeunload', function(e) {
+    if (formDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
     }
 });
+
+document.getElementById('newsForm').addEventListener('submit', function() {
+    formDirty = false;
+});
 </script>
+</body>
+</html>

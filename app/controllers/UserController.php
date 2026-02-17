@@ -6,6 +6,7 @@ use Core\Request;
 use Core\Response;
 use App\Models\User;
 use App\Models\GroundBooking;
+use App\Models\Order;
 
 /**
  * User Controller
@@ -16,11 +17,13 @@ class UserController extends BaseController
 {
     protected $userModel;
     protected $groundBookingModel;
+    protected $orderModel;
 
     public function __construct()
     {
         $this->userModel = new User();
         $this->groundBookingModel = new GroundBooking();
+        $this->orderModel = new Order();
     }
 
     /**
@@ -340,14 +343,166 @@ class UserController extends BaseController
         }
 
         try {
-            $orders = $this->userModel->getOrders($_SESSION['user_id']);
+            $userId = $_SESSION['user_id'];
+            
+            // Get filter parameters
+            $status = $request->get('status', '');
+            $paymentStatus = $request->get('payment_status', '');
+            $search = $request->get('search', '');
+            $dateFrom = $request->get('date_from', '');
+            $dateTo = $request->get('date_to', '');
+            $sort = $request->get('sort', 'newest');
+            
+            $orders = $this->userModel->getOrders($userId);
+            
+            // Apply filters
+            if ($status) {
+                $orders = array_filter($orders, fn($o) => $o['status'] === $status);
+            }
+            if ($paymentStatus) {
+                $orders = array_filter($orders, fn($o) => $o['payment_status'] === $paymentStatus);
+            }
+            if ($search) {
+                $orders = array_filter($orders, fn($o) => 
+                    stripos($o['order_number'], $search) !== false ||
+                    stripos($o['items'], $search) !== false
+                );
+            }
+            if ($dateFrom) {
+                $orders = array_filter($orders, fn($o) => $o['created_at'] >= $dateFrom);
+            }
+            if ($dateTo) {
+                $orders = array_filter($orders, fn($o) => $o['created_at'] <= $dateTo . ' 23:59:59');
+            }
+            
+            // Apply sorting
+            if ($sort === 'oldest') {
+                usort($orders, fn($a, $b) => strtotime($a['created_at']) - strtotime($b['created_at']));
+            } elseif ($sort === 'highest') {
+                usort($orders, fn($a, $b) => $b['total_amount'] - $a['total_amount']);
+            } elseif ($sort === 'lowest') {
+                usort($orders, fn($a, $b) => $a['total_amount'] - $b['total_amount']);
+            }
+            // Default is newest (already sorted in model)
             
             return $this->json([
                 'success' => true,
-                'orders' => $orders
+                'orders' => array_values($orders)
             ]);
         } catch (\Exception $e) {
             return $this->json(['error' => 'Failed to fetch orders: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get order details
+     */
+    public function getOrderDetails(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            // Get ID from route parameter
+            $orderId = (int)$request->getParam('id', 0);
+            $userId = $_SESSION['user_id'];
+            
+            if ($orderId <= 0) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid order ID'
+                ], 400);
+            }
+            
+            $order = $this->orderModel->getOrderDetailsForUser($orderId, $userId);
+            
+            if (!$order) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Order not found or access denied'
+                ], 404);
+            }
+            
+            return $this->json([
+                'success' => true,
+                'order' => $order
+            ]);
+            
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load order details',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get user order statistics
+     */
+    public function getOrderStats(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $stats = $this->orderModel->getUserOrderStats($_SESSION['user_id']);
+            
+            return $this->json([
+                'success' => true,
+                'stats' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Failed to fetch stats: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Cancel an order
+     */
+    public function cancelOrder(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            // Get ID from route parameter
+            $orderId = (int)$request->getParam('id', 0);
+            $userId = $_SESSION['user_id'];
+            
+            // Get reason from JSON body
+            $body = $request->getJsonBody();
+            $reason = $body['reason'] ?? '';
+            
+            if ($orderId <= 0) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid order ID'
+                ], 400);
+            }
+            
+            $result = $this->orderModel->cancelOrder($orderId, $userId, $reason);
+            
+            return $this->json($result, $result['success'] ? 200 : 400);
+            
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to cancel order',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -368,7 +523,7 @@ class UserController extends BaseController
     public function myOrders(Request $request): Response
     {
         $session = $this->requireAuth();
-        return $this->view('user/orders', [
+        return $this->view('user/my-orders', [
             'title' => 'My Orders - GoPlay Sports Platform'
         ]);
     }
@@ -637,6 +792,107 @@ class UserController extends BaseController
     }
 
     /**
+     * Update ground booking
+     */
+    public function updateGroundBooking(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $bookingId = (int)$request->getParam('id');
+            $userId = $_SESSION['user_id'];
+
+            // Try getBody first, fallback to getJsonBody
+            $data = $request->getBody();
+            if (empty($data)) {
+                $data = $request->getJsonBody();
+            }
+
+            error_log("=== Update Ground Booking Request ===");
+            error_log("Booking ID: " . $bookingId);
+            error_log("User ID: " . $userId);
+            error_log("Content-Type: " . ($request->getHeader('content-type') ?? 'not set'));
+            error_log("Raw body count: " . count($data));
+            error_log("Update Data: " . json_encode($data));
+
+            if (!$bookingId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid booking ID'
+                ], 400);
+            }
+
+            // Verify booking belongs to user
+            $booking = $this->groundBookingModel->find($bookingId);
+            if (!$booking) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Booking not found'
+                ], 404);
+            }
+
+            if ($booking['user_id'] != $userId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Unauthorized - This booking does not belong to you'
+                ], 403);
+            }
+
+            // Check if booking can be updated
+            if (in_array($booking['status'], ['completed', 'cancelled'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Cannot update completed or cancelled bookings'
+                ], 400);
+            }
+
+            // Prepare update data
+            $updateData = [];
+            if (isset($data['booking_date'])) $updateData['booking_date'] = $data['booking_date'];
+            if (isset($data['start_time'])) $updateData['start_time'] = $data['start_time'];
+            if (isset($data['end_time'])) $updateData['end_time'] = $data['end_time'];
+            if (isset($data['special_requests'])) $updateData['special_requests'] = $data['special_requests'];
+
+            if (empty($updateData)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'No update data provided'
+                ], 400);
+            }
+
+            error_log("Update data prepared: " . json_encode($updateData));
+
+            $success = $this->groundBookingModel->updateBooking($bookingId, $updateData);
+
+            if (!$success) {
+                error_log("Update failed - possibly time slot not available");
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to update booking. The time slot may not be available.'
+                ], 400);
+            }
+
+            error_log("Booking updated successfully");
+            return $this->json([
+                'success' => true,
+                'message' => 'Booking updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Error updating ground booking: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to update booking',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Ground bookings dashboard page
      */
     public function groundBookingsDashboard(Request $request): Response
@@ -649,9 +905,9 @@ class UserController extends BaseController
             return $this->redirect('/login');
         }
 
-        return $this->view('user/ground-bookings', [
+        return $this->view('user/my-bookings', [
             'user' => $user,
-            'title' => 'My Ground Bookings - GoPlay Sports Platform',
+            'title' => 'My Bookings - GoPlay Sports Platform',
             'additionalCSS' => [
                 '/public/css/pages/user-bookings.css',
                 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
@@ -660,5 +916,226 @@ class UserController extends BaseController
                 '/public/js/pages/user-bookings.js'
             ]
         ]);
+    }
+
+    // ======================
+    // FACILITY REVIEWS
+    // ======================
+
+    /**
+     * Submit a review for a facility (users only)
+     */
+    public function submitReview(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'user') {
+            return $this->json([
+                'success' => false,
+                'message' => 'Only users can submit reviews'
+            ], 403);
+        }
+
+        try {
+            $userId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+
+            // Validate required fields
+            if (empty($data['facility_id']) || empty($data['rating'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Facility ID and rating are required'
+                ], 400);
+            }
+
+            $facilityId = (int)$data['facility_id'];
+            $rating = (int)$data['rating'];
+            $reviewText = $data['review_text'] ?? '';
+            $bookingId = !empty($data['booking_id']) ? (int)$data['booking_id'] : null;
+
+            // Validate rating
+            if ($rating < 1 || $rating > 5) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Rating must be between 1 and 5'
+                ], 400);
+            }
+
+            $reviewModel = new \App\Models\FacilityReview();
+
+            // Check if user has completed booking for this facility
+            if (!$reviewModel->canUserReview($userId, $facilityId)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'You can only review facilities you have booked and completed'
+                ], 403);
+            }
+
+            // Check if user already reviewed this facility
+            if ($reviewModel->hasUserReviewed($userId, $facilityId, $bookingId)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'You have already reviewed this facility'
+                ], 400);
+            }
+
+            // Create review
+            $reviewId = $reviewModel->createReview([
+                'facility_id' => $facilityId,
+                'user_id' => $userId,
+                'booking_id' => $bookingId,
+                'rating' => $rating,
+                'review_text' => $reviewText
+            ]);
+
+            if (!$reviewId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to submit review'
+                ], 500);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Review submitted successfully',
+                'review_id' => $reviewId
+            ], 201);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error submitting review',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get user's reviews
+     */
+    public function getMyReviews(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        try {
+            $userId = $_SESSION['user_id'];
+            $reviewModel = new \App\Models\FacilityReview();
+
+            $reviews = $reviewModel->getByUserId($userId);
+
+            return $this->json([
+                'success' => true,
+                'reviews' => $reviews
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error loading reviews',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update user's review
+     */
+    public function updateReview(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        try {
+            $reviewId = (int)$request->getParam('id');
+            $userId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+
+            if (!$reviewId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid review ID'
+                ], 400);
+            }
+
+            $reviewModel = new \App\Models\FacilityReview();
+            $success = $reviewModel->updateReview($reviewId, $userId, $data);
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to update review or unauthorized'
+                ], 403);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Review updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error updating review',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete user's review
+     */
+    public function deleteReview(Request $request): Response
+    {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        try {
+            $reviewId = (int)$request->getParam('id');
+            $userId = $_SESSION['user_id'];
+
+            if (!$reviewId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Invalid review ID'
+                ], 400);
+            }
+
+            $reviewModel = new \App\Models\FacilityReview();
+            $success = $reviewModel->deleteReview($reviewId, $userId);
+
+            if (!$success) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to delete review or unauthorized'
+                ], 403);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Review deleted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error deleting review',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -5,104 +5,60 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Function to get profile URL based on user role
-function getProfileUrl($userType) {
-    switch($userType) {
-        case 'admin':
-            return '/admin/dashboard';
-        case 'coach':
-            return '/coach/profile';
-        case 'ground_owner':
-            return '/ground-owner/profile';
-        case 'shop_owner':
-            return '/shop-owner/profile';
-        case 'user':
-        default:
-            return '/user/profile';
+if (!function_exists('getProfileUrl')) {
+    function getProfileUrl($userType) {
+        switch($userType) {
+            case 'admin':
+                return '/admin/dashboard';
+            case 'coach':
+                return '/coach/profile';
+            case 'ground_owner':
+                return '/ground-owner/profile';
+            case 'shop_owner':
+                return '/shop-owner/profile';
+            case 'user':
+            default:
+                return '/user/profile';
+        }
     }
 }
 
 // Function to get dashboard URL based on user role
-function getDashboardUrl($userType) {
-    switch($userType) {
-        case 'admin':
-            return '/admin/dashboard';
-        case 'coach':
-            return '/coach/dashboard';
-        case 'ground_owner':
-            return '/ground-owner/dashboard';
-        case 'shop_owner':
-            return '/shop-owner/dashboard';
-        case 'user':
-        default:
-            return '/dashboard';
-    }
-}
-
-// Function to get notifications URL based on user role
-function getNotificationsUrl($userType) {
-    switch($userType) {
-        case 'admin':
-            return '/admin/notifications';
-        case 'coach':
-            return '/coach/notifications';
-        case 'ground_owner':
-            return '/ground-owner/notifications';
-        case 'shop_owner':
-            return '/shop-owner/notifications';
-        case 'user':
-        default:
-            return '/notifications';
-    }
-}
-
-// Function to get orders URL based on user role
-function getOrdersUrl($userType) {
-    switch($userType) {
-        case 'admin':
-            return '/admin/orders';
-        case 'coach':
-            return '/coach/orders';
-        case 'ground_owner':
-            return '/ground-owner/orders';
-        case 'shop_owner':
-            return '/shop-owner/orders';
-        case 'user':
-        default:
-            return '/my-orders';
+if (!function_exists('getDashboardUrl')) {
+    function getDashboardUrl($userType) {
+        switch($userType) {
+            case 'admin':
+                return '/admin/dashboard';
+            case 'coach':
+                return '/coach/dashboard';
+            case 'ground_owner':
+                return '/ground-owner/dashboard';
+            case 'shop_owner':
+                return '/shop-owner/dashboard';
+            case 'user':
+            default:
+                return '/dashboard';
+        }
     }
 }
 
 // Function to get user initials for default avatar
-function getUserInitials($name) {
-    $words = explode(' ', trim($name));
-    $initials = '';
-    foreach ($words as $word) {
-        if (!empty($word)) {
-            $initials .= strtoupper($word[0]);
+if (!function_exists('getUserInitials')) {
+    function getUserInitials($name) {
+        $words = explode(' ', trim($name));
+        $initials = '';
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $initials .= strtoupper($word[0]);
+            }
         }
+        return substr($initials, 0, 2); // Maximum 2 initials
     }
-    return substr($initials, 0, 2); // Maximum 2 initials
 }
 
 // Check if user has a profile picture
 $hasProfilePicture = isset($_SESSION['user']['avatar']) && !empty($_SESSION['user']['avatar']);
 $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_name']) : 'U';
-
-// Get current page URL for active nav highlighting
-$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-
-// Function to check if nav link is active
-function isActiveLink($linkPath, $currentPath) {
-    // Exact match for home
-    if ($linkPath === '/' && $currentPath === '/') {
-        return true;
-    }
-    // For other pages, check if current path starts with link path (excluding home)
-    if ($linkPath !== '/' && strpos($currentPath, $linkPath) === 0) {
-        return true;
-    }
-    return false;
-}
 ?>
 
 <nav class="navbar">
@@ -119,20 +75,32 @@ function isActiveLink($linkPath, $currentPath) {
         <!-- Navigation Menu -->
         <ul class="nav-menu">
             <li class="nav-item">
-                <a href="/" class="nav-link <?= isActiveLink('/', $currentPath) ? 'active' : '' ?>">Home</a>
+                <a href="/" class="nav-link">Home</a>
             </li>
             <li class="nav-item">
-                <a href="/book-ground" class="nav-link <?= isActiveLink('/book-ground', $currentPath) ? 'active' : '' ?>">Book Ground</a>
+                <a href="/book-ground" class="nav-link">Book Ground</a>
             </li>
             <li class="nav-item">
-                <a href="/book-coach" class="nav-link <?= isActiveLink('/book-coach', $currentPath) ? 'active' : '' ?>">Book Coach</a>
+                <a href="/book-coach" class="nav-link">Book Coach</a>
             </li>
             <li class="nav-item">
-                <a href="/shop" class="nav-link <?= isActiveLink('/shop', $currentPath) ? 'active' : '' ?>">Shop</a>
+                <a href="/shop" class="nav-link">Shop</a>
             </li>
             <li class="nav-item">
-                <a href="/news" class="nav-link <?= isActiveLink('/news', $currentPath) ? 'active' : '' ?>">News</a>
+                <a href="/news" class="nav-link">News</a>
             </li>
+            <?php if (!isset($_SESSION['user_id']) || ($_SESSION['user_type'] ?? 'user') === 'user'): ?>
+    <li class="nav-item">
+        <a 
+            href="<?= isset($_SESSION['user_id']) ? '/provider/join' : '/signup' ?>" 
+            class="nav-link join-provider"
+            onclick="<?php if (!isset($_SESSION['user_id'])) echo 'alert(\'Please sign up or log in before joining as a provider.\');'; ?>"
+        >
+            <i class="fas fa-briefcase"></i> Join as Provider
+        </a>
+    </li>
+<?php endif; ?>
+
         </ul>
         
         <!-- User Menu -->
@@ -164,7 +132,7 @@ function isActiveLink($linkPath, $currentPath) {
                         
                         <a href="/my-bookings"><i class="fas fa-calendar-alt"></i> My Bookings</a>
                         <a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a>
-                        <a href="<?= getOrdersUrl($_SESSION['user_type'] ?? 'user') ?>"><i class="fas fa-receipt"></i> My Orders</a>
+                        <a href="/my-orders"><i class="fas fa-receipt"></i> My Orders</a>
                         
                         <?php if (($_SESSION['user_type'] ?? '') === 'admin'): ?>
                             <hr>
@@ -172,7 +140,7 @@ function isActiveLink($linkPath, $currentPath) {
                         <?php endif; ?>
                         
                         <hr>
-                        <a href="<?= getNotificationsUrl($_SESSION['user_type'] ?? 'user') ?>"><i class="fas fa-bell"></i> Notifications</a>
+                        <a href="/notifications"><i class="fas fa-bell"></i> Notifications</a>
                         <a href="/settings"><i class="fas fa-cog"></i> Settings</a>
                         <hr>
                         <a href="#" onclick="logout(); return false;" class="logout-btn">
@@ -204,11 +172,14 @@ function isActiveLink($linkPath, $currentPath) {
 <!-- Mobile Menu -->
 <div class="mobile-menu">
     <ul class="mobile-nav-menu">
-        <li><a href="/" class="<?= isActiveLink('/', $currentPath) ? 'active' : '' ?>">Home</a></li>
-        <li><a href="/book-ground" class="<?= isActiveLink('/book-ground', $currentPath) ? 'active' : '' ?>">Book Ground</a></li>
-        <li><a href="/book-coach" class="<?= isActiveLink('/book-coach', $currentPath) ? 'active' : '' ?>">Book Coach</a></li>
-        <li><a href="/shop" class="<?= isActiveLink('/shop', $currentPath) ? 'active' : '' ?>">Shop</a></li>
-        <li><a href="/news" class="<?= isActiveLink('/news', $currentPath) ? 'active' : '' ?>">News</a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/book-ground">Book Ground</a></li>
+        <li><a href="/book-coach">Book Coach</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/news">News</a></li>
+        <?php if (!isset($_SESSION['user_id']) || ($_SESSION['user_type'] ?? 'user') === 'user'): ?>
+            <li><a href="/provider/join">Join as Provider</a></li>
+        <?php endif; ?>
         <?php if (isset($_SESSION['user_id'])): ?>
             <li><a href="<?= getProfileUrl($_SESSION['user_type'] ?? 'user') ?>">Profile</a></li>
             <?php if (($_SESSION['user_type'] ?? 'user') !== 'user'): ?>
@@ -421,25 +392,6 @@ console.log('Session check - User Name:', <?= json_encode($_SESSION['user_name']
     background: var(--primary-light);
 }
 
-.nav-link.active {
-    color: var(--primary-color);
-    background: var(--primary-light);
-    font-weight: 600;
-    position: relative;
-}
-
-.nav-link.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
-    height: 2px;
-    background: var(--primary-color);
-    border-radius: 2px;
-}
-
 /* User Menu */
 .nav-user {
     display: flex;
@@ -596,6 +548,20 @@ console.log('Session check - User Name:', <?= json_encode($_SESSION['user_name']
     color: #dc2626 !important;
 }
 
+.join-provider {
+    background: linear-gradient(135deg, #495eb9ff 0%, #535b7cff 100%);
+    color: white !important;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    padding: 8px 16px !important;
+}
+
+.join-provider:hover {
+    background: linear-gradient(135deg, #37418fff 0%, #3d4f9fff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
 /* Mobile Toggle */
 .nav-toggle {
     display: none;
@@ -671,13 +637,6 @@ console.log('Session check - User Name:', <?= json_encode($_SESSION['user_name']
     background: var(--primary-light);
     color: var(--primary-color);
     padding-left: 32px;
-}
-
-.mobile-nav-menu a.active {
-    background: var(--primary-light);
-    color: var(--primary-color);
-    font-weight: 600;
-    border-left: 3px solid var(--primary-color);
 }
 
 /* Responsive Design */

@@ -1,16 +1,29 @@
+/**
+ * Ground Owner Schedule Manager
+ * Displays real booking data from the API with conflict checking
+ */
 class ScheduleManager {
     constructor() {
         this.currentView = 'week';
         this.currentDate = new Date();
-        this.schedule = [];
-        this.timeSlots = [];
+        this.bookings = [];
+        this.facilities = [];
+        this.selectedFacilityId = null;
+        this.stats = {};
         this.init();
     }
 
     init() {
         this.bindEvents();
+        this.initializeViews();
         this.loadSchedule();
-        this.renderCurrentView();
+    }
+
+    initializeViews() {
+        // Ensure week view is visible by default
+        document.getElementById('weekView').style.display = 'block';
+        document.getElementById('dayView').style.display = 'none';
+        document.getElementById('monthView').style.display = 'none';
     }
 
     bindEvents() {
@@ -23,38 +36,146 @@ class ScheduleManager {
         });
 
         // Navigation
-        document.getElementById('prevPeriod').addEventListener('click', () => this.navigatePeriod(-1));
-        document.getElementById('nextPeriod').addEventListener('click', () => this.navigatePeriod(1));
-        document.getElementById('todayBtn').addEventListener('click', () => this.goToToday());
+        const prevBtn = document.getElementById('prevWeek');
+        const nextBtn = document.getElementById('nextWeek');
+        if (prevBtn) prevBtn.addEventListener('click', () => this.navigatePeriod(-1));
+        if (nextBtn) nextBtn.addEventListener('click', () => this.navigatePeriod(1));
 
-        // Availability management
-        document.getElementById('bulkAvailabilityBtn').addEventListener('click', () => this.openBulkAvailabilityModal());
-        document.getElementById('blockTimeBtn').addEventListener('click', () => this.openBlockTimeModal());
-
-        // Modal events
-        document.getElementById('saveBulkAvailability').addEventListener('click', () => this.saveBulkAvailability());
-        document.getElementById('saveBlockTime').addEventListener('click', () => this.saveBlockTime());
-
-        // Close modals
-        document.querySelectorAll('.modal-close, .btn-secondary').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const modal = e.target.closest('.modal');
-                if (modal) this.closeModal(modal);
+        // Facility filter
+        const groundSelector = document.getElementById('groundSelector');
+        if (groundSelector) {
+            groundSelector.addEventListener('change', (e) => {
+                this.selectedFacilityId = e.target.value || null;
+                this.loadSchedule();
             });
-        });
-
-        // Time slot generation
-        document.getElementById('generateSlots').addEventListener('click', () => this.generateTimeSlots());
+        }
     }
 
     switchView(view) {
         this.currentView = view;
-        
+
         // Update active button
         document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-view="${view}"]`).classList.add('active');
-        
+        const viewBtn = document.querySelector(`[data-view="${view}"]`);
+        if (viewBtn) viewBtn.classList.add('active');
+
+        // Show/hide the appropriate view container
+        document.getElementById('weekView').style.display = view === 'week' ? 'block' : 'none';
+        document.getElementById('dayView').style.display = view === 'day' ? 'block' : 'none';
+        document.getElementById('monthView').style.display = view === 'month' ? 'block' : 'none';
+
         this.renderCurrentView();
+    }
+
+    async loadSchedule() {
+        try {
+            console.log('Loading schedule...');
+
+            // Calculate date range based on current view
+            let startDate, endDate;
+
+            if (this.currentView === 'week') {
+                const weekStart = this.getWeekStart(this.currentDate);
+                startDate = weekStart.toISOString().split('T')[0];
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                endDate = weekEnd.toISOString().split('T')[0];
+            } else if (this.currentView === 'month') {
+                const monthStart = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
+                const monthEnd = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
+                startDate = monthStart.toISOString().split('T')[0];
+                endDate = monthEnd.toISOString().split('T')[0];
+            } else { // day view
+                startDate = this.currentDate.toISOString().split('T')[0];
+                endDate = startDate;
+            }
+
+            // Build query params
+            const params = new URLSearchParams({
+                start_date: startDate,
+                end_date: endDate
+            });
+
+            if (this.selectedFacilityId) {
+                params.append('facility_id', this.selectedFacilityId);
+            }
+
+            console.log(`Fetching schedule: ${startDate} to ${endDate}`, this.selectedFacilityId ? `for facility ${this.selectedFacilityId}` : 'all facilities');
+
+            const response = await fetch(`/api/ground-owner/schedule?${params.toString()}`);
+            const data = await response.json();
+
+            console.log('Schedule API response:', data);
+
+            if (data.success) {
+                this.bookings = data.schedule.bookings || [];
+                this.facilities = data.schedule.facilities || [];
+                this.stats = data.schedule.stats || {};
+
+                console.log(`Loaded ${this.bookings.length} bookings, ${this.facilities.length} facilities`);
+
+                // Update stats display
+                this.updateStats();
+
+                // Update facility dropdown
+                this.updateFacilityDropdown();
+
+                // Render the schedule
+                this.renderCurrentView();
+
+                if (this.bookings.length === 0) {
+                    console.log('No bookings found for this date range');
+                }
+            } else {
+                throw new Error(data.message || 'Failed to load schedule');
+            }
+
+        } catch (error) {
+            console.error('Error loading schedule:', error);
+            this.showToast('Error loading schedule data. Please check console for details.', 'error');
+        }
+    }
+
+    updateStats() {
+        // Update stat cards with meaningful data
+        const bookedSlotsEl = document.getElementById('bookedSlots');
+        const availableSlotsEl = document.getElementById('availableSlots');
+        const occupancyRateEl = document.getElementById('occupancyRate');
+
+        // Booked slots = confirmed and pending bookings
+        const bookedCount = this.bookings.filter(b =>
+            b.status === 'confirmed' || b.status === 'pending'
+        ).length;
+
+        // Total bookings in the period (including cancelled)
+        const totalBookings = this.bookings.length;
+
+        // Calculate occupancy rate
+        const occupancyRate = totalBookings > 0 ?
+            Math.round((bookedCount / totalBookings) * 100) : 0;
+
+        if (bookedSlotsEl) bookedSlotsEl.textContent = bookedCount;
+        if (availableSlotsEl) availableSlotsEl.textContent = totalBookings;
+        if (occupancyRateEl) occupancyRateEl.textContent = `${occupancyRate}%`;
+    }
+
+    updateFacilityDropdown() {
+        const groundSelector = document.getElementById('groundSelector');
+        if (!groundSelector || this.facilities.length === 0) return;
+
+        // Clear existing options (except "All Grounds")
+        groundSelector.innerHTML = '<option value="">All Grounds</option>';
+
+        // Add facility options
+        this.facilities.forEach(facility => {
+            const option = document.createElement('option');
+            option.value = facility.id;
+            option.textContent = facility.name;
+            if (this.selectedFacilityId == facility.id) {
+                option.selected = true;
+            }
+            groundSelector.appendChild(option);
+        });
     }
 
     renderCurrentView() {
@@ -75,336 +196,435 @@ class ScheduleManager {
     renderWeekView() {
         const weekStart = this.getWeekStart(this.currentDate);
         const weekDays = [];
-        
+
         for (let i = 0; i < 7; i++) {
             const day = new Date(weekStart);
             day.setDate(weekStart.getDate() + i);
             weekDays.push(day);
         }
 
-        const calendarContainer = document.getElementById('calendarView');
-        calendarContainer.innerHTML = `
-            <div class="week-view">
-                <div class="time-column">
-                    <div class="time-header"></div>
-                    ${this.generateTimeSlots().map(slot => `
-                        <div class="time-slot-label">${slot}</div>
-                    `).join('')}
-                </div>
-                ${weekDays.map(day => `
-                    <div class="day-column" data-date="${day.toISOString().split('T')[0]}">
-                        <div class="day-header">
-                            <div class="day-name">${day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                            <div class="day-number">${day.getDate()}</div>
+        const container = document.getElementById('weekCalendarBody');
+        if (!container) {
+            console.error('Week calendar body container not found');
+            return;
+        }
+
+        const timeSlots = this.generateTimeSlots();
+
+        // Create a wrapper for the grid layout
+        let html = '<div class="week-grid" style="display: flex; min-height: 600px;">';
+
+        // Time column
+        html += '<div class="time-column" style="width: 80px; border-right: 1px solid #e5e7eb;">';
+        html += '<div style="height: 60px;"></div>'; // Spacer for header
+        timeSlots.forEach(slot => {
+            html += `<div class="time-slot-label" style="height: 60px; padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 12px;">${slot}</div>`;
+        });
+        html += '</div>';
+
+        // Day columns
+        html += '<div class="days-container" style="display: flex; flex: 1;">';
+        weekDays.forEach(day => {
+            const isToday = this.isToday(day);
+            html += `<div class="day-column" data-date="${day.toISOString().split('T')[0]}" style="flex: 1; border-right: 1px solid #e5e7eb;">`;
+
+            // Day header
+            html += `<div class="day-header" style="height: 60px; padding: 8px; border-bottom: 2px solid ${isToday ? '#3b82f6' : '#e5e7eb'}; text-align: center; ${isToday ? 'background: #eff6ff;' : ''}">
+                        <div class="day-name" style="font-size: 12px; color: #6b7280;">${day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                        <div class="day-number" style="font-size: 18px; font-weight: bold; ${isToday ? 'color: #3b82f6;' : ''}">${day.getDate()}</div>
+                     </div>`;
+
+            // Time slots for this day
+            timeSlots.forEach(slot => {
+                const booking = this.getBookingForSlot(day, slot);
+                const slotClass = booking ? `time-slot has-booking status-${booking.status}` : 'time-slot';
+
+                let bgColor = '#ffffff';
+                if (booking) {
+                    bgColor = booking.status === 'confirmed' ? '#dcfce7' :
+                              booking.status === 'pending' ? '#fef3c7' :
+                              booking.status === 'cancelled' ? '#fee2e2' : '#f3f4f6';
+                }
+
+                html += `<div class="${slotClass}" data-time="${slot}" style="height: 60px; padding: 4px; border-bottom: 1px solid #e5e7eb; font-size: 11px; background: ${bgColor}; overflow: hidden; cursor: pointer;" title="${booking ? `${booking.facility_name} - ${booking.first_name} ${booking.last_name}` : 'Available'}">`;
+
+                if (booking) {
+                    html += `
+                        <div class="booking-info" style="height: 100%; overflow: hidden;">
+                            <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${booking.facility_name}</div>
+                            <div style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${booking.first_name} ${booking.last_name}</div>
                         </div>
-                        ${this.generateTimeSlots().map(slot => `
-                            <div class="time-slot" data-time="${slot}" onclick="scheduleManager.selectTimeSlot(event)">
-                                ${this.getSlotContent(day, slot)}
-                            </div>
-                        `).join('')}
-                    </div>
-                `).join('')}
-            </div>
-        `;
+                    `;
+                }
+
+                html += '</div>';
+            });
+
+            html += '</div>';
+        });
+        html += '</div>'; // Close days-container
+        html += '</div>'; // Close week-grid
+
+        container.innerHTML = html;
+        console.log(`Rendered week view with ${this.bookings.length} bookings`);
     }
 
     renderDayView() {
         const day = new Date(this.currentDate);
-        const calendarContainer = document.getElementById('calendarView');
-        
-        calendarContainer.innerHTML = `
-            <div class="day-view">
-                <div class="day-header-large">
-                    <h3>${day.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
-                </div>
-                <div class="day-schedule">
-                    <div class="time-column">
-                        ${this.generateTimeSlots().map(slot => `
-                            <div class="time-slot-label">${slot}</div>
-                        `).join('')}
-                    </div>
-                    <div class="slots-column">
-                        ${this.generateTimeSlots().map(slot => `
-                            <div class="time-slot large" data-time="${slot}" onclick="scheduleManager.selectTimeSlot(event)">
-                                ${this.getSlotContent(day, slot)}
+        const container = document.getElementById('daySchedule');
+        if (!container) {
+            console.error('Day schedule container not found');
+            return;
+        }
+
+        const dayBookings = this.getDayBookings(day);
+        const timeSlots = this.generateTimeSlots();
+
+        // Professional layout with summary card
+        let html = `
+            <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+                <!-- Day Summary Card -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">${day.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h2>
+                            <p style="margin: 0; opacity: 0.9; font-size: 16px;">${dayBookings.length} booking${dayBookings.length !== 1 ? 's' : ''} scheduled</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="display: flex; gap: 16px;">
+                                <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 12px; backdrop-filter: blur(10px);">
+                                    <div style="font-size: 24px; font-weight: 700;">${dayBookings.filter(b => b.status === 'confirmed').length}</div>
+                                    <div style="font-size: 12px; opacity: 0.9;">Confirmed</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 12px; backdrop-filter: blur(10px);">
+                                    <div style="font-size: 24px; font-weight: 700;">${dayBookings.filter(b => b.status === 'pending').length}</div>
+                                    <div style="font-size: 12px; opacity: 0.9;">Pending</div>
+                                </div>
                             </div>
-                        `).join('')}
+                        </div>
                     </div>
+                </div>
+
+                <!-- Timeline View -->
+                <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+        `;
+
+        if (dayBookings.length === 0) {
+            html += `
+                <div style="text-align: center; padding: 60px 20px; color: #9ca3af;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📅</div>
+                    <h3 style="margin: 0 0 8px 0; font-size: 20px; color: #6b7280;">No Bookings Today</h3>
+                    <p style="margin: 0; font-size: 14px;">All time slots are available</p>
+                </div>
+            `;
+        } else {
+            timeSlots.forEach(slot => {
+                const booking = this.getBookingForSlot(day, slot);
+
+                if (booking) {
+                    const statusConfig = {
+                        'confirmed': { color: '#10b981', bg: '#d1fae5', icon: '✓', label: 'Confirmed' },
+                        'pending': { color: '#f59e0b', bg: '#fef3c7', icon: '⏱', label: 'Pending' },
+                        'cancelled': { color: '#ef4444', bg: '#fee2e2', icon: '✕', label: 'Cancelled' },
+                        'completed': { color: '#6b7280', bg: '#f3f4f6', icon: '✓', label: 'Completed' }
+                    };
+
+                    const config = statusConfig[booking.status] || statusConfig['pending'];
+
+                    html += `
+                        <div style="display: flex; gap: 20px; margin-bottom: 20px; padding: 20px; background: ${config.bg}; border-radius: 12px; border-left: 4px solid ${config.color}; transition: all 0.3s ease; cursor: pointer;"
+                             onmouseover="this.style.transform='translateX(4px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'"
+                             onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none'">
+
+                            <!-- Time Column -->
+                            <div style="min-width: 100px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: ${config.color}; margin-bottom: 4px;">${booking.start_time.substring(0, 5)}</div>
+                                <div style="font-size: 12px; color: #6b7280;">to</div>
+                                <div style="font-size: 18px; font-weight: 600; color: #6b7280;">${booking.end_time.substring(0, 5)}</div>
+                                <div style="margin-top: 8px; padding: 4px 8px; background: white; border-radius: 6px; font-size: 11px; font-weight: 600; color: ${config.color};">
+                                    ${booking.duration_hours}h
+                                </div>
+                            </div>
+
+                            <!-- Booking Details -->
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                    <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #111827;">
+                                        <i class="fas fa-map-marker-alt" style="color: ${config.color}; margin-right: 8px;"></i>
+                                        ${booking.facility_name}
+                                    </h3>
+                                    <span style="padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; background: ${config.color}; color: white; display: flex; align-items: center; gap: 6px;">
+                                        <span>${config.icon}</span>
+                                        ${config.label}
+                                    </span>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-user" style="color: ${config.color}; width: 20px;"></i>
+                                        <span style="font-size: 14px; color: #374151;"><strong>${booking.first_name} ${booking.last_name}</strong></span>
+                                    </div>
+                                    ${booking.phone ? `
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-phone" style="color: ${config.color}; width: 20px;"></i>
+                                            <a href="tel:${booking.phone}" style="font-size: 14px; color: #374151; text-decoration: none;">${booking.phone}</a>
+                                        </div>
+                                    ` : ''}
+                                    ${booking.email ? `
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-envelope" style="color: ${config.color}; width: 20px;"></i>
+                                            <a href="mailto:${booking.email}" style="font-size: 14px; color: #374151; text-decoration: none;">${booking.email}</a>
+                                        </div>
+                                    ` : ''}
+                                </div>
+
+                                ${booking.special_requests ? `
+                                    <div style="margin-top: 12px; padding: 12px; background: white; border-radius: 8px; border-left: 3px solid ${config.color};">
+                                        <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px; text-transform: uppercase;">Special Requests</div>
+                                        <div style="font-size: 14px; color: #374151;">${booking.special_requests}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        html += `
                 </div>
             </div>
         `;
+
+        container.innerHTML = html;
+        console.log(`Rendered professional day view for ${day.toDateString()} with ${dayBookings.length} bookings`);
     }
 
     renderMonthView() {
         const monthStart = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
         const monthEnd = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
         const calendarStart = this.getWeekStart(monthStart);
-        
-        const calendarContainer = document.getElementById('calendarView');
-        let html = '<div class="month-view"><div class="month-grid">';
-        
-        // Day headers
-        const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        dayHeaders.forEach(day => {
-            html += `<div class="day-header">${day}</div>`;
+
+        const container = document.getElementById('monthCalendar');
+        if (!container) {
+            console.error('Month calendar container not found');
+            return;
+        }
+
+        // Calculate month statistics
+        const monthBookings = this.bookings.filter(b => {
+            const bookingDate = new Date(b.booking_date);
+            return bookingDate.getMonth() === this.currentDate.getMonth() &&
+                   bookingDate.getFullYear() === this.currentDate.getFullYear();
         });
-        
+
+        const confirmedCount = monthBookings.filter(b => b.status === 'confirmed').length;
+        const pendingCount = monthBookings.filter(b => b.status === 'pending').length;
+
+        let html = `
+            <div style="max-width: 1400px; margin: 0 auto; padding: 20px;">
+                <!-- Month Summary Card -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                        <div>
+                            <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">${this.currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h2>
+                            <p style="margin: 0; opacity: 0.9; font-size: 16px;">${monthBookings.length} total booking${monthBookings.length !== 1 ? 's' : ''} this month</p>
+                        </div>
+                        <div style="display: flex; gap: 16px;">
+                            <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 12px; backdrop-filter: blur(10px); text-align: center;">
+                                <div style="font-size: 28px; font-weight: 700;">${confirmedCount}</div>
+                                <div style="font-size: 12px; opacity: 0.9;">Confirmed</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 12px; backdrop-filter: blur(10px); text-align: center;">
+                                <div style="font-size: 28px; font-weight: 700;">${pendingCount}</div>
+                                <div style="font-size: 12px; opacity: 0.9;">Pending</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 12px; backdrop-filter: blur(10px); text-align: center;">
+                                <div style="font-size: 28px; font-weight: 700;">${this.facilities.length}</div>
+                                <div style="font-size: 12px; opacity: 0.9;">Facilities</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                    <div class="month-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">
+        `;
+
+        // Day headers with icons
+        const dayHeaders = [
+            { name: 'Sunday', short: 'Sun', icon: '☀️' },
+            { name: 'Monday', short: 'Mon', icon: '💼' },
+            { name: 'Tuesday', short: 'Tue', icon: '💼' },
+            { name: 'Wednesday', short: 'Wed', icon: '💼' },
+            { name: 'Thursday', short: 'Thu', icon: '💼' },
+            { name: 'Friday', short: 'Fri', icon: '💼' },
+            { name: 'Saturday', short: 'Sat', icon: '🎉' }
+        ];
+
+        dayHeaders.forEach(day => {
+            html += `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px 8px; text-align: center; font-weight: 700; font-size: 14px; color: white; border-radius: 8px;">
+                    <div>${day.icon}</div>
+                    <div style="margin-top: 4px;">${day.short}</div>
+                </div>
+            `;
+        });
+
         // Calendar days
         let currentDay = new Date(calendarStart);
         for (let week = 0; week < 6; week++) {
             for (let day = 0; day < 7; day++) {
                 const isCurrentMonth = currentDay.getMonth() === this.currentDate.getMonth();
                 const dayBookings = this.getDayBookings(currentDay);
-                
+                const isToday = this.isToday(currentDay);
+
+                let bgColor = '#ffffff';
+                let borderColor = '#e5e7eb';
+                let textColor = '#111827';
+
+                if (!isCurrentMonth) {
+                    bgColor = '#fafafa';
+                    textColor = '#d1d5db';
+                }
+
+                if (isToday) {
+                    bgColor = '#eff6ff';
+                    borderColor = '#3b82f6';
+                }
+
                 html += `
-                    <div class="calendar-day ${!isCurrentMonth ? 'other-month' : ''}" 
+                    <div class="calendar-day"
                          data-date="${currentDay.toISOString().split('T')[0]}"
-                         onclick="scheduleManager.selectDay(event)">
-                        <div class="day-number">${currentDay.getDate()}</div>
-                        <div class="day-bookings">
-                            ${dayBookings.slice(0, 3).map(booking => `
-                                <div class="booking-dot ${booking.status}"></div>
-                            `).join('')}
-                            ${dayBookings.length > 3 ? `<div class="booking-more">+${dayBookings.length - 3}</div>` : ''}
+                         onclick="scheduleManager.goToDate('${currentDay.toISOString().split('T')[0]}')"
+                         style="background: ${bgColor}; padding: 12px; min-height: 120px; border: 2px solid ${borderColor}; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;"
+                         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)'"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="font-weight: 700; font-size: 18px; color: ${textColor}; ${isToday ? 'background: #3b82f6; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;' : ''}">${currentDay.getDate()}</div>
+                            ${dayBookings.length > 0 ? `<div style="background: #3b82f6; color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px;">${dayBookings.length}</div>` : ''}
+                        </div>
+
+                        <div class="day-bookings" style="font-size: 11px; display: flex; flex-direction: column; gap: 4px;">
+                `;
+
+                // Show up to 2 bookings with better styling
+                dayBookings.slice(0, 2).forEach(booking => {
+                    const statusConfig = {
+                        'confirmed': { color: '#10b981', icon: '✓' },
+                        'pending': { color: '#f59e0b', icon: '⏱' },
+                        'cancelled': { color: '#ef4444', icon: '✕' },
+                        'completed': { color: '#6b7280', icon: '✓' }
+                    };
+
+                    const config = statusConfig[booking.status] || statusConfig['pending'];
+
+                    html += `
+                        <div title="${booking.facility_name} - ${booking.first_name} ${booking.last_name}"
+                             style="padding: 6px 8px; background: ${config.color}15; border-left: 3px solid ${config.color}; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s ease;"
+                             onmouseover="this.style.background='${config.color}25'"
+                             onmouseout="this.style.background='${config.color}15'">
+                            <div style="display: flex; align-items: center; gap: 4px; color: ${config.color}; font-weight: 600; font-size: 10px;">
+                                <span>${config.icon}</span>
+                                <span>${booking.start_time.substring(0, 5)}</span>
+                            </div>
+                            <div style="font-size: 10px; color: #374151; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${booking.facility_name}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (dayBookings.length > 2) {
+                    html += `
+                        <div style="font-size: 10px; color: #6b7280; font-weight: 600; text-align: center; padding: 4px; background: #f3f4f6; border-radius: 4px;">
+                            +${dayBookings.length - 2} more
+                        </div>
+                    `;
+                }
+
+                html += `
                         </div>
                     </div>
                 `;
                 currentDay.setDate(currentDay.getDate() + 1);
             }
         }
-        
-        html += '</div></div>';
-        calendarContainer.innerHTML = html;
+
+        html += `
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div style="display: flex; justify-content: center; gap: 24px; margin-top: 20px; padding: 16px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 16px; height: 16px; background: #10b98120; border-left: 3px solid #10b981; border-radius: 3px;"></div>
+                        <span style="font-size: 13px; color: #374151;">Confirmed</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 16px; height: 16px; background: #f59e0b20; border-left: 3px solid #f59e0b; border-radius: 3px;"></div>
+                        <span style="font-size: 13px; color: #374151;">Pending</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 16px; height: 16px; background: #ef444420; border-left: 3px solid #ef4444; border-radius: 3px;"></div>
+                        <span style="font-size: 13px; color: #374151;">Cancelled</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 24px; height: 24px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">15</div>
+                        <span style="font-size: 13px; color: #374151;">Today</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+        console.log(`Rendered professional month view with ${monthBookings.length} bookings`);
+    }
+
+    goToDate(dateString) {
+        this.currentDate = new Date(dateString);
+        this.switchView('day');
     }
 
     generateTimeSlots() {
         const slots = [];
         for (let hour = 6; hour <= 22; hour++) {
             slots.push(`${hour.toString().padStart(2, '0')}:00`);
-            slots.push(`${hour.toString().padStart(2, '0')}:30`);
         }
         return slots;
     }
 
-    getSlotContent(date, time) {
-        const booking = this.getBookingForSlot(date, time);
-        if (booking) {
-            return `
-                <div class="slot-booking ${booking.status}">
-                    <div class="booking-title">${booking.customerName}</div>
-                    <div class="booking-ground">${booking.groundName}</div>
-                </div>
-            `;
-        }
-        
-        const availability = this.getAvailabilityForSlot(date, time);
-        if (availability) {
-            return `<div class="slot-available">Available - ₹${availability.rate}/hr</div>`;
-        }
-        
-        return '<div class="slot-blocked">Blocked</div>';
-    }
-
     getBookingForSlot(date, time) {
-        return this.schedule.find(item => 
-            item.date === date.toISOString().split('T')[0] && 
-            item.time === time &&
-            item.type === 'booking'
-        );
-    }
+        const dateStr = date.toISOString().split('T')[0];
 
-    getAvailabilityForSlot(date, time) {
-        return this.schedule.find(item => 
-            item.date === date.toISOString().split('T')[0] && 
-            item.time === time &&
-            item.type === 'available'
-        );
+        return this.bookings.find(booking => {
+            if (booking.booking_date !== dateStr) return false;
+
+            // Parse times (format: HH:MM:SS)
+            const bookingStart = booking.start_time.substring(0, 5); // Get HH:MM
+            const bookingEnd = booking.end_time.substring(0, 5);
+            const slotTime = time;
+
+            // Check if slot time falls within booking time range
+            return slotTime >= bookingStart && slotTime < bookingEnd;
+        });
     }
 
     getDayBookings(date) {
-        return this.schedule.filter(item => 
-            item.date === date.toISOString().split('T')[0] && 
-            item.type === 'booking'
-        );
+        const dateStr = date.toISOString().split('T')[0];
+        return this.bookings.filter(booking => booking.booking_date === dateStr);
     }
 
-    selectTimeSlot(event) {
-        const slot = event.currentTarget;
-        const date = slot.closest('[data-date]').dataset.date;
-        const time = slot.dataset.time;
-        
-        // Remove previous selection
-        document.querySelectorAll('.time-slot.selected').forEach(s => s.classList.remove('selected'));
-        slot.classList.add('selected');
-        
-        this.showSlotActions(date, time, slot);
-    }
-
-    selectDay(event) {
-        const day = event.currentTarget;
-        const date = day.dataset.date;
-        this.currentDate = new Date(date);
-        this.switchView('day');
-    }
-
-    showSlotActions(date, time, slotElement) {
-        const existing = document.querySelector('.slot-actions');
-        if (existing) existing.remove();
-        
-        const actions = document.createElement('div');
-        actions.className = 'slot-actions';
-        actions.innerHTML = `
-            <button class="btn-action btn-primary" onclick="scheduleManager.setAvailable('${date}', '${time}')">
-                <i class="fas fa-check"></i> Set Available
-            </button>
-            <button class="btn-action btn-secondary" onclick="scheduleManager.blockSlot('${date}', '${time}')">
-                <i class="fas fa-ban"></i> Block
-            </button>
-            <button class="btn-action btn-delete" onclick="scheduleManager.removeSlot('${date}', '${time}')">
-                <i class="fas fa-trash"></i> Remove
-            </button>
-        `;
-        
-        slotElement.appendChild(actions);
-    }
-
-    async setAvailable(date, time) {
-        const rate = prompt('Enter hourly rate for this slot:');
-        if (!rate) return;
-        
-        try {
-            const response = await fetch('/api/schedule/availability', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, time, rate: parseFloat(rate) })
-            });
-            
-            if (response.ok) {
-                this.showToast('Time slot set as available', 'success');
-                this.loadSchedule();
-            } else {
-                throw new Error('Failed to set availability');
-            }
-        } catch (error) {
-            this.showToast('Error setting availability', 'error');
-        }
-    }
-
-    async blockSlot(date, time) {
-        const reason = prompt('Reason for blocking (optional):');
-        
-        try {
-            const response = await fetch('/api/schedule/block', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, time, reason })
-            });
-            
-            if (response.ok) {
-                this.showToast('Time slot blocked', 'success');
-                this.loadSchedule();
-            } else {
-                throw new Error('Failed to block slot');
-            }
-        } catch (error) {
-            this.showToast('Error blocking slot', 'error');
-        }
-    }
-
-    async removeSlot(date, time) {
-        if (!confirm('Remove this time slot?')) return;
-        
-        try {
-            const response = await fetch('/api/schedule/remove', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, time })
-            });
-            
-            if (response.ok) {
-                this.showToast('Time slot removed', 'success');
-                this.loadSchedule();
-            } else {
-                throw new Error('Failed to remove slot');
-            }
-        } catch (error) {
-            this.showToast('Error removing slot', 'error');
-        }
-    }
-
-    openBulkAvailabilityModal() {
-        document.getElementById('bulkAvailabilityModal').style.display = 'flex';
-    }
-
-    openBlockTimeModal() {
-        document.getElementById('blockTimeModal').style.display = 'flex';
-    }
-
-    async saveBulkAvailability() {
-        const formData = new FormData(document.getElementById('bulkAvailabilityForm'));
-        const data = Object.fromEntries(formData.entries());
-        
-        // Get selected days
-        const selectedDays = Array.from(document.querySelectorAll('input[name="days[]"]:checked'))
-            .map(cb => cb.value);
-        
-        // Get selected time slots
-        const startTime = data.startTime;
-        const endTime = data.endTime;
-        const rate = parseFloat(data.rate);
-        
-        try {
-            const response = await fetch('/api/schedule/bulk-availability', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    days: selectedDays,
-                    startTime,
-                    endTime,
-                    rate,
-                    startDate: data.startDate,
-                    endDate: data.endDate
-                })
-            });
-            
-            if (response.ok) {
-                this.showToast('Bulk availability set successfully', 'success');
-                this.closeModal(document.getElementById('bulkAvailabilityModal'));
-                this.loadSchedule();
-            } else {
-                throw new Error('Failed to set bulk availability');
-            }
-        } catch (error) {
-            this.showToast('Error setting bulk availability', 'error');
-        }
-    }
-
-    async saveBlockTime() {
-        const formData = new FormData(document.getElementById('blockTimeForm'));
-        const data = Object.fromEntries(formData.entries());
-        
-        try {
-            const response = await fetch('/api/schedule/bulk-block', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            
-            if (response.ok) {
-                this.showToast('Time blocked successfully', 'success');
-                this.closeModal(document.getElementById('blockTimeModal'));
-                this.loadSchedule();
-            } else {
-                throw new Error('Failed to block time');
-            }
-        } catch (error) {
-            this.showToast('Error blocking time', 'error');
-        }
+    isToday(date) {
+        const today = new Date();
+        return date.toDateString() === today.toDateString();
     }
 
     navigatePeriod(direction) {
         const currentDate = new Date(this.currentDate);
-        
+
         switch (this.currentView) {
             case 'day':
                 currentDate.setDate(currentDate.getDate() + direction);
@@ -416,27 +636,24 @@ class ScheduleManager {
                 currentDate.setMonth(currentDate.getMonth() + direction);
                 break;
         }
-        
-        this.currentDate = currentDate;
-        this.renderCurrentView();
-    }
 
-    goToToday() {
-        this.currentDate = new Date();
-        this.renderCurrentView();
+        this.currentDate = currentDate;
+        this.loadSchedule();
     }
 
     updatePeriodDisplay() {
-        const periodDisplay = document.getElementById('currentPeriod');
+        const periodDisplay = document.getElementById('currentWeek');
+        if (!periodDisplay) return;
+
         let text = '';
-        
+
         switch (this.currentView) {
             case 'day':
-                text = this.currentDate.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                text = this.currentDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                 });
                 break;
             case 'week':
@@ -449,7 +666,7 @@ class ScheduleManager {
                 text = this.currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
                 break;
         }
-        
+
         periodDisplay.textContent = text;
     }
 
@@ -460,40 +677,28 @@ class ScheduleManager {
         return new Date(start.setDate(diff));
     }
 
-    async loadSchedule() {
-        try {
-            const response = await fetch('/api/schedule');
-            this.schedule = await response.json();
-            this.renderCurrentView();
-        } catch (error) {
-            console.error('Error loading schedule:', error);
-            this.showToast('Error loading schedule data', 'error');
-        }
-    }
-
-    closeModal(modal) {
-        modal.style.display = 'none';
-        // Reset forms
-        const forms = modal.querySelectorAll('form');
-        forms.forEach(form => form.reset());
-    }
-
     showToast(message, type = 'info') {
+        // Create toast element
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'}"></i>
-            <span>${message}</span>
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
         `;
-        
+        toast.textContent = message;
+
         document.body.appendChild(toast);
-        
+
         setTimeout(() => {
-            toast.classList.add('show');
-        }, 100);
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
+            toast.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }

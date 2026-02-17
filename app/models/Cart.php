@@ -239,4 +239,14 @@ class Cart extends BaseModel
         
         return true;
     }
+
+    /**
+     * Get all carts for a user
+     */
+    public function getUserCarts(int $userId): array
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE user_id = ? AND status = 'active'";
+        $statement = $this->query($sql, [$userId]);
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
 }

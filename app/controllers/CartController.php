@@ -366,4 +366,34 @@ class CartController extends BaseController
             ], 500);
         }
     }
+
+    /**
+     * Checkout - Redirect to checkout page
+     */
+    public function checkout(Request $request): Response
+    {
+        try {
+            $session = $this->getCartSession();
+            $cartModel = $this->getCartModel();
+            
+            // Get or create cart
+            $cart = $cartModel->getOrCreateCart($session['user_id'], $session['session_id']);
+            
+            // Check if cart has items
+            $cartDetails = $cartModel->getCartDetails($cart['id']);
+            
+            if (empty($cartDetails['items'])) {
+                return $this->redirect('/shop');
+            }
+            
+            // Redirect to checkout contact details page
+            return $this->redirect('/checkout/contact-details');
+            
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

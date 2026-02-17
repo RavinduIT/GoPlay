@@ -1,8 +1,21 @@
-<link rel="stylesheet" href="/public/css/pages/shop owner/sidebar.css">
-<?php 
-$title = 'Shop Owner Dashboard - GoPlay';
-$additionalCSS = ['/public/css/pages/shop owner/sidebar.css'];
-$additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
+<?php
+// Determine the active page based on current URL
+$currentPath = $_SERVER['REQUEST_URI'] ?? '';
+$activePage = '';
+
+if (strpos($currentPath, '/shop-owner/dashboard') !== false) {
+    $activePage = 'dashboard';
+} elseif (strpos($currentPath, '/shop-owner/products') !== false) {
+    $activePage = 'products';
+} elseif (strpos($currentPath, '/shop-owner/orders') !== false) {
+    $activePage = 'orders';
+} elseif (strpos($currentPath, '/shop-owner/inventory') !== false) {
+    $activePage = 'inventory';
+} elseif (strpos($currentPath, '/shop-owner/reviews') !== false) {
+    $activePage = 'reviews';
+} elseif (strpos($currentPath, '/shop-owner/profile') !== false) {
+    $activePage = 'profile';
+}
 ?>
 <aside class="dashboard-sidebar" id="dashboardSidebar">
     <div class="sidebar-header">
@@ -17,55 +30,38 @@ $additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
     
     <nav class="sidebar-nav">
         <ul>
-            <li class="active">
+            <li class="<?php echo $activePage === 'dashboard' ? 'active' : ''; ?>">
                 <a href="/shop-owner/dashboard">
                     <i class="fas fa-home"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
-            <li>
+            <li class="<?php echo $activePage === 'products' ? 'active' : ''; ?>">
                 <a href="/shop-owner/products">
                     <i class="fas fa-box"></i>
                     <span>Products</span>
-                    <span class="badge">156</span>
                 </a>
             </li>
-            <li>
+            <li class="<?php echo $activePage === 'orders' ? 'active' : ''; ?>">
                 <a href="/shop-owner/orders">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Orders</span>
-                    <span class="badge new">12</span>
                 </a>
             </li>
-            <li>
+            <li class="<?php echo $activePage === 'inventory' ? 'active' : ''; ?>">
                 <a href="/shop-owner/inventory">
                     <i class="fas fa-warehouse"></i>
                     <span>Inventory</span>
-                    <span class="badge warning">5</span>
                 </a>
             </li>
-            <li>
-                <a href="/shop-owner/sales">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Sales</span>
-                </a>
-            </li>
-            <li>
-                <a href="/shop-owner/customers">
-                    <i class="fas fa-users"></i>
-                    <span>Customers</span>
-                    <span class="badge">234</span>
-                </a>
-            </li>
-            <li>
+            <li class="<?php echo $activePage === 'reviews' ? 'active' : ''; ?>">
                 <a href="/shop-owner/reviews">
                     <i class="fas fa-star"></i>
                     <span>Reviews</span>
-                    <span class="badge">45</span>
                 </a>
             </li>
             <li class="nav-divider"></li>
-            <li>
+            <li class="<?php echo $activePage === 'profile' ? 'active' : ''; ?>">
                 <a href="/shop-owner/profile">
                     <i class="fas fa-user"></i>
                     <span>Profile</span>
@@ -80,4 +76,6 @@ $additionalJS = ['/public/js/pages/shop owner/sidebar.js'];
         </ul>
     </nav>
 </aside>
-<script src="/public/js/pages/shop owner/sidebar.js" defer></script>
+
+<!-- Sidebar JavaScript -->
+<script src="/public/js/shop-owner-sidebar.js"></script>
