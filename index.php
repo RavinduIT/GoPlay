@@ -179,6 +179,14 @@ try {
     // Backward compatible route for transactions
     $router->get('/api/ground-owner/transactions', 'GroundOwnerController@getEarningsTransactions');
 
+    // Ground Owner Notifications API routes
+    $router->get('/api/ground-owner/notifications', 'GroundOwnerController@getNotifications');
+    $router->get('/api/ground-owner/notifications/stats', 'GroundOwnerController@getNotificationStats');
+    $router->put('/api/ground-owner/notifications/{id}/read', 'GroundOwnerController@markNotificationRead');
+    $router->put('/api/ground-owner/notifications/mark-all-read', 'GroundOwnerController@markAllNotificationsRead');
+    $router->delete('/api/ground-owner/notifications/{id}', 'GroundOwnerController@deleteNotification');
+    $router->delete('/api/ground-owner/notifications/clear-all', 'GroundOwnerController@clearAllNotifications');
+
     $router->get('/book-ground', 'BookingController@bookGround');
     $router->get('/ground-details', 'BookingController@groundDetails');
     $router->get('/book/{id}', 'BookingController@redirectToGroundDetails');
@@ -216,6 +224,7 @@ try {
     $router->post('/api/checkout/process-cod', 'PaymentController@processCashOnDelivery');
     $router->post('/api/checkout/process-card', 'PaymentController@processCardPayment');
     $router->post('/api/checkout/payment-webhook', 'PaymentController@paymentWebhook');
+
     
     // Cart checkout redirect
     $router->get('/cart/checkout', 'CartController@checkout');
@@ -315,7 +324,14 @@ $router->get('/news/{slug}', 'NewsController@show');
     $router->get('/api/user/reviews', 'UserController@getMyReviews');
     $router->put('/api/user/reviews/{id}', 'UserController@updateReview');
     $router->delete('/api/user/reviews/{id}', 'UserController@deleteReview');
-    
+
+    // User Notifications API routes
+    $router->get('/api/user/notifications', 'UserController@getNotifications');
+    $router->put('/api/user/notifications/{id}/read', 'UserController@markNotificationRead');
+    $router->put('/api/user/notifications/mark-all-read', 'UserController@markAllNotificationsRead');
+    $router->delete('/api/user/notifications/{id}', 'UserController@deleteNotification');
+    $router->delete('/api/user/notifications/clear-all', 'UserController@clearAllNotifications');
+
     // Additional user routes
     $router->get('/my-bookings', 'UserController@groundBookingsDashboard');
     $router->get('/my-ground-bookings', 'UserController@groundBookingsDashboard');
