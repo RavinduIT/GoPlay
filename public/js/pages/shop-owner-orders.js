@@ -280,7 +280,10 @@ function displayOrderDetails(order) {
                     </div>
                     <div class="info-item">
                         <label>Payment Status:</label>
-                        <span class="badge badge-payment-${order.payment_status}">${capitalizeFirst(order.payment_status)}</span>
+                        <span class="badge badge-payment-${order.payment_status}">
+                            ${order.payment_status === 'paid' ? '<i class="fas fa-lock"></i> ' : ''}${capitalizeFirst(order.payment_status)}
+                        </span>
+                        ${order.payment_status === 'paid' ? '<small style="color: #059669; font-size: 0.75rem; display: block; margin-top: 0.25rem;">✓ Payment verified and locked</small>' : ''}
                     </div>
                 </div>
             </div>
@@ -316,7 +319,37 @@ async function editOrderStatus(orderId) {
             // Populate form with current values
             document.getElementById('editOrderId').value = orderId;
             document.getElementById('orderStatus').value = data.order.status || 'pending';
-            document.getElementById('paymentStatus').value = data.order.payment_status || 'pending';
+            
+            const paymentStatusSelect = document.getElementById('paymentStatus');
+            paymentStatusSelect.value = data.order.payment_status || 'pending';
+            
+            // Disable payment status dropdown if already paid (security measure)
+            if (data.order.payment_status === 'paid') {
+                paymentStatusSelect.disabled = true;
+                paymentStatusSelect.style.backgroundColor = '#f3f4f6';
+                paymentStatusSelect.style.cursor = 'not-allowed';
+                
+                // Update hint text
+                const hint = document.querySelector('#paymentStatusGroup .form-hint');
+                if (hint) {
+                    hint.textContent = 'Payment status cannot be changed for paid orders';
+                    hint.style.color = '#059669';
+                    hint.style.fontWeight = '500';
+                }
+            } else {
+                // Re-enable if not paid (in case it was previously disabled)
+                paymentStatusSelect.disabled = false;
+                paymentStatusSelect.style.backgroundColor = '';
+                paymentStatusSelect.style.cursor = '';
+                
+                // Reset hint text
+                const hint = document.querySelector('#paymentStatusGroup .form-hint');
+                if (hint) {
+                    hint.textContent = 'Will update both order and payment status';
+                    hint.style.color = '';
+                    hint.style.fontWeight = '';
+                }
+            }
             
             openModal('editOrderModal');
         } else {
@@ -335,15 +368,23 @@ async function handleUpdateOrderStatus(e) {
     const orderId = document.getElementById('editOrderId').value;
     const status = document.getElementById('orderStatus').value;
     const paymentStatus = document.getElementById('paymentStatus').value;
+    const paymentStatusDisabled = document.getElementById('paymentStatus').disabled;
     
     console.log('=== UPDATE ORDER STATUS START ===');
     console.log('Order ID:', orderId);
     console.log('New Status:', status);
     console.log('Payment Status:', paymentStatus);
+    console.log('Payment Status Disabled:', paymentStatusDisabled);
     console.log('Current Order Data:', currentOrderData);
     
-    if (!orderId || !status || !paymentStatus) {
-        showToast('Please select both order status and payment status', 'error');
+    if (!orderId || !status) {
+        showToast('Please select order status', 'error');
+        return;
+    }
+    
+    // Check if trying to change payment status when it's already paid
+    if (currentOrderData && currentOrderData.payment_status === 'paid' && !paymentStatusDisabled) {
+        showToast('Cannot modify payment status for paid orders', 'error');
         return;
     }
     
@@ -355,9 +396,13 @@ async function handleUpdateOrderStatus(e) {
     try {
         const payload = {
             order_id: parseInt(orderId),
-            status: status,
-            payment_status: paymentStatus
+            status: status
         };
+        
+        // Only include payment_status if it's not already paid
+        if (!paymentStatusDisabled && currentOrderData.payment_status !== 'paid') {
+            payload.payment_status = paymentStatus;
+        }
         
         console.log('Updating order with payload:', payload);
         
