@@ -828,10 +828,504 @@ class GroundOwnerProfile {
 }
 
 function editProfile() {
-    // Navigate to edit page or show modal
-    alert('Edit profile functionality will be implemented soon!');
+    profileManager.openEditModal();
 }
 
 // Initialize
 const profileManager = new GroundOwnerProfile();
+</script>
+
+<!-- Edit Profile Modal -->
+<div id="editProfileModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> Edit Profile</h2>
+            <span class="close-modal" onclick="profileManager.closeEditModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="editProfileForm">
+                <!-- Business Information Section -->
+                <div class="form-section">
+                    <h3><i class="fas fa-briefcase"></i> Business Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="business_name">Business Name *</label>
+                            <input type="text" id="business_name" name="business_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="business_registration_number">Registration Number</label>
+                            <input type="text" id="business_registration_number" name="business_registration_number">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="business_address">Business Address</label>
+                        <input type="text" id="business_address" name="business_address">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="years_in_business">Years in Business</label>
+                            <input type="number" id="years_in_business" name="years_in_business" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="website">Website</label>
+                            <input type="url" id="website" name="website" placeholder="https://">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bio">About / Bio</label>
+                        <textarea id="bio" name="bio" rows="4" placeholder="Tell customers about your business..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Contact Information Section -->
+                <div class="form-section">
+                    <h3><i class="fas fa-phone"></i> Contact Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="business_email">Business Email</label>
+                            <input type="email" id="business_email" name="business_email">
+                        </div>
+                        <div class="form-group">
+                            <label for="business_phone">Business Phone</label>
+                            <input type="tel" id="business_phone" name="business_phone">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Media Section -->
+                <div class="form-section">
+                    <h3><i class="fas fa-share-alt"></i> Social Media</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="facebook"><i class="fab fa-facebook"></i> Facebook</label>
+                            <input type="url" id="facebook" name="facebook" placeholder="https://facebook.com/...">
+                        </div>
+                        <div class="form-group">
+                            <label for="instagram"><i class="fab fa-instagram"></i> Instagram</label>
+                            <input type="url" id="instagram" name="instagram" placeholder="https://instagram.com/...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="twitter"><i class="fab fa-twitter"></i> Twitter</label>
+                        <input type="url" id="twitter" name="twitter" placeholder="https://twitter.com/...">
+                    </div>
+                </div>
+
+                <!-- Banking Information Section -->
+                <div class="form-section">
+                    <h3><i class="fas fa-university"></i> Banking Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bank_name">Bank Name</label>
+                            <input type="text" id="bank_name" name="bank_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="bank_account_holder">Account Holder Name</label>
+                            <input type="text" id="bank_account_holder" name="bank_account_holder">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bank_account_number">Account Number</label>
+                        <input type="text" id="bank_account_number" name="bank_account_number">
+                    </div>
+                </div>
+
+                <!-- Payment Methods Section -->
+                <div class="form-section">
+                    <h3><i class="fas fa-credit-card"></i> Accepted Payment Methods</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="payment_methods" value="cash">
+                            <span><i class="fas fa-money-bill"></i> Cash</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="payment_methods" value="card">
+                            <span><i class="fas fa-credit-card"></i> Card</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="payment_methods" value="bank_transfer">
+                            <span><i class="fas fa-university"></i> Bank Transfer</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="payment_methods" value="mobile_payment">
+                            <span><i class="fas fa-mobile-alt"></i> Mobile Payment</span>
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="profileManager.closeEditModal()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="button" class="btn-save" onclick="profileManager.saveProfile()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal Styles */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease;
+    margin: auto;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.close-modal {
+    font-size: 2rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    line-height: 1;
+}
+
+.close-modal:hover {
+    transform: scale(1.2) rotate(90deg);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.form-section h3 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section h3 i {
+    color: var(--primary-color);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--background-light);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.checkbox-label:hover {
+    border-color: var(--primary-color);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-label span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+
+.modal-footer {
+    padding: 1.5rem 2rem;
+    background: var(--background-light);
+    border-radius: 0 0 16px 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    position: sticky;
+    bottom: 0;
+}
+
+.btn-cancel, .btn-save {
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+.btn-cancel {
+    background: #e5e7eb;
+    color: var(--text-primary);
+}
+
+.btn-cancel:hover {
+    background: #d1d5db;
+}
+
+.btn-save {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-save:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+@media (max-width: 768px) {
+    .modal {
+        padding: 1rem;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .checkbox-group {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+
+    .btn-cancel, .btn-save {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+
+<script>
+// Add edit modal functionality to the existing GroundOwnerProfile class
+GroundOwnerProfile.prototype.openEditModal = function() {
+    if (!this.profileData) {
+        alert('Profile data not loaded yet. Please try again.');
+        return;
+    }
+
+    const { owner_profile } = this.profileData;
+
+    // Populate form fields
+    document.getElementById('business_name').value = owner_profile?.business_name || '';
+    document.getElementById('business_registration_number').value = owner_profile?.business_registration_number || '';
+    document.getElementById('business_address').value = owner_profile?.business_address || '';
+    document.getElementById('years_in_business').value = owner_profile?.years_in_business || '';
+    document.getElementById('website').value = owner_profile?.website || '';
+    document.getElementById('bio').value = owner_profile?.bio || '';
+    document.getElementById('business_email').value = owner_profile?.business_email || '';
+    document.getElementById('business_phone').value = owner_profile?.business_phone || '';
+    document.getElementById('facebook').value = owner_profile?.facebook || '';
+    document.getElementById('instagram').value = owner_profile?.instagram || '';
+    document.getElementById('twitter').value = owner_profile?.twitter || '';
+    document.getElementById('bank_name').value = owner_profile?.bank_name || '';
+    document.getElementById('bank_account_holder').value = owner_profile?.bank_account_holder || '';
+    document.getElementById('bank_account_number').value = owner_profile?.bank_account_number || '';
+
+    // Handle payment methods checkboxes
+    let paymentMethods = [];
+    if (owner_profile?.payment_methods) {
+        paymentMethods = typeof owner_profile.payment_methods === 'string'
+            ? JSON.parse(owner_profile.payment_methods)
+            : owner_profile.payment_methods;
+    }
+
+    // Reset all checkboxes
+    document.querySelectorAll('input[name="payment_methods"]').forEach(cb => {
+        cb.checked = paymentMethods.includes(cb.value);
+    });
+
+    // Show modal
+    document.getElementById('editProfileModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+};
+
+GroundOwnerProfile.prototype.closeEditModal = function() {
+    document.getElementById('editProfileModal').style.display = 'none';
+    document.body.style.overflow = '';
+};
+
+GroundOwnerProfile.prototype.saveProfile = async function() {
+    const form = document.getElementById('editProfileForm');
+
+    // Gather form data
+    const formData = {
+        business_name: document.getElementById('business_name').value.trim(),
+        business_registration_number: document.getElementById('business_registration_number').value.trim(),
+        business_address: document.getElementById('business_address').value.trim(),
+        years_in_business: parseInt(document.getElementById('years_in_business').value) || 0,
+        website: document.getElementById('website').value.trim(),
+        bio: document.getElementById('bio').value.trim(),
+        business_email: document.getElementById('business_email').value.trim(),
+        business_phone: document.getElementById('business_phone').value.trim(),
+        facebook: document.getElementById('facebook').value.trim(),
+        instagram: document.getElementById('instagram').value.trim(),
+        twitter: document.getElementById('twitter').value.trim(),
+        bank_name: document.getElementById('bank_name').value.trim(),
+        bank_account_holder: document.getElementById('bank_account_holder').value.trim(),
+        bank_account_number: document.getElementById('bank_account_number').value.trim()
+    };
+
+    // Gather payment methods
+    const paymentMethods = [];
+    document.querySelectorAll('input[name="payment_methods"]:checked').forEach(cb => {
+        paymentMethods.push(cb.value);
+    });
+    formData.payment_methods = paymentMethods;
+
+    // Validate required fields
+    if (!formData.business_name) {
+        alert('Business name is required');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/ground-owner/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('✅ Profile updated successfully!');
+            this.closeEditModal();
+            // Reload profile data
+            await this.loadProfileData();
+            this.renderProfile();
+        } else {
+            alert('❌ Error: ' + (data.message || 'Failed to update profile'));
+        }
+    } catch (error) {
+        console.error('Error saving profile:', error);
+        alert('❌ Failed to save profile. Please try again.');
+    }
+};
+
+// Close modal when clicking outside
+document.getElementById('editProfileModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        profileManager.closeEditModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('editProfileModal');
+        if (modal.style.display === 'flex') {
+            profileManager.closeEditModal();
+        }
+    }
+});
 </script>
