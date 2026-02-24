@@ -5,6 +5,7 @@ namespace App\Controllers;
 use Core\Request;
 use Core\Response;
 use App\Models\Coach;
+use App\Models\CoachBooking;
 
 /**
  * Coach Controller
@@ -660,12 +661,11 @@ class CoachController extends BaseController
     public function createCoachBooking(Request $request): Response
     {
         try {
-            // Get user ID from session
-            session_start();
+            $this->startSession();
             if (!isset($_SESSION['user_id'])) {
                 return $this->json([
                     'success' => false,
-                    'error' => 'You must be logged in to book a session'
+                    'error' => 'login_required'
                 ], 401);
             }
 
@@ -870,7 +870,7 @@ class CoachController extends BaseController
     public function getCoachOwnBookings(Request $request): Response
     {
         try {
-            session_start();
+            $this->startSession();
             if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
                 return $this->json([
                     'success' => false,
@@ -923,7 +923,7 @@ class CoachController extends BaseController
     public function markSessionCompleted(Request $request): Response
     {
         try {
-            session_start();
+            $this->startSession();
             if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
                 return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
             }
@@ -964,7 +964,7 @@ class CoachController extends BaseController
     public function coachCancelSession(Request $request): Response
     {
         try {
-            session_start();
+            $this->startSession();
             if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
                 return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
             }
@@ -972,24 +972,231 @@ class CoachController extends BaseController
             $bookingId = $request->getParam('id');
             $coachBookingModel = new CoachBooking();
 
-            // Verify booking belongs to this coach
             $booking = $coachBookingModel->find((int)$bookingId);
             if (!$booking) {
                 return $this->json(['success' => false, 'error' => 'Booking not found'], 404);
             }
 
-            // Get coach ID
             $coachModel = new Coach();
             $coach = $coachModel->where(['user_id' => $_SESSION['user_id']]);
             if (empty($coach) || $booking['coach_id'] != $coach[0]['id']) {
                 return $this->json(['success' => false, 'error' => 'Unauthorized'], 403);
             }
 
-            $success = $coachBookingModel->cancelBooking((int)$bookingId);
+            $success = $coachBookingModel->cancelBooking((int)$bookingId, 'coach');
 
             return $this->json([
                 'success' => $success,
                 'message' => $success ? 'Session cancelled' : 'Failed to cancel'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // =====================================================================
+    // PUBLIC-FACING COACH PROFILE PAGE
+    // =====================================================================
+
+    /**
+     * Public coach profile page with booking form
+     * GET /coach-profile/{id}
+     */
+    public function coachProfilePage(Request $request): Response
+    {
+        $id = $request->getParam('id');
+        return $this->view('booking/coach-profile', [
+            'title'       => 'Coach Profile - GoPlay Sports Platform',
+            'coach_id'    => (int)$id,
+        ]);
+    }
+
+    // =====================================================================
+    // AVAILABILITY API
+    // =====================================================================
+
+    /**
+     * Returns bookable time slots for a coach on a specific date.
+     * GET /api/coaches/{id}/availability?date=YYYY-MM-DD
+     */
+    public function getCoachAvailability(Request $request): Response
+    {
+        try {
+            $coachId = (int)$request->getParam('id');
+            $date    = $request->getQuery('date');
+
+            if (!$coachId || !$date) {
+                return $this->json(['success' => false, 'error' => 'Coach ID and date required'], 400);
+            }
+
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                return $this->json(['success' => false, 'error' => 'Invalid date format (YYYY-MM-DD)'], 400);
+            }
+
+            // Past dates not allowed
+            if ($date < date('Y-m-d')) {
+                return $this->json(['success' => true, 'slots' => []]);
+            }
+
+            $bookingModel = new CoachBooking();
+            $slots        = $bookingModel->getAvailableSlots($coachId, $date);
+
+            return $this->json(['success' => true, 'slots' => $slots]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // =====================================================================
+    // BOOKING API (user-facing)
+    // =====================================================================
+
+    /**
+     * Update (reschedule) a coach booking by the booking user.
+     * PUT /api/user/coach-bookings/{id}
+     */
+    public function updateCoachBooking(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $bookingId = (int)$request->getParam('id');
+            $data      = $request->getJsonBody() ?: $request->getBody();
+
+            $bookingModel = new CoachBooking();
+            $booking      = $bookingModel->find($bookingId);
+
+            if (!$booking || $booking['user_id'] != $_SESSION['user_id']) {
+                return $this->json(['success' => false, 'error' => 'Booking not found'], 404);
+            }
+
+            if (!in_array($booking['status'], ['confirmed', 'pending'])) {
+                return $this->json(['success' => false, 'error' => 'Only upcoming bookings can be rescheduled'], 400);
+            }
+
+            if (empty($data['booking_date']) || empty($data['start_time']) || empty($data['end_time'])) {
+                return $this->json(['success' => false, 'error' => 'Date and time are required'], 400);
+            }
+
+            $success = $bookingModel->rescheduleBooking(
+                $bookingId,
+                $data['booking_date'],
+                $data['start_time'],
+                $data['end_time']
+            );
+
+            if (!$success) {
+                return $this->json(['success' => false, 'error' => 'The selected time slot is not available'], 409);
+            }
+
+            return $this->json(['success' => true, 'message' => 'Session rescheduled successfully']);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * User cancels their own booking.
+     * PUT /api/user/coach-bookings/{id}/cancel
+     */
+    public function userCancelCoachBooking(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $bookingId    = (int)$request->getParam('id');
+            $bookingModel = new CoachBooking();
+            $booking      = $bookingModel->find($bookingId);
+
+            if (!$booking || $booking['user_id'] != $_SESSION['user_id']) {
+                return $this->json(['success' => false, 'error' => 'Booking not found'], 404);
+            }
+
+            if (!in_array($booking['status'], ['confirmed', 'pending'])) {
+                return $this->json(['success' => false, 'error' => 'Only upcoming bookings can be cancelled'], 400);
+            }
+
+            $data   = $request->getJsonBody() ?: [];
+            $reason = $data['reason'] ?? '';
+
+            $success = $bookingModel->cancelBooking($bookingId, 'user', $reason);
+            return $this->json([
+                'success' => $success,
+                'message' => $success ? 'Booking cancelled successfully' : 'Cancellation failed',
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get user's own coach bookings list.
+     * GET /api/user/coach-bookings
+     */
+    public function getUserCoachBookings(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $bookingModel = new CoachBooking();
+            $bookings     = $bookingModel->getBookingsByUser((int)$_SESSION['user_id']);
+
+            return $this->json(['success' => true, 'bookings' => $bookings]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // =====================================================================
+    // COACH DASHBOARD SCHEDULE API
+    // =====================================================================
+
+    /**
+     * Coach's own schedule (upcoming + today).
+     * GET /api/coach/schedule
+     */
+    public function getCoachSchedule(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $coachModel = new Coach();
+            $coaches    = $coachModel->where(['user_id' => (int)$_SESSION['user_id']]);
+            if (empty($coaches)) {
+                return $this->json(['success' => false, 'error' => 'Coach profile not found'], 404);
+            }
+            $coachId = (int)$coaches[0]['id'];
+
+            $bookingModel  = new CoachBooking();
+            $today         = $bookingModel->getTodaySessions($coachId);
+            $upcoming      = $bookingModel->getUpcomingBookings($coachId, 10);
+            $weekStart     = date('Y-m-d', strtotime('Monday this week'));
+            $weekSchedule  = $bookingModel->getWeekSchedule($coachId, $weekStart);
+            $stats         = $bookingModel->getCoachBookingStats($coachId);
+
+            return $this->json([
+                'success'       => true,
+                'today'         => $today,
+                'upcoming'      => $upcoming,
+                'week_schedule' => $weekSchedule,
+                'stats'         => $stats,
             ]);
 
         } catch (\Exception $e) {
