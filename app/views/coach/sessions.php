@@ -287,5 +287,150 @@
     </div>
 
     <script src="/public/js/pages/coach-sessions.js"></script>
+<script>
+/* ── Real-data loader for coach sessions page ── */
+(function () {
+    let allSessions = [];
+
+    function formatTime(t) {
+        if (!t) return '';
+        const [h, m] = t.split(':').map(Number);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        return ((h % 12) || 12) + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+    }
+
+    function statusBadgeClass(s) {
+        return { confirmed:'upcoming', pending:'upcoming', completed:'completed', cancelled:'cancelled', no_show:'cancelled' }[s] || '';
+    }
+
+    function buildSessionCard(s) {
+        const client   = (s.client_first_name || '') + ' ' + (s.client_last_name || '');
+        const dateStr  = new Date(s.booking_date).toLocaleDateString('en-GB', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
+        const bClass   = statusBadgeClass(s.status);
+
+        return `
+        <div class="session-item ${bClass}" data-id="${s.id}" data-status="${s.status}">
+            <div class="session-datetime">
+                <span class="session-date">${dateStr}</span>
+                <span class="session-time">${formatTime(s.start_time)} – ${formatTime(s.end_time)}</span>
+                <span class="session-duration">${s.duration} min</span>
+            </div>
+            <div class="session-details">
+                <h4 class="session-title">${s.session_title || 'Training Session'}</h4>
+                <div class="session-client">
+                    <span class="client-avatar">${client.charAt(0).toUpperCase()}</span>
+                    <span>${client}</span>
+                </div>
+                <span class="session-type-badge ${s.session_type}">${s.session_type}</span>
+            </div>
+            <div class="session-status">
+                <span class="status-indicator ${s.status}">${s.status}</span>
+                <span class="session-rate">LKR ${parseFloat(s.total_amount || 0).toLocaleString()}</span>
+            </div>
+            <div class="session-actions">
+                ${s.status === 'confirmed'
+                    ? `<button class="btn btn-sm btn-success" onclick="completeSession(${s.id})">
+                           <i class="fas fa-check"></i> Complete
+                       </button>
+                       <button class="btn btn-sm btn-danger" onclick="cancelSession(${s.id})">
+                           <i class="fas fa-times"></i> Cancel
+                       </button>`
+                    : `<button class="btn btn-sm btn-outline" onclick="viewSessionDetails(${s.id})">
+                           <i class="fas fa-eye"></i> View
+                       </button>`}
+            </div>
+        </div>`;
+    }
+
+    function applyFilters() {
+        const status = document.getElementById('statusFilter').value;
+        const type   = document.getElementById('typeFilter').value;
+        const date   = document.getElementById('dateFilter').value;
+        const search = (document.getElementById('sessionSearch').value || '').toLowerCase();
+
+        let filtered = allSessions;
+        if (status === 'upcoming')  filtered = filtered.filter(s => ['confirmed','pending'].includes(s.status));
+        else if (status)            filtered = filtered.filter(s => s.status === status);
+        if (type)                   filtered = filtered.filter(s => s.session_type === type);
+        if (date)                   filtered = filtered.filter(s => s.booking_date === date);
+        if (search)                 filtered = filtered.filter(s => {
+            const client = ((s.client_first_name || '') + ' ' + (s.client_last_name || '')).toLowerCase();
+            return client.includes(search) || (s.session_title || '').toLowerCase().includes(search);
+        });
+
+        const list = document.getElementById('sessionsList');
+        if (!filtered.length) {
+            list.innerHTML = '<div style="text-align:center;padding:3rem;color:#64748b">No sessions found.</div>';
+        } else {
+            list.innerHTML = filtered.map(buildSessionCard).join('');
+        }
+    }
+
+    async function loadSessions() {
+        try {
+            const res  = await fetch('/api/coach/bookings');
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Failed');
+            allSessions = data.bookings || [];
+
+            // Stats
+            document.getElementById('totalSessions').textContent     = allSessions.length;
+            document.getElementById('upcomingSessions').textContent  = allSessions.filter(s => ['confirmed','pending'].includes(s.status)).length;
+            document.getElementById('completedSessions').textContent = allSessions.filter(s => s.status === 'completed').length;
+            document.getElementById('cancelledSessions').textContent = allSessions.filter(s => s.status === 'cancelled').length;
+
+            applyFilters();
+        } catch (e) {
+            document.getElementById('sessionsList').innerHTML =
+                '<div style="text-align:center;padding:3rem;color:#ef4444">Failed to load sessions: ' + e.message + '</div>';
+        }
+    }
+
+    window.completeSession = async function (id) {
+        if (!confirm('Mark this session as completed?')) return;
+        const res  = await fetch(`/api/coach/bookings/${id}/complete`, { method: 'PUT' });
+        const data = await res.json();
+        if (data.success) loadSessions();
+        else alert(data.error || 'Failed');
+    };
+
+    window.cancelSession = async function (id) {
+        if (!confirm('Cancel this session?')) return;
+        const res  = await fetch(`/api/coach/bookings/${id}/cancel`, { method: 'PUT' });
+        const data = await res.json();
+        if (data.success) loadSessions();
+        else alert(data.error || 'Failed');
+    };
+
+    window.viewSessionDetails = function (id) {
+        const s = allSessions.find(b => b.id === id);
+        if (!s) return;
+        alert(`Session: ${s.session_title || 'Training Session'}
+Client: ${s.client_first_name} ${s.client_last_name}
+Date: ${s.booking_date}
+Time: ${formatTime(s.start_time)} – ${formatTime(s.end_time)}
+Status: ${s.status}
+Amount: LKR ${parseFloat(s.total_amount || 0).toLocaleString()}`);
+    };
+
+    // Attach filter listeners
+    ['statusFilter','typeFilter','dateFilter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', applyFilters);
+    });
+    const searchEl = document.getElementById('sessionSearch');
+    if (searchEl) searchEl.addEventListener('input', applyFilters);
+    const clearBtn = document.getElementById('clearFilters');
+    if (clearBtn) clearBtn.addEventListener('click', () => {
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('typeFilter').value   = '';
+        document.getElementById('dateFilter').value   = '';
+        document.getElementById('sessionSearch').value = '';
+        applyFilters();
+    });
+
+    loadSessions();
+})();
+</script>
 </body>
 </html>

@@ -453,16 +453,16 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
 
         .facility-footer {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
             padding-top: 1rem;
             border-top: 1px solid var(--border-color);
         }
 
         .facility-rating {
             display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .stars {
@@ -483,10 +483,11 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
         .facility-actions {
             display: flex;
             gap: 0.75rem;
+            width: 100%;
         }
 
         .btn-outline {
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1rem;
             border: 2px solid var(--primary-color);
             background: transparent;
             color: var(--primary-color);
@@ -495,6 +496,11 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             cursor: pointer;
             transition: var(--transition);
             text-decoration: none;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
         }
 
         .btn-outline:hover {
@@ -503,7 +509,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
         }
 
         .facility-actions .btn-primary {
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1rem;
             background: var(--primary-color);
             color: white;
             border: none;
@@ -511,6 +517,10 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .facility-actions .btn-primary:hover {
@@ -755,7 +765,13 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
 
             .facility-actions {
                 flex-direction: column;
-            } 
+                gap: 0.5rem;
+            }
+
+            .facility-actions .btn-outline,
+            .facility-actions .btn-primary {
+                width: 100%;
+            }
         }
     </style>
 <div class="book-ground-container">
