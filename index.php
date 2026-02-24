@@ -192,6 +192,29 @@ try {
     $router->get('/book/{id}', 'BookingController@redirectToGroundDetails');
     $router->get('/book-coach', 'CoachController@book');
 
+    // ── Coach Profile (public) ──────────────────────────────────
+    $router->get('/coach-profile/{id}', 'CoachController@coachProfilePage');
+
+    // ── Coach Availability API (public) ────────────────────────
+    $router->get('/api/coaches/{id}/availability', 'CoachController@getCoachAvailability');
+
+    // ── Coach Booking API (user-facing) ────────────────────────
+    $router->post('/api/coach-bookings', 'CoachController@createCoachBooking');
+
+    // ── User Coach Session Page ─────────────────────────────────
+    $router->get('/my-coach-sessions', 'UserController@groundBookingsDashboard');
+
+    // ── User Coach Booking API ──────────────────────────────────
+    $router->get('/api/user/coach-bookings', 'UserController@getCoachBookings');
+    $router->put('/api/user/coach-bookings/{id}', 'UserController@updateCoachBooking');
+    $router->put('/api/user/coach-bookings/{id}/cancel', 'UserController@cancelCoachBooking');
+
+    // ── Coach Dashboard Booking API ─────────────────────────────
+    $router->get('/api/coach/bookings', 'CoachController@getCoachOwnBookings');
+    $router->get('/api/coach/schedule', 'CoachController@getCoachSchedule');
+    $router->put('/api/coach/bookings/{id}/complete', 'CoachController@markSessionCompleted');
+    $router->put('/api/coach/bookings/{id}/cancel', 'CoachController@coachCancelSession');
+
     // Public booking API routes
     $router->post('/api/booking/ground', 'BookingController@createGroundBooking');
     $router->get('/api/booking/availability', 'BookingController@checkAvailability');

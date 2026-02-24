@@ -865,6 +865,49 @@ $additionalJS = [];
     </div>
 </div>
 
+<!-- Edit Coach Session Modal -->
+<div id="editCoachModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-calendar-alt"></i> Reschedule Session</h2>
+            <span class="close" onclick="dashboard.closeCoachEditModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="editCoachForm">
+                <input type="hidden" id="editCoachBookingId">
+                <input type="hidden" id="editCoachId">
+
+                <div class="form-group">
+                    <label><i class="fas fa-user-tie"></i> Coach</label>
+                    <input type="text" id="editCoachName" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label for="editCoachDate"><i class="fas fa-calendar"></i> New Date *</label>
+                    <input type="date" id="editCoachDate" required onchange="dashboard.loadCoachSlots()">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-clock"></i> Available Time Slots *</label>
+                    <div id="coachSlotsContainer">
+                        <p style="color: var(--text-secondary)">Select a date to see available slots</p>
+                    </div>
+                    <input type="hidden" id="editCoachStartTime">
+                    <input type="hidden" id="editCoachEndTime">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-view" onclick="dashboard.closeCoachEditModal()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="button" class="btn btn-primary" id="saveCoachBtn" onclick="dashboard.saveCoachSessionChanges()" disabled>
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     class MyBookingsDashboard {
         constructor() {
@@ -901,7 +944,7 @@ $additionalJS = [];
 
         async loadCoachBookings() {
             try {
-                const response = await fetch('/api/my-coach-bookings');
+                const response = await fetch('/api/user/coach-bookings');
                 if (response.status === 401) {
                     window.location.href = '/login';
                     return;
@@ -1101,6 +1144,9 @@ $additionalJS = [];
 
                     <div class="booking-actions">
                         ${(booking.status === 'confirmed' || booking.status === 'pending') ? `
+                            <button class="btn btn-edit" onclick="dashboard.editCoachSession(${booking.id})">
+                                <i class="fas fa-calendar-alt"></i> Reschedule
+                            </button>
                             <button class="btn btn-cancel" onclick="dashboard.cancelCoachBooking(${booking.id})">
                                 <i class="fas fa-times"></i> Cancel Session
                             </button>
@@ -1244,7 +1290,7 @@ $additionalJS = [];
             if (!confirm('Are you sure you want to cancel this coaching session?')) return;
 
             try {
-                const response = await fetch(`/api/coach-bookings/${bookingId}/cancel`, {
+                const response = await fetch(`/api/user/coach-bookings/${bookingId}/cancel`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -1277,6 +1323,122 @@ $additionalJS = [];
 
             const coachName = `${booking.coach_first_name} ${booking.coach_last_name}`;
             alert(`Coach Session Details\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCoach: ${coachName}\nSport: ${booking.sport_name || 'General'}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nType: ${booking.session_type}\nFee: LKR ${parseFloat(booking.total_amount).toLocaleString()}\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
+        }
+
+        editCoachSession(bookingId) {
+            const booking = this.coachBookings.find(b => b.id === bookingId);
+            if (!booking) { alert('Booking not found'); return; }
+
+            const coachName = `${booking.coach_first_name} ${booking.coach_last_name}`;
+            document.getElementById('editCoachBookingId').value = booking.id;
+            document.getElementById('editCoachId').value = booking.coach_id;
+            document.getElementById('editCoachName').value = coachName;
+            document.getElementById('editCoachDate').value = '';
+            document.getElementById('editCoachStartTime').value = '';
+            document.getElementById('editCoachEndTime').value = '';
+            document.getElementById('coachSlotsContainer').innerHTML = '<p style="color: var(--text-secondary)">Select a date to see available slots</p>';
+            document.getElementById('saveCoachBtn').disabled = true;
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('editCoachDate').min = tomorrow.toISOString().split('T')[0];
+
+            document.getElementById('editCoachModal').style.display = 'block';
+        }
+
+        async loadCoachSlots() {
+            const coachId = document.getElementById('editCoachId').value;
+            const date = document.getElementById('editCoachDate').value;
+            if (!date) return;
+
+            document.getElementById('coachSlotsContainer').innerHTML = '<p style="color: var(--text-secondary)"><i class="fas fa-spinner fa-spin"></i> Loading slots...</p>';
+            document.getElementById('editCoachStartTime').value = '';
+            document.getElementById('editCoachEndTime').value = '';
+            document.getElementById('saveCoachBtn').disabled = true;
+
+            try {
+                const response = await fetch(`/api/coaches/${coachId}/availability?date=${date}`);
+                const data = await response.json();
+
+                if (!data.success || !data.slots || data.slots.length === 0) {
+                    document.getElementById('coachSlotsContainer').innerHTML = '<p style="color: var(--danger-color)">No available slots on this date.</p>';
+                    return;
+                }
+
+                const available = data.slots.filter(s => s.available);
+                if (available.length === 0) {
+                    document.getElementById('coachSlotsContainer').innerHTML = '<p style="color: var(--danger-color)">No available slots on this date. All times are booked.</p>';
+                    return;
+                }
+
+                document.getElementById('coachSlotsContainer').innerHTML = `
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        ${available.map(slot => `
+                            <button type="button" class="slot-btn"
+                                style="padding: 0.5rem 1rem; border: 2px solid var(--border-color); border-radius: 8px; background: white; cursor: pointer; font-size: 0.9rem; transition: all 0.2s"
+                                onclick="dashboard.selectCoachSlot(this, '${slot.start_time}', '${slot.end_time}')">
+                                ${slot.start_time} - ${slot.end_time}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('coachSlotsContainer').innerHTML = '<p style="color: var(--danger-color)">Failed to load slots. Please try again.</p>';
+            }
+        }
+
+        selectCoachSlot(btn, startTime, endTime) {
+            document.querySelectorAll('.slot-btn').forEach(b => {
+                b.style.background = 'white';
+                b.style.borderColor = 'var(--border-color)';
+                b.style.color = 'var(--text-primary)';
+            });
+            btn.style.background = 'var(--primary-color)';
+            btn.style.borderColor = 'var(--primary-color)';
+            btn.style.color = 'white';
+
+            document.getElementById('editCoachStartTime').value = startTime;
+            document.getElementById('editCoachEndTime').value = endTime;
+            document.getElementById('saveCoachBtn').disabled = false;
+        }
+
+        closeCoachEditModal() {
+            document.getElementById('editCoachModal').style.display = 'none';
+        }
+
+        async saveCoachSessionChanges() {
+            const bookingId = document.getElementById('editCoachBookingId').value;
+            const bookingDate = document.getElementById('editCoachDate').value;
+            const startTime = document.getElementById('editCoachStartTime').value;
+            const endTime = document.getElementById('editCoachEndTime').value;
+
+            if (!bookingDate || !startTime || !endTime) {
+                alert('Please select a date and time slot');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to reschedule this session?')) return;
+
+            try {
+                const response = await fetch(`/api/user/coach-bookings/${bookingId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_date: bookingDate, start_time: startTime, end_time: endTime })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ Session rescheduled successfully!');
+                    this.closeCoachEditModal();
+                    await this.loadCoachBookings();
+                    this.updateStats();
+                    this.renderCoachBookings();
+                } else {
+                    alert('❌ Error: ' + (data.error || data.message));
+                }
+            } catch (error) {
+                alert('❌ Failed to reschedule session. Please try again.');
+            }
         }
 
         openReviewModal(facilityId, bookingId, facilityName) {
@@ -1418,12 +1580,16 @@ $additionalJS = [];
     window.onclick = function(event) {
         const editModal = document.getElementById('editGroundModal');
         const reviewModal = document.getElementById('reviewModal');
+        const coachModal = document.getElementById('editCoachModal');
 
         if (event.target === editModal) {
             dashboard.closeEditModal();
         }
         if (event.target === reviewModal) {
             dashboard.closeReviewModal();
+        }
+        if (event.target === coachModal) {
+            dashboard.closeCoachEditModal();
         }
     }
 
