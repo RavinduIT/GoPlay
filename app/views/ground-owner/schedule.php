@@ -238,7 +238,7 @@ $additionalJS = ['/public/js/pages/ground-owner-schedule.js'];
         </div>
     </main>
 
-    <!-- Add Availability Modal 
+    <!-- Add Availability Modal -->
     <div id="availabilityModal" class="modal">
         <div class="modal-content large">
             <div class="modal-header">
@@ -266,7 +266,7 @@ $additionalJS = ['/public/js/pages/ground-owner-schedule.js'];
                         </div>
                     </div>
 
-                    <!-- Recurring Weekly Options 
+                    <!-- Recurring Weekly Options -->
                     <div id="recurringOptions" class="form-section">
                         <h4>Weekly Schedule</h4>
                         <div class="days-selection">
@@ -301,7 +301,7 @@ $additionalJS = ['/public/js/pages/ground-owner-schedule.js'];
                         </div>
                     </div>
 
-                    <!-- Specific Dates Options 
+                    <!-- Specific Dates Options -->
                     <div id="specificOptions" class="form-section" style="display: none;">
                         <h4>Specific Dates</h4>
                         <div class="dates-selection">
@@ -311,7 +311,7 @@ $additionalJS = ['/public/js/pages/ground-owner-schedule.js'];
                         <div id="selectedDates" class="selected-dates"></div>
                     </div>
 
-                    <!-- Date Range Options 
+                    <!-- Date Range Options -->
                     <div id="rangeOptions" class="form-section" style="display: none;">
                         <h4>Date Range</h4>
                         <div class="form-row">
@@ -326,7 +326,7 @@ $additionalJS = ['/public/js/pages/ground-owner-schedule.js'];
                         </div>
                     </div>
 
-                    <!-- Time Settings 
+                    <!-- Time Settings -->
                     <div class="form-section">
                         <h4>Time Settings</h4>
                         <div class="form-row">
@@ -362,7 +362,7 @@ $additionalJS = ['/public/js/pages/ground-owner-schedule.js'];
                         </div>
                     </div>
 
-                    <!-- Pricing Settings 
+                    <!-- Pricing Settings -->
                     <div class="form-section">
                         <h4>Pricing (Optional)</h4>
                         <div class="form-row">
@@ -386,7 +386,7 @@ $additionalJS = ['/public/js/pages/ground-owner-schedule.js'];
         </div>
     </div>
 
-    <!-- Block Dates Modal 
+    <!-- Block Dates Modal -->
     <div id="blockModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -445,5 +445,5 @@ $additionalJS = ['/public/js/pages/ground-owner-schedule.js'];
                 <button type="submit" class="btn-primary" form="blockForm">Block Dates</button>
             </div>
         </div>
-    </div>-->
+    </div>
 </div>
