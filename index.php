@@ -87,9 +87,28 @@ try {
     $router->get('/api/coach/sessions', 'CoachController@getSessions');
     $router->post('/api/coach/sessions', 'CoachController@createSession');
     $router->get('/api/coach/clients', 'CoachController@getClients');
-    $router->post('/api/coach/clients', 'CoachController@createClient');
+    $router->get('/api/coach/clients/{id}', 'CoachController@getClientDetail');
     $router->get('/api/coach/sidebar-stats', 'CoachController@getSidebarStats');
     $router->get('/api/coach/notifications/count', 'CoachController@getNotificationsCount');
+
+    // Coach Earnings API  (export must come before {id} to avoid route collision)
+    $router->get('/api/coach/earnings/export',   'CoachController@exportEarnings');
+    $router->get('/api/coach/earnings',           'CoachController@getEarnings');
+    $router->get('/api/coach/earnings/{id}',      'CoachController@getEarningDetail');
+    $router->get('/api/coach/earnings-trend',     'CoachController@getEarningsTrend');
+    $router->get('/api/coach/session-breakdown',  'CoachController@getSessionBreakdown');
+
+    // Coach Certificates API
+    $router->get('/api/coach/certificates', 'CoachController@getCertificates');
+    $router->post('/api/coach/certificates', 'CoachController@addCertificate');
+    $router->put('/api/coach/certificates/{id}', 'CoachController@updateCertificate');
+    $router->delete('/api/coach/certificates/{id}', 'CoachController@deleteCertificate');
+
+    // Coach Achievements API
+    $router->get('/api/coach/achievements', 'CoachController@getAchievements');
+    $router->post('/api/coach/achievements', 'CoachController@addAchievement');
+    $router->put('/api/coach/achievements/{id}', 'CoachController@updateAchievement');
+    $router->delete('/api/coach/achievements/{id}', 'CoachController@deleteAchievement');
     
     // Public Coach API routes (for booking)
     $router->get('/api/coaches', 'CoachController@getCoachesForBooking');

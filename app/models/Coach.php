@@ -273,4 +273,242 @@ class Coach extends BaseModel
         $results = $this->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
         return $results;
     }
+
+    // ── Profile management ────────────────────────────────────
+
+    /**
+     * Get coach record (with user + sport details) by user_id.
+     */
+    public function getByUserId(int $userId): ?array
+    {
+        return $this->queryFirst(
+            "SELECT c.*, u.first_name, u.last_name, u.email, u.phone, u.profile_picture,
+                    sc.name AS sport_name
+             FROM coaches c
+             JOIN users u ON c.user_id = u.id
+             JOIN sports_categories sc ON c.sport_category_id = sc.id
+             WHERE c.user_id = ?",
+            [$userId]
+        );
+    }
+
+    /**
+     * Update coach profile fields (coaches + users tables).
+     */
+    public function updateProfile(int $coachId, int $userId, array $data): bool
+    {
+        $coachCols = ['bio', 'specializations', 'location', 'hourly_rate', 'experience_years'];
+        $cF = $cP = [];
+        foreach ($coachCols as $f) {
+            if (array_key_exists($f, $data)) { $cF[] = "$f = ?"; $cP[] = $data[$f]; }
+        }
+        if ($cF) {
+            $cP[] = $coachId;
+            $this->query('UPDATE coaches SET ' . implode(', ', $cF) . ' WHERE id = ?', $cP);
+        }
+
+        $userCols = ['first_name', 'last_name', 'phone', 'email'];
+        $uF = $uP = [];
+        foreach ($userCols as $f) {
+            if (array_key_exists($f, $data)) { $uF[] = "$f = ?"; $uP[] = $data[$f]; }
+        }
+        if ($uF) {
+            $uP[] = $userId;
+            $this->query('UPDATE users SET ' . implode(', ', $uF) . ' WHERE id = ?', $uP);
+        }
+
+        return true;
+    }
+
+    /**
+     * Update profile picture path for a user.
+     */
+    public function updateAvatar(int $userId, string $path): bool
+    {
+        $stmt = $this->query('UPDATE users SET profile_picture = ? WHERE id = ?', [$path, $userId]);
+        return (bool)$stmt;
+    }
+
+    // ── Certificates ──────────────────────────────────────────
+
+    public function getCertificates(int $coachId): array
+    {
+        return $this->query(
+            'SELECT * FROM coach_certificates WHERE coach_id = ? ORDER BY issue_date DESC, id DESC',
+            [$coachId]
+        )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
+
+    public function addCertificate(int $coachId, array $d): ?int
+    {
+        $this->query(
+            'INSERT INTO coach_certificates (coach_id, title, issuing_organization, issue_date, expiry_date, credential_id)
+             VALUES (?, ?, ?, ?, ?, ?)',
+            [
+                $coachId,
+                $d['title'],
+                $d['issuing_organization'] ?? null,
+                ($d['issue_date'] ?? '') ?: null,
+                ($d['expiry_date'] ?? '') ?: null,
+                $d['credential_id']        ?? null,
+            ]
+        );
+        return $this->db->lastInsertId() ?: null;
+    }
+
+    public function updateCertificate(int $id, int $coachId, array $d): bool
+    {
+        $stmt = $this->query(
+            'UPDATE coach_certificates
+             SET title=?, issuing_organization=?, issue_date=?, expiry_date=?, credential_id=?
+             WHERE id=? AND coach_id=?',
+            [
+                $d['title'],
+                $d['issuing_organization'] ?? null,
+                ($d['issue_date']   ?? '') ?: null,
+                ($d['expiry_date']  ?? '') ?: null,
+                $d['credential_id'] ?? null,
+                $id, $coachId,
+            ]
+        );
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    public function deleteCertificate(int $id, int $coachId): bool
+    {
+        $stmt = $this->query(
+            'DELETE FROM coach_certificates WHERE id = ? AND coach_id = ?',
+            [$id, $coachId]
+        );
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    // ── Achievements ──────────────────────────────────────────
+
+    public function getAchievements(int $coachId): array
+    {
+        return $this->query(
+            'SELECT * FROM coach_achievements WHERE coach_id = ? ORDER BY date_achieved DESC, id DESC',
+            [$coachId]
+        )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
+
+    public function addAchievement(int $coachId, array $d): ?int
+    {
+        $this->query(
+            'INSERT INTO coach_achievements (coach_id, title, description, date_achieved, category)
+             VALUES (?, ?, ?, ?, ?)',
+            [
+                $coachId,
+                $d['title'],
+                $d['description']   ?? null,
+                ($d['date_achieved'] ?? '') ?: null,
+                $d['category']      ?? 'other',
+            ]
+        );
+        return $this->db->lastInsertId() ?: null;
+    }
+
+    public function updateAchievement(int $id, int $coachId, array $d): bool
+    {
+        $stmt = $this->query(
+            'UPDATE coach_achievements
+             SET title=?, description=?, date_achieved=?, category=?
+             WHERE id=? AND coach_id=?',
+            [
+                $d['title'],
+                $d['description']    ?? null,
+                ($d['date_achieved'] ?? '') ?: null,
+                $d['category']       ?? 'other',
+                $id, $coachId,
+            ]
+        );
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    public function deleteAchievement(int $id, int $coachId): bool
+    {
+        $stmt = $this->query(
+            'DELETE FROM coach_achievements WHERE id = ? AND coach_id = ?',
+            [$id, $coachId]
+        );
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    // ── Clients ───────────────────────────────────────────────
+
+    /**
+     * Get all unique clients (users who booked sessions) for a coach, with aggregated stats.
+     */
+    public function getClients(int $coachId): array
+    {
+        $sql = "SELECT
+                    u.id            AS user_id,
+                    u.first_name,
+                    u.last_name,
+                    u.email,
+                    u.phone,
+                    u.profile_picture,
+                    COUNT(cb.id)                                            AS total_sessions,
+                    SUM(CASE WHEN cb.status = 'completed'  THEN 1 ELSE 0 END) AS completed_sessions,
+                    SUM(CASE WHEN cb.status IN ('confirmed','pending') AND cb.booking_date >= CURDATE() THEN 1 ELSE 0 END) AS upcoming_sessions,
+                    MAX(cb.booking_date)                                    AS last_session_date,
+                    MIN(cb.booking_date)                                    AS first_session_date,
+                    SUM(CASE WHEN cb.payment_status = 'paid' THEN cb.total_amount ELSE 0 END) AS total_paid,
+                    (SELECT cb2.session_type
+                     FROM coach_bookings cb2
+                     WHERE cb2.coach_id = ? AND cb2.user_id = u.id
+                       AND cb2.status != 'cancelled'
+                     GROUP BY cb2.session_type
+                     ORDER BY COUNT(*) DESC LIMIT 1)                        AS preferred_type
+                FROM coach_bookings cb
+                JOIN users u ON cb.user_id = u.id
+                WHERE cb.coach_id = ?
+                  AND cb.status != 'cancelled'
+                GROUP BY u.id, u.first_name, u.last_name, u.email, u.phone, u.profile_picture
+                ORDER BY last_session_date DESC";
+
+        $results = $this->query($sql, [$coachId, $coachId])->fetchAll(\PDO::FETCH_ASSOC);
+        return $results ?: [];
+    }
+
+    /**
+     * Get complete booking history between a coach and a specific client (user).
+     */
+    public function getClientBookingHistory(int $coachId, int $userId): array
+    {
+        $sql = "SELECT cb.id, cb.booking_date, cb.start_time, cb.end_time,
+                       cb.session_type, cb.status, cb.payment_status,
+                       cb.total_amount, cb.special_requests, cb.coach_notes,
+                       cb.created_at
+                FROM coach_bookings cb
+                WHERE cb.coach_id = ? AND cb.user_id = ?
+                ORDER BY cb.booking_date DESC, cb.start_time DESC";
+
+        return $this->query($sql, [$coachId, $userId])->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Get overall client stats for a coach.
+     */
+    public function getClientStats(int $coachId): array
+    {
+        $sql = "SELECT
+                    COUNT(DISTINCT u.id)                                  AS total_clients,
+                    COUNT(DISTINCT CASE
+                        WHEN cb.booking_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                          AND cb.status != 'cancelled'
+                        THEN u.id END)                                    AS active_clients,
+                    COUNT(DISTINCT CASE
+                        WHEN YEAR(cb.booking_date)  = YEAR(CURDATE())
+                         AND MONTH(cb.booking_date) = MONTH(CURDATE())
+                         AND cb.status != 'cancelled'
+                        THEN u.id END)                                    AS this_month_clients
+                FROM coach_bookings cb
+                JOIN users u ON cb.user_id = u.id
+                WHERE cb.coach_id = ?";
+
+        $row = $this->queryFirst($sql, [$coachId]);
+        return $row ?: ['total_clients' => 0, 'active_clients' => 0, 'this_month_clients' => 0];
+    }
 }
