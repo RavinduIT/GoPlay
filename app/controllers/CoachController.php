@@ -123,12 +123,12 @@ class CoachController extends BaseController
      */
     public function earningsPage(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->redirect('/login');
         }
-        
-        return $this->view('coach/earnings');
+
+        return $this->viewWithoutLayout('coach/earnings');
     }
 
     /**
@@ -296,56 +296,78 @@ class CoachController extends BaseController
     }
 
     /**
-     * Get coach profile
+     * Get coach profile (real DB data)
      */
     public function getProfile(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Mock profile data
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+
+        if (!$coach) {
+            return $this->json(['error' => 'Coach profile not found'], 404);
+        }
+
         $profile = [
-            'fullName' => 'Lasith Malinga',
-            'email' => 'lasith.malinga@email.com',
-            'phone' => '+94 71 123 4567',
-            'location' => 'Colombo, Sri Lanka',
-            'dateOfBirth' => 'August 28, 1983',
-            'gender' => 'Male',
-            'specialization' => 'Cricket Coach & Former International Player',
-            'experience' => '5',
-            'license' => 'Level 3 Certified',
-            'languages' => 'English, Sinhala, Tamil',
-            'hourlyRate' => '₹800 - ₹1,500',
-            'bio' => 'Former international cricket player with over 15 years of professional experience.',
-            'avatar' => '/public/assets/images/coach-avatar.jpg',
+            'id'             => $coach['id'],
+            'first_name'     => $coach['first_name'],
+            'last_name'      => $coach['last_name'],
+            'fullName'       => $coach['first_name'] . ' ' . $coach['last_name'],
+            'email'          => $coach['email'],
+            'phone'          => $coach['phone'] ?? '',
+            'location'       => $coach['location'] ?? '',
+            'bio'            => $coach['bio'] ?? '',
+            'specializations'=> $coach['specializations'] ?? '',
+            'experience'     => $coach['experience_years'] ?? 0,
+            'hourlyRate'     => $coach['hourly_rate'] ?? 0,
+            'sport'          => $coach['sport_name'] ?? '',
+            'avatar'         => $coach['profile_picture'] ?? null,
             'stats' => [
-                'rating' => 4.9,
-                'students' => 45,
-                'years' => 5,
-                'sessions' => 230
+                'rating'   => round((float)($coach['rating'] ?? 0), 1),
+                'sessions' => (int)($coach['total_sessions'] ?? 0),
+                'reviews'  => (int)($coach['total_reviews'] ?? 0),
+                'years'    => (int)($coach['experience_years'] ?? 0),
             ],
-            'specializations' => ['Fast Bowling', 'Cricket Fundamentals', 'Match Strategy', 'Youth Development']
         ];
 
-        return $this->json($profile);
+        return $this->json(['success' => true, 'profile' => $profile]);
     }
 
     /**
-     * Update coach profile
+     * Update coach profile (real DB update)
      */
     public function updateProfile(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
 
-        // In a real application, you would validate and save the profile data
-        $data = $request->getBody();
-        
-        return $this->json(['message' => 'Profile updated successfully', 'data' => $data]);
+        $data = $request->getJsonBody() ?: $request->getBody();
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['error' => 'Coach profile not found'], 404);
+        }
+
+        $allowed = [
+            'first_name', 'last_name', 'email', 'phone',
+            'bio', 'specializations', 'location', 'hourly_rate', 'experience_years'
+        ];
+        $filtered = array_intersect_key($data, array_flip($allowed));
+
+        if (empty($filtered)) {
+            return $this->json(['error' => 'No valid fields to update'], 400);
+        }
+
+        $coachModel->updateProfile((int)$coach['id'], (int)$_SESSION['user_id'], $filtered);
+
+        return $this->json(['success' => true, 'message' => 'Profile updated successfully']);
     }
 
     /**
@@ -433,67 +455,304 @@ class CoachController extends BaseController
     }
 
     /**
-     * Get clients
+     * Get clients derived from coach_bookings (real data).
+     * GET /api/coach/clients
      */
     public function getClients(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Mock clients data
-        $clients = [
-            [
-                'id' => 1,
-                'name' => 'Kavinda Ranasighe',
-                'email' => 'kavinda@email.com',
-                'phone' => '+94 71 234 5678'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Sanduni Rajapakse',
-                'email' => 'sanduni@email.com',
-                'phone' => '+94 71 345 6789'
-            ]
-        ];
+        try {
+            $coachModel = new Coach();
+            $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+            if (!$coach) {
+                return $this->json(['error' => 'Coach profile not found'], 404);
+            }
 
-        return $this->json($clients);
+            $coachId = (int)$coach['id'];
+            $clients = $coachModel->getClients($coachId);
+            $stats   = $coachModel->getClientStats($coachId);
+
+            // Enrich each client with a computed status
+            $today = date('Y-m-d');
+            foreach ($clients as &$c) {
+                $daysSince = $c['last_session_date']
+                    ? (int)floor((strtotime($today) - strtotime($c['last_session_date'])) / 86400)
+                    : PHP_INT_MAX;
+                $c['status'] = ($c['upcoming_sessions'] > 0 || $daysSince <= 30) ? 'active' : 'inactive';
+                $c['days_since_last'] = $daysSince === PHP_INT_MAX ? null : $daysSince;
+            }
+            unset($c);
+
+            return $this->json([
+                'success' => true,
+                'clients' => $clients,
+                'stats'   => $stats,
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Create client
+     * Get booking history for a specific client of this coach.
+     * GET /api/coach/clients/{id}
      */
-    public function createClient(Request $request): Response
+    public function getClientDetail(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
 
-        $data = $request->getBody();
-        
-        // Mock response
-        $newClient = array_merge($data, ['id' => rand(1000, 9999)]);
-        
-        return $this->json($newClient, 201);
+        try {
+            $userId     = (int)$request->getParam('id');
+            $coachModel = new Coach();
+            $coach      = $coachModel->getByUserId((int)$_SESSION['user_id']);
+            if (!$coach) {
+                return $this->json(['error' => 'Coach profile not found'], 404);
+            }
+
+            $coachId = (int)$coach['id'];
+            $history = $coachModel->getClientBookingHistory($coachId, $userId);
+
+            return $this->json(['success' => true, 'history' => $history]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Upload avatar
+     * Upload avatar (real file upload)
      */
     public function uploadAvatar(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Mock response for avatar upload
-        return $this->json([
-            'message' => 'Avatar uploaded successfully',
-            'avatarUrl' => '/public/assets/images/coach-avatar-new.jpg'
-        ]);
+        if (empty($_FILES['avatar'])) {
+            return $this->json(['error' => 'No file uploaded'], 400);
+        }
+
+        $file = $_FILES['avatar'];
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return $this->json(['error' => 'Upload error'], 400);
+        }
+
+        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $mime    = mime_content_type($file['tmp_name']);
+        if (!in_array($mime, $allowed)) {
+            return $this->json(['error' => 'Invalid file type. Only JPG, PNG, GIF, WEBP allowed'], 400);
+        }
+
+        if ($file['size'] > 5 * 1024 * 1024) {
+            return $this->json(['error' => 'File too large (max 5 MB)'], 400);
+        }
+
+        $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = 'coach_' . $_SESSION['user_id'] . '_' . time() . '.' . $ext;
+        $dir      = ROOT_PATH . '/public/assets/images/coaches/';
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
+            return $this->json(['error' => 'Failed to save file'], 500);
+        }
+
+        $path = '/public/assets/images/coaches/' . $filename;
+
+        $coachModel = new Coach();
+        $coachModel->updateAvatar((int)$_SESSION['user_id'], $path);
+
+        return $this->json(['success' => true, 'avatarUrl' => $path]);
+    }
+
+    // =====================================================================
+    // CERTIFICATES API
+    // =====================================================================
+
+    /** GET /api/coach/certificates */
+    public function getCertificates(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['error' => 'Coach not found'], 404);
+        }
+
+        $certs = $coachModel->getCertificates((int)$coach['id']);
+        return $this->json(['success' => true, 'certificates' => $certs]);
+    }
+
+    /** POST /api/coach/certificates */
+    public function addCertificate(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $data = $request->getJsonBody() ?: $request->getBody();
+        if (empty($data['title'])) {
+            return $this->json(['error' => 'Title is required'], 400);
+        }
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['error' => 'Coach not found'], 404);
+        }
+
+        $id = $coachModel->addCertificate((int)$coach['id'], $data);
+        return $this->json(['success' => true, 'id' => $id, 'message' => 'Certificate added'], 201);
+    }
+
+    /** PUT /api/coach/certificates/{id} */
+    public function updateCertificate(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $certId = (int)$request->getParam('id');
+        $data   = $request->getJsonBody() ?: $request->getBody();
+
+        if (empty($data['title'])) {
+            return $this->json(['error' => 'Title is required'], 400);
+        }
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['error' => 'Coach not found'], 404);
+        }
+
+        $ok = $coachModel->updateCertificate($certId, (int)$coach['id'], $data);
+        return $this->json(['success' => $ok, 'message' => $ok ? 'Certificate updated' : 'Not found or unauthorized']);
+    }
+
+    /** DELETE /api/coach/certificates/{id} */
+    public function deleteCertificate(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $certId = (int)$request->getParam('id');
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['error' => 'Coach not found'], 404);
+        }
+
+        $ok = $coachModel->deleteCertificate($certId, (int)$coach['id']);
+        return $this->json(['success' => $ok, 'message' => $ok ? 'Certificate deleted' : 'Not found or unauthorized']);
+    }
+
+    // =====================================================================
+    // ACHIEVEMENTS API
+    // =====================================================================
+
+    /** GET /api/coach/achievements */
+    public function getAchievements(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['error' => 'Coach not found'], 404);
+        }
+
+        $achievements = $coachModel->getAchievements((int)$coach['id']);
+        return $this->json(['success' => true, 'achievements' => $achievements]);
+    }
+
+    /** POST /api/coach/achievements */
+    public function addAchievement(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $data = $request->getJsonBody() ?: $request->getBody();
+        if (empty($data['title'])) {
+            return $this->json(['error' => 'Title is required'], 400);
+        }
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['error' => 'Coach not found'], 404);
+        }
+
+        $id = $coachModel->addAchievement((int)$coach['id'], $data);
+        return $this->json(['success' => true, 'id' => $id, 'message' => 'Achievement added'], 201);
+    }
+
+    /** PUT /api/coach/achievements/{id} */
+    public function updateAchievement(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $achId = (int)$request->getParam('id');
+        $data  = $request->getJsonBody() ?: $request->getBody();
+
+        if (empty($data['title'])) {
+            return $this->json(['error' => 'Title is required'], 400);
+        }
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['error' => 'Coach not found'], 404);
+        }
+
+        $ok = $coachModel->updateAchievement($achId, (int)$coach['id'], $data);
+        return $this->json(['success' => $ok, 'message' => $ok ? 'Achievement updated' : 'Not found or unauthorized']);
+    }
+
+    /** DELETE /api/coach/achievements/{id} */
+    public function deleteAchievement(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $achId = (int)$request->getParam('id');
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['error' => 'Coach not found'], 404);
+        }
+
+        $ok = $coachModel->deleteAchievement($achId, (int)$coach['id']);
+        return $this->json(['success' => $ok, 'message' => $ok ? 'Achievement deleted' : 'Not found or unauthorized']);
     }
 
     /**
@@ -992,6 +1251,182 @@ class CoachController extends BaseController
 
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // =====================================================================
+    // EARNINGS API
+    // =====================================================================
+
+    /**
+     * Resolve coach ID from session user.
+     * Returns the integer coach.id or null if not found.
+     */
+    private function resolveCoachId(): ?int
+    {
+        $coachModel = new Coach();
+        $coach      = $coachModel->getByUserId((int)$_SESSION['user_id']);
+        return $coach ? (int)$coach['id'] : null;
+    }
+
+    /**
+     * GET /api/coach/earnings
+     * Returns paginated earnings list + stats summary.
+     */
+    public function getEarnings(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $coachId = $this->resolveCoachId();
+            if (!$coachId) return $this->json(['error' => 'Coach profile not found'], 404);
+
+            $filters = [
+                'dateRange'     => $request->getQuery('dateRange')     ?? 'month',
+                'sessionType'   => $request->getQuery('sessionType')   ?? '',
+                'paymentStatus' => $request->getQuery('paymentStatus') ?? '',
+                'sortBy'        => $request->getQuery('sortBy')        ?? 'date_desc',
+                'startDate'     => $request->getQuery('startDate')     ?? null,
+                'endDate'       => $request->getQuery('endDate')       ?? null,
+            ];
+            $page  = max(1, (int)($request->getQuery('page')  ?? 1));
+            $limit = max(1, min(50, (int)($request->getQuery('limit') ?? 10)));
+
+            $bookingModel = new CoachBooking();
+            $result       = $bookingModel->getEarningsList($coachId, $filters, $page, $limit);
+            $stats        = $bookingModel->getEarningsStats($coachId, $filters);
+
+            return $this->json([
+                'success'     => true,
+                'earnings'    => $result['data'],
+                'stats'       => $stats,
+                'total'       => $result['total'],
+                'totalPages'  => $result['totalPages'],
+                'currentPage' => $result['page'],
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/coach/earnings-trend?period=6months|12months|year
+     */
+    public function getEarningsTrend(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $coachId = $this->resolveCoachId();
+            if (!$coachId) return $this->json(['error' => 'Coach profile not found'], 404);
+
+            $period = $request->getQuery('period') ?? '6months';
+            $data   = (new CoachBooking())->getEarningsTrend($coachId, $period);
+
+            return $this->json(['success' => true] + $data);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/coach/session-breakdown
+     */
+    public function getSessionBreakdown(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $coachId = $this->resolveCoachId();
+            if (!$coachId) return $this->json(['error' => 'Coach profile not found'], 404);
+
+            $data = (new CoachBooking())->getSessionBreakdown($coachId);
+            return $this->json(['success' => true] + $data);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/coach/earnings/{id}
+     */
+    public function getEarningDetail(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $coachId = $this->resolveCoachId();
+            if (!$coachId) return $this->json(['error' => 'Coach profile not found'], 404);
+
+            $id      = (int)$request->getParam('id');
+            $session = (new CoachBooking())->getEarningById($id, $coachId);
+            if (!$session) return $this->json(['error' => 'Session not found'], 404);
+
+            return $this->json(['success' => true, 'session' => $session]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/coach/earnings/export  – CSV download
+     */
+    public function exportEarnings(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $coachId = $this->resolveCoachId();
+            if (!$coachId) return $this->json(['error' => 'Coach profile not found'], 404);
+
+            $filters = [
+                'dateRange'     => $request->getQuery('dateRange')     ?? 'all',
+                'sessionType'   => $request->getQuery('sessionType')   ?? '',
+                'paymentStatus' => $request->getQuery('paymentStatus') ?? '',
+                'sortBy'        => $request->getQuery('sortBy')        ?? 'date_desc',
+                'startDate'     => $request->getQuery('startDate')     ?? null,
+                'endDate'       => $request->getQuery('endDate')       ?? null,
+            ];
+
+            $result = (new CoachBooking())->getEarningsList($coachId, $filters, 1, 9999);
+            $rows   = $result['data'];
+
+            $csv  = "Date,Time,Client,Email,Session Type,Duration (hrs),Amount (LKR),Payment Status,Booking Status\n";
+            foreach ($rows as $r) {
+                $csv .= implode(',', [
+                    '"' . $r['booking_date'] . '"',
+                    '"' . $r['start_time'] . ' - ' . $r['end_time'] . '"',
+                    '"' . addslashes($r['client_name'] ?? '') . '"',
+                    '"' . ($r['client_email'] ?? '') . '"',
+                    '"' . ucfirst($r['session_type'] ?? '') . '"',
+                    $r['duration_hours'],
+                    number_format((float)$r['total_amount'], 2, '.', ''),
+                    '"' . ucfirst($r['payment_status'] ?? '') . '"',
+                    '"' . ucfirst($r['status'] ?? '') . '"',
+                ]) . "\n";
+            }
+
+            $response = new \Core\Response($csv, 200);
+            $response->setHeader('Content-Type', 'text/csv');
+            $response->setHeader('Content-Disposition', 'attachment; filename="coach-earnings-' . date('Y-m-d') . '.csv"');
+            return $response;
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
