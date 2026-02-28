@@ -512,6 +512,156 @@ class Coach extends BaseModel
         return $row ?: ['total_clients' => 0, 'active_clients' => 0, 'this_month_clients' => 0];
     }
 
+    // ── Reviews ───────────────────────────────────────────────
+
+    /**
+     * Aggregate stats: avg rating, total, per-star counts, this-month count.
+     */
+    public function getReviewStats(int $coachId): array
+    {
+        $row = $this->queryFirst(
+            "SELECT
+                COUNT(*)                                                      AS total,
+                COALESCE(AVG(rating), 0)                                      AS avg_rating,
+                SUM(CASE WHEN rating=5 THEN 1 ELSE 0 END)                    AS r5,
+                SUM(CASE WHEN rating=4 THEN 1 ELSE 0 END)                    AS r4,
+                SUM(CASE WHEN rating=3 THEN 1 ELSE 0 END)                    AS r3,
+                SUM(CASE WHEN rating=2 THEN 1 ELSE 0 END)                    AS r2,
+                SUM(CASE WHEN rating=1 THEN 1 ELSE 0 END)                    AS r1,
+                SUM(CASE WHEN MONTH(created_at)=MONTH(NOW())
+                           AND YEAR(created_at)=YEAR(NOW()) THEN 1 ELSE 0 END) AS this_month,
+                SUM(CASE WHEN MONTH(created_at)=MONTH(DATE_SUB(NOW(),INTERVAL 1 MONTH))
+                           AND YEAR(created_at)=YEAR(DATE_SUB(NOW(),INTERVAL 1 MONTH)) THEN 1 ELSE 0 END)
+                                                                              AS last_month
+             FROM coach_reviews
+             WHERE coach_id = ?",
+            [$coachId]
+        );
+        return $row ?: [
+            'total'=>0,'avg_rating'=>0,'r5'=>0,'r4'=>0,'r3'=>0,'r2'=>0,'r1'=>0,
+            'this_month'=>0,'last_month'=>0,
+        ];
+    }
+
+    /**
+     * Paginated, filterable list of reviews with user info + coach reply.
+     */
+    public function getReviewsList(int $coachId, array $filters, int $page, int $limit): array
+    {
+        $where  = ['cr.coach_id = ?'];
+        $params = [$coachId];
+
+        if (!empty($filters['rating'])) {
+            $where[]  = 'cr.rating = ?';
+            $params[] = (int)$filters['rating'];
+        }
+        if (isset($filters['no_reply']) && $filters['no_reply']) {
+            $where[] = 'crr.id IS NULL';
+        }
+        if (!empty($filters['search'])) {
+            $where[]  = '(u.first_name LIKE ? OR u.last_name LIKE ? OR cr.review_text LIKE ?)';
+            $s        = '%' . $filters['search'] . '%';
+            $params   = array_merge($params, [$s, $s, $s]);
+        }
+
+        $whereSQL = implode(' AND ', $where);
+        $offset   = ($page - 1) * $limit;
+
+        $sort = match($filters['sort'] ?? 'newest') {
+            'oldest'     => 'cr.created_at ASC',
+            'highest'    => 'cr.rating DESC',
+            'lowest'     => 'cr.rating ASC',
+            default      => 'cr.created_at DESC',
+        };
+
+        $countRow = $this->queryFirst(
+            "SELECT COUNT(*) AS n
+             FROM coach_reviews cr
+             JOIN users u ON cr.user_id = u.id
+             LEFT JOIN coach_review_replies crr ON crr.review_id = cr.id AND crr.coach_id = ?
+             WHERE $whereSQL",
+            array_merge([$coachId], $params)
+        );
+        $total = (int)($countRow['n'] ?? 0);
+
+        $rows = $this->query(
+            "SELECT cr.id, cr.rating, cr.review_text, cr.created_at, cr.booking_id,
+                    u.id AS user_id, u.first_name, u.last_name, u.profile_picture,
+                    crr.id AS reply_id, crr.reply_text, crr.created_at AS reply_at, crr.updated_at AS reply_updated_at,
+                    cb.session_type
+             FROM coach_reviews cr
+             JOIN users u ON cr.user_id = u.id
+             LEFT JOIN coach_review_replies crr ON crr.review_id = cr.id AND crr.coach_id = ?
+             LEFT JOIN coach_bookings cb ON cb.id = cr.booking_id
+             WHERE $whereSQL
+             ORDER BY $sort
+             LIMIT ? OFFSET ?",
+            array_merge([$coachId], $params, [$limit, $offset])
+        )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        return [
+            'data'       => $rows,
+            'total'      => $total,
+            'page'       => $page,
+            'totalPages' => $total > 0 ? (int)ceil($total / $limit) : 1,
+        ];
+    }
+
+    /**
+     * Insert or update a coach reply for a review.
+     */
+    public function replyToReview(int $reviewId, int $coachId, string $replyText): bool
+    {
+        $existing = $this->queryFirst(
+            'SELECT id FROM coach_review_replies WHERE review_id = ? AND coach_id = ?',
+            [$reviewId, $coachId]
+        );
+        if ($existing) {
+            $this->query(
+                'UPDATE coach_review_replies SET reply_text = ?, updated_at = NOW() WHERE id = ?',
+                [$replyText, $existing['id']]
+            );
+        } else {
+            $this->query(
+                'INSERT INTO coach_review_replies (review_id, coach_id, reply_text) VALUES (?, ?, ?)',
+                [$reviewId, $coachId, $replyText]
+            );
+        }
+        return true;
+    }
+
+    /**
+     * Delete a coach reply.
+     */
+    public function deleteReviewReply(int $reviewId, int $coachId): bool
+    {
+        $stmt = $this->query(
+            'DELETE FROM coach_review_replies WHERE review_id = ? AND coach_id = ?',
+            [$reviewId, $coachId]
+        );
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Get all reviews for CSV export.
+     */
+    public function getAllReviewsForExport(int $coachId): array
+    {
+        return $this->query(
+            "SELECT cr.id, cr.rating, cr.review_text, cr.created_at,
+                    u.first_name, u.last_name, u.email,
+                    crr.reply_text, crr.created_at AS reply_at,
+                    cb.session_type
+             FROM coach_reviews cr
+             JOIN users u ON cr.user_id = u.id
+             LEFT JOIN coach_review_replies crr ON crr.review_id = cr.id AND crr.coach_id = ?
+             LEFT JOIN coach_bookings cb ON cb.id = cr.booking_id
+             WHERE cr.coach_id = ?
+             ORDER BY cr.created_at DESC",
+            [$coachId, $coachId]
+        )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
+
     // ── Availability ──────────────────────────────────────────
 
     /**

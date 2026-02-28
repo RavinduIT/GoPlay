@@ -393,4 +393,251 @@ class CoachBooking extends BaseModel
     {
         return $this->update($bookingId, ['status' => $status]);
     }
+
+    // ─────────────────────────────────────────────────────────
+    // Earnings
+    // ─────────────────────────────────────────────────────────
+
+    /**
+     * Resolve a named date range into [startDate, endDate] strings (or nulls for "all").
+     */
+    public function resolveDateRange(string $range, ?string $customStart = null, ?string $customEnd = null): array
+    {
+        switch ($range) {
+            case 'today':
+                $d = date('Y-m-d');
+                return [$d, $d];
+            case 'week':
+                return [date('Y-m-d', strtotime('monday this week')),
+                        date('Y-m-d', strtotime('sunday this week'))];
+            case 'month':
+                return [date('Y-m-01'), date('Y-m-t')];
+            case 'lastMonth':
+                return [date('Y-m-01', strtotime('first day of last month')),
+                        date('Y-m-t',  strtotime('last day of last month'))];
+            case 'quarter':
+                $m       = (int)date('n');
+                $qm      = (int)(($m - 1) / 3) * 3 + 1;
+                $qStart  = date('Y-m-01', mktime(0, 0, 0, $qm,     1, (int)date('Y')));
+                $qEnd    = date('Y-m-t',  mktime(0, 0, 0, $qm + 2, 1, (int)date('Y')));
+                return [$qStart, $qEnd];
+            case 'year':
+                return [date('Y-01-01'), date('Y-12-31')];
+            case 'custom':
+                return [$customStart ?: null, $customEnd ?: null];
+            default:  // 'all'
+                return [null, null];
+        }
+    }
+
+    /** Previous period of the same length. */
+    private function previousPeriod(?string $start, ?string $end): array
+    {
+        if (!$start || !$end) return [null, null];
+        $days    = (int)(abs(strtotime($end) - strtotime($start)) / 86400) + 1;
+        $prevEnd = date('Y-m-d', strtotime($start) - 86400);
+        $prevSt  = date('Y-m-d', strtotime($prevEnd) - ($days - 1) * 86400);
+        return [$prevSt, $prevEnd];
+    }
+
+    /**
+     * Paginated, filtered list of earnings records.
+     */
+    public function getEarningsList(int $coachId, array $filters = [], int $page = 1, int $limit = 10): array
+    {
+        [$start, $end] = $this->resolveDateRange(
+            $filters['dateRange'] ?? 'all',
+            $filters['startDate'] ?? null,
+            $filters['endDate']   ?? null
+        );
+
+        $where  = "cb.coach_id = ? AND cb.status != 'cancelled'";
+        $params = [$coachId];
+
+        if ($start) { $where .= ' AND cb.booking_date >= ?'; $params[] = $start; }
+        if ($end)   { $where .= ' AND cb.booking_date <= ?'; $params[] = $end;   }
+
+        if (!empty($filters['sessionType'])) {
+            $where  .= ' AND cb.session_type = ?';
+            $params[] = $filters['sessionType'];
+        }
+        if (!empty($filters['paymentStatus'])) {
+            $where  .= ' AND cb.payment_status = ?';
+            $params[] = $filters['paymentStatus'];
+        }
+
+        $sort = match ($filters['sortBy'] ?? 'date_desc') {
+            'date_asc'    => 'cb.booking_date ASC,  cb.start_time ASC',
+            'amount_desc' => 'cb.total_amount DESC',
+            'amount_asc'  => 'cb.total_amount ASC',
+            default       => 'cb.booking_date DESC, cb.start_time DESC',
+        };
+
+        // Total count
+        $cntRow     = $this->queryFirst("SELECT COUNT(*) AS cnt FROM {$this->table} cb WHERE $where", $params);
+        $total      = (int)($cntRow['cnt'] ?? 0);
+        $totalPages = max(1, (int)ceil($total / $limit));
+        $offset     = ($page - 1) * $limit;
+
+        // Rows
+        $rows = $this->query(
+            "SELECT cb.id, cb.booking_date, cb.start_time, cb.end_time,
+                    cb.session_type, cb.status, cb.payment_status,
+                    cb.total_amount, cb.duration, cb.special_requests, cb.coach_notes,
+                    CONCAT(u.first_name,' ',u.last_name) AS client_name,
+                    u.email AS client_email, u.phone AS client_phone
+             FROM {$this->table} cb
+             JOIN users u ON cb.user_id = u.id
+             WHERE $where
+             ORDER BY $sort
+             LIMIT ? OFFSET ?",
+            array_merge($params, [$limit, $offset])
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        foreach ($rows as &$r) {
+            $r['duration_hours'] = $r['duration'] ? round($r['duration'] / 60, 1) : 1;
+        }
+        unset($r);
+
+        return ['data' => $rows, 'total' => $total, 'totalPages' => $totalPages, 'page' => $page];
+    }
+
+    /**
+     * Stats summary (current period + percentage change vs previous period).
+     */
+    public function getEarningsStats(int $coachId, array $filters = []): array
+    {
+        [$start, $end]       = $this->resolveDateRange($filters['dateRange'] ?? 'all', $filters['startDate'] ?? null, $filters['endDate'] ?? null);
+        [$prevSt, $prevEnd]  = $this->previousPeriod($start, $end);
+
+        $sum = function (string $extra, ?string $s, ?string $e) use ($coachId): float {
+            $p   = [$coachId];
+            $sql = "SELECT COALESCE(SUM(total_amount),0) AS v FROM {$this->table}
+                    WHERE coach_id = ? AND status != 'cancelled' $extra";
+            if ($s) { $sql .= ' AND booking_date >= ?'; $p[] = $s; }
+            if ($e) { $sql .= ' AND booking_date <= ?'; $p[] = $e; }
+            return (float)($this->queryFirst($sql, $p)['v'] ?? 0);
+        };
+
+        $cnt = function (string $extra, ?string $s, ?string $e) use ($coachId): int {
+            $p   = [$coachId];
+            $sql = "SELECT COUNT(*) AS v FROM {$this->table}
+                    WHERE coach_id = ? AND status != 'cancelled' $extra";
+            if ($s) { $sql .= ' AND booking_date >= ?'; $p[] = $s; }
+            if ($e) { $sql .= ' AND booking_date <= ?'; $p[] = $e; }
+            return (int)($this->queryFirst($sql, $p)['v'] ?? 0);
+        };
+
+        $pct = function (float $curr, float $prev): ?float {
+            if ($prev == 0) return $curr > 0 ? 100.0 : null;
+            return round((($curr - $prev) / $prev) * 100, 1);
+        };
+
+        // Coach hourly rate
+        $rateRow = $this->queryFirst("SELECT hourly_rate FROM coaches WHERE id = ?", [$coachId]);
+        $avgRate = $rateRow ? (float)$rateRow['hourly_rate'] : 0.0;
+
+        $earned     = $sum("AND payment_status = 'paid'",    $start,  $end);
+        $prevEarned = $sum("AND payment_status = 'paid'",    $prevSt, $prevEnd);
+        $pending    = $sum("AND payment_status = 'pending'", $start,  $end);
+        $pendingCnt = $cnt("AND payment_status = 'pending'", $start,  $end);
+        $done       = $cnt("AND status = 'completed'",       $start,  $end);
+        $prevDone   = $cnt("AND status = 'completed'",       $prevSt, $prevEnd);
+
+        return [
+            'total_earnings'     => $earned,
+            'earnings_change'    => $pct($earned, $prevEarned),
+            'pending_payments'   => $pending,
+            'pending_count'      => $pendingCnt,
+            'completed_sessions' => $done,
+            'completed_change'   => $pct((float)$done, (float)$prevDone),
+            'avg_rate'           => $avgRate,
+        ];
+    }
+
+    /**
+     * Monthly trend data for the line chart.
+     */
+    public function getEarningsTrend(int $coachId, string $period = '6months'): array
+    {
+        $today = date('Y-m-d');
+        $since = match ($period) {
+            '12months' => date('Y-m-01', strtotime('-11 months')),
+            'year'     => date('Y-01-01'),
+            default    => date('Y-m-01', strtotime('-5 months')),  // 6 months incl. current
+        };
+
+        $rows = $this->query(
+            "SELECT DATE_FORMAT(booking_date,'%b %Y') AS label,
+                    YEAR(booking_date) AS yr, MONTH(booking_date) AS mo,
+                    COALESCE(SUM(total_amount),0)                 AS total
+             FROM {$this->table}
+             WHERE coach_id = ? AND status != 'cancelled'
+               AND payment_status = 'paid'
+               AND booking_date >= ? AND booking_date <= ?
+             GROUP BY YEAR(booking_date), MONTH(booking_date)
+             ORDER BY YEAR(booking_date), MONTH(booking_date)",
+            [$coachId, $since, $today]
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Fill in empty months
+        $cursor  = new \DateTime($since);
+        $endDt   = new \DateTime(date('Y-m-01'));
+        $labels  = [];
+        $values  = [];
+
+        while ($cursor <= $endDt) {
+            $yr  = (int)$cursor->format('Y');
+            $mo  = (int)$cursor->format('n');
+            $lbl = $cursor->format('M Y');
+            $hit = array_filter($rows, fn($r) => (int)$r['yr'] === $yr && (int)$r['mo'] === $mo);
+            $hit = reset($hit);
+            $labels[] = $lbl;
+            $values[] = $hit ? (float)$hit['total'] : 0.0;
+            $cursor->modify('+1 month');
+        }
+
+        return ['labels' => $labels, 'values' => $values];
+    }
+
+    /**
+     * Earnings breakdown by session type.
+     */
+    public function getSessionBreakdown(int $coachId): array
+    {
+        $rows = $this->query(
+            "SELECT session_type AS lbl,
+                    COALESCE(SUM(total_amount),0) AS val
+             FROM {$this->table}
+             WHERE coach_id = ? AND payment_status = 'paid' AND status != 'cancelled'
+             GROUP BY session_type
+             ORDER BY val DESC",
+            [$coachId]
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        return [
+            'labels' => array_map(fn($r) => ucfirst($r['lbl'] ?? 'Other'), $rows),
+            'values' => array_map(fn($r) => (float)$r['val'],              $rows),
+        ];
+    }
+
+    /**
+     * Single earnings record detail.
+     */
+    public function getEarningById(int $id, int $coachId): ?array
+    {
+        $row = $this->queryFirst(
+            "SELECT cb.*,
+                    CONCAT(u.first_name,' ',u.last_name) AS client_name,
+                    u.email AS client_email, u.phone AS client_phone
+             FROM {$this->table} cb
+             JOIN users u ON cb.user_id = u.id
+             WHERE cb.id = ? AND cb.coach_id = ?",
+            [$id, $coachId]
+        );
+        if ($row) {
+            $row['duration_hours'] = $row['duration'] ? round($row['duration'] / 60, 1) : 1;
+        }
+        return $row;
+    }
 }
