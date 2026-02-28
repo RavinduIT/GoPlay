@@ -272,12 +272,151 @@ class CoachController extends BaseController
      */
     public function reviewsPage(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->redirect('/login');
         }
-        
-        return $this->view('coach/reviews');
+
+        return $this->viewWithoutLayout('coach/reviews');
+    }
+
+    // ── Reviews API ────────────────────────────────────────────
+
+    /**
+     * GET /api/coach/reviews/stats
+     */
+    public function getReviewStats(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId($_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+        }
+        $stats = $coachModel->getReviewStats($coach['id']);
+        $stats['avg_rating'] = round((float)$stats['avg_rating'], 1);
+        return $this->json(['success' => true, 'stats' => $stats]);
+    }
+
+    /**
+     * GET /api/coach/reviews
+     * Query params: rating, no_reply, search, sort, page, limit
+     */
+    public function getReviews(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId($_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+        }
+
+        $filters = [
+            'rating'   => $_GET['rating']   ?? null,
+            'no_reply' => !empty($_GET['no_reply']),
+            'search'   => trim($_GET['search'] ?? ''),
+            'sort'     => $_GET['sort']      ?? 'newest',
+        ];
+        $page  = max(1, (int)($_GET['page']  ?? 1));
+        $limit = min(20, max(5, (int)($_GET['limit'] ?? 10)));
+
+        $result = $coachModel->getReviewsList($coach['id'], $filters, $page, $limit);
+        return $this->json(['success' => true] + $result);
+    }
+
+    /**
+     * POST /api/coach/reviews/{id}/reply  – add or update reply
+     */
+    public function addReviewReply(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId($_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+        }
+
+        $reviewId = (int)($request->getParam('id') ?? 0);
+        $body     = json_decode(file_get_contents('php://input'), true) ?? [];
+        $text     = trim($body['reply_text'] ?? '');
+
+        if (!$reviewId || !$text) {
+            return $this->json(['success' => false, 'message' => 'Reply text is required'], 400);
+        }
+
+        $coachModel->replyToReview($reviewId, $coach['id'], $text);
+        return $this->json(['success' => true, 'message' => 'Reply saved successfully.']);
+    }
+
+    /**
+     * DELETE /api/coach/reviews/{id}/reply
+     */
+    public function deleteReviewReply(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId($_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+        }
+
+        $reviewId = (int)($request->getParam('id') ?? 0);
+        if (!$reviewId) {
+            return $this->json(['success' => false, 'message' => 'Invalid review'], 400);
+        }
+
+        $coachModel->deleteReviewReply($reviewId, $coach['id']);
+        return $this->json(['success' => true, 'message' => 'Reply deleted.']);
+    }
+
+    /**
+     * GET /api/coach/reviews/export  – CSV download
+     */
+    public function exportReviews(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId($_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+        }
+
+        $rows = $coachModel->getAllReviewsForExport($coach['id']);
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="reviews_' . date('Ymd') . '.csv"');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['#', 'Client', 'Email', 'Rating', 'Review', 'Session Type', 'Date', 'Coach Reply', 'Reply Date']);
+        foreach ($rows as $i => $r) {
+            fputcsv($out, [
+                $i + 1,
+                $r['first_name'] . ' ' . $r['last_name'],
+                $r['email'],
+                $r['rating'],
+                $r['review_text'],
+                $r['session_type'] ?? '',
+                date('Y-m-d', strtotime($r['created_at'])),
+                $r['reply_text'] ?? '',
+                $r['reply_at']   ? date('Y-m-d', strtotime($r['reply_at'])) : '',
+            ]);
+        }
+        fclose($out);
+        exit;
     }
 
     /**

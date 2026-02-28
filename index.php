@@ -91,6 +91,13 @@ try {
     $router->get('/api/coach/sidebar-stats', 'CoachController@getSidebarStats');
     $router->get('/api/coach/notifications/count', 'CoachController@getNotificationsCount');
 
+    // Coach Reviews API  (stats/export before {id} wildcard)
+    $router->get('/api/coach/reviews/stats',       'CoachController@getReviewStats');
+    $router->get('/api/coach/reviews/export',      'CoachController@exportReviews');
+    $router->get('/api/coach/reviews',             'CoachController@getReviews');
+    $router->post('/api/coach/reviews/{id}/reply', 'CoachController@addReviewReply');
+    $router->delete('/api/coach/reviews/{id}/reply','CoachController@deleteReviewReply');
+
     // Coach Availability API  (calendar must come before generic route)
     $router->get('/api/coach/availability/calendar', 'CoachController@getAvailabilityCalendar');
     $router->get('/api/coach/availability',          'CoachController@getAvailabilitySchedule');
