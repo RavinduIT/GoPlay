@@ -91,6 +91,11 @@ try {
     $router->get('/api/coach/sidebar-stats', 'CoachController@getSidebarStats');
     $router->get('/api/coach/notifications/count', 'CoachController@getNotificationsCount');
 
+    // Coach Availability API  (calendar must come before generic route)
+    $router->get('/api/coach/availability/calendar', 'CoachController@getAvailabilityCalendar');
+    $router->get('/api/coach/availability',          'CoachController@getAvailabilitySchedule');
+    $router->put('/api/coach/availability',          'CoachController@updateAvailabilitySchedule');
+
     // Coach Earnings API  (export must come before {id} to avoid route collision)
     $router->get('/api/coach/earnings/export',   'CoachController@exportEarnings');
     $router->get('/api/coach/earnings',           'CoachController@getEarnings');

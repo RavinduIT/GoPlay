@@ -511,4 +511,120 @@ class Coach extends BaseModel
         $row = $this->queryFirst($sql, [$coachId]);
         return $row ?: ['total_clients' => 0, 'active_clients' => 0, 'this_month_clients' => 0];
     }
+
+    // ── Availability ──────────────────────────────────────────
+
+    /**
+     * Get weekly schedule from coach_availability, filling all 7 days with defaults.
+     */
+    public function getWeeklySchedule(int $coachId): array
+    {
+        $allDays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+        $rows = $this->query(
+            "SELECT * FROM coach_availability WHERE coach_id = ?
+             ORDER BY FIELD(day_of_week,'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')",
+            [$coachId]
+        )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $indexed = [];
+        foreach ($rows as $row) {
+            $indexed[$row['day_of_week']] = $row;
+        }
+
+        $schedule = [];
+        foreach ($allDays as $day) {
+            $schedule[] = $indexed[$day] ?? [
+                'day_of_week'   => $day,
+                'start_time'    => '09:00:00',
+                'end_time'      => '18:00:00',
+                'slot_duration' => 60,
+                'is_available'  => 0,
+            ];
+        }
+        return $schedule;
+    }
+
+    /**
+     * Upsert weekly schedule rows for a coach.
+     * $days: array of ['day_of_week'=>string, 'start_time'=>string,
+     *                   'end_time'=>string, 'slot_duration'=>int, 'is_available'=>int]
+     */
+    public function saveWeeklySchedule(int $coachId, array $days): bool
+    {
+        foreach ($days as $d) {
+            $day = $d['day_of_week'] ?? null;
+            if (!$day) continue;
+
+            $existing = $this->queryFirst(
+                "SELECT id FROM coach_availability WHERE coach_id = ? AND day_of_week = ?",
+                [$coachId, $day]
+            );
+
+            $start    = $d['start_time']    ?? '09:00:00';
+            $end      = $d['end_time']      ?? '18:00:00';
+            $duration = (int)($d['slot_duration'] ?? 60);
+            $avail    = (int)($d['is_available']  ?? 0);
+
+            if ($existing) {
+                $this->query(
+                    "UPDATE coach_availability
+                     SET start_time=?, end_time=?, slot_duration=?, is_available=?, updated_at=NOW()
+                     WHERE id=?",
+                    [$start, $end, $duration, $avail, $existing['id']]
+                );
+            } else {
+                $this->query(
+                    "INSERT INTO coach_availability
+                     (coach_id, day_of_week, start_time, end_time, slot_duration, is_available)
+                     VALUES (?, ?, ?, ?, ?, ?)",
+                    [$coachId, $day, $start, $end, $duration, $avail]
+                );
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Get upcoming confirmed/pending sessions for a coach.
+     */
+    public function getUpcomingSessions(int $coachId, int $limit = 15): array
+    {
+        return $this->query(
+            "SELECT cb.id, cb.booking_date, cb.start_time, cb.end_time,
+                    cb.session_type, cb.status, cb.duration, cb.total_amount,
+                    u.first_name, u.last_name
+             FROM coach_bookings cb
+             JOIN users u ON cb.user_id = u.id
+             WHERE cb.coach_id = ?
+               AND cb.booking_date >= CURDATE()
+               AND cb.status IN ('confirmed','pending')
+             ORDER BY cb.booking_date ASC, cb.start_time ASC
+             LIMIT ?",
+            [$coachId, $limit]
+        )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Get bookings grouped by date for a calendar month view.
+     */
+    public function getMonthBookings(int $coachId, int $year, int $month): array
+    {
+        $start = sprintf('%04d-%02d-01', $year, $month);
+        $end   = date('Y-m-t', strtotime($start));
+
+        return $this->query(
+            "SELECT booking_date,
+                    COUNT(*) AS session_count,
+                    SUM(CASE WHEN status='confirmed' THEN 1 ELSE 0 END) AS confirmed_count,
+                    SUM(CASE WHEN status='pending'   THEN 1 ELSE 0 END) AS pending_count
+             FROM coach_bookings
+             WHERE coach_id = ?
+               AND booking_date BETWEEN ? AND ?
+               AND status IN ('confirmed','pending','completed')
+             GROUP BY booking_date
+             ORDER BY booking_date",
+            [$coachId, $start, $end]
+        )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
 }
