@@ -136,12 +136,135 @@ class CoachController extends BaseController
      */
     public function availabilityPage(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->redirect('/login');
         }
-        
-        return $this->view('coach/availability');
+
+        return $this->viewWithoutLayout('coach/availability');
+    }
+
+    // ── Availability API ───────────────────────────────────────
+
+    /**
+     * GET /api/coach/availability
+     * Returns weekly schedule + upcoming sessions + stats.
+     */
+    public function getAvailabilitySchedule(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId($_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+        }
+
+        $schedule = $coachModel->getWeeklySchedule($coach['id']);
+        $upcoming = $coachModel->getUpcomingSessions($coach['id']);
+
+        // Compute weekly available hours and days
+        $availableHours = 0;
+        $availableDays  = 0;
+        foreach ($schedule as $day) {
+            if ((int)$day['is_available'] === 1) {
+                $availableDays++;
+                $s = strtotime('1970-01-01 ' . $day['start_time']);
+                $e = strtotime('1970-01-01 ' . $day['end_time']);
+                if ($e > $s) {
+                    $availableHours += ($e - $s) / 3600;
+                }
+            }
+        }
+
+        return $this->json([
+            'success'  => true,
+            'schedule' => $schedule,
+            'upcoming' => $upcoming,
+            'stats'    => [
+                'available_hours'   => round($availableHours, 1),
+                'available_days'    => $availableDays,
+                'upcoming_sessions' => count($upcoming),
+            ],
+        ]);
+    }
+
+    /**
+     * PUT /api/coach/availability
+     * Save/update weekly schedule.
+     */
+    public function updateAvailabilitySchedule(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId($_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+        }
+
+        $body     = json_decode(file_get_contents('php://input'), true) ?? [];
+        $schedule = $body['schedule'] ?? [];
+
+        if (empty($schedule)) {
+            return $this->json(['success' => false, 'message' => 'No schedule data provided'], 400);
+        }
+
+        $coachModel->saveWeeklySchedule($coach['id'], $schedule);
+
+        return $this->json(['success' => true, 'message' => 'Schedule saved successfully.']);
+    }
+
+    /**
+     * GET /api/coach/availability/calendar?year=&month=
+     * Returns booked dates and day-of-week availability for calendar rendering.
+     */
+    public function getAvailabilityCalendar(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $coachModel = new Coach();
+        $coach = $coachModel->getByUserId($_SESSION['user_id']);
+        if (!$coach) {
+            return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+        }
+
+        $year  = (int)($_GET['year']  ?? date('Y'));
+        $month = (int)($_GET['month'] ?? date('n'));
+
+        $bookings = $coachModel->getMonthBookings($coach['id'], $year, $month);
+        $schedule = $coachModel->getWeeklySchedule($coach['id']);
+
+        // Index bookings by date string
+        $bookingMap = [];
+        foreach ($bookings as $b) {
+            $bookingMap[$b['booking_date']] = [
+                'count'     => (int)$b['session_count'],
+                'confirmed' => (int)$b['confirmed_count'],
+                'pending'   => (int)$b['pending_count'],
+            ];
+        }
+
+        // Map day_of_week => is_available (bool)
+        $dayAvailMap = [];
+        foreach ($schedule as $s) {
+            $dayAvailMap[$s['day_of_week']] = (bool)(int)$s['is_available'];
+        }
+
+        return $this->json([
+            'success'   => true,
+            'bookings'  => $bookingMap,
+            'day_avail' => $dayAvailMap,
+        ]);
     }
 
     /**

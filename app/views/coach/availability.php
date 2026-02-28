@@ -1,873 +1,543 @@
-<?php 
-$title = 'Availability Management - Coach Dashboard';
-$additionalCSS = ['/public/css/coach/availability.css'];
-$additionalJS = ['/public/js/pages/coach-availability.js'];
-?>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-<style>
-    /* Professional Availability Styles */
-    :root {
-        --primary-color: #2563eb;
-        --primary-dark: #1d4ed8;
-        --primary-light: #dbeafe;
-        --secondary-color: #10b981;
-        --accent-color: #f59e0b;
-        --danger-color: #ef4444;
-        --warning-color: #f59e0b;
-        --success-color: #10b981;
-        --text-primary: #1f2937;
-        --text-secondary: #6b7280;
-        --text-light: #9ca3af;
-        --background-white: #ffffff;
-        --background-light: #f9fafb;
-        --background-gray: #f3f4f6;
-        --border-color: #e5e7eb;
-        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        --border-radius: 8px;
-        --border-radius-lg: 12px;
-        --transition: all 0.3s ease;
-    }
-
-    .dashboard-container {
-        display: flex;
-        min-height: 100vh;
-        background: var(--background-light);
-    }
-
-    .main-content {
-        flex: 1;
-        padding: 2rem;
-        margin-left: 280px;
-    }
-
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid var(--border-color);
-    }
-
-    .page-title {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0;
-    }
-
-    .page-subtitle {
-        color: var(--text-secondary);
-        margin-top: 0.5rem;
-    }
-
-    .header-actions {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-    }
-
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: var(--border-radius);
-        font-weight: 600;
-        text-decoration: none;
-        cursor: pointer;
-        transition: var(--transition);
-        font-size: 0.9rem;
-    }
-
-    .btn-primary {
-        background: var(--primary-color);
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-secondary {
-        background: var(--background-white);
-        color: var(--text-primary);
-        border: 1px solid var(--border-color);
-    }
-
-    .btn-secondary:hover {
-        background: var(--background-gray);
-    }
-
-    .btn-sm {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-    }
-
-    /* Calendar Layout */
-    .availability-layout {
-        display: grid;
-        grid-template-columns: 1fr 350px;
-        gap: 2rem;
-        margin-bottom: 2rem;
-    }
-
-    .calendar-section {
-        background: var(--background-white);
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-color);
-        overflow: hidden;
-    }
-
-    .calendar-header {
-        padding: 1.5rem;
-        background: var(--primary-color);
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .calendar-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin: 0;
-    }
-
-    .calendar-nav {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-    }
-
-    .nav-btn {
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
-        color: white;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: var(--transition);
-    }
-
-    .nav-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
-
-    .current-month {
-        font-weight: 600;
-        min-width: 150px;
-        text-align: center;
-    }
-
-    /* Calendar Grid */
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-    }
-
-    .calendar-day-header {
-        padding: 1rem 0.5rem;
-        text-align: center;
-        font-weight: 600;
-        color: var(--text-secondary);
-        background: var(--background-gray);
-        font-size: 0.9rem;
-    }
-
-    .calendar-day {
-        min-height: 100px;
-        padding: 0.5rem;
-        border: 1px solid var(--border-color);
-        background: var(--background-white);
-        cursor: pointer;
-        transition: var(--transition);
-        position: relative;
-    }
-
-    .calendar-day:hover {
-        background: var(--background-light);
-    }
-
-    .calendar-day.other-month {
-        background: var(--background-gray);
-        color: var(--text-light);
-    }
-
-    .calendar-day.today {
-        background: var(--primary-light);
-        color: var(--primary-color);
-        font-weight: 600;
-    }
-
-    .calendar-day.selected {
-        background: var(--primary-color);
-        color: white;
-    }
-
-    .day-number {
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-        font-size: 0.9rem;
-    }
-
-    .day-slots {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .time-slot {
-        padding: 2px 4px;
-        border-radius: 3px;
-        font-size: 0.7rem;
-        text-align: center;
-        font-weight: 500;
-    }
-
-    .slot-available {
-        background: rgba(16, 185, 129, 0.2);
-        color: var(--success-color);
-    }
-
-    .slot-booked {
-        background: rgba(239, 68, 68, 0.2);
-        color: var(--danger-color);
-    }
-
-    .slot-blocked {
-        background: rgba(156, 163, 175, 0.2);
-        color: var(--text-secondary);
-    }
-
-    /* Sidebar */
-    .availability-sidebar {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .sidebar-card {
-        background: var(--background-white);
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-color);
-        overflow: hidden;
-    }
-
-    .card-header {
-        padding: 1rem 1.5rem;
-        background: var(--background-gray);
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .card-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0;
-    }
-
-    .card-content {
-        padding: 1.5rem;
-    }
-
-    /* Quick Actions */
-    .quick-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .action-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem;
-        background: transparent;
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        color: var(--text-primary);
-        cursor: pointer;
-        transition: var(--transition);
-        text-align: left;
-        width: 100%;
-    }
-
-    .action-btn:hover {
-        background: var(--background-light);
-        border-color: var(--primary-color);
-    }
-
-    .action-icon {
-        width: 36px;
-        height: 36px;
-        background: var(--primary-light);
-        color: var(--primary-color);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9rem;
-    }
-
-    .action-text {
-        flex: 1;
-    }
-
-    .action-title {
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 0.25rem;
-    }
-
-    .action-description {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-    }
-
-    /* Upcoming Sessions */
-    .upcoming-sessions {
-        max-height: 400px;
-        overflow-y: auto;
-    }
-
-    .session-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem 0;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .session-item:last-child {
-        border-bottom: none;
-    }
-
-    .session-time {
-        text-align: center;
-        min-width: 80px;
-    }
-
-    .session-date {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        line-height: 1;
-    }
-
-    .session-hour {
-        font-weight: 600;
-        color: var(--text-primary);
-        font-size: 0.9rem;
-    }
-
-    .session-details {
-        flex: 1;
-    }
-
-    .session-client {
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 0.25rem;
-    }
-
-    .session-type {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-    }
-
-    .session-status {
-        padding: 0.25rem 0.75rem;
-        border-radius: 1rem;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-
-    .status-confirmed {
-        background: rgba(16, 185, 129, 0.1);
-        color: var(--success-color);
-    }
-
-    .status-pending {
-        background: rgba(245, 158, 11, 0.1);
-        color: var(--warning-color);
-    }
-
-    /* Availability Stats */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-    }
-
-    .stat-item {
-        text-align: center;
-        padding: 1rem;
-        background: var(--background-light);
-        border-radius: var(--border-radius);
-    }
-
-    .stat-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--primary-color);
-        line-height: 1;
-    }
-
-    .stat-label {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        margin-top: 0.25rem;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .main-content {
-            margin-left: 0;
-            padding: 1rem;
-        }
-
-        .page-header {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: flex-start;
-        }
-
-        .availability-layout {
-            grid-template-columns: 1fr;
-        }
-
-        .calendar-day {
-            min-height: 80px;
-        }
-
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-
-<div class="dashboard-container">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Availability – Coach Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/css/coach/sidebar.css">
+    <link rel="stylesheet" href="/public/css/pages/coach-availability.css">
+</head>
+<body>
+
+<div class="coach-dashboard">
     <?php include __DIR__ . '/sidebar.php'; ?>
-    
-    <main class="main-content">
-        <!-- Page Header -->
+
+    <div class="main-content">
+
+        <!-- ── Page Header ───────────────────────────────────── -->
         <div class="page-header">
+            <div class="header-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div>
+                    <h1 class="page-title"><i class="fas fa-clock"></i> Availability</h1>
+                    <p class="page-subtitle">Manage your weekly schedule and session slots</p>
+                </div>
+            </div>
             <div>
-                <h1 class="page-title">Availability Management</h1>
-                <p class="page-subtitle">Manage your schedule and set availability for client bookings</p>
-            </div>
-            <div class="header-actions">
-                <button class="btn btn-secondary" onclick="exportSchedule()">
-                    <i class="fas fa-download"></i>
-                    Export Schedule
-                </button>
-                <button class="btn btn-primary" onclick="setRecurringAvailability()">
-                    <i class="fas fa-repeat"></i>
-                    Set Recurring
+                <button class="btn btn-primary" id="saveBtn" onclick="saveSchedule()">
+                    <i class="fas fa-save"></i> Save Schedule
                 </button>
             </div>
         </div>
 
-        <!-- Calendar and Sidebar Layout -->
-        <div class="availability-layout">
-            <!-- Calendar Section -->
-            <div class="calendar-section">
-                <div class="calendar-header">
-                    <h3 class="calendar-title">Availability Calendar</h3>
-                    <div class="calendar-nav">
-                        <button class="nav-btn" onclick="previousMonth()">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <span class="current-month" id="currentMonth">March 2024</span>
-                        <button class="nav-btn" onclick="nextMonth()">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+        <div class="availability-content">
+
+            <!-- ── Stats Grid ─────────────────────────────────── -->
+            <div class="stats-grid">
+                <div class="stat-card stat-avail-hours">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-body">
+                        <div class="stat-value" id="statHours">—</div>
+                        <div class="stat-label">Available Hours / Week</div>
+                        <div class="stat-sub" id="statHoursSub">Set your schedule to see</div>
                     </div>
                 </div>
-                
-                <div class="calendar-grid" id="calendarGrid">
-                    <!-- Calendar will be generated by JavaScript -->
+                <div class="stat-card stat-avail-days">
+                    <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="stat-body">
+                        <div class="stat-value" id="statDays">—</div>
+                        <div class="stat-label">Available Days / Week</div>
+                        <div class="stat-sub">Days marked as available</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-upcoming">
+                    <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <div class="stat-body">
+                        <div class="stat-value" id="statUpcoming">—</div>
+                        <div class="stat-label">Upcoming Sessions</div>
+                        <div class="stat-sub">Confirmed &amp; pending</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-next-in">
+                    <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="stat-body">
+                        <div class="stat-value" id="statNextIn">—</div>
+                        <div class="stat-label">Next Session</div>
+                        <div class="stat-sub" id="statNextInSub">Time until next booking</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Sidebar -->
-            <div class="availability-sidebar">
-                <!-- Quick Actions -->
-                <div class="sidebar-card">
-                    <div class="card-header">
-                        <h4 class="card-title">Quick Actions</h4>
+            <!-- ── Main Layout ────────────────────────────────── -->
+            <div class="avail-layout">
+
+                <!-- Left column: schedule + calendar -->
+                <div class="avail-main">
+
+                    <!-- Weekly Schedule Card -->
+                    <div class="schedule-card">
+                        <div class="card-hd">
+                            <h3><i class="fas fa-calendar-week"></i> Weekly Schedule</h3>
+                            <span class="card-hd-sub">Toggle days and set working hours</span>
+                        </div>
+                        <div class="schedule-body" id="scheduleBody">
+                            <div class="skel-loading">
+                                <?php for ($i = 0; $i < 7; $i++): ?>
+                                <div class="skel-row"></div>
+                                <?php endfor; ?>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-content">
-                        <div class="quick-actions">
-                            <button class="action-btn" onclick="blockTimeOff()">
-                                <div class="action-icon">
-                                    <i class="fas fa-ban"></i>
-                                </div>
-                                <div class="action-text">
-                                    <div class="action-title">Block Time Off</div>
-                                    <div class="action-description">Mark periods as unavailable</div>
-                                </div>
-                            </button>
-                            <button class="action-btn" onclick="addAvailableSlots()">
-                                <div class="action-icon">
-                                    <i class="fas fa-plus"></i>
-                                </div>
-                                <div class="action-text">
-                                    <div class="action-title">Add Available Slots</div>
-                                    <div class="action-description">Open new time slots for booking</div>
-                                </div>
-                            </button>
-                            <button class="action-btn" onclick="copyWeekSchedule()">
-                                <div class="action-icon">
-                                    <i class="fas fa-copy"></i>
-                                </div>
-                                <div class="action-text">
-                                    <div class="action-title">Copy Week Schedule</div>
-                                    <div class="action-description">Duplicate to other weeks</div>
-                                </div>
-                            </button>
+
+                    <!-- Calendar Card -->
+                    <div class="calendar-card">
+                        <div class="card-hd">
+                            <h3><i class="fas fa-calendar-alt"></i> <span id="calMonthLabel">Loading…</span></h3>
+                            <div class="cal-nav-btns">
+                                <button class="cal-nav-btn" id="calPrev" title="Previous month">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="cal-nav-btn" id="calNext" title="Next month">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="cal-grid-header">
+                            <?php foreach (['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as $d): ?>
+                            <div class="cal-day-hd"><?= $d ?></div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="cal-grid" id="calGrid"></div>
+                        <div class="cal-legend">
+                            <div class="leg-item"><div class="leg-dot leg-dot-avail"></div> Available day</div>
+                            <div class="leg-item"><div class="leg-dot leg-dot-booked"></div> Has bookings</div>
+                            <div class="leg-item"><div class="leg-dot leg-dot-today"></div> Today</div>
+                        </div>
+                    </div>
+
+                </div><!-- /avail-main -->
+
+                <!-- Right column: upcoming sessions -->
+                <div class="avail-side">
+                    <div class="upcoming-card">
+                        <div class="card-hd">
+                            <h3><i class="fas fa-list-ul"></i> Upcoming Sessions</h3>
+                            <span class="card-hd-sub" id="upcomingCount">Loading…</span>
+                        </div>
+                        <div class="upcoming-list" id="upcomingList">
+                            <div class="skel-loading">
+                                <div class="skel-row" style="height:72px"></div>
+                                <div class="skel-row" style="height:72px"></div>
+                                <div class="skel-row" style="height:72px"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Availability Stats -->
-                <div class="sidebar-card">
-                    <div class="card-header">
-                        <h4 class="card-title">This Week</h4>
-                    </div>
-                    <div class="card-content">
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="stat-value">24</div>
-                                <div class="stat-label">Available Hours</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">18</div>
-                                <div class="stat-label">Booked Hours</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">75%</div>
-                                <div class="stat-label">Utilization</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">6</div>
-                                <div class="stat-label">Open Slots</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            </div><!-- /avail-layout -->
 
-                <!-- Upcoming Sessions -->
-                <div class="sidebar-card">
-                    <div class="card-header">
-                        <h4 class="card-title">Upcoming Sessions</h4>
-                    </div>
-                    <div class="card-content">
-                        <div class="upcoming-sessions" id="upcomingSessions">
-                            <!-- Sessions will be populated by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-</div>
+        </div><!-- /availability-content -->
+    </div><!-- /main-content -->
+</div><!-- /coach-dashboard -->
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-// Sample data
-const currentDate = new Date();
-let currentMonth = currentDate.getMonth();
-let currentYear = currentDate.getFullYear();
+// ══════════════════════════════════════════════════════════════
+//  State
+// ══════════════════════════════════════════════════════════════
+let schedule   = [];
+let upcoming   = [];
+let calYear    = new Date().getFullYear();
+let calMonth   = new Date().getMonth() + 1;   // 1-based
+let calBookings = {};   // "YYYY-MM-DD" => { count, confirmed, pending }
+let calDayAvail = {};   // "Monday" => bool
 
-const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+const MONTHS = [
+    'January','February','March','April','May','June',
+    'July','August','September','October','November','December'
 ];
+// Map JS getDay() (0=Sun) to day_of_week string
+const DOW_MAP = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+// ══════════════════════════════════════════════════════════════
+//  Init
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+    loadSchedule();
 
-// Sample availability data
-const availabilityData = {
-    '2024-03-11': [
-        { time: '09:00', status: 'available' },
-        { time: '10:00', status: 'booked' },
-        { time: '11:00', status: 'available' },
-        { time: '14:00', status: 'available' },
-        { time: '15:00', status: 'available' }
-    ],
-    '2024-03-12': [
-        { time: '08:00', status: 'available' },
-        { time: '09:00', status: 'booked' },
-        { time: '10:00', status: 'booked' },
-        { time: '16:00', status: 'available' }
-    ],
-    '2024-03-13': [
-        { time: '09:00', status: 'available' },
-        { time: '10:00', status: 'available' },
-        { time: '11:00', status: 'blocked' },
-        { time: '14:00', status: 'available' }
-    ],
-    '2024-03-14': [
-        { time: '08:00', status: 'available' },
-        { time: '09:00', status: 'available' },
-        { time: '15:00', status: 'booked' },
-        { time: '16:00', status: 'booked' }
-    ],
-    '2024-03-15': [
-        { time: '10:00', status: 'available' },
-        { time: '11:00', status: 'available' },
-        { time: '14:00', status: 'booked' }
-    ]
-};
-
-// Sample upcoming sessions
-const upcomingSessions = [
-    {
-        id: 1,
-        client: "John Davidson",
-        type: "Personal Training",
-        date: "2024-03-11",
-        time: "10:00",
-        status: "confirmed"
-    },
-    {
-        id: 2,
-        client: "Sarah Mitchell",
-        type: "Fitness Assessment",
-        date: "2024-03-12",
-        time: "09:00",
-        status: "confirmed"
-    },
-    {
-        id: 3,
-        client: "Mike Rodriguez",
-        type: "Group Training",
-        date: "2024-03-12",
-        time: "10:00",
-        status: "pending"
-    },
-    {
-        id: 4,
-        client: "Emma Wilson",
-        type: "Consultation",
-        date: "2024-03-14",
-        time: "15:00",
-        status: "confirmed"
-    },
-    {
-        id: 5,
-        client: "David Parker",
-        type: "Personal Training",
-        date: "2024-03-14",
-        time: "16:00",
-        status: "confirmed"
-    },
-    {
-        id: 6,
-        client: "Lisa Chen",
-        type: "Yoga Session",
-        date: "2024-03-15",
-        time: "14:00",
-        status: "confirmed"
-    }
-];
-
-// Generate calendar
-function generateCalendar() {
-    const grid = document.getElementById('calendarGrid');
-    const monthElement = document.getElementById('currentMonth');
-    
-    monthElement.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-    
-    // Clear grid
-    grid.innerHTML = '';
-    
-    // Add day headers
-    dayNames.forEach(day => {
-        const dayHeader = document.createElement('div');
-        dayHeader.className = 'calendar-day-header';
-        dayHeader.textContent = day;
-        grid.appendChild(dayHeader);
+    document.getElementById('calPrev').addEventListener('click', () => {
+        stepMonth(-1);
+        loadCalendar();
     });
-    
-    // Get first day of month and number of days
-    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
-    
-    // Add previous month days
-    for (let i = firstDay - 1; i >= 0; i--) {
-        const day = daysInPrevMonth - i;
-        const dayElement = createDayElement(day, true, currentMonth - 1);
-        grid.appendChild(dayElement);
-    }
-    
-    // Add current month days
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayElement = createDayElement(day, false, currentMonth);
-        grid.appendChild(dayElement);
-    }
-    
-    // Add next month days
-    const totalCells = 42; // 6 rows × 7 days
-    const cellsUsed = firstDay + daysInMonth;
-    for (let day = 1; cellsUsed + day - 1 < totalCells; day++) {
-        const dayElement = createDayElement(day, true, currentMonth + 1);
-        grid.appendChild(dayElement);
-    }
-}
-
-// Create day element
-function createDayElement(day, otherMonth, month) {
-    const dayElement = document.createElement('div');
-    dayElement.className = 'calendar-day';
-    
-    if (otherMonth) {
-        dayElement.classList.add('other-month');
-    }
-    
-    // Check if today
-    const today = new Date();
-    if (!otherMonth && day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
-        dayElement.classList.add('today');
-    }
-    
-    const dayNumber = document.createElement('div');
-    dayNumber.className = 'day-number';
-    dayNumber.textContent = day;
-    dayElement.appendChild(dayNumber);
-    
-    // Add time slots if available
-    if (!otherMonth) {
-        const dateString = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        const dayAvailability = availabilityData[dateString];
-        
-        if (dayAvailability) {
-            const slotsContainer = document.createElement('div');
-            slotsContainer.className = 'day-slots';
-            
-            dayAvailability.forEach(slot => {
-                const slotElement = document.createElement('div');
-                slotElement.className = `time-slot slot-${slot.status}`;
-                slotElement.textContent = slot.time;
-                slotsContainer.appendChild(slotElement);
-            });
-            
-            dayElement.appendChild(slotsContainer);
-        }
-    }
-    
-    dayElement.addEventListener('click', () => selectDay(dayElement, day, otherMonth));
-    
-    return dayElement;
-}
-
-// Select day
-function selectDay(element, day, otherMonth) {
-    // Remove previous selection
-    document.querySelectorAll('.calendar-day.selected').forEach(el => {
-        el.classList.remove('selected');
+    document.getElementById('calNext').addEventListener('click', () => {
+        stepMonth(1);
+        loadCalendar();
     });
-    
-    // Add selection to clicked day
-    element.classList.add('selected');
-    
-    if (!otherMonth) {
-        console.log(`Selected day: ${day}`);
-        // Here you could show day details or open time slot management
+
+    // Sidebar toggle (match other dashboard pages)
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar       = document.querySelector('.dashboard-sidebar');
+    if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
     }
-}
-
-// Render upcoming sessions
-function renderUpcomingSessions() {
-    const container = document.getElementById('upcomingSessions');
-    
-    // Sort sessions by date and time
-    const sortedSessions = upcomingSessions
-        .sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time))
-        .slice(0, 5); // Show only next 5 sessions
-    
-    container.innerHTML = sortedSessions.map(session => `
-        <div class="session-item">
-            <div class="session-time">
-                <div class="session-date">${formatDate(session.date)}</div>
-                <div class="session-hour">${session.time}</div>
-            </div>
-            <div class="session-details">
-                <div class="session-client">${session.client}</div>
-                <div class="session-type">${session.type}</div>
-            </div>
-            <div class="session-status status-${session.status}">
-                ${session.status.charAt(0).toUpperCase() + session.status.slice(1)}
-            </div>
-        </div>
-    `).join('');
-}
-
-// Navigation functions
-function previousMonth() {
-    currentMonth--;
-    if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-    }
-    generateCalendar();
-}
-
-function nextMonth() {
-    currentMonth++;
-    if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-    }
-    generateCalendar();
-}
-
-// Utility functions
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
-    const day = date.getDate();
-    return `${month} ${day}`;
-}
-
-// Action functions
-function blockTimeOff() {
-    alert('Block Time Off - This would open a modal to select dates and times to block');
-}
-
-function addAvailableSlots() {
-    alert('Add Available Slots - This would open a modal to add new time slots');
-}
-
-function copyWeekSchedule() {
-    alert('Copy Week Schedule - This would allow copying the current week to other weeks');
-}
-
-function setRecurringAvailability() {
-    alert('Set Recurring Availability - This would open a modal to set weekly recurring patterns');
-}
-
-function exportSchedule() {
-    alert('Export Schedule - This would generate a downloadable calendar file');
-}
-
-// Initialize page
-document.addEventListener('DOMContentLoaded', function() {
-    generateCalendar();
-    renderUpcomingSessions();
 });
+
+// ══════════════════════════════════════════════════════════════
+//  Load schedule from API
+// ══════════════════════════════════════════════════════════════
+async function loadSchedule() {
+    try {
+        const res  = await fetch('/api/coach/availability');
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Failed to load');
+
+        schedule = data.schedule;
+        upcoming = data.upcoming;
+        renderStats(data.stats);
+        renderSchedule();
+        renderUpcoming();
+        loadCalendar();
+    } catch (err) {
+        console.error(err);
+        toast('Failed to load availability data.', 'error');
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  Render stats
+// ══════════════════════════════════════════════════════════════
+function renderStats(stats) {
+    const hrs = stats.available_hours;
+    document.getElementById('statHours').textContent    = hrs + ' hrs';
+    document.getElementById('statHoursSub').textContent = hrs > 0 ? 'Hours open for booking' : 'No available hours set';
+    document.getElementById('statDays').textContent     = stats.available_days + ' days';
+    document.getElementById('statUpcoming').textContent = stats.upcoming_sessions;
+
+    if (upcoming.length > 0) {
+        const next = upcoming[0];
+        const diff = daysBetween(new Date(), new Date(next.booking_date + 'T00:00:00'));
+        if (diff === 0) {
+            document.getElementById('statNextIn').textContent  = 'Today';
+        } else if (diff === 1) {
+            document.getElementById('statNextIn').textContent  = 'Tomorrow';
+        } else {
+            document.getElementById('statNextIn').textContent  = diff + ' days';
+        }
+        document.getElementById('statNextInSub').textContent =
+            next.first_name + ' ' + next.last_name + ' · ' + fmtTime(next.start_time);
+    } else {
+        document.getElementById('statNextIn').textContent    = '—';
+        document.getElementById('statNextInSub').textContent = 'No upcoming sessions';
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  Render weekly schedule
+// ══════════════════════════════════════════════════════════════
+function renderSchedule() {
+    const body = document.getElementById('scheduleBody');
+    body.innerHTML = schedule.map((s, i) => buildScheduleRow(s, i)).join('');
+
+    schedule.forEach((s, i) => {
+        const toggle  = document.getElementById('toggle-' + i);
+        const startEl = document.getElementById('start-' + i);
+        const endEl   = document.getElementById('end-'   + i);
+
+        toggle.addEventListener('change', () => onToggle(i));
+        if (startEl) startEl.addEventListener('change', () => updateHours(i));
+        if (endEl)   endEl.addEventListener('change',   () => updateHours(i));
+
+        updateHours(i);
+    });
+}
+
+function buildScheduleRow(s, i) {
+    const isAvail = parseInt(s.is_available) === 1;
+    const start   = (s.start_time || '09:00:00').slice(0, 5);
+    const end     = (s.end_time   || '18:00:00').slice(0, 5);
+    const dur     = parseInt(s.slot_duration) || 60;
+
+    const durOpts = [
+        [30,  '30 min slots'],
+        [45,  '45 min slots'],
+        [60,  '1 hr slots'],
+        [90,  '90 min slots'],
+        [120, '2 hr slots'],
+    ].map(([v, lbl]) =>
+        `<option value="${v}" ${dur === v ? 'selected' : ''}>${lbl}</option>`
+    ).join('');
+
+    return `
+    <div class="schedule-row ${isAvail ? '' : 'day-off'}" id="row-${i}">
+        <div class="day-indicator">
+            <span class="day-dot"></span>
+            <div class="day-name">${s.day_of_week}</div>
+        </div>
+
+        <div class="toggle-wrap">
+            <label class="toggle-switch" title="${isAvail ? 'Available – click to set off' : 'Day off – click to enable'}">
+                <input type="checkbox" id="toggle-${i}" ${isAvail ? 'checked' : ''}>
+                <span class="toggle-track"></span>
+            </label>
+        </div>
+
+        <div class="time-controls" id="timeCtrl-${i}" style="display:${isAvail ? 'flex' : 'none'}">
+            <input type="time" class="time-input" id="start-${i}" value="${start}">
+            <span class="time-sep">–</span>
+            <input type="time" class="time-input" id="end-${i}" value="${end}">
+            <select class="dur-select" id="dur-${i}">${durOpts}</select>
+        </div>
+
+        <div class="day-off-label" id="offLabel-${i}" style="display:${isAvail ? 'none' : 'flex'}">
+            Day Off
+        </div>
+
+        <div class="day-hours-badge" id="hrs-${i}"></div>
+    </div>`;
+}
+
+function onToggle(i) {
+    const toggle = document.getElementById('toggle-' + i);
+    const row    = document.getElementById('row-'    + i);
+    const ctrl   = document.getElementById('timeCtrl-' + i);
+    const offLbl = document.getElementById('offLabel-' + i);
+    const isOn   = toggle.checked;
+
+    schedule[i].is_available = isOn ? 1 : 0;
+    row.classList.toggle('day-off', !isOn);
+    ctrl.style.display   = isOn ? 'flex' : 'none';
+    offLbl.style.display = isOn ? 'none' : 'flex';
+    updateHours(i);
+}
+
+function updateHours(i) {
+    const hrsEl  = document.getElementById('hrs-' + i);
+    const toggle = document.getElementById('toggle-' + i);
+    if (!hrsEl) return;
+    if (!toggle || !toggle.checked) { hrsEl.textContent = ''; return; }
+
+    const startEl = document.getElementById('start-' + i);
+    const endEl   = document.getElementById('end-'   + i);
+    if (!startEl || !endEl || !startEl.value || !endEl.value) return;
+
+    const [sh, sm] = startEl.value.split(':').map(Number);
+    const [eh, em] = endEl.value.split(':').map(Number);
+    const mins     = (eh * 60 + em) - (sh * 60 + sm);
+
+    if (mins > 0) {
+        const hrs = mins / 60;
+        hrsEl.textContent = (hrs % 1 === 0 ? hrs : hrs.toFixed(1)) + ' hrs';
+    } else {
+        hrsEl.textContent = '—';
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  Save schedule
+// ══════════════════════════════════════════════════════════════
+async function saveSchedule() {
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+
+    // Collect current DOM state
+    const payload = schedule.map((s, i) => {
+        const toggle  = document.getElementById('toggle-' + i);
+        const startEl = document.getElementById('start-'  + i);
+        const endEl   = document.getElementById('end-'    + i);
+        const durEl   = document.getElementById('dur-'    + i);
+        return {
+            day_of_week:   s.day_of_week,
+            is_available:  toggle && toggle.checked ? 1 : 0,
+            start_time:    startEl ? startEl.value : (s.start_time || '09:00'),
+            end_time:      endEl   ? endEl.value   : (s.end_time   || '18:00'),
+            slot_duration: durEl   ? parseInt(durEl.value) : (parseInt(s.slot_duration) || 60),
+        };
+    });
+
+    try {
+        const res  = await fetch('/api/coach/availability', {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ schedule: payload }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            toast('Schedule saved successfully!', 'success');
+            await loadSchedule();  // refresh stats + calendar
+        } else {
+            toast(data.message || 'Failed to save schedule.', 'error');
+        }
+    } catch (err) {
+        toast('Network error – please try again.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Save Schedule';
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  Calendar
+// ══════════════════════════════════════════════════════════════
+function stepMonth(delta) {
+    calMonth += delta;
+    if (calMonth < 1)  { calMonth = 12; calYear--; }
+    if (calMonth > 12) { calMonth = 1;  calYear++; }
+}
+
+async function loadCalendar() {
+    document.getElementById('calMonthLabel').textContent = MONTHS[calMonth - 1] + ' ' + calYear;
+    try {
+        const res  = await fetch(`/api/coach/availability/calendar?year=${calYear}&month=${calMonth}`);
+        const data = await res.json();
+        if (data.success) {
+            calBookings = data.bookings;
+            calDayAvail = data.day_avail;
+        }
+    } catch (_) { /* render with existing data */ }
+    renderCalendar();
+}
+
+function renderCalendar() {
+    const grid     = document.getElementById('calGrid');
+    const todayStr = fmtDateStr(new Date());
+
+    // Determine padding (Mon-based grid)
+    const firstDay   = new Date(calYear, calMonth - 1, 1);
+    const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+    const prevLast    = new Date(calYear, calMonth - 1, 0).getDate();
+
+    // Mon = 0 … Sun = 6
+    let startOffset = firstDay.getDay() - 1;
+    if (startOffset < 0) startOffset = 6;
+
+    const cells = [];
+
+    // Trailing days from previous month
+    for (let i = startOffset - 1; i >= 0; i--) {
+        cells.push({ day: prevLast - i, cur: false });
+    }
+    // Current month
+    for (let d = 1; d <= daysInMonth; d++) {
+        cells.push({ day: d, cur: true });
+    }
+    // Leading days from next month
+    while (cells.length < 42) {
+        cells.push({ day: cells.length - startOffset - daysInMonth + 1, cur: false });
+    }
+
+    grid.innerHTML = cells.map(({ day, cur }) => {
+        if (!cur) {
+            return `<div class="cal-day other-month"><div class="cal-day-num">${day}</div></div>`;
+        }
+
+        const dateStr = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const dow     = DOW_MAP[new Date(calYear, calMonth - 1, day).getDay()];
+        const avail   = calDayAvail[dow] || false;
+        const booking = calBookings[dateStr] || null;
+        const isToday = dateStr === todayStr;
+
+        const cls = ['cal-day'];
+        if (isToday) cls.push('today');
+        if (avail)   cls.push('is-available');
+        if (booking) cls.push('has-bookings');
+
+        const badge = booking
+            ? `<div class="cal-booking-badge" title="${booking.count} session(s)">${booking.count}</div>`
+            : '';
+        const dot = avail && !booking ? '<div class="cal-avail-dot"></div>' : '';
+
+        return `<div class="${cls.join(' ')}">
+            <div class="cal-day-num">${day}</div>
+            ${badge}${dot}
+        </div>`;
+    }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  Upcoming sessions
+// ══════════════════════════════════════════════════════════════
+function renderUpcoming() {
+    const list    = document.getElementById('upcomingList');
+    const countEl = document.getElementById('upcomingCount');
+    const n       = upcoming.length;
+    countEl.textContent = n + ' session' + (n !== 1 ? 's' : '');
+
+    if (!n) {
+        list.innerHTML = `
+        <div class="empty-upcoming">
+            <i class="fas fa-calendar-times"></i>
+            <p>No upcoming sessions scheduled.</p>
+        </div>`;
+        return;
+    }
+
+    list.innerHTML = upcoming.map(s => {
+        const d      = new Date(s.booking_date + 'T00:00:00');
+        const month  = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+        const day    = d.getDate();
+        const status = s.status.charAt(0).toUpperCase() + s.status.slice(1);
+        const stCls  = s.status === 'confirmed' ? 'sess-status-confirmed' : 'sess-status-pending';
+        const type   = s.session_type ? s.session_type.charAt(0).toUpperCase() + s.session_type.slice(1) : 'Training';
+
+        return `
+        <div class="session-item">
+            <div class="sess-date-col">
+                <div class="sess-month">${month}</div>
+                <div class="sess-day">${day}</div>
+            </div>
+            <div class="sess-info">
+                <div class="sess-client">${s.first_name} ${s.last_name}</div>
+                <div class="sess-meta">
+                    <i class="fas fa-clock sess-time-icon"></i>
+                    ${fmtTime(s.start_time)} – ${fmtTime(s.end_time)}
+                    <span class="sess-type-pill">${type}</span>
+                    <span class="sess-status-pill ${stCls}">${status}</span>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  Helpers
+// ══════════════════════════════════════════════════════════════
+function fmtTime(t) {
+    if (!t) return '';
+    const [h, m] = t.split(':').map(Number);
+    const ampm   = h >= 12 ? 'PM' : 'AM';
+    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+function fmtDateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function daysBetween(a, b) {
+    const ms = b.setHours(0,0,0,0) - a.setHours(0,0,0,0);
+    return Math.max(0, Math.round(ms / 86400000));
+}
+
+// ══════════════════════════════════════════════════════════════
+//  Toast
+// ══════════════════════════════════════════════════════════════
+function toast(msg, type = 'success') {
+    const wrap = document.getElementById('toastWrap');
+    const el   = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+    wrap.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+}
 </script>
+
+</body>
+</html>
