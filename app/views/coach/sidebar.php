@@ -44,18 +44,6 @@
                     <span class="badge" id="clientsCount">0</span>
                 </a>
             </li>
-            <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/programs') !== false ? 'active' : '' ?>">
-                <a href="/coach/programs">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span>Training Programs</span>
-                </a>
-            </li>
-            <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/assessments') !== false ? 'active' : '' ?>">
-                <a href="/coach/assessments">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Assessments</span>
-                </a>
-            </li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/earnings') !== false ? 'active' : '' ?>">
                 <a href="/coach/earnings">
                     <i class="fas fa-wallet"></i>
