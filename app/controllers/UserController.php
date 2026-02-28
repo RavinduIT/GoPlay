@@ -7,6 +7,7 @@ use Core\Response;
 use App\Models\User;
 use App\Models\GroundBooking;
 use App\Models\Order;
+use App\Models\Notification;
 
 /**
  * User Controller
@@ -18,12 +19,14 @@ class UserController extends BaseController
     protected $userModel;
     protected $groundBookingModel;
     protected $orderModel;
+    protected $notificationModel;
 
     public function __construct()
     {
         $this->userModel = new User();
         $this->groundBookingModel = new GroundBooking();
         $this->orderModel = new Order();
+        $this->notificationModel = new Notification();
     }
 
     /**
@@ -665,6 +668,35 @@ class UserController extends BaseController
             // Get the created booking with details
             $booking = $this->groundBookingModel->find($bookingId);
 
+            // Get facility details for notifications
+            $facilityModel = new \App\Models\SportsFacility();
+            $facility = $facilityModel->find($facilityId);
+            $facilityName = $facility['name'] ?? 'Ground';
+            $ownerId = $facility['owner_id'] ?? null;
+
+            // Create booking confirmation notification for user
+            $this->notificationModel->createBookingNotification($userId, [
+                'booking_id' => $bookingId,
+                'facility_id' => $facilityId,
+                'facility_name' => $facilityName,
+                'booking_date' => $bookingDate,
+                'start_time' => $startTime,
+                'end_time' => $endTime
+            ]);
+
+            // Create notification for ground owner
+            if ($ownerId) {
+                $user = $this->userModel->find($userId);
+                $ownerNotificationModel = new \App\Models\GroundOwnerNotification();
+                $ownerNotificationModel->createBookingNotification($ownerId, [
+                    'booking_id' => $bookingId,
+                    'facility_name' => $facilityName,
+                    'first_name' => $user['first_name'] ?? '',
+                    'last_name' => $user['last_name'] ?? '',
+                    'booking_date' => $bookingDate
+                ]);
+            }
+
             return $this->json([
                 'success' => true,
                 'message' => 'Ground booked successfully! No payment required.',
@@ -727,6 +759,31 @@ class UserController extends BaseController
                     'success' => false,
                     'message' => 'Failed to cancel booking'
                 ], 500);
+            }
+
+            // Get facility details for notifications
+            $facilityModel = new \App\Models\SportsFacility();
+            $facility = $facilityModel->find($booking['facility_id']);
+            $facilityName = $facility['name'] ?? 'Ground';
+            $ownerId = $facility['owner_id'] ?? null;
+
+            // Create cancellation notification for user
+            $this->notificationModel->createCancellationNotification($userId, [
+                'booking_id' => $bookingId,
+                'facility_name' => $facilityName,
+                'booking_date' => $booking['booking_date']
+            ]);
+
+            // Create cancellation notification for ground owner
+            if ($ownerId) {
+                $user = $this->userModel->find($userId);
+                $ownerNotificationModel = new \App\Models\GroundOwnerNotification();
+                $ownerNotificationModel->createCancellationNotification($ownerId, [
+                    'booking_id' => $bookingId,
+                    'facility_name' => $facilityName,
+                    'first_name' => $user['first_name'] ?? '',
+                    'last_name' => $user['last_name'] ?? ''
+                ]);
             }
 
             return $this->json([
@@ -1136,6 +1193,307 @@ class UserController extends BaseController
                 'message' => 'Error deleting review',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    // =============================================
+    // NOTIFICATION METHODS
+    // =============================================
+
+    /**
+     * Get user notifications
+     */
+    public function getNotifications(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        try {
+            $type = $request->getQuery('type');
+            $unreadOnly = $request->getQuery('unread') === 'true';
+
+            $notifications = $this->notificationModel->getByUser($userId, $type, $unreadOnly);
+            $stats = $this->notificationModel->getStats($userId);
+
+            return $this->json([
+                'success' => true,
+                'notifications' => $notifications,
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Error getting notifications: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'Error loading notifications',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public function markNotificationRead(Request $request, $id): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        try {
+            $success = $this->notificationModel->markAsRead($id, $userId);
+
+            return $this->json([
+                'success' => $success,
+                'message' => $success ? 'Notification marked as read' : 'Notification not found'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error updating notification',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark all notifications as read
+     */
+    public function markAllNotificationsRead(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        try {
+            $this->notificationModel->markAllAsRead($userId);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'All notifications marked as read'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error updating notifications',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a notification
+     */
+    public function deleteNotification(Request $request, $id): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        try {
+            $success = $this->notificationModel->deleteNotification($id, $userId);
+
+            return $this->json([
+                'success' => $success,
+                'message' => $success ? 'Notification deleted' : 'Notification not found'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error deleting notification',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Clear all notifications
+     */
+    public function clearAllNotifications(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        try {
+            $this->notificationModel->clearAll($userId);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'All notifications cleared'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error clearing notifications',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // =====================================================================
+    // COACH SESSION BOOKINGS
+    // =====================================================================
+
+    /**
+     * Submit a review for a completed coach booking.
+     * POST /api/user/coach-reviews
+     */
+    public function submitCoachReview(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+        }
+
+        $data      = json_decode(file_get_contents('php://input'), true) ?? [];
+        $bookingId = (int)($data['booking_id'] ?? 0);
+        $coachId   = (int)($data['coach_id']   ?? 0);
+        $rating    = (int)($data['rating']      ?? 0);
+        $text      = trim($data['review_text']  ?? '');
+
+        if (!$bookingId || !$coachId || $rating < 1 || $rating > 5) {
+            return $this->json(['success' => false, 'error' => 'Booking, coach and a rating (1-5) are required'], 400);
+        }
+
+        $model   = new \App\Models\CoachBooking();
+        $success = $model->submitReview($bookingId, (int)$_SESSION['user_id'], $coachId, $rating, $text);
+
+        if (!$success) {
+            return $this->json(['success' => false, 'error' => 'Unable to submit review. Session may not be completed or you already reviewed it.'], 422);
+        }
+
+        return $this->json(['success' => true, 'message' => 'Review submitted successfully!']);
+    }
+
+    /**
+     * Get the authenticated user's coach bookings.
+     * GET /api/user/coach-bookings
+     */
+    public function getCoachBookings(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $model    = new \App\Models\CoachBooking();
+            $bookings = $model->getBookingsByUser((int)$_SESSION['user_id']);
+            return $this->json(['success' => true, 'bookings' => $bookings]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Reschedule a coach booking.
+     * PUT /api/user/coach-bookings/{id}
+     */
+    public function updateCoachBooking(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $bookingId = (int)$request->getParam('id');
+            $data      = $request->getJsonBody() ?: $request->getBody();
+            $model     = new \App\Models\CoachBooking();
+            $booking   = $model->find($bookingId);
+
+            if (!$booking || (int)$booking['user_id'] !== (int)$_SESSION['user_id']) {
+                return $this->json(['success' => false, 'error' => 'Booking not found'], 404);
+            }
+            if (!in_array($booking['status'], ['confirmed', 'pending'])) {
+                return $this->json(['success' => false, 'error' => 'Only upcoming bookings can be rescheduled'], 400);
+            }
+            if (empty($data['booking_date']) || empty($data['start_time']) || empty($data['end_time'])) {
+                return $this->json(['success' => false, 'error' => 'Date and times are required'], 400);
+            }
+
+            $success = $model->rescheduleBooking($bookingId, $data['booking_date'], $data['start_time'], $data['end_time']);
+
+            if (!$success) {
+                return $this->json(['success' => false, 'error' => 'The selected time slot is not available'], 409);
+            }
+            return $this->json(['success' => true, 'message' => 'Session rescheduled successfully']);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Cancel a coach booking.
+     * PUT /api/user/coach-bookings/{id}/cancel
+     */
+    public function cancelCoachBooking(Request $request): Response
+    {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $bookingId = (int)$request->getParam('id');
+            $model     = new \App\Models\CoachBooking();
+            $booking   = $model->find($bookingId);
+
+            if (!$booking || (int)$booking['user_id'] !== (int)$_SESSION['user_id']) {
+                return $this->json(['success' => false, 'error' => 'Booking not found'], 404);
+            }
+            if (!in_array($booking['status'], ['confirmed', 'pending'])) {
+                return $this->json(['success' => false, 'error' => 'Only upcoming bookings can be cancelled'], 400);
+            }
+
+            $data   = $request->getJsonBody() ?: [];
+            $reason = $data['reason'] ?? '';
+
+            $success = $model->cancelBooking($bookingId, 'user', $reason);
+            return $this->json([
+                'success' => $success,
+                'message' => $success ? 'Booking cancelled successfully' : 'Cancellation failed',
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 }

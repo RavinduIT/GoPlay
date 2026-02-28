@@ -816,6 +816,55 @@ $additionalJS = [];
     </div>
 </div>
 
+<!-- Coach Review Modal -->
+<div id="coachReviewModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-star" style="color:#fbbf24"></i> Review Coach Session</h2>
+            <span class="close" onclick="dashboard.closeCoachReviewModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="coachReviewForm">
+                <input type="hidden" id="crBookingId">
+                <input type="hidden" id="crCoachId">
+
+                <div class="facility-review-info">
+                    <h4 id="crCoachName"></h4>
+                    <p>Share your experience to help others and improve coaching quality</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="rating-label">How would you rate this session?</div>
+                    <div class="star-rating" id="crStarRating">
+                        <i class="fas fa-star" data-rating="1"></i>
+                        <i class="fas fa-star" data-rating="2"></i>
+                        <i class="fas fa-star" data-rating="3"></i>
+                        <i class="fas fa-star" data-rating="4"></i>
+                        <i class="fas fa-star" data-rating="5"></i>
+                    </div>
+                    <div class="rating-description" id="crRatingDescription">Select a rating</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="crReviewText"><i class="fas fa-comment"></i> Your Review <span style="color:var(--text-secondary);font-weight:400">(optional)</span></label>
+                    <textarea id="crReviewText" placeholder="Tell others about your coaching experience — what worked well, what improved your game..." rows="4" maxlength="600"></textarea>
+                    <div class="character-counter">
+                        <span id="crCharCount">0</span>/600 characters
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-view" onclick="dashboard.closeCoachReviewModal()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="button" class="btn btn-primary" onclick="dashboard.submitCoachReview()" id="submitCoachReviewBtn" disabled>
+                <i class="fas fa-paper-plane"></i> Submit Review
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Write Review Modal -->
 <div id="reviewModal" class="modal">
     <div class="modal-content">
@@ -1151,6 +1200,15 @@ $additionalJS = [];
                                 <i class="fas fa-times"></i> Cancel Session
                             </button>
                         ` : ''}
+                        ${booking.status === 'completed' ? (
+                            booking.has_review
+                                ? `<button class="btn btn-view" style="background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.3);cursor:default" disabled>
+                                       <i class="fas fa-star"></i> Reviewed (${booking.review_rating}★)
+                                   </button>`
+                                : `<button class="btn btn-primary" onclick="dashboard.openCoachReviewModal(${booking.id}, ${booking.coach_id}, '${booking.coach_first_name} ${booking.coach_last_name}')">
+                                       <i class="fas fa-star"></i> Write Review
+                                   </button>`
+                        ) : ''}
                         <button class="btn btn-view" onclick="dashboard.viewCoachDetails(${booking.id})">
                             <i class="fas fa-eye"></i> View Details
                         </button>
@@ -1518,6 +1576,89 @@ $additionalJS = [];
             this.selectedRating = 0;
         }
 
+        // ── Coach Review ──────────────────────────────────────────
+        openCoachReviewModal(bookingId, coachId, coachName) {
+            this.crSelectedRating = 0;
+            document.getElementById('crBookingId').value         = bookingId;
+            document.getElementById('crCoachId').value           = coachId;
+            document.getElementById('crCoachName').textContent   = coachName;
+            document.getElementById('crReviewText').value        = '';
+            document.getElementById('crCharCount').textContent   = '0';
+            document.getElementById('submitCoachReviewBtn').disabled = true;
+            document.getElementById('crRatingDescription').textContent = 'Select a rating';
+
+            // Reset stars
+            document.querySelectorAll('#crStarRating i').forEach(s => s.classList.remove('active', 'hover'));
+
+            // Star interaction
+            const stars = document.querySelectorAll('#crStarRating i');
+            const labels = ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+            stars.forEach((star, idx) => {
+                star.onclick = () => {
+                    this.crSelectedRating = idx + 1;
+                    stars.forEach((s, i) => s.classList.toggle('active', i <= idx));
+                    document.getElementById('crRatingDescription').textContent = labels[idx];
+                    document.getElementById('submitCoachReviewBtn').disabled = false;
+                };
+                star.onmouseenter = () => stars.forEach((s, i) => s.classList.toggle('hover', i <= idx));
+                star.onmouseleave = () => stars.forEach(s => s.classList.remove('hover'));
+            });
+
+            document.getElementById('crReviewText').oninput = e =>
+                document.getElementById('crCharCount').textContent = e.target.value.length;
+
+            document.getElementById('coachReviewModal').style.display = 'block';
+        }
+
+        closeCoachReviewModal() {
+            document.getElementById('coachReviewModal').style.display = 'none';
+            this.crSelectedRating = 0;
+        }
+
+        async submitCoachReview() {
+            if (!this.crSelectedRating) {
+                alert('Please select a rating before submitting.');
+                return;
+            }
+
+            const bookingId  = parseInt(document.getElementById('crBookingId').value);
+            const coachId    = parseInt(document.getElementById('crCoachId').value);
+            const reviewText = document.getElementById('crReviewText').value.trim();
+            const btn        = document.getElementById('submitCoachReviewBtn');
+
+            btn.disabled    = true;
+            btn.innerHTML   = '<i class="fas fa-spinner fa-spin"></i> Submitting…';
+
+            try {
+                const res  = await fetch('/api/user/coach-reviews', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({
+                        booking_id:  bookingId,
+                        coach_id:    coachId,
+                        rating:      this.crSelectedRating,
+                        review_text: reviewText,
+                    }),
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    this.closeCoachReviewModal();
+                    alert('Thank you! Your review has been submitted.');
+                    // Reload bookings so the button becomes "Reviewed"
+                    await this.loadCoachBookings();
+                    this.renderCoachBookings();
+                } else {
+                    alert(data.error || 'Failed to submit review. Please try again.');
+                }
+            } catch (err) {
+                alert('Network error. Please try again.');
+            } finally {
+                btn.disabled  = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Review';
+            }
+        }
+
         async submitReview() {
             const facilityId = document.getElementById('reviewFacilityId').value;
             const bookingId = document.getElementById('reviewBookingId').value;
@@ -1590,6 +1731,10 @@ $additionalJS = [];
         }
         if (event.target === coachModal) {
             dashboard.closeCoachEditModal();
+        }
+        const coachReviewModal = document.getElementById('coachReviewModal');
+        if (event.target === coachReviewModal) {
+            dashboard.closeCoachReviewModal();
         }
     }
 

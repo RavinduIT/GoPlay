@@ -169,20 +169,68 @@ class CoachBooking extends BaseModel
     {
         $sql = "SELECT
                     cb.*,
-                    u.first_name   AS coach_first_name,
-                    u.last_name    AS coach_last_name,
+                    u.first_name      AS coach_first_name,
+                    u.last_name       AS coach_last_name,
                     u.profile_picture AS coach_avatar,
                     c.hourly_rate,
-                    c.location     AS coach_location,
-                    sc.name        AS sport_name
+                    c.location        AS coach_location,
+                    c.rating          AS coach_rating,
+                    sc.name           AS sport_name,
+                    cr.id             AS review_id,
+                    cr.rating         AS review_rating,
+                    cr.review_text    AS review_text
                 FROM {$this->table} cb
                 JOIN coaches c  ON cb.coach_id = c.id
                 JOIN users   u  ON c.user_id   = u.id
                 LEFT JOIN sports_categories sc ON c.sport_category_id = sc.id
+                LEFT JOIN coach_reviews cr ON cr.booking_id = cb.id AND cr.user_id = ?
                 WHERE cb.user_id = ?
                 ORDER BY cb.booking_date DESC, cb.start_time DESC";
 
-        return $this->query($sql, [$userId])->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $this->query($sql, [$userId, $userId])->fetchAll(\PDO::FETCH_ASSOC);
+        // Add convenient boolean flag
+        foreach ($rows as &$r) {
+            $r['has_review'] = !empty($r['review_id']);
+        }
+        return $rows;
+    }
+
+    /**
+     * Submit a review for a completed coach booking.
+     * Returns false if booking not found / not completed / already reviewed.
+     */
+    public function submitReview(int $bookingId, int $userId, int $coachId, int $rating, string $text): bool
+    {
+        // Guard: booking must belong to user and be completed
+        $booking = $this->queryFirst(
+            "SELECT id FROM {$this->table} WHERE id = ? AND user_id = ? AND status = 'completed'",
+            [$bookingId, $userId]
+        );
+        if (!$booking) return false;
+
+        // Guard: one review per booking
+        $exists = $this->queryFirst(
+            "SELECT id FROM coach_reviews WHERE booking_id = ? AND user_id = ?",
+            [$bookingId, $userId]
+        );
+        if ($exists) return false;
+
+        $this->query(
+            "INSERT INTO coach_reviews (coach_id, user_id, booking_id, rating, review_text)
+             VALUES (?, ?, ?, ?, ?)",
+            [$coachId, $userId, $bookingId, $rating, $text]
+        );
+
+        // Recalculate coach aggregate rating
+        $this->query(
+            "UPDATE coaches
+             SET rating        = (SELECT COALESCE(AVG(rating),0) FROM coach_reviews WHERE coach_id = ?),
+                 total_reviews = (SELECT COUNT(*)                FROM coach_reviews WHERE coach_id = ?)
+             WHERE id = ?",
+            [$coachId, $coachId, $coachId]
+        );
+
+        return true;
     }
 
     /**

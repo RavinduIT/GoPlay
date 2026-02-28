@@ -236,9 +236,10 @@ try {
     $router->get('/my-coach-sessions', 'UserController@groundBookingsDashboard');
 
     // ── User Coach Booking API ──────────────────────────────────
-    $router->get('/api/user/coach-bookings', 'UserController@getCoachBookings');
-    $router->put('/api/user/coach-bookings/{id}', 'UserController@updateCoachBooking');
+    $router->get('/api/user/coach-bookings',             'UserController@getCoachBookings');
+    $router->put('/api/user/coach-bookings/{id}',        'UserController@updateCoachBooking');
     $router->put('/api/user/coach-bookings/{id}/cancel', 'UserController@cancelCoachBooking');
+    $router->post('/api/user/coach-reviews',             'UserController@submitCoachReview');
 
     // ── Coach Dashboard Booking API ─────────────────────────────
     $router->get('/api/coach/bookings', 'CoachController@getCoachOwnBookings');
