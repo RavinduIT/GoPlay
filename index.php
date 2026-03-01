@@ -150,6 +150,7 @@ try {
     $router->get('/ground-owner/earnings', 'GroundOwnerController@earningsPage');
     $router->get('/ground-owner/reviews', 'GroundOwnerController@reviewsPage');
     $router->get('/ground-owner/schedule', 'GroundOwnerController@schedulePage');
+    $router->get('/ground-owner/availability', 'GroundOwnerController@availabilityPage');
     $router->get('/ground-owner/maintenance', 'GroundOwnerController@maintenancePage');
     $router->get('/ground-owner/profile', 'GroundOwnerController@profilePage');
     $router->get('/ground-owner/settings', 'GroundOwnerController@settingsPage');
@@ -166,16 +167,25 @@ try {
     // Ground Owner Profile API routes
     $router->get('/api/ground-owner/profile', 'GroundOwnerController@getProfile');
     $router->put('/api/ground-owner/profile', 'GroundOwnerController@updateProfile');
+    $router->post('/api/ground-owner/upload-avatar', 'GroundOwnerController@uploadAvatar');
 
     // Ground Owner Reviews API routes
     $router->get('/api/ground-owner/reviews', 'GroundOwnerController@getReviews');
     $router->get('/api/ground-owner/reviews/stats', 'GroundOwnerController@getReviewStats');
+    $router->post('/api/ground-owner/reviews/{id}/reply', 'GroundOwnerController@respondToReview');
+    $router->delete('/api/ground-owner/reviews/{id}/reply', 'GroundOwnerController@respondToReview');
+    $router->post('/api/ground-owner/reviews/{id}/report', 'GroundOwnerController@reportReview');
 
     // Ground Owner Booking Management API routes
     $router->get('/api/ground-owner/dashboard-stats', 'GroundOwnerController@getDashboardStats');
     $router->get('/api/ground-owner/bookings', 'GroundOwnerController@getBookings');
     $router->get('/api/ground-owner/schedule', 'GroundOwnerController@getSchedule');
     $router->put('/api/ground-owner/bookings/{id}/cancel', 'GroundOwnerController@cancelBooking');
+    $router->get('/api/ground-owner/availability', 'GroundOwnerController@getAvailability');
+    $router->put('/api/ground-owner/availability', 'GroundOwnerController@saveWeeklyAvailability');
+    $router->get('/api/ground-owner/blocked-dates', 'GroundOwnerController@getBlockedDates');
+    $router->post('/api/ground-owner/blocked-dates', 'GroundOwnerController@addBlockedDate');
+    $router->delete('/api/ground-owner/blocked-dates/{id}', 'GroundOwnerController@removeBlockedDate');
     $router->get('/api/ground-owner/facilities/{id}/bookings', 'GroundOwnerController@getFacilityBookings');
     $router->put('/api/ground-owner/bookings/{id}/status', 'GroundOwnerController@updateBookingStatus');
 
@@ -209,6 +219,7 @@ try {
     $router->get('/api/ground-owner/earnings/analytics', 'GroundOwnerController@getEarningsAnalytics');
     // Backward compatible route for transactions
     $router->get('/api/ground-owner/transactions', 'GroundOwnerController@getEarningsTransactions');
+    $router->post('/api/ground-owner/earnings/walk-in', 'GroundOwnerController@addWalkInTransaction');
 
     // Ground Owner Notifications API routes
     $router->get('/api/ground-owner/notifications', 'GroundOwnerController@getNotifications');

@@ -1381,7 +1381,7 @@ class UserController extends BaseController
             return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
         }
 
-        $data      = json_decode(file_get_contents('php://input'), true) ?? [];
+        $data      = $request->getBody();
         $bookingId = (int)($data['booking_id'] ?? 0);
         $coachId   = (int)($data['coach_id']   ?? 0);
         $rating    = (int)($data['rating']      ?? 0);

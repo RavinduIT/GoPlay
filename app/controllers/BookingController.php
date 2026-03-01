@@ -163,6 +163,21 @@ class BookingController extends BaseController
                 ], 409);
             }
 
+            // Check against owner-set availability (blocked dates + operating hours)
+            $availModel = new \App\Models\FacilityAvailability();
+            if ($availModel->isDateBlocked($facilityId, $bookingDate, $startTime, $endTime)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'This ground is not available on the selected date'
+                ], 409);
+            }
+            if (!$availModel->isWithinOperatingHours($facilityId, $bookingDate, $startTime, $endTime)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Selected time is outside of the ground\'s operating hours'
+                ], 409);
+            }
+
             // Create booking data
             $bookingData = [
                 'user_id' => $userId,
@@ -275,10 +290,23 @@ class BookingController extends BaseController
 
             $available = $this->getGroundBookingModel()->isTimeSlotAvailable($facilityId, $date, $startTime, $endTime);
 
+            $blockedReason = null;
+            if ($available) {
+                $availModel = new \App\Models\FacilityAvailability();
+                if ($availModel->isDateBlocked($facilityId, $date, $startTime, $endTime)) {
+                    $available = false;
+                    $blockedReason = 'blocked';
+                } elseif (!$availModel->isWithinOperatingHours($facilityId, $date, $startTime, $endTime)) {
+                    $available = false;
+                    $blockedReason = 'outside_hours';
+                }
+            }
+
             return $this->json([
-                'success' => true,
+                'success'  => true,
                 'available' => $available,
-                'message' => $available ? 'Time slot is available' : 'Time slot is not available'
+                'reason'   => $blockedReason,
+                'message'  => $available ? 'Time slot is available' : 'Time slot is not available'
             ]);
 
         } catch (\Exception $e) {
