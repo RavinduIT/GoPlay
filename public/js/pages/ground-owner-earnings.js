@@ -1,603 +1,381 @@
-// Ground Owner - Earnings Analytics JavaScript
-class EarningsManager {
-    constructor() {
-        this.charts = {};
-        this.earningsData = {};
-        this.currentTimeRange = '30';
-        this.currentChartType = 'line';
-        
-        this.init();
+/* ═══════════════════════════════════════════════════════════
+   Ground Owner Earnings – JS
+═══════════════════════════════════════════════════════════ */
+(function () {
+'use strict';
+
+/* ── helpers ─────────────────────────────────────────── */
+function lkr(n) {
+    return 'LKR ' + (parseFloat(n) || 0).toLocaleString('en-LK', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function cap(s) {
+    if (!s) return '—';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/* ── state ───────────────────────────────────────────── */
+let allTx     = [];
+let filtered  = [];
+let page      = 1;
+const PER_PAGE = 12;
+
+/* ── toast ───────────────────────────────────────────── */
+function toast(msg, type = 'info') {
+    let wrap = document.getElementById('goToastWrap');
+    if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.id = 'goToastWrap';
+        wrap.className = 'go-toast-wrap';
+        document.body.appendChild(wrap);
     }
+    const t = document.createElement('div');
+    const icon = { success: 'check-circle', error: 'exclamation-circle', info: 'info-circle' }[type] || 'info-circle';
+    t.className = `go-toast ${type}`;
+    t.innerHTML = `<i class="fas fa-${icon}"></i> ${msg}`;
+    wrap.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => {
+        t.classList.remove('show');
+        setTimeout(() => t.remove(), 300);
+    }, 3500);
+}
 
-    init() {
-        this.bindEvents();
-        this.loadEarningsData();
-        this.initializeCharts();
+/* ── date filter helper ──────────────────────────────── */
+function inRange(dateStr, range) {
+    if (range === 'all' || !dateStr) return true;
+    const d   = new Date(dateStr);
+    const now = new Date();
+    const sod = (dt) => { const x = new Date(dt); x.setHours(0,0,0,0); return x; };
+
+    if (range === 'today') return d >= sod(now);
+    if (range === 'week') {
+        const start = sod(now);
+        start.setDate(now.getDate() - now.getDay());
+        return d >= start;
     }
-
-    bindEvents() {
-        // Time range selector
-        document.getElementById('timeRange')?.addEventListener('change', (e) => {
-            this.currentTimeRange = e.target.value;
-            if (e.target.value === 'custom') {
-                this.showDateRangeModal();
-            } else {
-                this.loadEarningsData();
-            }
-        });
-
-        // Chart type buttons
-        document.querySelectorAll('.chart-type-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.currentChartType = e.target.dataset.type;
-                this.updateChartTypeButtons();
-                this.updateRevenueChart();
-            });
-        });
-
-        // Performance metric selector
-        document.getElementById('performanceMetric')?.addEventListener('change', (e) => {
-            this.updatePerformanceChart(e.target.value);
-        });
-
-        // Breakdown period selector
-        document.getElementById('breakdownPeriod')?.addEventListener('change', (e) => {
-            this.updateEarningsBreakdown(e.target.value);
-        });
-
-        // Transaction filter
-        document.getElementById('transactionFilter')?.addEventListener('change', (e) => {
-            this.filterTransactions(e.target.value);
-        });
-
-        // Modal functions
-        window.closeDateRangeModal = this.closeDateRangeModal.bind(this);
-        window.applyDateRange = this.applyDateRange.bind(this);
-        window.generateReport = this.generateReport.bind(this);
-        window.exportFinancials = this.exportFinancials.bind(this);
-        window.viewAllTransactions = this.viewAllTransactions.bind(this);
+    if (range === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    if (range === 'last30') {
+        const cutoff = new Date(now); cutoff.setDate(now.getDate() - 30);
+        return d >= cutoff;
     }
-
-    async loadEarningsData() {
-        try {
-            const response = await fetch(`/api/ground-owner/earnings?period=${this.currentTimeRange}`);
-            if (response.ok) {
-                const data = await response.json();
-                this.earningsData = data;
-                this.updateEarningsOverview();
-                this.updateAllCharts();
-                this.updateAnalytics();
-                this.loadTransactions();
-            }
-        } catch (error) {
-            console.error('Error loading earnings data:', error);
-            this.showToast('Failed to load earnings data', 'error');
-        }
+    if (range === 'quarter') {
+        const q = Math.floor(now.getMonth() / 3);
+        return Math.floor(d.getMonth() / 3) === q && d.getFullYear() === now.getFullYear();
     }
+    if (range === 'year') return d.getFullYear() === now.getFullYear();
+    return true;
+}
 
-    updateEarningsOverview() {
-        const { overview } = this.earningsData;
-        if (!overview) return;
+/* ── load stats ─────────────────────────────────────── */
+async function loadStats() {
+    try {
+        const res = await fetch('/api/ground-owner/earnings');
+        if (!res.ok) return;
+        const data = await res.json();
+        const ov = data.overview || {};
 
-        // Update overview cards
-        document.getElementById('totalRevenue').textContent = `LKR ${overview.totalRevenue?.toLocaleString() || 0}`;
-        document.getElementById('monthlyEarnings').textContent = `LKR ${overview.monthlyEarnings?.toLocaleString() || 0}`;
-        document.getElementById('averageBooking').textContent = `LKR ${overview.averageBooking?.toLocaleString() || 0}`;
-        document.getElementById('pendingPayments').textContent = `LKR ${overview.pendingPayments?.toLocaleString() || 0}`;
+        const gross = parseFloat(ov.totalRevenue || 0);
+        const net   = gross * 0.9;
 
-        // Update change indicators
-        this.updateChangeIndicator('revenueChange', overview.revenueChange);
-        this.updateChangeIndicator('monthlyChange', overview.monthlyChange);
-        this.updateChangeIndicator('avgChange', overview.avgChange);
-        
-        document.getElementById('pendingCount').textContent = overview.pendingCount || 0;
-    }
-
-    updateChangeIndicator(elementId, change) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-
-        const isPositive = change >= 0;
-        element.textContent = `${isPositive ? '+' : ''}${change}%`;
-        element.className = `earning-change ${isPositive ? 'positive' : 'negative'}`;
-        element.innerHTML = `
-            <i class="fas fa-arrow-${isPositive ? 'up' : 'down'}"></i>
-            <span>${isPositive ? '+' : ''}${change}%</span>
-            <small>vs last period</small>
-        `;
-    }
-
-    initializeCharts() {
-        // Initialize Chart.js charts
-        this.initRevenueChart();
-        this.initPerformanceChart();
-        this.initRevenueSourceChart();
-    }
-
-    initRevenueChart() {
-        const ctx = document.getElementById('revenueChart');
-        if (!ctx) return;
-
-        this.charts.revenue = new Chart(ctx, {
-            type: this.currentChartType,
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Revenue',
-                    data: [],
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 3,
-                    fill: this.currentChartType === 'area',
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return 'LKR ' + value.toLocaleString();
-                            }
-                        }
-                    }
-                },
-                elements: {
-                    point: {
-                        radius: 6,
-                        hoverRadius: 8
-                    }
-                }
-            }
-        });
-    }
-
-    initPerformanceChart() {
-        const ctx = document.getElementById('performanceChart');
-        if (!ctx) return;
-
-        this.charts.performance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Performance',
-                    data: [],
-                    backgroundColor: [
-                        '#3b82f6',
-                        '#10b981',
-                        '#f59e0b',
-                        '#ef4444',
-                        '#8b5cf6'
-                    ],
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-
-    initRevenueSourceChart() {
-        const ctx = document.getElementById('revenueSourceChart');
-        if (!ctx) return;
-
-        this.charts.revenueSource = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    backgroundColor: [
-                        '#3b82f6',
-                        '#10b981',
-                        '#f59e0b',
-                        '#ef4444',
-                        '#8b5cf6',
-                        '#06b6d4'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                cutout: '60%'
-            }
-        });
-    }
-
-    updateAllCharts() {
-        this.updateRevenueChart();
-        this.updatePerformanceChart('revenue');
-        this.updateRevenueSourceChart();
-    }
-
-    updateRevenueChart() {
-        if (!this.charts.revenue || !this.earningsData.trends) return;
-
-        const { trends } = this.earningsData;
-        
-        this.charts.revenue.data.labels = trends.labels || [];
-        this.charts.revenue.data.datasets[0].data = trends.revenue || [];
-        
-        // Update chart type if changed
-        if (this.charts.revenue.config.type !== this.currentChartType) {
-            this.charts.revenue.config.type = this.currentChartType;
-            this.charts.revenue.data.datasets[0].fill = this.currentChartType === 'area';
-        }
-        
-        this.charts.revenue.update();
-    }
-
-    updatePerformanceChart(metric = 'revenue') {
-        if (!this.charts.performance || !this.earningsData.grounds) return;
-
-        const { grounds } = this.earningsData;
-        const labels = grounds.map(g => g.name) || [];
-        const data = grounds.map(g => g[metric]) || [];
-
-        this.charts.performance.data.labels = labels;
-        this.charts.performance.data.datasets[0].data = data;
-        this.charts.performance.update();
-    }
-
-    updateRevenueSourceChart() {
-        if (!this.charts.revenueSource || !this.earningsData.sources) return;
-
-        const { sources } = this.earningsData;
-        
-        this.charts.revenueSource.data.labels = sources.map(s => s.name) || [];
-        this.charts.revenueSource.data.datasets[0].data = sources.map(s => s.value) || [];
-        this.charts.revenueSource.update();
-
-        this.updateRevenueLegend(sources);
-    }
-
-    updateRevenueLegend(sources) {
-        const legend = document.getElementById('revenueLegend');
-        if (!legend) return;
-
-        legend.innerHTML = sources.map((source, index) => `
-            <div class="legend-item">
-                <div class="legend-color" style="background: ${this.getChartColor(index)}"></div>
-                <span class="legend-label">${source.name}</span>
-                <span class="legend-value">LKR ${source.value.toLocaleString()}</span>
-            </div>
-        `).join('');
-    }
-
-    updateChartTypeButtons() {
-        document.querySelectorAll('.chart-type-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.querySelector(`[data-type="${this.currentChartType}"]`).classList.add('active');
-    }
-
-    updateAnalytics() {
-        this.updateEarningsBreakdown('monthly');
-        this.updateTopGrounds();
-        this.updatePaymentAnalytics();
-        this.updateBookingPatterns();
-        this.updateFinancialSummary();
-    }
-
-    updateEarningsBreakdown(period) {
-        const breakdown = document.getElementById('earningsBreakdown');
-        if (!breakdown || !this.earningsData.breakdown) return;
-
-        const data = this.earningsData.breakdown[period] || [];
-        
-        breakdown.innerHTML = data.map(item => `
-            <div class="breakdown-item">
-                <div>
-                    <div class="breakdown-date">${item.period}</div>
-                    <div class="breakdown-change">${item.change}% vs previous</div>
-                </div>
-                <div class="breakdown-amount">LKR ${item.amount.toLocaleString()}</div>
-            </div>
-        `).join('');
-    }
-
-    updateTopGrounds() {
-        const topGrounds = document.getElementById('topGrounds');
-        if (!topGrounds || !this.earningsData.topGrounds) return;
-
-        topGrounds.innerHTML = this.earningsData.topGrounds.map(ground => `
-            <div class="ranking-item">
-                <div class="ranking-position">${ground.rank}</div>
-                <div class="ranking-info">
-                    <div class="ranking-name">${ground.name}</div>
-                    <div class="ranking-stats">
-                        <span>${ground.bookings} bookings</span>
-                        <span>${ground.occupancy}% occupancy</span>
-                    </div>
-                </div>
-                <div class="ranking-revenue">LKR ${ground.revenue.toLocaleString()}</div>
-            </div>
-        `).join('');
-    }
-
-    updatePaymentAnalytics() {
-        const { paymentAnalytics } = this.earningsData;
-        if (!paymentAnalytics) return;
-
-        document.getElementById('paymentSuccessRate').textContent = `${paymentAnalytics.successRate}%`;
-        document.getElementById('paymentSuccessBar').style.width = `${paymentAnalytics.successRate}%`;
-        document.getElementById('avgProcessingTime').textContent = `${paymentAnalytics.avgProcessingTime}s`;
-        document.getElementById('failedPayments').textContent = paymentAnalytics.failedPayments;
-        document.getElementById('refundsIssued').textContent = `LKR ${paymentAnalytics.refundsIssued.toLocaleString()}`;
-    }
-
-    updateBookingPatterns() {
-        this.updatePeakHours();
-        this.updateWeeklyTrends();
-    }
-
-    updatePeakHours() {
-        const peakHours = document.getElementById('peakHours');
-        if (!peakHours || !this.earningsData.patterns?.hours) return;
-
-        peakHours.innerHTML = this.earningsData.patterns.hours.map(hour => `
-            <div class="hour-item">
-                <div class="hour-label">${hour.time}</div>
-                <div class="hour-bar">
-                    <div class="hour-fill" style="width: ${hour.percentage}%"></div>
-                </div>
-                <div class="hour-value">${hour.bookings}</div>
-            </div>
-        `).join('');
-    }
-
-    updateWeeklyTrends() {
-        const weeklyTrends = document.getElementById('weeklyTrends');
-        if (!weeklyTrends || !this.earningsData.patterns?.days) return;
-
-        weeklyTrends.innerHTML = this.earningsData.patterns.days.map(day => `
-            <div class="day-item">
-                <div class="day-label">${day.name}</div>
-                <div class="day-bar">
-                    <div class="day-fill" style="width: ${day.percentage}%"></div>
-                </div>
-                <div class="day-value">LKR ${day.revenue.toLocaleString()}</div>
-            </div>
-        `).join('');
-    }
-
-    updateFinancialSummary() {
-        const { financial } = this.earningsData;
-        if (!financial) return;
-
-        document.getElementById('grossRevenue').textContent = `LKR ${financial.grossRevenue.toLocaleString()}`;
-        document.getElementById('platformCommission').textContent = `-LKR ${financial.platformCommission.toLocaleString()}`;
-        document.getElementById('processingFees').textContent = `-LKR ${financial.processingFees.toLocaleString()}`;
-        document.getElementById('taxes').textContent = `-LKR ${financial.taxes.toLocaleString()}`;
-        document.getElementById('netEarnings').textContent = `LKR ${financial.netEarnings.toLocaleString()}`;
-    }
-
-    async loadTransactions() {
-        try {
-            const response = await fetch('/api/ground-owner/transactions');
-            if (response.ok) {
-                const data = await response.json();
-                this.renderTransactions(data.transactions);
-            }
-        } catch (error) {
-            console.error('Error loading transactions:', error);
-        }
-    }
-
-    renderTransactions(transactions) {
-        const tbody = document.getElementById('transactionsTableBody');
-        if (!tbody) return;
-
-        tbody.innerHTML = transactions.map(transaction => `
-            <tr>
-                <td>#${transaction.id}</td>
-                <td>${this.formatDate(transaction.date)}</td>
-                <td>${transaction.ground}</td>
-                <td>${transaction.customer}</td>
-                <td>LKR ${transaction.amount.toLocaleString()}</td>
-                <td>LKR ${transaction.fee.toLocaleString()}</td>
-                <td>LKR ${transaction.net.toLocaleString()}</td>
-                <td><span class="status-badge ${transaction.status}">${transaction.status}</span></td>
-            </tr>
-        `).join('');
-    }
-
-    filterTransactions(status) {
-        // This would filter the transactions table based on status
-        this.loadTransactions();
-    }
-
-    showDateRangeModal() {
-        document.getElementById('dateRangeModal').classList.add('active');
-    }
-
-    closeDateRangeModal() {
-        document.getElementById('dateRangeModal').classList.remove('active');
-        document.getElementById('timeRange').value = this.currentTimeRange;
-    }
-
-    applyDateRange() {
-        const startDate = document.getElementById('customStartDate').value;
-        const endDate = document.getElementById('customEndDate').value;
-        
-        if (!startDate || !endDate) {
-            this.showToast('Please select both start and end dates', 'error');
-            return;
-        }
-        
-        if (new Date(startDate) > new Date(endDate)) {
-            this.showToast('Start date must be before end date', 'error');
-            return;
-        }
-
-        this.currentTimeRange = 'custom';
-        this.customDateRange = { startDate, endDate };
-        this.closeDateRangeModal();
-        this.loadEarningsData();
-    }
-
-    async generateReport() {
-        try {
-            this.showToast('Generating earnings report...', 'info');
-            
-            const response = await fetch('/api/ground-owner/earnings/report', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    period: this.currentTimeRange,
-                    customRange: this.customDateRange
-                })
-            });
-
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `earnings-report-${new Date().toISOString().split('T')[0]}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
-                this.showToast('Report generated successfully', 'success');
-            }
-        } catch (error) {
-            console.error('Error generating report:', error);
-            this.showToast('Failed to generate report', 'error');
-        }
-    }
-
-    exportFinancials() {
-        const financial = this.earningsData.financial;
-        if (!financial) return;
-
-        const csvContent = [
-            ['Item', 'Amount'],
-            ['Gross Revenue', financial.grossRevenue],
-            ['Platform Commission', -financial.platformCommission],
-            ['Processing Fees', -financial.processingFees],
-            ['Taxes', -financial.taxes],
-            ['Net Earnings', financial.netEarnings]
-        ].map(row => row.join(',')).join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `financial-summary-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    }
-
-    viewAllTransactions() {
-        // Redirect to full transactions page or expand table
-        window.location.href = '/ground-owner/transactions';
-    }
-
-    // Utility functions
-    getChartColor(index) {
-        const colors = [
-            '#3b82f6',
-            '#10b981',
-            '#f59e0b',
-            '#ef4444',
-            '#8b5cf6',
-            '#06b6d4'
-        ];
-        return colors[index % colors.length];
-    }
-
-    formatDate(date) {
-        return new Date(date).toLocaleDateString();
-    }
-
-    showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-            <div class="toast-content">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
-            </div>
-        `;
-
-        let container = document.getElementById('toastContainer');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toastContainer';
-            container.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 10000;
-                max-width: 400px;
-            `;
-            document.body.appendChild(container);
-        }
-        
-        toast.style.cssText = `
-            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white;
-            padding: 12px 20px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        
-        container.appendChild(toast);
-        setTimeout(() => toast.style.transform = 'translateX(0)', 100);
-        setTimeout(() => {
-            toast.style.transform = 'translateX(100%)';
-            setTimeout(() => container.removeChild(toast), 300);
-        }, 5000);
+        document.getElementById('statTotal').textContent  = lkr(gross);
+        document.getElementById('statTotalSub').textContent = (ov.totalBookings || 0) + ' bookings total';
+        document.getElementById('statNet').textContent    = lkr(net);
+        document.getElementById('statMonth').textContent  = lkr(ov.monthlyEarnings || 0);
+        document.getElementById('statMonthSub').textContent = (ov.monthBookings || 0) + ' bookings this month';
+        document.getElementById('statPending').textContent = lkr(ov.pendingPayments || 0);
+        document.getElementById('statPendingSub').textContent = (ov.pendingCount || 0) + ' transactions';
+    } catch (e) {
+        console.error('Stats load error:', e);
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    window.earningsManager = new EarningsManager();
+/* ── load transactions ───────────────────────────────── */
+async function loadTransactions() {
+    try {
+        const res = await fetch('/api/ground-owner/earnings/transactions?limit=200');
+        if (!res.ok) return;
+        const data = await res.json();
+        allTx = data.transactions || [];
+        populateGroundFilter();
+        applyFilters();
+    } catch (e) {
+        console.error('Transactions load error:', e);
+        document.getElementById('tableLoading').innerHTML =
+            '<i class="fas fa-exclamation-circle"></i> Failed to load transactions';
+    }
+}
+
+/* ── populate ground filter dropdown ─────────────────── */
+function populateGroundFilter() {
+    const sel  = document.getElementById('filterGround');
+    const seen = new Set();
+    allTx.forEach(tx => {
+        if (tx.ground && !seen.has(tx.ground)) {
+            seen.add(tx.ground);
+            const opt = document.createElement('option');
+            opt.value = tx.ground;
+            opt.textContent = tx.ground;
+            sel.appendChild(opt);
+        }
+    });
+}
+
+/* ── apply filters & sort ────────────────────────────── */
+function applyFilters() {
+    const dateRange = document.getElementById('filterDate').value;
+    const ground    = document.getElementById('filterGround').value;
+    const status    = document.getElementById('filterStatus').value;
+    const sort      = document.getElementById('sortBy').value;
+
+    filtered = allTx.filter(tx => {
+        if (!inRange(tx.date || tx.created_at, dateRange)) return false;
+        if (ground && tx.ground !== ground) return false;
+        if (status && tx.status !== status) return false;
+        return true;
+    });
+
+    filtered.sort((a, b) => {
+        if (sort === 'date_desc') return new Date(b.date || b.created_at) - new Date(a.date || a.created_at);
+        if (sort === 'date_asc')  return new Date(a.date || a.created_at) - new Date(b.date || b.created_at);
+        if (sort === 'amount_desc') return (b.amount || 0) - (a.amount || 0);
+        if (sort === 'amount_asc')  return (a.amount || 0) - (b.amount || 0);
+        return 0;
+    });
+
+    page = 1;
+    renderTable();
+}
+
+/* ── render table ─────────────────────────────────────── */
+function renderTable() {
+    const loading   = document.getElementById('tableLoading');
+    const container = document.getElementById('tableContainer');
+    const noData    = document.getElementById('noData');
+    const pag       = document.getElementById('pagination');
+    const label     = document.getElementById('resultsLabel');
+
+    loading.style.display = 'none';
+
+    if (!filtered.length) {
+        container.style.display = 'none';
+        noData.style.display    = 'block';
+        pag.style.display       = 'none';
+        label.textContent       = '';
+        return;
+    }
+
+    noData.style.display    = 'none';
+    container.style.display = 'block';
+
+    const totalPages = Math.ceil(filtered.length / PER_PAGE);
+    const start      = (page - 1) * PER_PAGE;
+    const pageRows   = filtered.slice(start, start + PER_PAGE);
+
+    label.textContent = filtered.length + ' record' + (filtered.length !== 1 ? 's' : '');
+
+    document.getElementById('tableBody').innerHTML = pageRows.map(tx => {
+        const statusCls = tx.status === 'completed' ? 'completed'
+                        : tx.status === 'pending'   ? 'pending' : 'failed';
+        const method = (tx.payment_method || '').replace('_', ' ');
+        const notes  = tx.notes || tx.customer || '—';
+
+        return `
+        <tr>
+            <td>
+                <strong>${fmtDate(tx.date || tx.created_at)}</strong>
+                <div class="go-cell-sub">#${tx.id}</div>
+            </td>
+            <td><strong>${tx.ground || '—'}</strong></td>
+            <td>
+                <span style="color:#374151">${notes.length > 35 ? notes.slice(0,35) + '…' : notes}</span>
+            </td>
+            <td><span class="go-method-pill">${method || 'online'}</span></td>
+            <td class="go-amount-cell">${lkr(tx.amount)}</td>
+            <td class="go-comm-cell">- ${lkr(tx.fee)}</td>
+            <td class="go-net-cell">${lkr(tx.net)}</td>
+            <td>
+                <span class="go-status-pill ${statusCls}">
+                    <i class="fas fa-${statusCls === 'completed' ? 'check' : statusCls === 'pending' ? 'clock' : 'times'}"></i>
+                    ${cap(tx.status)}
+                </span>
+            </td>
+            <td>
+                <button class="go-tbl-eye" onclick="viewDetail(${JSON.stringify(tx).replace(/"/g,'&quot;')})">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    // Pagination
+    if (totalPages <= 1) {
+        pag.style.display = 'none';
+    } else {
+        pag.style.display = 'flex';
+        document.getElementById('pageInfo').textContent = `Page ${page} of ${totalPages}`;
+        document.getElementById('prevPage').disabled = page <= 1;
+        document.getElementById('nextPage').disabled = page >= totalPages;
+    }
+}
+
+/* ── detail modal ────────────────────────────────────── */
+window.viewDetail = function (tx) {
+    if (typeof tx === 'string') {
+        try { tx = JSON.parse(tx); } catch(e) { return; }
+    }
+
+    const payColor = { completed: '#059669', pending: '#d97706', failed: '#dc2626' }[tx.status] || '#94a3b8';
+
+    document.getElementById('detailContent').innerHTML = `
+        <div class="go-detail-grid">
+            <div class="go-drow"><span>Transaction #</span><strong>#${tx.id}</strong></div>
+            <div class="go-drow"><span>Ground</span><strong>${tx.ground || '—'}</strong></div>
+            <div class="go-drow"><span>Date</span><strong>${fmtDate(tx.date || tx.created_at)}</strong></div>
+            <div class="go-drow"><span>Payment Method</span><strong style="text-transform:capitalize">${(tx.payment_method || 'online').replace('_',' ')}</strong></div>
+            <div class="go-drow"><span>Gross Amount</span><strong class="go-d-amount">${lkr(tx.amount)}</strong></div>
+            <div class="go-drow"><span>Commission (10%)</span><strong style="color:#dc2626">- ${lkr(tx.fee)}</strong></div>
+            <div class="go-drow"><span>Net Earnings</span><strong class="go-d-net">${lkr(tx.net)}</strong></div>
+            <div class="go-drow"><span>Status</span><strong style="color:${payColor}">${cap(tx.status)}</strong></div>
+            ${tx.notes ? `<div class="go-drow" style="flex-direction:column;align-items:flex-start;gap:4px"><span>Notes</span><p style="font-size:13px;color:#374151;line-height:1.5;margin-top:4px">${tx.notes}</p></div>` : ''}
+        </div>`;
+
+    openModal('detailModal', 'detailBackdrop');
+};
+
+/* ── walk-in modal ───────────────────────────────────── */
+async function openWalkInModal() {
+    openModal('walkInModal', 'walkInBackdrop');
+    document.getElementById('wiDate').value = new Date().toISOString().split('T')[0];
+
+    const sel = document.getElementById('wiGround');
+    if (sel.options.length <= 1) {
+        try {
+            const res  = await fetch('/api/ground-owner/grounds');
+            const data = await res.json();
+            (data.grounds || []).forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.textContent = g.name + (g.city ? ` (${g.city})` : '');
+                sel.appendChild(opt);
+            });
+        } catch (e) { console.error('Ground load error:', e); }
+    }
+}
+
+document.getElementById('walkInForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('wiSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+
+    const payload = {
+        facility_id:    document.getElementById('wiGround').value,
+        amount:         parseFloat(document.getElementById('wiAmount').value),
+        earning_date:   document.getElementById('wiDate').value,
+        payment_method: document.getElementById('wiPayMethod').value,
+        notes:          document.getElementById('wiNotes').value.trim() || null
+    };
+
+    try {
+        const res  = await fetch('/api/ground-owner/earnings/walk-in', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            toast('Walk-in transaction saved', 'success');
+            closeModal('walkInModal', 'walkInBackdrop');
+            document.getElementById('walkInForm').reset();
+            await loadStats();
+            await loadTransactions();
+        } else {
+            toast(data.message || 'Failed to save transaction', 'error');
+        }
+    } catch (err) {
+        toast('Network error. Please try again.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Save Transaction';
+    }
 });
 
-// Sidebar toggle functionality
-function toggleSidebar() {
-    const sidebar = document.getElementById('dashboardSidebar');
-    sidebar.classList.toggle('collapsed');
+/* ── export CSV ──────────────────────────────────────── */
+document.getElementById('exportBtn').addEventListener('click', () => {
+    if (!filtered.length) { toast('No transactions to export', 'error'); return; }
+
+    const rows = [
+        ['#', 'Date', 'Ground', 'Notes', 'Method', 'Amount (LKR)', 'Commission (LKR)', 'Net (LKR)', 'Status'],
+        ...filtered.map(tx => [
+            tx.id,
+            fmtDate(tx.date || tx.created_at),
+            tx.ground || '',
+            tx.notes || tx.customer || '',
+            (tx.payment_method || 'online').replace('_', ' '),
+            (parseFloat(tx.amount) || 0).toFixed(2),
+            (parseFloat(tx.fee) || 0).toFixed(2),
+            (parseFloat(tx.net) || 0).toFixed(2),
+            tx.status || ''
+        ])
+    ];
+
+    const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `earnings-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Export downloaded', 'success');
+});
+
+/* ── modal helpers ───────────────────────────────────── */
+function openModal(modalId, backdropId) {
+    document.getElementById(backdropId).classList.add('open');
+    document.getElementById(modalId).classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
+
+function closeModal(modalId, backdropId) {
+    document.getElementById(backdropId).classList.remove('open');
+    document.getElementById(modalId).classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+window.openWalkInModal = openWalkInModal;
+
+document.getElementById('closeDetail').addEventListener('click',  () => closeModal('detailModal',  'detailBackdrop'));
+document.getElementById('detailBackdrop').addEventListener('click', () => closeModal('detailModal', 'detailBackdrop'));
+document.getElementById('closeWalkIn').addEventListener('click',   () => closeModal('walkInModal',  'walkInBackdrop'));
+document.getElementById('cancelWalkIn').addEventListener('click',  () => closeModal('walkInModal',  'walkInBackdrop'));
+document.getElementById('walkInBackdrop').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal('walkInModal', 'walkInBackdrop'); });
+
+/* ── sidebar toggle ──────────────────────────────────── */
+window.toggleSidebar = function () {
+    document.getElementById('dashboardSidebar')?.classList.toggle('collapsed');
+};
+
+/* ── filter events ───────────────────────────────────── */
+document.getElementById('applyFilters').addEventListener('click', applyFilters);
+document.getElementById('sortBy').addEventListener('change', applyFilters);
+document.getElementById('prevPage').addEventListener('click', () => { if (page > 1) { page--; renderTable(); } });
+document.getElementById('nextPage').addEventListener('click', () => {
+    const total = Math.ceil(filtered.length / PER_PAGE);
+    if (page < total) { page++; renderTable(); }
+});
+
+/* ── init ────────────────────────────────────────────── */
+loadStats();
+loadTransactions();
+
+})();

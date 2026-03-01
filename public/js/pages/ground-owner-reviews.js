@@ -1,700 +1,453 @@
-// Ground Owner - Reviews Management JavaScript
-class ReviewsManager {
-    constructor() {
-        this.reviews = [];
-        this.filteredReviews = [];
-        this.currentPage = 1;
-        this.itemsPerPage = 10;
-        this.filters = {
-            rating: '',
-            ground: '',
-            status: '',
-            sortBy: 'newest'
-        };
-        
-        this.init();
-    }
+/* Ground Owner – Reviews Dashboard (IIFE) */
+(function () {
+    'use strict';
 
-    init() {
-        this.bindEvents();
-        this.loadReviews();
-        this.updateOverview();
-    }
+    /* ── state ── */
+    let allReviews = [];
+    let reportTargetId = null;
+    let toastTimer = null;
 
-    bindEvents() {
-        // Filter events
-        document.getElementById('ratingFilter')?.addEventListener('change', (e) => {
-            this.filters.rating = e.target.value;
-            this.applyFilters();
-        });
+    /* ── DOM refs (resolved after DOMContentLoaded) ── */
+    const $ = id => document.getElementById(id);
 
-        document.getElementById('groundFilter')?.addEventListener('change', (e) => {
-            this.filters.ground = e.target.value;
-            this.applyFilters();
-        });
+    /* ================================================================
+       BOOT
+    ================================================================ */
+    document.addEventListener('DOMContentLoaded', () => {
+        loadStats();
+        loadReviews();
+        bindControls();
+    });
 
-        document.getElementById('statusFilter')?.addEventListener('change', (e) => {
-            this.filters.status = e.target.value;
-            this.applyFilters();
-        });
-
-        document.getElementById('sortBy')?.addEventListener('change', (e) => {
-            this.filters.sortBy = e.target.value;
-            this.applyFilters();
-        });
-
-        // Search
-        document.getElementById('reviewSearch')?.addEventListener('input', (e) => {
-            this.searchReviews(e.target.value);
-        });
-
-        // Time filter
-        document.getElementById('timeFilter')?.addEventListener('change', (e) => {
-            this.loadReviews(e.target.value);
-        });
-
-        // Response modal character counter
-        document.getElementById('responseText')?.addEventListener('input', (e) => {
-            document.getElementById('charCount').textContent = e.target.value.length;
-        });
-
-        // Load more button
-        document.getElementById('loadMoreBtn')?.addEventListener('click', () => {
-            this.loadMoreReviews();
-        });
-
-        // Global functions
-        window.exportReviews = this.exportReviews.bind(this);
-        window.closeResponseModal = this.closeResponseModal.bind(this);
-        window.closeReportModal = this.closeReportModal.bind(this);
-        window.submitResponse = this.submitResponse.bind(this);
-        window.submitReport = this.submitReport.bind(this);
-        window.loadMoreReviews = this.loadMoreReviews.bind(this);
-    }
-
-    async loadReviews(timeFilter = 'all') {
+    /* ================================================================
+       API CALLS
+    ================================================================ */
+    async function loadStats() {
         try {
-            const response = await fetch(`/api/ground-owner/reviews?period=${timeFilter}`);
-            if (response.ok) {
-                const data = await response.json();
-                this.reviews = data.reviews || [];
-                this.filteredReviews = [...this.reviews];
-                this.renderReviews();
-                this.updateOverview();
-                this.updateRatingDistribution();
-                this.populateGroundFilter();
-            }
-        } catch (error) {
-            console.error('Error loading reviews:', error);
-            this.showToast('Failed to load reviews', 'error');
+            const r = await fetch('/api/ground-owner/reviews/stats');
+            if (!r.ok) return;
+            const data = await r.json();
+            const stats = data.stats || data; // support both flat and wrapped
+            renderStats(stats);
+            renderDistribution(stats);
+        } catch (e) {
+            console.error('stats error', e);
         }
     }
 
-    updateOverview() {
-        const stats = this.calculateStats();
+    async function loadReviews() {
+        const list = $('rvList');
+        list.innerHTML = '<div class="rv-loading"><div class="rv-spinner"></div><p>Loading reviews…</p></div>';
 
-        // Safely update elements with null checks
-        const setTextContent = (id, value) => {
-            const element = document.getElementById(id);
-            if (element) element.textContent = value;
-        };
-
-        setTextContent('overallRating', stats.averageRating.toFixed(1));
-        setTextContent('totalReviews', `Based on ${stats.totalReviews} reviews`);
-        setTextContent('reviewsCount', stats.totalReviews);
-        setTextContent('pendingResponses', stats.pendingResponses);
-        setTextContent('recentCount', stats.recentReviews);
-
-        // Update growth indicator
-        const growthElement = document.getElementById('reviewsGrowth');
-        if (growthElement) {
-            growthElement.textContent = `${stats.growth >= 0 ? '+' : ''}${stats.growth}%`;
-            growthElement.parentElement.className = `stat-change ${stats.growth >= 0 ? 'positive' : 'negative'}`;
+        try {
+            const r = await fetch('/api/ground-owner/reviews');
+            if (!r.ok) throw new Error('fetch failed');
+            const data = await r.json();
+            allReviews = Array.isArray(data.reviews) ? data.reviews : [];
+            renderList();
+        } catch (e) {
+            $('rvList').innerHTML = '<div class="rv-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load reviews. Please refresh.</p></div>';
         }
-
-        // Update overall stars display
-        this.updateStarsDisplay('overallStars', stats.averageRating);
     }
 
-    calculateStats() {
-        const now = new Date();
-        const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-        const thisMonthReviews = this.reviews.filter(r => new Date(r.created_at) >= thisMonth);
-        const lastMonthReviews = this.reviews.filter(r => {
-            const date = new Date(r.created_at);
-            return date >= lastMonth && date < thisMonth;
-        });
-        const recentReviews = this.reviews.filter(r => new Date(r.created_at) >= weekAgo);
-
-        const totalRating = this.reviews.reduce((sum, r) => sum + r.rating, 0);
-        const averageRating = this.reviews.length > 0 ? totalRating / this.reviews.length : 0;
-        
-        const pendingResponses = this.reviews.filter(r => !r.response).length;
-        
-        const growth = lastMonthReviews.length > 0 
-            ? ((thisMonthReviews.length - lastMonthReviews.length) / lastMonthReviews.length * 100)
-            : 0;
-
-        return {
-            totalReviews: this.reviews.length,
-            averageRating,
-            pendingResponses,
-            recentReviews: recentReviews.length,
-            growth: Math.round(growth)
-        };
-    }
-
-    updateRatingDistribution() {
-        const distribution = [0, 0, 0, 0, 0]; // Index 0 = 1 star, Index 4 = 5 stars
-        
-        this.reviews.forEach(review => {
-            if (review.rating >= 1 && review.rating <= 5) {
-                distribution[review.rating - 1]++;
+    async function sendReply(reviewId, text, btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+        try {
+            const r = await fetch(`/api/ground-owner/reviews/${reviewId}/reply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reply_text: text })
+            });
+            const data = await r.json();
+            if (data.success) {
+                // update local copy
+                const rev = allReviews.find(rv => rv.id == reviewId);
+                if (rev) {
+                    rev.reply_id   = 1; // truthy placeholder
+                    rev.reply_text = text;
+                    rev.replied_at = new Date().toISOString();
+                }
+                renderList();
+                toast('Reply saved!', 'success');
+                loadStats(); // refresh counts
+            } else {
+                toast(data.message || 'Could not save reply.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reply';
             }
-        });
+        } catch (e) {
+            toast('Network error. Please try again.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reply';
+        }
+    }
 
-        const total = this.reviews.length || 1;
-        
+    async function deleteReply(reviewId) {
+        if (!confirm('Delete your reply?')) return;
+        try {
+            const r = await fetch(`/api/ground-owner/reviews/${reviewId}/reply`, { method: 'DELETE' });
+            const data = await r.json();
+            if (data.success) {
+                const rev = allReviews.find(rv => rv.id == reviewId);
+                if (rev) { rev.reply_id = null; rev.reply_text = null; rev.replied_at = null; }
+                renderList();
+                toast('Reply deleted.', 'info');
+                loadStats();
+            } else {
+                toast(data.message || 'Could not delete reply.', 'error');
+            }
+        } catch (e) {
+            toast('Network error.', 'error');
+        }
+    }
+
+    async function submitReport(reviewId, reason, description) {
+        try {
+            const r = await fetch(`/api/ground-owner/reviews/${reviewId}/report`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason, description })
+            });
+            const data = await r.json();
+            return data;
+        } catch (e) {
+            return { success: false, message: 'Network error.' };
+        }
+    }
+
+    /* ================================================================
+       RENDER – STATS
+    ================================================================ */
+    function renderStats(data) {
+        const avg = parseFloat(data.average_rating) || 0;
+        $('rvAvgRating').textContent = avg ? avg.toFixed(1) : '—';
+        $('rvTotalReviews').textContent = data.total_reviews || 0;
+        $('rvPendingReplies').textContent = data.pending_replies || 0;
+        $('rvRecentCount').textContent = data.recent_count || 0;
+    }
+
+    function renderDistribution(data) {
+        const avg = parseFloat(data.average_rating) || 0;
+        $('rvBigAvg').textContent = avg ? avg.toFixed(1) : '—';
+
+        // star icons
+        const starsEl = $('rvBigStars');
+        starsEl.innerHTML = '';
         for (let i = 1; i <= 5; i++) {
-            const count = distribution[i - 1];
-            const percentage = (count / total) * 100;
-            
-            document.getElementById(`rating${i}Bar`).style.width = `${percentage}%`;
-            document.getElementById(`rating${i}Count`).textContent = count;
+            const ic = document.createElement('i');
+            ic.className = i <= Math.round(avg) ? 'fas fa-star' : 'far fa-star';
+            starsEl.appendChild(ic);
         }
+
+        const total = parseInt(data.total_reviews) || 0;
+        const counts = {
+            5: parseInt(data.five_star)  || 0,
+            4: parseInt(data.four_star)  || 0,
+            3: parseInt(data.three_star) || 0,
+            2: parseInt(data.two_star)   || 0,
+            1: parseInt(data.one_star)   || 0
+        };
+
+        document.querySelectorAll('.rv-bar-row').forEach(row => {
+            const s = parseInt(row.dataset.star);
+            const c = counts[s] || 0;
+            const pct = total > 0 ? Math.round((c / total) * 100) : 0;
+            row.querySelector('.rv-bar-fill').style.width  = pct + '%';
+            row.querySelector('.rv-bar-count').textContent = c;
+        });
     }
 
-    renderReviews() {
-        const reviewsList = document.getElementById('reviewsList');
-        if (!reviewsList) return;
+    /* ================================================================
+       RENDER – LIST
+    ================================================================ */
+    function renderList() {
+        const list  = $('rvList');
+        const query = ($('rvSearch').value || '').toLowerCase().trim();
+        const rFilter = $('rvFilterRating').value;
+        const replyFilter = $('rvFilterReply').value;
+        const sort  = $('rvSort').value;
 
-        if (this.filteredReviews.length === 0) {
-            reviewsList.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-star"></i>
-                    <h3>No reviews found</h3>
-                    <p>No reviews match your current filters.</p>
-                </div>
-            `;
+        let reviews = [...allReviews];
+
+        // filter
+        if (query) {
+            reviews = reviews.filter(rv =>
+                (rv.first_name + ' ' + rv.last_name).toLowerCase().includes(query) ||
+                (rv.review_text || '').toLowerCase().includes(query) ||
+                (rv.facility_name || '').toLowerCase().includes(query)
+            );
+        }
+        if (rFilter) reviews = reviews.filter(rv => String(rv.rating) === rFilter);
+        if (replyFilter === 'replied')  reviews = reviews.filter(rv => rv.reply_id);
+        if (replyFilter === 'pending')  reviews = reviews.filter(rv => !rv.reply_id);
+
+        // sort
+        reviews.sort((a, b) => {
+            if (sort === 'newest')  return new Date(b.created_at) - new Date(a.created_at);
+            if (sort === 'oldest')  return new Date(a.created_at) - new Date(b.created_at);
+            if (sort === 'highest') return b.rating - a.rating;
+            if (sort === 'lowest')  return a.rating - b.rating;
+            return 0;
+        });
+
+        if (reviews.length === 0) {
+            list.innerHTML = '<div class="rv-empty"><i class="fas fa-star-half-alt"></i><p>No reviews match your filters.</p></div>';
             return;
         }
 
-        // Group reviews by facility
-        const groupedReviews = this.groupReviewsByFacility(this.filteredReviews);
+        list.innerHTML = reviews.map(rv => buildCard(rv)).join('');
+        attachCardEvents();
+    }
 
-        // Render grouped reviews
-        reviewsList.innerHTML = Object.entries(groupedReviews).map(([facilityName, facilityData]) =>
-            this.createFacilitySection(facilityName, facilityData)
+    function buildCard(rv) {
+        const name    = (rv.first_name || '') + ' ' + (rv.last_name || '');
+        const initials = name.trim() ? name.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) : '?';
+        const avatar  = rv.profile_picture
+            ? `<img class="rv-avatar" src="${esc(rv.profile_picture)}" alt="${esc(name)}">`
+            : `<div class="rv-avatar-placeholder">${initials}</div>`;
+
+        const stars = [1,2,3,4,5].map(n =>
+            `<i class="fas fa-star${n <= rv.rating ? '' : ' inactive'}" style="color:${n <= rv.rating ? '#f59e0b' : '#d1d5db'}"></i>`
         ).join('');
 
-        // Hide load more button when using grouped view
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        if (loadMoreBtn) {
-            loadMoreBtn.style.display = 'none';
-        }
-    }
+        const date = rv.created_at ? fmtDate(rv.created_at) : '';
 
-    groupReviewsByFacility(reviews) {
-        const grouped = {};
+        const repliedBadge = rv.reply_id
+            ? `<span class="rv-replied-badge"><i class="fas fa-check-circle"></i> Replied</span>`
+            : '';
 
-        reviews.forEach(review => {
-            const facilityKey = review.facility_name || review.ground_name;
-
-            if (!grouped[facilityKey]) {
-                grouped[facilityKey] = {
-                    facility_id: review.facility_id || review.ground_id,
-                    facility_name: review.facility_name || review.ground_name,
-                    reviews: [],
-                    averageRating: 0,
-                    totalReviews: 0
-                };
-            }
-
-            grouped[facilityKey].reviews.push(review);
-        });
-
-        // Calculate stats for each facility
-        Object.values(grouped).forEach(facility => {
-            facility.totalReviews = facility.reviews.length;
-            const totalRating = facility.reviews.reduce((sum, r) => sum + r.rating, 0);
-            facility.averageRating = totalRating / facility.totalReviews;
-
-            // Sort reviews by date (newest first)
-            facility.reviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        });
-
-        return grouped;
-    }
-
-    createFacilitySection(facilityName, facilityData) {
-        const sectionId = `facility-${facilityData.facility_id}`;
-        const isExpanded = true; // Default expanded
-
-        return `
-            <div class="facility-reviews-section">
-                <div class="facility-header" onclick="reviewsManager.toggleFacilitySection('${sectionId}')">
-                    <div class="facility-info">
-                        <h3 class="facility-name">
-                            <i class="fas fa-building"></i>
-                            ${facilityData.facility_name}
-                        </h3>
-                        <div class="facility-stats">
-                            <span class="facility-rating">
-                                <i class="fas fa-star"></i>
-                                ${facilityData.averageRating.toFixed(1)}
-                            </span>
-                            <span class="facility-review-count">
-                                ${facilityData.totalReviews} review${facilityData.totalReviews !== 1 ? 's' : ''}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="facility-toggle">
-                        <i class="fas fa-chevron-down"></i>
+        const existingReply = rv.reply_id ? `
+            <div class="rv-existing-reply" data-rid="${rv.id}">
+                <div class="rv-reply-header">
+                    <span class="rv-reply-who"><i class="fas fa-reply"></i> Your Reply</span>
+                    <div class="rv-reply-actions">
+                        <span class="rv-reply-date">${rv.replied_at ? fmtDate(rv.replied_at) : ''}</span>
+                        <button class="rv-reply-edit-btn" data-id="${rv.id}" data-text="${esc(rv.reply_text || '')}">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="rv-reply-delete-btn" data-id="${rv.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="facility-reviews-content" id="${sectionId}" style="display: ${isExpanded ? 'block' : 'none'}">
-                    ${facilityData.reviews.map(review => this.createReviewCard(review)).join('')}
-                </div>
-            </div>
-        `;
-    }
+                <div class="rv-reply-body">${esc(rv.reply_text || '')}</div>
+            </div>` : '';
 
-    toggleFacilitySection(sectionId) {
-        const section = document.getElementById(sectionId);
-        const header = section.previousElementSibling;
-        const chevron = header.querySelector('.facility-toggle i');
-
-        if (section.style.display === 'none') {
-            section.style.display = 'block';
-            chevron.style.transform = 'rotate(0deg)';
-        } else {
-            section.style.display = 'none';
-            chevron.style.transform = 'rotate(-90deg)';
-        }
-    }
-
-    createReviewCard(review) {
-        const hasResponse = review.response && review.response.text;
-        const statusClass = hasResponse ? 'responded' : 'pending';
-        const customerName = review.customer_name || `${review.first_name || ''} ${review.last_name || ''}`.trim() || 'Anonymous';
-        const customerAvatar = review.customer_avatar || review.profile_picture || '/public/assets/images/default-avatar.jpg';
+        const triggerLabel = rv.reply_id ? 'Edit Reply' : 'Reply';
+        const triggerIcon  = rv.reply_id ? 'fa-edit' : 'fa-reply';
 
         return `
-            <div class="review-card rating-${review.rating}">
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <img src="${customerAvatar}"
-                             alt="Reviewer" class="reviewer-avatar">
-                        <div class="reviewer-details">
-                            <h5>${customerName}</h5>
-                            <div class="review-rating">
-                                ${this.generateStars(review.rating)}
-                            </div>
-                            <div class="review-meta">
-                                <span class="review-date">${this.formatDate(review.created_at)}</span>
-                                ${review.booking_date ? `<span>Booking: ${this.formatDate(review.booking_date)}</span>` : ''}
-                            </div>
+        <div class="rv-card" data-id="${rv.id}">
+            <div class="rv-card-top">
+                <div class="rv-card-meta">
+                    ${avatar}
+                    <div class="rv-card-info">
+                        <div class="rv-card-row1">
+                            <span class="rv-reviewer-name">${esc(name.trim())}</span>
+                            <span class="rv-card-date">${date}</span>
                         </div>
+                        <div class="rv-stars">${stars}</div>
+                        ${rv.facility_name ? `<span class="rv-facility-tag"><i class="fas fa-map-marker-alt"></i> ${esc(rv.facility_name)}</span>` : ''}
+                        ${repliedBadge}
                     </div>
-                    <div class="review-actions">
-                        ${!hasResponse ? `
-                            <button class="review-action-btn respond" onclick="reviewsManager.openResponseModal(${review.id})" title="Respond">
-                                <i class="fas fa-reply"></i>
-                            </button>
-                        ` : ''}
-                        <button class="review-action-btn report" onclick="reviewsManager.openReportModal(${review.id})" title="Report">
+                    <div class="rv-card-actions">
+                        <button class="rv-btn-icon rv-flag" title="Report review" data-report-id="${rv.id}">
                             <i class="fas fa-flag"></i>
                         </button>
                     </div>
                 </div>
-                <div class="review-content">
-                    <p class="review-text">${review.review_text || 'No review text provided.'}</p>
-                    ${review.images && review.images.length > 0 ? `
-                        <div class="review-images">
-                            ${review.images.map(img => `
-                                <img src="${img}" alt="Review image" class="review-image"
-                                     onclick="reviewsManager.viewImage('${img}')">
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                    ${hasResponse ? `
-                        <div class="review-response">
-                            <div class="response-header">
-                                <i class="fas fa-reply"></i>
-                                <span>Your Response</span>
-                            </div>
-                            <p class="response-text">${review.response.text}</p>
-                            <div class="response-date">${this.formatDate(review.response.created_at)}</div>
-                        </div>
-                    ` : ''}
-                </div>
-                <div class="review-status">
-                    <span class="status-indicator ${statusClass}">
-                        ${hasResponse ? 'Responded' : 'Pending Response'}
-                    </span>
+                ${rv.review_text ? `<p class="rv-review-text">${esc(rv.review_text)}</p>` : ''}
+            </div>
+            ${existingReply}
+            <!-- inline composer (hidden) -->
+            <div class="rv-reply-composer" id="composer-${rv.id}">
+                <div class="rv-composer-inner">
+                    <div class="rv-composer-label"><i class="fas fa-reply"></i> ${rv.reply_id ? 'Update your reply' : 'Write a reply'}</div>
+                    <textarea class="rv-composer-textarea" id="ta-${rv.id}" placeholder="Write your reply…">${esc(rv.reply_text || '')}</textarea>
+                    <div class="rv-composer-footer">
+                        <button class="rv-btn-cancel" data-cancel-id="${rv.id}">Cancel</button>
+                        <button class="rv-btn-send" data-send-id="${rv.id}"><i class="fas fa-paper-plane"></i> Send Reply</button>
+                    </div>
                 </div>
             </div>
-        `;
-    }
-
-    generateStars(rating) {
-        let stars = '';
-        for (let i = 1; i <= 5; i++) {
-            stars += `<i class="fas fa-star${i <= rating ? '' : ' far'}"></i>`;
-        }
-        return stars;
-    }
-
-    updateStarsDisplay(elementId, rating) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-
-        element.innerHTML = this.generateStars(Math.round(rating));
-    }
-
-    applyFilters() {
-        this.filteredReviews = this.reviews.filter(review => {
-            let matches = true;
-
-            if (this.filters.rating && review.rating !== parseInt(this.filters.rating)) {
-                matches = false;
-            }
-
-            if (this.filters.ground) {
-                const facilityId = review.facility_id || review.ground_id;
-                if (facilityId !== parseInt(this.filters.ground)) {
-                    matches = false;
-                }
-            }
-
-            if (this.filters.status) {
-                const hasResponse = review.response && review.response.text;
-                if (this.filters.status === 'responded' && !hasResponse) matches = false;
-                if (this.filters.status === 'pending' && hasResponse) matches = false;
-                if (this.filters.status === 'flagged' && !review.flagged) matches = false;
-            }
-
-            return matches;
-        });
-
-        this.sortReviews();
-        this.currentPage = 1;
-        this.renderReviews();
-    }
-
-    sortReviews() {
-        this.filteredReviews.sort((a, b) => {
-            switch (this.filters.sortBy) {
-                case 'newest':
-                    return new Date(b.created_at) - new Date(a.created_at);
-                case 'oldest':
-                    return new Date(a.created_at) - new Date(b.created_at);
-                case 'highest':
-                    return b.rating - a.rating;
-                case 'lowest':
-                    return a.rating - b.rating;
-                default:
-                    return 0;
-            }
-        });
-    }
-
-    searchReviews(query) {
-        if (!query.trim()) {
-            this.filteredReviews = [...this.reviews];
-        } else {
-            this.filteredReviews = this.reviews.filter(review => {
-                const reviewText = review.review_text || '';
-                const customerName = `${review.first_name || ''} ${review.last_name || ''}`.trim() || review.customer_name || '';
-                const facilityName = review.facility_name || review.ground_name || '';
-
-                return reviewText.toLowerCase().includes(query.toLowerCase()) ||
-                       customerName.toLowerCase().includes(query.toLowerCase()) ||
-                       facilityName.toLowerCase().includes(query.toLowerCase());
-            });
-        }
-
-        this.currentPage = 1;
-        this.renderReviews();
-    }
-
-    loadMoreReviews() {
-        this.currentPage++;
-        this.renderReviews();
-    }
-
-    populateGroundFilter() {
-        const groundFilter = document.getElementById('groundFilter');
-        if (!groundFilter) return;
-
-        // Create unique facilities map
-        const facilitiesMap = new Map();
-        this.reviews.forEach(r => {
-            const facilityId = r.facility_id || r.ground_id;
-            const facilityName = r.facility_name || r.ground_name;
-            if (!facilitiesMap.has(facilityId)) {
-                facilitiesMap.set(facilityId, facilityName);
-            }
-        });
-
-        // Clear existing options except first one
-        groundFilter.innerHTML = '<option value="">All Grounds</option>';
-
-        // Add facilities as options
-        facilitiesMap.forEach((name, id) => {
-            const option = document.createElement('option');
-            option.value = id;
-            option.textContent = name;
-            groundFilter.appendChild(option);
-        });
-    }
-
-    openResponseModal(reviewId) {
-        const review = this.reviews.find(r => r.id === reviewId);
-        if (!review) return;
-
-        // Populate modal with review data
-        const customerName = review.customer_name || `${review.first_name || ''} ${review.last_name || ''}`.trim() || 'Anonymous';
-        const customerAvatar = review.customer_avatar || review.profile_picture || '/public/assets/images/default-avatar.jpg';
-
-        document.getElementById('modalReviewerAvatar').src = customerAvatar;
-        document.getElementById('modalReviewerName').textContent = customerName;
-        document.getElementById('modalReviewRating').innerHTML = this.generateStars(review.rating);
-        document.getElementById('modalReviewDate').textContent = this.formatDate(review.created_at);
-        document.getElementById('modalReviewText').textContent = review.review_text || 'No review text provided.';
-
-        // Clear response text and reset character count
-        document.getElementById('responseText').value = '';
-        document.getElementById('charCount').textContent = '0';
-
-        // Store current review ID
-        this.currentReviewId = reviewId;
-
-        document.getElementById('responseModal').classList.add('active');
-    }
-
-    closeResponseModal() {
-        document.getElementById('responseModal').classList.remove('active');
-        this.currentReviewId = null;
-    }
-
-    async submitResponse() {
-        const responseText = document.getElementById('responseText').value.trim();
-        
-        if (!responseText) {
-            this.showToast('Please enter a response', 'error');
-            return;
-        }
-
-        if (responseText.length > 500) {
-            this.showToast('Response must be 500 characters or less', 'error');
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/ground-owner/reviews/${this.currentReviewId}/respond`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ response: responseText })
-            });
-
-            if (response.ok) {
-                this.showToast('Response submitted successfully', 'success');
-                this.closeResponseModal();
-                this.loadReviews();
-            } else {
-                throw new Error('Failed to submit response');
-            }
-        } catch (error) {
-            console.error('Error submitting response:', error);
-            this.showToast('Failed to submit response', 'error');
-        }
-    }
-
-    openReportModal(reviewId) {
-        this.currentReviewId = reviewId;
-        
-        // Clear form
-        document.querySelectorAll('input[name="reportReason"]').forEach(input => {
-            input.checked = false;
-        });
-        document.getElementById('reportDetails').value = '';
-        
-        document.getElementById('reportModal').classList.add('active');
-    }
-
-    closeReportModal() {
-        document.getElementById('reportModal').classList.remove('active');
-        this.currentReviewId = null;
-    }
-
-    async submitReport() {
-        const reason = document.querySelector('input[name="reportReason"]:checked')?.value;
-        const details = document.getElementById('reportDetails').value.trim();
-        
-        if (!reason) {
-            this.showToast('Please select a reason for reporting', 'error');
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/ground-owner/reviews/${this.currentReviewId}/report`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ reason, details })
-            });
-
-            if (response.ok) {
-                this.showToast('Review reported successfully', 'success');
-                this.closeReportModal();
-            } else {
-                throw new Error('Failed to report review');
-            }
-        } catch (error) {
-            console.error('Error reporting review:', error);
-            this.showToast('Failed to report review', 'error');
-        }
-    }
-
-    viewImage(imageSrc) {
-        // Create image modal
-        const modal = document.createElement('div');
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            cursor: pointer;
-        `;
-        
-        const img = document.createElement('img');
-        img.src = imageSrc;
-        img.style.cssText = `
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        `;
-        
-        modal.appendChild(img);
-        document.body.appendChild(modal);
-        
-        modal.addEventListener('click', () => {
-            document.body.removeChild(modal);
-        });
-    }
-
-    exportReviews() {
-        const csvContent = this.generateReviewsCSV();
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `reviews-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    }
-
-    generateReviewsCSV() {
-        const headers = ['Review ID', 'Customer', 'Ground', 'Rating', 'Review Text', 'Date', 'Response Status'];
-        const rows = this.filteredReviews.map(review => {
-            const customerName = review.customer_name || `${review.first_name || ''} ${review.last_name || ''}`.trim() || 'Anonymous';
-            const facilityName = review.facility_name || review.ground_name || 'Unknown';
-            const reviewText = (review.review_text || '').replace(/"/g, '""'); // Escape quotes
-
-            return [
-                review.id,
-                customerName,
-                facilityName,
-                review.rating,
-                reviewText,
-                review.created_at,
-                review.response && review.response.text ? 'Responded' : 'Pending'
-            ];
-        });
-
-        return [headers, ...rows].map(row =>
-            row.map(field => `"${field}"`).join(',')
-        ).join('\n');
-    }
-
-    formatDate(date) {
-        return new Date(date).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    }
-
-    showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-            <div class="toast-content">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
+            <div class="rv-card-footer">
+                <button class="rv-reply-trigger" data-trigger-id="${rv.id}">
+                    <i class="fas ${triggerIcon}"></i> ${triggerLabel}
+                </button>
             </div>
-        `;
-
-        let container = document.getElementById('toastContainer');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toastContainer';
-            container.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 10000;
-                max-width: 400px;
-            `;
-            document.body.appendChild(container);
-        }
-        
-        toast.style.cssText = `
-            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white;
-            padding: 12px 20px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        
-        container.appendChild(toast);
-        setTimeout(() => toast.style.transform = 'translateX(0)', 100);
-        setTimeout(() => {
-            toast.style.transform = 'translateX(100%)';
-            setTimeout(() => container.removeChild(toast), 300);
-        }, 5000);
+        </div>`;
     }
-}
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    window.reviewsManager = new ReviewsManager();
-});
+    /* ================================================================
+       CARD EVENTS (delegated after each render)
+    ================================================================ */
+    function attachCardEvents() {
+        const list = $('rvList');
 
-// Sidebar toggle functionality
-function toggleSidebar() {
-    const sidebar = document.getElementById('dashboardSidebar');
-    sidebar.classList.toggle('collapsed');
-}
+        // single listener using event delegation
+        list.onclick = function (e) {
+            const btn = e.target.closest('[data-trigger-id]');
+            const cancelBtn = e.target.closest('[data-cancel-id]');
+            const sendBtn   = e.target.closest('[data-send-id]');
+            const reportBtn = e.target.closest('[data-report-id]');
+            const editBtn   = e.target.closest('.rv-reply-edit-btn');
+            const deleteBtn = e.target.closest('.rv-reply-delete-btn');
+
+            if (btn)    { toggleComposer(btn.dataset.triggerId); return; }
+            if (cancelBtn) { closeComposer(cancelBtn.dataset.cancelId); return; }
+            if (sendBtn) {
+                const id   = sendBtn.dataset.sendId;
+                const text = ($('ta-' + id).value || '').trim();
+                if (!text) { toast('Please write a reply first.', 'info'); return; }
+                sendReply(id, text, sendBtn);
+                return;
+            }
+            if (reportBtn) { openReportModal(reportBtn.dataset.reportId); return; }
+            if (editBtn)   { openEditReply(editBtn.dataset.id, editBtn.dataset.text); return; }
+            if (deleteBtn) { deleteReply(deleteBtn.dataset.id); return; }
+        };
+    }
+
+    function toggleComposer(id) {
+        const composer = $('composer-' + id);
+        const trigger  = document.querySelector(`[data-trigger-id="${id}"]`);
+        if (!composer) return;
+        const isOpen = composer.classList.contains('open');
+        // close all others
+        document.querySelectorAll('.rv-reply-composer.open').forEach(el => el.classList.remove('open'));
+        document.querySelectorAll('.rv-reply-trigger.active').forEach(el => el.classList.remove('active'));
+
+        if (!isOpen) {
+            composer.classList.add('open');
+            if (trigger) trigger.classList.add('active');
+            const ta = $('ta-' + id);
+            if (ta) setTimeout(() => ta.focus(), 50);
+        }
+    }
+
+    function closeComposer(id) {
+        const composer = $('composer-' + id);
+        const trigger  = document.querySelector(`[data-trigger-id="${id}"]`);
+        if (composer) composer.classList.remove('open');
+        if (trigger)  trigger.classList.remove('active');
+    }
+
+    function openEditReply(id, text) {
+        // pop open composer and pre-fill
+        const composer = $('composer-' + id);
+        if (!composer) return;
+        document.querySelectorAll('.rv-reply-composer.open').forEach(el => el.classList.remove('open'));
+        document.querySelectorAll('.rv-reply-trigger.active').forEach(el => el.classList.remove('active'));
+        composer.classList.add('open');
+        const trigger = document.querySelector(`[data-trigger-id="${id}"]`);
+        if (trigger) trigger.classList.add('active');
+        const ta = $('ta-' + id);
+        if (ta) { ta.value = text || ''; setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 50); }
+    }
+
+    /* ================================================================
+       REPORT MODAL
+    ================================================================ */
+    function openReportModal(id) {
+        reportTargetId = id;
+        // remove old modal if any
+        const old = document.querySelector('.rv-modal-backdrop');
+        if (old) old.remove();
+
+        const backdrop = document.createElement('div');
+        backdrop.className = 'rv-modal-backdrop';
+        backdrop.innerHTML = `
+            <div class="rv-modal" role="dialog" aria-modal="true">
+                <div class="rv-modal-header">
+                    <h3><i class="fas fa-flag"></i> Report Review</h3>
+                    <button class="rv-modal-close" id="rvModalClose"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="rv-modal-body">
+                    <label for="rvReportReason">Reason</label>
+                    <select id="rvReportReason">
+                        <option value="spam">Spam</option>
+                        <option value="offensive">Offensive</option>
+                        <option value="inappropriate">Inappropriate</option>
+                        <option value="fake">Fake review</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <label for="rvReportDesc">Description (optional)</label>
+                    <textarea id="rvReportDesc" placeholder="Describe the issue…"></textarea>
+                </div>
+                <div class="rv-modal-footer">
+                    <button class="rv-btn-cancel" id="rvModalCancelBtn">Cancel</button>
+                    <button class="rv-btn-report" id="rvModalSubmitBtn"><i class="fas fa-flag"></i> Submit Report</button>
+                </div>
+            </div>`;
+
+        document.body.appendChild(backdrop);
+
+        const close = () => backdrop.remove();
+        $('rvModalClose').onclick      = close;
+        $('rvModalCancelBtn').onclick  = close;
+        backdrop.onclick = e => { if (e.target === backdrop) close(); };
+
+        $('rvModalSubmitBtn').onclick = async function () {
+            const reason = $('rvReportReason').value;
+            const desc   = ($('rvReportDesc').value || '').trim();
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…';
+            const result = await submitReport(reportTargetId, reason, desc);
+            if (result.success) {
+                close();
+                toast('Report submitted. Thank you.', 'success');
+            } else {
+                toast(result.message || 'Could not submit report.', 'error');
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-flag"></i> Submit Report';
+            }
+        };
+    }
+
+    /* ================================================================
+       CONTROLS
+    ================================================================ */
+    function bindControls() {
+        let debounce;
+        $('rvSearch').addEventListener('input', () => {
+            clearTimeout(debounce);
+            debounce = setTimeout(renderList, 220);
+        });
+        $('rvFilterRating').addEventListener('change', renderList);
+        $('rvFilterReply').addEventListener('change', renderList);
+        $('rvSort').addEventListener('change', renderList);
+    }
+
+    /* ================================================================
+       TOAST
+    ================================================================ */
+    function toast(msg, type = 'info') {
+        const el = $('rvToast');
+        if (!el) return;
+        clearTimeout(toastTimer);
+        el.textContent = msg;
+        el.className   = `rv-toast ${type} show`;
+        toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3200);
+    }
+
+    /* ================================================================
+       HELPERS
+    ================================================================ */
+    function fmtDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function esc(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+})();

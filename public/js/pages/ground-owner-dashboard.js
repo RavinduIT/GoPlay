@@ -1,685 +1,397 @@
-document.addEventListener('DOMContentLoaded', function() {
-    initializeGroundOwnerDashboard();
-});
+/* Ground Owner – Dashboard (IIFE) */
+(function () {
+    'use strict';
 
-function initializeGroundOwnerDashboard() {
-    // Initialize sidebar toggle
-    const sidebarToggle = document.querySelectorAll('.sidebar-toggle');
-    const sidebar = document.getElementById('dashboardSidebar');
+    const $ = id => document.getElementById(id);
+    let chartInstance = null;
 
-    sidebarToggle.forEach(button => {
-        button.addEventListener('click', toggleSidebar);
+    /* ================================================================
+       BOOT
+    ================================================================ */
+    document.addEventListener('DOMContentLoaded', () => {
+        boot();
+        bindSidebar();
     });
 
-    // Load dashboard data from API
-    updateDashboardStats();
+    async function boot() {
+        await Promise.allSettled([
+            loadProfile(),
+            loadStats(),
+            loadNotifCount(),
+            loadReviews()
+        ]);
+        loadChart(30);
+        bindChartPeriod();
+    }
 
-    // Initialize earnings chart
-    initializeEarningsChart();
+    /* ================================================================
+       PROFILE – header name / avatar
+    ================================================================ */
+    async function loadProfile() {
+        try {
+            const r = await fetch('/api/ground-owner/profile');
+            const d = await r.json();
+            if (!d.success) return;
 
-    // Initialize notifications
-    initializeNotifications();
+            const u  = d.profile.user          || {};
+            const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.username || 'Ground Owner';
 
-    // Initialize real-time updates
-    startRealTimeUpdates();
-}
+            $('dbOwnerName').textContent = name;
 
-function toggleSidebar() {
-    const sidebar = document.getElementById('dashboardSidebar');
-    sidebar.classList.toggle('open');
-}
+            const av = $('dbAvatar');
+            if (u.profile_picture) {
+                av.innerHTML = `<img src="${esc(u.profile_picture)}" alt="${esc(name)}">`;
+            } else {
+                $('dbInitials').textContent = initials(name);
+            }
+        } catch (e) { /* silent */ }
+    }
 
-async function initializeEarningsChart() {
-    const canvas = document.getElementById('earningsChart');
-    if (!canvas) return;
+    /* ================================================================
+       DASHBOARD STATS
+    ================================================================ */
+    async function loadStats() {
+        try {
+            const r = await fetch('/api/ground-owner/dashboard-stats');
+            if (r.status === 401) { window.location.href = '/login'; return; }
+            const d = await r.json();
+            if (!d.success) return;
 
-    const ctx = canvas.getContext('2d');
+            const { stats, today_bookings, ground_performance } = d;
 
-    // Load real earnings data from API
-    await loadRealEarningsData(ctx);
-}
+            /* --- Earnings --- */
+            const monthEarnings = Number(stats.earnings?.this_month_earnings ?? 0);
+            const totalEarnings  = Number(stats.earnings?.total_earnings    ?? 0);
+            $('dbEarnings').textContent = fmt(monthEarnings);
+            setChange('dbEarningsChange', `${fmt(totalEarnings)} total`, 'neutral');
 
-async function loadRealEarningsData(ctx) {
-    try {
-        const response = await fetch('/api/ground-owner/earnings/trends?days=30');
-        const data = await response.json();
+            /* --- Bookings --- */
+            const totalBook  = stats.bookings?.total_bookings      ?? 0;
+            const monthBook  = stats.bookings?.this_month_bookings ?? 0;
+            $('dbBookings').textContent = totalBook;
+            setChange('dbBookingsChange', `${monthBook} this month`, 'positive');
 
-        let chartData;
-        let chartLabels;
+            /* --- Grounds --- */
+            const activeG = stats.grounds?.active_grounds ?? 0;
+            const totalG  = stats.grounds?.total_grounds  ?? 0;
+            $('dbGrounds').textContent = activeG;
+            setChange('dbGroundsChange', `${totalG} total grounds`, 'neutral');
 
-        if (data.success !== false && data.trends) {
-            // Use real data from API
-            chartLabels = data.trends.labels || [];
-            chartData = data.trends.revenue || [];
-        } else {
-            // Fallback to sample data if API fails
-            chartLabels = generateDateLabels(30);
-            chartData = generateEarningsData(30);
+            /* --- Rating --- */
+            const avg     = Number(stats.rating?.average       ?? 0);
+            const revCount = stats.rating?.total_reviews ?? 0;
+            $('dbRating').textContent = avg > 0 ? avg.toFixed(1) : '—';
+            setChange('dbRatingChange', `${revCount} review${revCount !== 1 ? 's' : ''}`, 'positive');
+
+            /* --- Today's Bookings --- */
+            renderTodayBookings(today_bookings || []);
+
+            /* --- Ground Performance --- */
+            renderPerformance(ground_performance || []);
+
+        } catch (e) {
+            console.error('Dashboard stats error:', e);
+        }
+    }
+
+    function setChange(id, text, type) {
+        const el = $(id);
+        if (!el) return;
+        el.className = 'stat-change' + (type === 'positive' ? ' positive' : type === 'negative' ? ' negative' : '');
+        el.innerHTML = `<span>${esc(text)}</span>`;
+    }
+
+    /* ================================================================
+       TODAY'S BOOKINGS
+    ================================================================ */
+    function renderTodayBookings(bookings) {
+        const el = $('dbTodayBookings');
+        if (!el) return;
+
+        if (!bookings.length) {
+            el.innerHTML = `<div class="db-empty">
+                <i class="fas fa-calendar-day"></i>
+                <p>No bookings today</p>
+            </div>`;
+            return;
         }
 
-        // Create professional Chart.js chart
-        if (window.earningsChartInstance) {
-            window.earningsChartInstance.destroy();
+        el.innerHTML = bookings.map(b => {
+            const customerName = [(b.first_name || ''), (b.last_name || '')].join(' ').trim() || 'Customer';
+            return `
+            <div class="booking-item">
+                <div class="booking-info">
+                    <h4>${esc(b.facility_name || 'Facility')}</h4>
+                    <p>${esc(customerName)}</p>
+                    <span class="booking-details">${esc(b.start_time || '')} – ${esc(b.end_time || '')}</span>
+                    <span class="booking-amount">${fmt(b.total_amount || 0)}</span>
+                </div>
+                <span class="status-badge ${esc(b.status || '')}">${cap(b.status)}</span>
+            </div>`;
+        }).join('');
+    }
+
+    /* ================================================================
+       GROUND PERFORMANCE
+    ================================================================ */
+    function renderPerformance(grounds) {
+        const el = $('dbPerformance');
+        if (!el) return;
+
+        if (!grounds.length) {
+            el.innerHTML = `<div class="db-empty">
+                <i class="fas fa-chart-bar"></i>
+                <p>No performance data yet</p>
+            </div>`;
+            return;
         }
 
-        window.earningsChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: chartLabels,
-                datasets: [{
-                    label: 'Daily Earnings',
-                    data: chartData,
-                    borderColor: '#10b981',
-                    backgroundColor: function(context) {
-                        const ctx = context.chart.ctx;
-                        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
-                        gradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.15)');
-                        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
-                        return gradient;
-                    },
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#10b981',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 3,
-                    pointRadius: 5,
-                    pointHoverRadius: 8,
-                    pointHoverBackgroundColor: '#059669',
-                    pointHoverBorderColor: '#ffffff',
-                    pointHoverBorderWidth: 3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
+        const maxRev = Math.max(...grounds.map(g => Number(g.total_revenue || 0)), 1);
+
+        el.innerHTML = grounds.slice(0, 5).map(g => {
+            const rev = Number(g.total_revenue || 0);
+            const pct = Math.round((rev / maxRev) * 100);
+            const name = g.name || g.facility_name || 'Ground';
+            return `
+            <div class="performance-item">
+                <div class="ground-info">
+                    <h4>${esc(name)}</h4>
+                    <div class="performance-stats">
+                        <span class="bookings">${g.total_bookings ?? 0} bookings</span>
+                        <span class="earnings">${fmt(rev)}</span>
+                    </div>
+                </div>
+                <div class="performance-chart">
+                    <div class="chart-bar" style="width:${pct}%"></div>
+                    <span class="performance-rate">${pct}%</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    /* ================================================================
+       EARNINGS CHART
+    ================================================================ */
+    async function loadChart(days) {
+        const canvas = $('dbEarningsChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        try {
+            const r = await fetch(`/api/ground-owner/earnings/trends?days=${days}`);
+            const d = await r.json();
+
+            let labels = [];
+            let values = [];
+
+            if (d.success !== false && d.trends) {
+                labels = d.trends.labels  || [];
+                values = d.trends.revenue || [];
+            }
+
+            if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Earnings (LKR)',
+                        data: values,
+                        borderColor: '#3b82f6',
+                        backgroundColor: (c) => {
+                            const g = c.chart.ctx.createLinearGradient(0, 0, 0, 380);
+                            g.addColorStop(0, 'rgba(59,130,246,.22)');
+                            g.addColorStop(1, 'rgba(59,130,246,.02)');
+                            return g;
+                        },
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 7
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        align: 'end',
-                        labels: {
-                            boxWidth: 12,
-                            boxHeight: 12,
-                            padding: 15,
-                            font: {
-                                size: 13,
-                                weight: '500',
-                                family: "'Inter', 'Segoe UI', sans-serif"
-                            },
-                            color: '#374151',
-                            usePointStyle: true,
-                            pointStyle: 'circle'
-                        }
-                    },
-                    tooltip: {
-                        enabled: true,
-                        backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#e5e7eb',
-                        borderColor: '#10b981',
-                        borderWidth: 1,
-                        padding: 12,
-                        displayColors: true,
-                        boxWidth: 8,
-                        boxHeight: 8,
-                        boxPadding: 6,
-                        titleFont: {
-                            size: 13,
-                            weight: '600',
-                            family: "'Inter', 'Segoe UI', sans-serif"
-                        },
-                        bodyFont: {
-                            size: 14,
-                            weight: '500',
-                            family: "'Inter', 'Segoe UI', sans-serif"
-                        },
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += 'LKR ' + context.parsed.y.toLocaleString('en-US', {
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0
-                                });
-                                return label;
-                            },
-                            title: function(context) {
-                                return context[0].label;
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(17,24,39,.95)',
+                            titleColor: '#fff',
+                            bodyColor: '#e5e7eb',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                label: c => 'LKR ' + Number(c.parsed.y).toLocaleString()
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            display: false,
-                            drawBorder: false
-                        },
-                        ticks: {
-                            color: '#6b7280',
-                            font: {
-                                size: 11,
-                                weight: '500'
-                            },
-                            maxRotation: 0,
-                            autoSkipPadding: 20
-                        }
                     },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(156, 163, 175, 0.1)',
-                            drawBorder: false,
-                            lineWidth: 1
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: '#6b7280',
+                                font: { size: 11 },
+                                maxRotation: 0,
+                                autoSkipPadding: 20
+                            }
                         },
-                        border: {
-                            display: false,
-                            dash: [5, 5]
-                        },
-                        ticks: {
-                            color: '#6b7280',
-                            font: {
-                                size: 12,
-                                weight: '500'
-                            },
-                            padding: 10,
-                            callback: function(value) {
-                                return 'LKR ' + value.toLocaleString('en-US', {
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0
-                                });
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(156,163,175,.1)', drawBorder: false },
+                            border: { display: false },
+                            ticks: {
+                                color: '#6b7280',
+                                font: { size: 11 },
+                                padding: 8,
+                                callback: v => 'LKR ' + Number(v).toLocaleString()
                             }
                         }
                     }
                 }
-            }
-        });
+            });
 
-    } catch (error) {
-        console.error('Error loading real earnings data:', error);
-        // Show error state
-        ctx.canvas.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;">Failed to load earnings data</div>';
-    }
-}
-
-function generateDateLabels(days) {
-    const labels = [];
-    const today = new Date();
-    
-    for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-    }
-    
-    return labels;
-}
-
-function generateEarningsData(days) {
-    const data = [];
-    const baseEarning = 1000;
-    
-    for (let i = 0; i < days; i++) {
-        // Generate realistic earnings with some variation
-        const variation = Math.random() * 1000 - 500;
-        const dayOfWeek = (new Date().getDay() - i + 7) % 7;
-        
-        // Higher earnings on weekends
-        const weekendBonus = (dayOfWeek === 0 || dayOfWeek === 6) ? 500 : 0;
-        
-        const earning = Math.max(0, baseEarning + variation + weekendBonus);
-        data.push(Math.round(earning));
-    }
-    
-    return data;
-}
-
-function drawEarningsChart(ctx, data) {
-    const canvas = ctx.canvas;
-    const width = canvas.width;
-    const height = canvas.height;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
-    
-    const values = data.datasets[0].data;
-    const labels = data.labels;
-    const max = Math.max(...values);
-    const min = Math.min(...values);
-    const range = max - min || 1;
-    
-    // Chart dimensions
-    const chartArea = {
-        left: 40,
-        right: width - 20,
-        top: 20,
-        bottom: height - 40
-    };
-    
-    const chartWidth = chartArea.right - chartArea.left;
-    const chartHeight = chartArea.bottom - chartArea.top;
-    
-    // Draw gradient background
-    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, 'rgba(5, 150, 105, 0.1)');
-    gradient.addColorStop(1, 'rgba(5, 150, 105, 0.02)');
-    
-    // Draw area fill
-    ctx.beginPath();
-    ctx.fillStyle = gradient;
-    
-    const step = chartWidth / (values.length - 1);
-    
-    values.forEach((value, index) => {
-        const x = chartArea.left + (index * step);
-        const y = chartArea.bottom - ((value - min) / range) * chartHeight;
-        
-        if (index === 0) {
-            ctx.moveTo(x, chartArea.bottom);
-            ctx.lineTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
-    });
-    
-    ctx.lineTo(chartArea.right, chartArea.bottom);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Draw line
-    ctx.beginPath();
-    ctx.strokeStyle = '#059669';
-    ctx.lineWidth = 3;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    
-    values.forEach((value, index) => {
-        const x = chartArea.left + (index * step);
-        const y = chartArea.bottom - ((value - min) / range) * chartHeight;
-        
-        if (index === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
-    });
-    
-    ctx.stroke();
-    
-    // Draw data points
-    ctx.fillStyle = '#059669';
-    values.forEach((value, index) => {
-        const x = chartArea.left + (index * step);
-        const y = chartArea.bottom - ((value - min) / range) * chartHeight;
-        
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, 2 * Math.PI);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, 2 * Math.PI);
-        ctx.fillStyle = '#059669';
-        ctx.fill();
-    });
-    
-    // Draw Y-axis labels
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px Inter';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    
-    const ySteps = 4;
-    for (let i = 0; i <= ySteps; i++) {
-        const value = min + (range * i / ySteps);
-        const y = chartArea.bottom - (i / ySteps) * chartHeight;
-        
-        ctx.fillText('₹' + Math.round(value), chartArea.left - 5, y);
-        
-        // Draw grid lines
-        if (i > 0) {
-            ctx.beginPath();
-            ctx.strokeStyle = '#f1f5f9';
-            ctx.lineWidth = 1;
-            ctx.moveTo(chartArea.left, y);
-            ctx.lineTo(chartArea.right, y);
-            ctx.stroke();
+        } catch (e) {
+            canvas.parentElement.innerHTML = `<div class="db-empty" style="height:100%">
+                <i class="fas fa-chart-line"></i>
+                <p>Could not load earnings data</p>
+            </div>`;
         }
     }
-    
-    // Draw X-axis labels (show every 3rd label to avoid crowding)
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px Inter';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    
-    labels.forEach((label, index) => {
-        if (index % 3 === 0 || index === labels.length - 1) {
-            const x = chartArea.left + (index * step);
-            ctx.fillText(label, x, chartArea.bottom + 5);
-        }
-    });
-}
 
-function initializeTimeFilter() {
-    const filter = document.getElementById('earningsFilter');
-    if (!filter) return;
-    
-    filter.addEventListener('change', function() {
-        const days = parseInt(this.value);
-        updateEarningsChart(days);
-    });
-}
-
-function updateEarningsChart(days) {
-    const canvas = document.getElementById('earningsChart');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    
-    const earningsData = {
-        labels: generateDateLabels(days),
-        datasets: [{
-            label: 'Daily Earnings (₹)',
-            data: generateEarningsData(days),
-            borderColor: '#059669',
-            backgroundColor: 'rgba(5, 150, 105, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4
-        }]
-    };
-    
-    drawEarningsChart(ctx, earningsData);
-}
-
-function initializeNotifications() {
-    const notificationBtn = document.querySelector('.notification-btn');
-    if (!notificationBtn) return;
-
-    notificationBtn.addEventListener('click', function() {
-        showNotificationsPanel();
-    });
-}
-
-function showNotificationsPanel() {
-    const notifications = [
-        {
-            title: 'New Booking Request',
-            message: 'Kavinda Ranasighe wants to book Football Ground A for tomorrow',
-            time: '5 minutes ago',
-            type: 'booking',
-            unread: true
-        },
-        {
-            title: 'Payment Received',
-            message: 'Payment of ₹1,800 received from Sanduni Rajapakse',
-            time: '1 hour ago',
-            type: 'payment',
-            unread: true
-        },
-        {
-            title: 'New Review',
-            message: 'Dilan Wijesinghe left a 5-star review for Tennis Court 1',
-            time: '2 hours ago',
-            type: 'review',
-            unread: false
-        }
-    ];
-    
-    showToast('You have ' + notifications.filter(n => n.unread).length + ' new notifications', 'info');
-}
-
-function startRealTimeUpdates() {
-    // Update stats every 60 seconds
-    setInterval(() => {
-        updateDashboardStats();
-    }, 60000);
-    
-    // Update booking status every 30 seconds
-    setInterval(() => {
-        updateBookingStatuses();
-    }, 30000);
-}
-
-async function updateDashboardStats() {
-    try {
-        const response = await fetch('/api/ground-owner/dashboard-stats');
-
-        if (response.status === 401) {
-            window.location.href = '/login';
-            return;
-        }
-
-        const data = await response.json();
-
-        if (data.success) {
-            const { stats, recent_bookings, ground_performance } = data;
-
-            // Update earnings stats
-            if (stats.earnings) {
-                updateStatIfExists('#totalEarnings', `LKR ${stats.earnings.total_earnings.toLocaleString()}`);
-                updateStatIfExists('#earningsChange', `${stats.earnings.earnings_change}% this month`);
-            }
-
-            // Update booking stats
-            if (stats.bookings) {
-                updateStatIfExists('#totalBookings', stats.bookings.total_bookings || 0);
-                updateStatIfExists('#bookingsChange', `${stats.bookings.this_month_bookings || 0} this month`);
-            }
-
-            // Update occupancy stats
-            if (stats.occupancy) {
-                updateStatIfExists('#occupancyRate', `${stats.occupancy.rate}%`);
-                updateStatIfExists('#occupancyChange', `${stats.occupancy.change}% this month`);
-            }
-
-            // Update rating stats
-            if (stats.rating) {
-                updateStatIfExists('#averageRating', stats.rating.average.toFixed(1));
-                updateStatIfExists('#ratingInfo', `Based on ${stats.rating.total_reviews} reviews`);
-            }
-
-            // Update recent bookings
-            if (recent_bookings && recent_bookings.length > 0) {
-                updateRecentBookings(recent_bookings);
-            }
-
-            // Update ground performance
-            if (ground_performance && ground_performance.length > 0) {
-                updateGroundPerformance(ground_performance);
-            }
-        }
-    } catch (error) {
-        console.error('Error updating dashboard stats:', error);
+    function bindChartPeriod() {
+        const sel = $('dbChartPeriod');
+        if (!sel) return;
+        sel.addEventListener('change', () => loadChart(parseInt(sel.value)));
     }
-}
 
-function updateStatIfExists(selector, value) {
-    const element = document.querySelector(selector);
-    if (element) {
-        element.textContent = value;
+    /* ================================================================
+       NOTIFICATION COUNT
+    ================================================================ */
+    async function loadNotifCount() {
+        try {
+            const r = await fetch('/api/ground-owner/notifications/stats');
+            const d = await r.json();
+            const count = d.stats?.unread ?? 0;
+            const el = $('dbNotifCount');
+            if (!el) return;
+            if (count > 0) {
+                el.textContent = count > 99 ? '99+' : count;
+                el.style.display = '';
+            } else {
+                el.style.display = 'none';
+            }
+        } catch (e) { /* silent */ }
     }
-}
 
-function updateRecentBookings(bookings) {
-    const container = document.querySelector('.booking-list');
-    if (!container) return;
+    /* ================================================================
+       RECENT REVIEWS
+    ================================================================ */
+    async function loadReviews() {
+        const el = $('dbReviews');
+        if (!el) return;
+        try {
+            const r = await fetch('/api/ground-owner/reviews?limit=3');
+            const d = await r.json();
+            const reviews = d.reviews || [];
 
-    const html = bookings.slice(0, 3).map(booking => `
-        <div class="booking-item">
-            <div class="booking-info">
-                <h4>${booking.facility_name || 'Facility'}</h4>
-                <p>${booking.first_name || ''} ${booking.last_name || ''}</p>
-                <span class="booking-details">${formatBookingDate(booking.booking_date)}, ${booking.start_time} - ${booking.end_time}</span>
-                <span class="booking-amount">LKR ${parseFloat(booking.total_amount || 0).toLocaleString()}</span>
-            </div>
-            <span class="status-badge ${booking.status}">${booking.status}</span>
-        </div>
-    `).join('');
+            if (!reviews.length) {
+                el.innerHTML = `<div class="db-empty">
+                    <i class="fas fa-star"></i>
+                    <p>No reviews yet</p>
+                </div>`;
+                return;
+            }
 
-    container.innerHTML = html;
-}
-
-function formatBookingDate(dateString) {
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-        return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-        return 'Tomorrow';
-    } else {
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-}
-
-function updateGroundPerformance(grounds) {
-    const container = document.querySelector('.performance-list');
-    if (!container) return;
-
-    // Take top 3 grounds by revenue
-    const topGrounds = grounds.slice(0, 3);
-    const maxRevenue = Math.max(...topGrounds.map(g => parseFloat(g.total_revenue)));
-
-    const html = topGrounds.map(ground => {
-        const revenue = parseFloat(ground.total_revenue);
-        const percentage = maxRevenue > 0 ? Math.round((revenue / maxRevenue) * 100) : 0;
-
-        return `
-            <div class="performance-item">
-                <div class="ground-info">
-                    <h4>${ground.name}</h4>
-                    <div class="performance-stats">
-                        <span class="bookings">${ground.total_bookings} bookings</span>
-                        <span class="earnings">LKR ${revenue.toLocaleString()}</span>
+            el.innerHTML = reviews.slice(0, 3).map(rv => {
+                const name  = [rv.first_name, rv.last_name].filter(Boolean).join(' ') || 'Customer';
+                const stars = Array.from({ length: 5 }, (_, i) =>
+                    `<i class="${i < (rv.rating || 0) ? 'fas' : 'far'} fa-star"></i>`
+                ).join('');
+                const ago  = timeAgo(rv.created_at);
+                const text = rv.comment || rv.review_text || '';
+                return `
+                <div class="review-item">
+                    <div class="reviewer-info">
+                        <div class="db-avatar-sm">${initials(name)}</div>
+                        <div class="reviewer-details">
+                            <h5>${esc(name)}</h5>
+                            <div class="review-rating">${stars}</div>
+                        </div>
+                        <span class="review-time">${ago}</span>
                     </div>
-                </div>
-                <div class="performance-chart">
-                    <div class="chart-bar" style="width: ${percentage}%"></div>
-                    <span class="performance-rate">${percentage}%</span>
-                </div>
-            </div>
-        `;
-    }).join('');
+                    ${text ? `<p class="review-text">"${esc(text)}"</p>` : ''}
+                    ${rv.facility_name ? `<span class="db-facility-tag"><i class="fas fa-map-marker-alt"></i> ${esc(rv.facility_name)}</span>` : ''}
+                </div>`;
+            }).join('');
 
-    container.innerHTML = html;
-}
-
-function updateBookingStatuses() {
-    // Simulate booking status changes
-    const bookingItems = document.querySelectorAll('.booking-item');
-    
-    bookingItems.forEach((item, index) => {
-        const statusBadge = item.querySelector('.status-badge');
-        if (statusBadge && statusBadge.textContent === 'Pending' && Math.random() > 0.8) {
-            statusBadge.textContent = 'Confirmed';
-            statusBadge.className = 'status-badge confirmed';
-            
-            // Show notification
-            setTimeout(() => {
-                showToast('Booking confirmed!', 'success');
-            }, 1000);
+        } catch (e) {
+            el.innerHTML = `<div class="db-empty">
+                <i class="fas fa-star"></i>
+                <p>Could not load reviews</p>
+            </div>`;
         }
-    });
-}
-
-function showToast(message, type = 'info') {
-    // Create toast container if it doesn't exist
-    let toastContainer = document.querySelector('.toast-container');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.className = 'toast-container';
-        toastContainer.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            pointer-events: none;
-        `;
-        document.body.appendChild(toastContainer);
     }
 
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.style.cssText = `
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 1rem 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        min-width: 300px;
-        opacity: 0;
-        transform: translateX(100%);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: auto;
-        position: relative;
-        border-left: 4px solid ${type === 'success' ? '#059669' : type === 'error' ? '#ef4444' : '#3b82f6'};
-    `;
-
-    const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
-    const color = type === 'success' ? '#059669' : type === 'error' ? '#ef4444' : '#3b82f6';
-
-    toast.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <i class="fas fa-${icon}" style="color: ${color}; font-size: 1.25rem;"></i>
-            <span style="color: #0f172a; font-weight: 500;">${message}</span>
-        </div>
-    `;
-
-    toastContainer.appendChild(toast);
-
-    // Trigger animation
-    setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateX(0)';
-    }, 100);
-
-    // Remove after 5 seconds
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
-        }, 300);
-    }, 5000);
-}
-
-// Handle window resize
-window.addEventListener('resize', function() {
-    const sidebar = document.getElementById('dashboardSidebar');
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('open');
-    }
-});
-
-// Close sidebar when clicking outside on mobile
-document.addEventListener('click', function(e) {
-    const sidebar = document.getElementById('dashboardSidebar');
-    const sidebarToggle = document.querySelectorAll('.sidebar-toggle');
-    
-    if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-        let clickedToggle = false;
-        sidebarToggle.forEach(toggle => {
-            if (toggle.contains(e.target)) {
-                clickedToggle = true;
+    /* ================================================================
+       SIDEBAR
+    ================================================================ */
+    function bindSidebar() {
+        window.addEventListener('resize', () => {
+            const sb = document.getElementById('dashboardSidebar');
+            if (sb && window.innerWidth > 768) sb.classList.remove('open');
+        });
+        document.addEventListener('click', e => {
+            const sb = document.getElementById('dashboardSidebar');
+            if (!sb || window.innerWidth > 768) return;
+            if (sb.classList.contains('open') && !sb.contains(e.target) && !e.target.closest('.sidebar-toggle')) {
+                sb.classList.remove('open');
             }
         });
-        
-        if (!sidebar.contains(e.target) && !clickedToggle) {
-            sidebar.classList.remove('open');
-        }
     }
-});
+
+    /* ================================================================
+       HELPERS
+    ================================================================ */
+    function fmt(val) {
+        return 'LKR ' + Number(val || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+
+    function initials(name) {
+        return (name || '').trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'GO';
+    }
+
+    function cap(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, ' ');
+    }
+
+    function esc(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        const parts = String(dateStr).split(' ');
+        const [y, mo, da] = parts[0].split('-').map(Number);
+        const [h, mi, s]  = (parts[1] || '00:00:00').split(':').map(Number);
+        const then = new Date(y, mo - 1, da, h, mi, s);
+        const diff = Math.floor((Date.now() - then.getTime()) / 1000);
+        if (diff < 60)     return 'just now';
+        if (diff < 3600)   return Math.floor(diff / 60) + ' min ago';
+        if (diff < 86400)  return Math.floor(diff / 3600) + ' hr ago';
+        if (diff < 604800) return Math.floor(diff / 86400) + ' days ago';
+        return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+})();
