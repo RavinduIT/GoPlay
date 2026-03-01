@@ -1,637 +1,421 @@
-// Ground Owner - Bookings Management JavaScript
-class BookingsManager {
-    constructor() {
-        this.currentView = 'list';
-        this.bookings = [];
-        this.filteredBookings = [];
-        this.filters = {
-            status: '',
-            ground: '',
-            sortBy: 'booking_date'
-        };
-        this.currentPage = 1;
-        this.itemsPerPage = 10;
-        
-        this.init();
-    }
+/* ═══════════════════════════════════════════════════════════
+   Ground Owner – Booking Management JS
+═══════════════════════════════════════════════════════════ */
+(function () {
+'use strict';
 
-    init() {
-        this.bindEvents();
-        this.loadBookings();
-        this.updateStats();
-        this.initDateFilters();
-    }
+/* ── helpers ─────────────────────────────────────────── */
+function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
 
-    bindEvents() {
-        // View toggles
-        document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.switchView(e.target.dataset.view);
-            });
+function cap(s) {
+    if (!s) return '—';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/* ── toast ───────────────────────────────────────────── */
+function toast(msg, type = 'info') {
+    let wrap = document.getElementById('bkToastWrap');
+    if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.id = 'bkToastWrap';
+        wrap.className = 'bk-toast-wrap';
+        document.body.appendChild(wrap);
+    }
+    const icons = { success: 'check-circle', error: 'exclamation-circle', info: 'info-circle' };
+    const t = document.createElement('div');
+    t.className = `bk-toast ${type}`;
+    t.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'}"></i> ${msg}`;
+    wrap.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 320); }, 3500);
+}
+
+/* ── modal ───────────────────────────────────────────── */
+function openModal(id, backdropId) {
+    document.getElementById(backdropId).classList.add('open');
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id, backdropId) {
+    document.getElementById(backdropId).classList.remove('open');
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+/* ── state ───────────────────────────────────────────── */
+let allBookings = [];
+let page        = 1;
+const PER_PAGE  = 15;
+let pendingCancelId = null;
+let pendingStatusId = null;
+let pendingStatusVal = null;
+
+/* ── load stats ─────────────────────────────────────── */
+async function loadStats() {
+    try {
+        const res  = await fetch('/api/ground-owner/dashboard-stats');
+        const data = await res.json();
+        if (!data.success) return;
+        const b = data.stats?.bookings || {};
+        document.getElementById('statTotal').textContent     = b.total_bookings     ?? '—';
+        document.getElementById('statToday').textContent     = b.today_bookings     ?? '—';
+        document.getElementById('statUpcoming').textContent  = b.upcoming_bookings  ?? '—';
+        document.getElementById('statCompleted').textContent = b.completed_bookings ?? '—';
+    } catch (e) { console.error('Stats error:', e); }
+}
+
+/* ── load facilities for filter ──────────────────────── */
+async function loadFacilities() {
+    try {
+        const res  = await fetch('/api/ground-owner/grounds');
+        const data = await res.json();
+        const sel  = document.getElementById('filterFacility');
+        (data.grounds || []).forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = f.name + (f.city ? ` (${f.city})` : '');
+            sel.appendChild(opt);
         });
-
-        // Filters
-        document.getElementById('statusFilter')?.addEventListener('change', (e) => {
-            this.filters.status = e.target.value;
-            this.applyFilters();
-        });
-
-        document.getElementById('groundFilter')?.addEventListener('change', (e) => {
-            this.filters.ground = e.target.value;
-            this.applyFilters();
-        });
-
-        document.getElementById('sortBy')?.addEventListener('change', (e) => {
-            this.filters.sortBy = e.target.value;
-            this.applyFilters();
-        });
-
-        // Search
-        document.getElementById('bookingSearch')?.addEventListener('input', (e) => {
-            this.searchBookings(e.target.value);
-        });
-
-        // Date filters
-        document.getElementById('startDate')?.addEventListener('change', () => {
-            this.applyDateFilter();
-        });
-
-        document.getElementById('endDate')?.addEventListener('change', () => {
-            this.applyDateFilter();
-        });
-
-        // Calendar navigation
-        document.getElementById('prevMonth')?.addEventListener('click', () => {
-            this.navigateCalendar('prev');
-        });
-
-        document.getElementById('nextMonth')?.addEventListener('click', () => {
-            this.navigateCalendar('next');
-        });
-
-        // Export functionality
-        window.exportBookings = this.exportBookings.bind(this);
-        
-        // Modal functions
-        window.closeBookingModal = this.closeBookingModal.bind(this);
-        window.confirmBooking = this.confirmBooking.bind(this);
-        window.cancelBooking = this.cancelBooking.bind(this);
-        window.contactCustomer = this.contactCustomer.bind(this);
-    }
-
-    async loadBookings() {
-        try {
-            const response = await fetch('/api/ground-owner/bookings');
-            if (response.ok) {
-                const data = await response.json();
-                this.bookings = data.bookings || [];
-                this.filteredBookings = [...this.bookings];
-                this.renderCurrentView();
-                this.populateGroundFilter();
-            }
-        } catch (error) {
-            console.error('Error loading bookings:', error);
-            this.showToast('Failed to load bookings', 'error');
-        }
-    }
-
-    switchView(view) {
-        this.currentView = view;
-        
-        // Update view buttons
-        document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.querySelector(`[data-view="${view}"]`).classList.add('active');
-
-        // Show/hide view content
-        document.querySelectorAll('.view-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        document.getElementById(`${view}View`).classList.add('active');
-
-        this.renderCurrentView();
-    }
-
-    renderCurrentView() {
-        switch (this.currentView) {
-            case 'list':
-                this.renderListView();
-                break;
-            case 'calendar':
-                this.renderCalendarView();
-                break;
-            case 'timeline':
-                this.renderTimelineView();
-                break;
-        }
-    }
-
-    renderListView() {
-        const tbody = document.getElementById('bookingsTableBody');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-
-        if (this.filteredBookings.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="8" class="text-center" style="padding: 2rem;">
-                        <i class="fas fa-calendar-times" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem;"></i>
-                        <p>No bookings found</p>
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        this.filteredBookings.forEach(booking => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>#${booking.id}</td>
-                <td>${booking.ground_name}</td>
-                <td>${booking.customer_name}</td>
-                <td>${this.formatDateTime(booking.booking_date, booking.start_time)}</td>
-                <td>${this.calculateDuration(booking.start_time, booking.end_time)}</td>
-                <td>₹${booking.amount}</td>
-                <td><span class="status-badge ${booking.status}">${this.capitalizeFirst(booking.status)}</span></td>
-                <td>
-                    <button onclick="bookingsManager.viewBookingDetails(${booking.id})" class="btn-secondary" style="padding: 0.5rem;">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-
-    renderCalendarView() {
-        const calendarGrid = document.getElementById('calendarGrid');
-        if (!calendarGrid) return;
-
-        const currentDate = new Date();
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        
-        // Update month display
-        document.getElementById('currentMonth').textContent = 
-            currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-        // Generate calendar grid
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const startingDayOfWeek = firstDay.getDay();
-        const daysInMonth = lastDay.getDate();
-
-        calendarGrid.innerHTML = '';
-
-        // Add day headers
-        const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        dayHeaders.forEach(day => {
-            const dayHeader = document.createElement('div');
-            dayHeader.className = 'calendar-day-header';
-            dayHeader.textContent = day;
-            dayHeader.style.cssText = `
-                padding: 1rem;
-                text-align: center;
-                font-weight: 600;
-                background: var(--light-bg);
-                border-bottom: 1px solid var(--border-color);
-            `;
-            calendarGrid.appendChild(dayHeader);
-        });
-
-        // Add empty cells for days before first day of month
-        for (let i = 0; i < startingDayOfWeek; i++) {
-            const emptyDay = document.createElement('div');
-            emptyDay.className = 'calendar-day other-month';
-            calendarGrid.appendChild(emptyDay);
-        }
-
-        // Add days of the month
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dayElement = document.createElement('div');
-            dayElement.className = 'calendar-day';
-            
-            const dayDate = new Date(year, month, day);
-            const isToday = dayDate.toDateString() === new Date().toDateString();
-            
-            if (isToday) {
-                dayElement.classList.add('today');
-            }
-
-            const dayBookings = this.getBookingsForDate(dayDate);
-            
-            dayElement.innerHTML = `
-                <div class="day-number">${day}</div>
-                <div class="day-bookings">
-                    ${dayBookings.map(booking => `
-                        <div class="calendar-booking ${booking.status}" onclick="bookingsManager.viewBookingDetails(${booking.id})">
-                            <div class="booking-title">${booking.ground_name}</div>
-                            <div class="booking-time">${booking.start_time} - ${booking.end_time}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-
-            calendarGrid.appendChild(dayElement);
-        }
-
-        calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
-    }
-
-    renderTimelineView() {
-        const timelineContainer = document.getElementById('timelineContainer');
-        if (!timelineContainer) return;
-
-        // Group bookings by date
-        const groupedBookings = this.groupBookingsByDate();
-        
-        timelineContainer.innerHTML = '';
-
-        Object.keys(groupedBookings).sort().forEach(date => {
-            const timelineItem = document.createElement('div');
-            timelineItem.className = 'timeline-item';
-            
-            timelineItem.innerHTML = `
-                <div class="timeline-date">${this.formatDate(date)}</div>
-                <div class="timeline-bookings">
-                    ${groupedBookings[date].map(booking => `
-                        <div class="timeline-booking" onclick="bookingsManager.viewBookingDetails(${booking.id})">
-                            <div class="booking-info">
-                                <h4>${booking.ground_name}</h4>
-                                <p>${booking.customer_name}</p>
-                                <span class="booking-details">${booking.start_time} - ${booking.end_time}</span>
-                                <span class="booking-amount">₹${booking.amount}</span>
-                            </div>
-                            <span class="status-badge ${booking.status}">${this.capitalizeFirst(booking.status)}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            timelineContainer.appendChild(timelineItem);
-        });
-    }
-
-    applyFilters() {
-        this.filteredBookings = this.bookings.filter(booking => {
-            let matches = true;
-            
-            if (this.filters.status && booking.status !== this.filters.status) {
-                matches = false;
-            }
-            
-            if (this.filters.ground && booking.ground_id !== parseInt(this.filters.ground)) {
-                matches = false;
-            }
-            
-            return matches;
-        });
-
-        this.sortBookings();
-        this.renderCurrentView();
-    }
-
-    sortBookings() {
-        this.filteredBookings.sort((a, b) => {
-            switch (this.filters.sortBy) {
-                case 'booking_date':
-                    return new Date(b.booking_date) - new Date(a.booking_date);
-                case 'created_at':
-                    return new Date(b.created_at) - new Date(a.created_at);
-                case 'amount':
-                    return b.amount - a.amount;
-                default:
-                    return 0;
-            }
-        });
-    }
-
-    searchBookings(query) {
-        if (!query.trim()) {
-            this.filteredBookings = [...this.bookings];
-        } else {
-            this.filteredBookings = this.bookings.filter(booking => 
-                booking.ground_name.toLowerCase().includes(query.toLowerCase()) ||
-                booking.customer_name.toLowerCase().includes(query.toLowerCase()) ||
-                booking.id.toString().includes(query)
-            );
-        }
-        
-        this.renderCurrentView();
-    }
-
-    async viewBookingDetails(bookingId) {
-        try {
-            const response = await fetch(`/api/ground-owner/bookings/${bookingId}`);
-            if (response.ok) {
-                const data = await response.json();
-                this.showBookingModal(data.booking);
-            }
-        } catch (error) {
-            console.error('Error loading booking details:', error);
-            this.showToast('Failed to load booking details', 'error');
-        }
-    }
-
-    showBookingModal(booking) {
-        // Populate modal with booking data
-        document.getElementById('bookingId').textContent = `#${booking.id}`;
-        document.getElementById('bookingGround').textContent = booking.ground_name;
-        document.getElementById('bookingDate').textContent = this.formatDate(booking.booking_date);
-        document.getElementById('bookingTime').textContent = `${booking.start_time} - ${booking.end_time}`;
-        document.getElementById('bookingDuration').textContent = this.calculateDuration(booking.start_time, booking.end_time);
-        document.getElementById('bookingAmount').textContent = `₹${booking.amount}`;
-        document.getElementById('bookingStatus').textContent = this.capitalizeFirst(booking.status);
-        document.getElementById('bookingStatus').className = `status-badge ${booking.status}`;
-        
-        document.getElementById('customerName').textContent = booking.customer_name;
-        document.getElementById('customerEmail').textContent = booking.customer_email;
-        document.getElementById('customerPhone').textContent = booking.customer_phone || 'Not provided';
-        document.getElementById('customerBookings').textContent = booking.customer_booking_count || '0';
-        
-        document.getElementById('bookingNotes').textContent = booking.notes || 'No special requests';
-
-        // Show appropriate action buttons
-        const confirmBtn = document.getElementById('confirmBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        
-        if (booking.status === 'pending') {
-            confirmBtn.style.display = 'inline-block';
-            cancelBtn.style.display = 'inline-block';
-        } else {
-            confirmBtn.style.display = 'none';
-            cancelBtn.style.display = 'none';
-        }
-
-        document.getElementById('bookingModal').classList.add('active');
-    }
-
-    closeBookingModal() {
-        document.getElementById('bookingModal').classList.remove('active');
-    }
-
-    async confirmBooking() {
-        const bookingId = document.getElementById('bookingId').textContent.replace('#', '');
-        
-        try {
-            const response = await fetch(`/api/ground-owner/bookings/${bookingId}/confirm`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                this.showToast('Booking confirmed successfully', 'success');
-                this.closeBookingModal();
-                this.loadBookings();
-            }
-        } catch (error) {
-            console.error('Error confirming booking:', error);
-            this.showToast('Failed to confirm booking', 'error');
-        }
-    }
-
-    async cancelBooking() {
-        const bookingId = document.getElementById('bookingId').textContent.replace('#', '');
-        
-        if (!confirm('Are you sure you want to cancel this booking?')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/ground-owner/bookings/${bookingId}/cancel`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                this.showToast('Booking cancelled successfully', 'success');
-                this.closeBookingModal();
-                this.loadBookings();
-            }
-        } catch (error) {
-            console.error('Error cancelling booking:', error);
-            this.showToast('Failed to cancel booking', 'error');
-        }
-    }
-
-    contactCustomer() {
-        const email = document.getElementById('customerEmail').textContent;
-        const phone = document.getElementById('customerPhone').textContent;
-        
-        const message = `Choose contact method:\n\n1. Email: ${email}\n2. Phone: ${phone}`;
-        
-        if (confirm(message + '\n\nClick OK for Email, Cancel for Phone')) {
-            window.location.href = `mailto:${email}`;
-        } else if (phone !== 'Not provided') {
-            window.location.href = `tel:${phone}`;
-        }
-    }
-
-    updateStats() {
-        // This would typically fetch stats from API
-        const stats = {
-            total: this.bookings.length,
-            confirmed: this.bookings.filter(b => b.status === 'confirmed').length,
-            pending: this.bookings.filter(b => b.status === 'pending').length,
-            revenue: this.bookings.reduce((sum, b) => sum + (b.amount || 0), 0)
-        };
-
-        document.getElementById('totalBookings').textContent = stats.total;
-        document.getElementById('confirmedBookings').textContent = stats.confirmed;
-        document.getElementById('pendingBookings').textContent = stats.pending;
-        document.getElementById('monthlyRevenue').textContent = `₹${stats.revenue.toLocaleString()}`;
-    }
-
-    populateGroundFilter() {
-        const groundFilter = document.getElementById('groundFilter');
-        if (!groundFilter) return;
-
-        const grounds = [...new Set(this.bookings.map(b => ({ id: b.ground_id, name: b.ground_name })))];
-        
-        grounds.forEach(ground => {
-            const option = document.createElement('option');
-            option.value = ground.id;
-            option.textContent = ground.name;
-            groundFilter.appendChild(option);
-        });
-    }
-
-    initDateFilters() {
-        const today = new Date();
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        
-        document.getElementById('startDate').value = weekAgo.toISOString().split('T')[0];
-        document.getElementById('endDate').value = today.toISOString().split('T')[0];
-    }
-
-    applyDateFilter() {
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        
-        if (startDate && endDate) {
-            this.filteredBookings = this.bookings.filter(booking => {
-                const bookingDate = new Date(booking.booking_date);
-                return bookingDate >= new Date(startDate) && bookingDate <= new Date(endDate);
-            });
-            
-            this.renderCurrentView();
-        }
-    }
-
-    navigateCalendar(direction) {
-        const currentMonth = document.getElementById('currentMonth');
-        const [monthName, year] = currentMonth.textContent.split(' ');
-        const currentDate = new Date(`${monthName} 1, ${year}`);
-        
-        if (direction === 'prev') {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-        } else {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-        }
-        
-        currentMonth.textContent = currentDate.toLocaleDateString('en-US', { 
-            month: 'long', 
-            year: 'numeric' 
-        });
-        
-        this.renderCalendarView();
-    }
-
-    exportBookings() {
-        const csvContent = this.generateCSV();
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `bookings-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    }
-
-    generateCSV() {
-        const headers = ['Booking ID', 'Ground', 'Customer', 'Date', 'Time', 'Duration', 'Amount', 'Status'];
-        const rows = this.filteredBookings.map(booking => [
-            booking.id,
-            booking.ground_name,
-            booking.customer_name,
-            booking.booking_date,
-            `${booking.start_time} - ${booking.end_time}`,
-            this.calculateDuration(booking.start_time, booking.end_time),
-            booking.amount,
-            booking.status
-        ]);
-
-        return [headers, ...rows].map(row => 
-            row.map(field => `"${field}"`).join(',')
-        ).join('\n');
-    }
-
-    // Utility functions
-    formatDateTime(date, time) {
-        const d = new Date(date);
-        return `${d.toLocaleDateString()} ${time}`;
-    }
-
-    formatDate(date) {
-        return new Date(date).toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    }
-
-    calculateDuration(startTime, endTime) {
-        const start = new Date(`2000-01-01 ${startTime}`);
-        const end = new Date(`2000-01-01 ${endTime}`);
-        const diff = (end - start) / (1000 * 60 * 60);
-        return `${diff} hour${diff !== 1 ? 's' : ''}`;
-    }
-
-    capitalizeFirst(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
-    getBookingsForDate(date) {
-        const dateStr = date.toISOString().split('T')[0];
-        return this.bookings.filter(booking => booking.booking_date === dateStr);
-    }
-
-    groupBookingsByDate() {
-        const grouped = {};
-        this.filteredBookings.forEach(booking => {
-            const date = booking.booking_date;
-            if (!grouped[date]) {
-                grouped[date] = [];
-            }
-            grouped[date].push(booking);
-        });
-        return grouped;
-    }
-
-    showToast(message, type = 'info') {
-        // Create toast notification
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-            <div class="toast-content">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
-            </div>
-        `;
-
-        let container = document.getElementById('toastContainer');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toastContainer';
-            container.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 10000;
-                max-width: 400px;
-            `;
-            document.body.appendChild(container);
-        }
-        
-        toast.style.cssText = `
-            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white;
-            padding: 12px 20px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        
-        container.appendChild(toast);
-        setTimeout(() => toast.style.transform = 'translateX(0)', 100);
-        setTimeout(() => {
-            toast.style.transform = 'translateX(100%)';
-            setTimeout(() => container.removeChild(toast), 300);
-        }, 5000);
+    } catch (e) { console.error('Facilities error:', e); }
+}
+
+/* ── load bookings ───────────────────────────────────── */
+async function loadBookings() {
+    const params = new URLSearchParams();
+    const status   = document.getElementById('filterStatus').value;
+    const facility = document.getElementById('filterFacility').value;
+    const search   = document.getElementById('filterSearch').value.trim();
+    const start    = document.getElementById('filterStart').value;
+    const end      = document.getElementById('filterEnd').value;
+
+    if (status)   params.set('status', status);
+    if (facility) params.set('facility_id', facility);
+    if (search)   params.set('user_search', search);
+    if (start)    params.set('start_date', start);
+    if (end)      params.set('end_date', end);
+
+    document.getElementById('tableLoading').style.display   = 'block';
+    document.getElementById('tableContainer').style.display = 'none';
+    document.getElementById('noData').style.display         = 'none';
+    document.getElementById('pagination').style.display     = 'none';
+    document.getElementById('resultsLabel').textContent     = '';
+
+    try {
+        const res  = await fetch('/api/ground-owner/bookings?' + params.toString());
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Failed');
+        allBookings = data.bookings || [];
+        page = 1;
+        renderTable();
+    } catch (e) {
+        console.error('Bookings error:', e);
+        document.getElementById('tableLoading').innerHTML =
+            '<i class="fas fa-exclamation-circle"></i> Failed to load bookings';
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    window.bookingsManager = new BookingsManager();
+/* ── render table ─────────────────────────────────────── */
+function renderTable() {
+    const loading   = document.getElementById('tableLoading');
+    const container = document.getElementById('tableContainer');
+    const noData    = document.getElementById('noData');
+    const pag       = document.getElementById('pagination');
+    const label     = document.getElementById('resultsLabel');
+
+    loading.style.display = 'none';
+
+    if (!allBookings.length) {
+        container.style.display = 'none';
+        noData.style.display    = 'block';
+        pag.style.display       = 'none';
+        label.textContent       = '0 records';
+        return;
+    }
+
+    noData.style.display    = 'none';
+    container.style.display = 'block';
+
+    const total      = allBookings.length;
+    const totalPages = Math.ceil(total / PER_PAGE);
+    const startIdx   = (page - 1) * PER_PAGE;
+    const rows       = allBookings.slice(startIdx, startIdx + PER_PAGE);
+
+    label.textContent = total + ' booking' + (total !== 1 ? 's' : '');
+
+    const statusIcons = {
+        pending:   'fa-clock',
+        confirmed: 'fa-check-circle',
+        completed: 'fa-check',
+        cancelled: 'fa-ban',
+        no_show:   'fa-user-slash'
+    };
+
+    document.getElementById('tableBody').innerHTML = rows.map(b => {
+        const name   = `${b.first_name || ''} ${b.last_name || ''}`.trim() || 'Unknown';
+        const status = b.status || 'pending';
+        const icon   = statusIcons[status] || 'fa-circle';
+
+        return `
+        <tr>
+            <td><strong style="color:#2563eb">#${b.id}</strong></td>
+            <td>
+                <strong>${name}</strong>
+                <div class="bk-cell-sub">${b.email || ''}</div>
+            </td>
+            <td>
+                <strong>${b.facility_name || '—'}</strong>
+                ${b.sport_name ? `<div class="bk-cell-sub"><i class="fas fa-tag"></i> ${b.sport_name}</div>` : ''}
+            </td>
+            <td><strong>${fmtDate(b.booking_date)}</strong></td>
+            <td>${b.start_time || '—'} – ${b.end_time || '—'}</td>
+            <td>${parseFloat(b.duration_hours || 0).toFixed(1)}h</td>
+            <td>
+                <span class="bk-status ${status}">
+                    <i class="fas ${icon}"></i> ${cap(status)}
+                </span>
+            </td>
+            <td>
+                <div class="bk-actions">${buildActions(b)}</div>
+            </td>
+        </tr>`;
+    }).join('');
+
+    if (totalPages <= 1) {
+        pag.style.display = 'none';
+    } else {
+        pag.style.display = 'flex';
+        document.getElementById('pageInfo').textContent = `Page ${page} of ${totalPages}`;
+        document.getElementById('prevPage').disabled = page <= 1;
+        document.getElementById('nextPage').disabled = page >= totalPages;
+    }
+}
+
+function buildActions(b) {
+    const id = b.id;
+    const s  = b.status;
+    let html = `<button class="bk-tbl-eye" title="View details" onclick="viewBooking(${id})"><i class="fas fa-eye"></i></button>`;
+
+    if (s === 'pending') {
+        html += `<button class="bk-action-confirm" onclick="triggerStatus(${id},'confirmed')">
+                    <i class="fas fa-check"></i> Confirm</button>`;
+    }
+    if (s === 'confirmed') {
+        html += `<button class="bk-action-complete" onclick="triggerStatus(${id},'completed')">
+                    <i class="fas fa-check"></i> Complete</button>`;
+    }
+    if (s !== 'cancelled' && s !== 'completed') {
+        html += `<button class="bk-action-cancel" onclick="triggerCancel(${id})">
+                    <i class="fas fa-times"></i> Cancel</button>`;
+    }
+
+    return html;
+}
+
+/* ── view detail modal ───────────────────────────────── */
+window.viewBooking = function (id) {
+    const b = allBookings.find(x => x.id == id);
+    if (!b) return;
+
+    const name   = `${b.first_name || ''} ${b.last_name || ''}`.trim() || 'Unknown';
+    const status = b.status || 'pending';
+
+    document.getElementById('detailContent').innerHTML = `
+        <div class="bk-detail-grid">
+            <div class="bk-d-section">Booking Info</div>
+            <div class="bk-drow"><span class="bk-dlabel">Booking ID</span><span class="bk-dval" style="color:#2563eb">#${b.id}</span></div>
+            <div class="bk-drow"><span class="bk-dlabel">Status</span>
+                <span class="bk-dval"><span class="bk-status ${status}">${cap(status)}</span></span></div>
+            <div class="bk-drow"><span class="bk-dlabel">Date</span><span class="bk-dval">${fmtDate(b.booking_date)}</span></div>
+            <div class="bk-drow"><span class="bk-dlabel">Time</span><span class="bk-dval">${b.start_time || '—'} – ${b.end_time || '—'}</span></div>
+            <div class="bk-drow"><span class="bk-dlabel">Duration</span><span class="bk-dval">${parseFloat(b.duration_hours || 0).toFixed(1)} hours</span></div>
+            <div class="bk-drow"><span class="bk-dlabel">Ground</span><span class="bk-dval">${b.facility_name || '—'}</span></div>
+            ${b.sport_name ? `<div class="bk-drow"><span class="bk-dlabel">Sport</span><span class="bk-dval">${b.sport_name}</span></div>` : ''}
+
+            <div class="bk-d-section">Customer Info</div>
+            <div class="bk-drow"><span class="bk-dlabel">Name</span><span class="bk-dval">${name}</span></div>
+            <div class="bk-drow"><span class="bk-dlabel">Email</span><span class="bk-dval">${b.email || '—'}</span></div>
+            <div class="bk-drow"><span class="bk-dlabel">Phone</span><span class="bk-dval">${b.phone || '—'}</span></div>
+            ${b.special_requests ? `<div class="bk-drow" style="flex-direction:column;gap:6px">
+                <span class="bk-dlabel">Special Requests</span>
+                <span class="bk-dval note">${b.special_requests}</span></div>` : ''}
+        </div>`;
+
+    let footerHtml = `<button class="bk-btn bk-btn-ghost" onclick="closeModal('detailModal','detailBackdrop')">Close</button>`;
+    if (b.status === 'pending')
+        footerHtml += `<button class="bk-btn bk-btn-confirm" onclick="closeModal('detailModal','detailBackdrop');triggerStatus(${b.id},'confirmed')"><i class="fas fa-check"></i> Confirm</button>`;
+    if (b.status === 'confirmed')
+        footerHtml += `<button class="bk-btn bk-btn-success" onclick="closeModal('detailModal','detailBackdrop');triggerStatus(${b.id},'completed')"><i class="fas fa-check"></i> Complete</button>`;
+    if (b.status !== 'cancelled' && b.status !== 'completed')
+        footerHtml += `<button class="bk-btn bk-btn-danger" onclick="closeModal('detailModal','detailBackdrop');triggerCancel(${b.id})"><i class="fas fa-ban"></i> Cancel</button>`;
+
+    document.getElementById('detailFooter').innerHTML = footerHtml;
+    openModal('detailModal', 'detailBackdrop');
+};
+
+/* ── status change flow ──────────────────────────────── */
+window.triggerStatus = function (id, newStatus) {
+    pendingStatusId  = id;
+    pendingStatusVal = newStatus;
+
+    const isComplete = newStatus === 'completed';
+    document.getElementById('statusModalTitle').innerHTML =
+        `<i class="fas ${isComplete ? 'fa-check' : 'fa-check'}"></i>
+         ${isComplete ? 'Complete Booking' : 'Confirm Booking'}`;
+
+    document.getElementById('statusModalDesc').innerHTML =
+        `Mark booking <strong>#${id}</strong> as <strong>${cap(newStatus)}</strong>?`;
+
+    const btn = document.getElementById('confirmStatusBtn');
+    btn.className = `bk-btn ${isComplete ? 'bk-btn-success' : 'bk-btn-confirm'}`;
+    btn.innerHTML = `<i class="fas ${isComplete ? 'fa-check' : 'fa-check'}"></i> ${cap(newStatus)}`;
+
+    openModal('statusModal', 'statusBackdrop');
+};
+
+document.getElementById('confirmStatusBtn').addEventListener('click', async () => {
+    if (!pendingStatusId || !pendingStatusVal) return;
+    const id = pendingStatusId; const val = pendingStatusVal;
+    closeModal('statusModal', 'statusBackdrop');
+
+    try {
+        const res  = await fetch(`/api/ground-owner/bookings/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: val })
+        });
+        const data = await res.json();
+        if (data.success) {
+            toast(`Booking #${id} marked as ${val}`, 'success');
+            await loadStats();
+            await loadBookings();
+        } else {
+            toast(data.message || 'Update failed', 'error');
+        }
+    } catch (e) {
+        toast('Network error. Please try again.', 'error');
+    } finally {
+        pendingStatusId = null; pendingStatusVal = null;
+    }
 });
 
-// Sidebar toggle functionality
-function toggleSidebar() {
-    const sidebar = document.getElementById('dashboardSidebar');
-    sidebar.classList.toggle('collapsed');
-}
+/* ── cancel flow ─────────────────────────────────────── */
+window.triggerCancel = function (id) {
+    pendingCancelId = id;
+    document.getElementById('cancelBookingId').textContent = `#${id}`;
+    document.getElementById('cancelReason').value = '';
+    document.getElementById('cancelReason').style.borderColor = '';
+    openModal('cancelModal', 'cancelBackdrop');
+};
+
+document.getElementById('confirmCancelBtn').addEventListener('click', async () => {
+    const reason = document.getElementById('cancelReason').value.trim();
+    if (!reason) {
+        document.getElementById('cancelReason').style.borderColor = '#dc2626';
+        document.getElementById('cancelReason').focus();
+        return;
+    }
+    document.getElementById('cancelReason').style.borderColor = '';
+
+    const id = pendingCancelId;
+    closeModal('cancelModal', 'cancelBackdrop');
+
+    try {
+        const res  = await fetch(`/api/ground-owner/bookings/${id}/cancel`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason })
+        });
+        const data = await res.json();
+        if (data.success) {
+            toast(`Booking #${id} cancelled`, 'success');
+            await loadStats();
+            await loadBookings();
+        } else {
+            toast(data.message || 'Cancellation failed', 'error');
+        }
+    } catch (e) {
+        toast('Network error. Please try again.', 'error');
+    } finally {
+        pendingCancelId = null;
+    }
+});
+
+/* ── export CSV ──────────────────────────────────────── */
+document.getElementById('exportBtn').addEventListener('click', () => {
+    if (!allBookings.length) { toast('No bookings to export', 'error'); return; }
+
+    const rows = [
+        ['#', 'Customer', 'Email', 'Phone', 'Ground', 'Date', 'Start', 'End', 'Duration (h)', 'Status'],
+        ...allBookings.map(b => [
+            b.id,
+            `${b.first_name || ''} ${b.last_name || ''}`.trim(),
+            b.email || '', b.phone || '',
+            b.facility_name || '',
+            b.booking_date || '',
+            b.start_time || '', b.end_time || '',
+            parseFloat(b.duration_hours || 0).toFixed(1),
+            b.status || ''
+        ])
+    ];
+
+    const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `bookings-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast('Export downloaded', 'success');
+});
+
+/* ── modal close wiring ──────────────────────────────── */
+window.closeModal = closeModal;
+
+document.getElementById('closeDetail').addEventListener('click',       () => closeModal('detailModal',  'detailBackdrop'));
+document.getElementById('detailBackdrop').addEventListener('click',    () => closeModal('detailModal',  'detailBackdrop'));
+document.getElementById('closeCancelModal').addEventListener('click',  () => closeModal('cancelModal',  'cancelBackdrop'));
+document.getElementById('closeCancelBtn').addEventListener('click',    () => closeModal('cancelModal',  'cancelBackdrop'));
+document.getElementById('cancelBackdrop').addEventListener('click',    () => closeModal('cancelModal',  'cancelBackdrop'));
+document.getElementById('closeStatusModal').addEventListener('click',  () => closeModal('statusModal',  'statusBackdrop'));
+document.getElementById('closeStatusBtn').addEventListener('click',    () => closeModal('statusModal',  'statusBackdrop'));
+document.getElementById('statusBackdrop').addEventListener('click',    () => closeModal('statusModal',  'statusBackdrop'));
+
+/* ── filter / pagination events ──────────────────────── */
+document.getElementById('applyFilters').addEventListener('click', loadBookings);
+
+document.getElementById('clearFilters').addEventListener('click', () => {
+    document.getElementById('filterSearch').value   = '';
+    document.getElementById('filterFacility').value = '';
+    document.getElementById('filterStatus').value   = '';
+    document.getElementById('filterStart').value    = '';
+    document.getElementById('filterEnd').value      = '';
+    loadBookings();
+});
+
+document.getElementById('filterSearch').addEventListener('keydown', e => {
+    if (e.key === 'Enter') loadBookings();
+});
+
+document.getElementById('prevPage').addEventListener('click', () => {
+    if (page > 1) { page--; renderTable(); }
+});
+document.getElementById('nextPage').addEventListener('click', () => {
+    if (page < Math.ceil(allBookings.length / PER_PAGE)) { page++; renderTable(); }
+});
+
+/* ── sidebar ─────────────────────────────────────────── */
+window.toggleSidebar = function () {
+    document.getElementById('dashboardSidebar')?.classList.toggle('collapsed');
+};
+
+/* ── init ────────────────────────────────────────────── */
+loadStats();
+loadFacilities();
+loadBookings();
+
+})();

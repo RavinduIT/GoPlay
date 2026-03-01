@@ -26,7 +26,7 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background-color: #f0f9ff;
     color: #1e293b;
 }
@@ -233,6 +233,93 @@ body {
     text-align: center;
 }
 
+/* Header Actions (buttons + filter inside the top bar) */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Sidebar toggle inside the white header needs dark colour */
+.dashboard-header .sidebar-toggle {
+    color: #374151;
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.dashboard-header .sidebar-toggle:hover {
+    background: #f3f4f6;
+    color: #1a1a2e;
+}
+
+/* Primary button */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s, box-shadow .15s;
+}
+.btn-primary:hover {
+    background: #2563eb;
+    box-shadow: 0 4px 12px rgba(59,130,246,.35);
+}
+.btn-primary:active { background: #1d4ed8; }
+
+/* Secondary button */
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    background: #fff;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s, border-color .15s;
+}
+.btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #1a1a2e;
+}
+
+/* Filter select */
+.filter-select {
+    padding: 9px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+    transition: border-color .15s;
+    height: 38px;
+}
+.filter-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+}
+
 .owner-profile {
     display: flex;
     align-items: center;
@@ -275,8 +362,6 @@ body {
 /* Dashboard Content */
 .dashboard-content {
     padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
 }
 
 /* Stats Grid */
@@ -355,6 +440,7 @@ body {
     font-size: 1.5rem;
     color: white;
     background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    flex-shrink: 0;
 }
 
 .stat-content h3 {
@@ -786,4 +872,109 @@ body {
     .action-btn {
         padding: 1rem;
     }
+}
+
+/* ================================================================
+   DASHBOARD – extra components
+================================================================ */
+
+/* Coloured stat icons */
+.stat-icon.si-green  { background: linear-gradient(135deg, #059669, #047857); }
+.stat-icon.si-blue   { background: linear-gradient(135deg, #3b82f6, #1e40af); }
+.stat-icon.si-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.stat-icon.si-amber  { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+/* Header avatar (initials circle) */
+.db-header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #e2e8f0;
+}
+.db-header-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Loading placeholder */
+.db-loading {
+    padding: 2rem;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Empty state */
+.db-empty {
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    color: #9ca3af;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.db-empty i {
+    font-size: 28px;
+    opacity: .45;
+}
+.db-empty p {
+    font-size: 13px;
+    margin: 0;
+}
+
+/* Small avatar for reviews */
+.db-avatar-sm {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+/* Facility tag on reviews */
+.db-facility-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+.db-facility-tag i { color: #9ca3af; }
+
+/* Extra status badge variants */
+.status-badge.completed  { background: #dcfce7; color: #166534; }
+.status-badge.cancelled  { background: #fecaca; color: #991b1b; }
+.status-badge.no_show    { background: #f3f4f6; color: #6b7280; }
+
+/* Reviewer info layout tweak for right-aligned time */
+.reviewer-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.reviewer-info .review-time {
+    margin-left: auto;
+    flex-shrink: 0;
 }

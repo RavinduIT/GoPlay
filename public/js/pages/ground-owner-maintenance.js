@@ -1,539 +1,585 @@
-/**
- * Ground Owner Maintenance Management
- * Connects to real backend APIs
- */
-class MaintenanceManager {
-    constructor() {
-        this.currentMonth = new Date();
-        this.tasks = [];
-        this.inspections = [];
-        this.facilities = [];
-        this.stats = {};
-        this.currentFilterStatus = '';
-        this.currentFilterPriority = '';
-        this.init();
+/* Ground Owner – Maintenance Dashboard (IIFE) */
+(function () {
+    'use strict';
+
+    /* ── state ── */
+    let facilities    = [];
+    let currentMonth  = new Date();
+    let currentTaskId = null;
+    let toastTimer    = null;
+
+    const $ = id => document.getElementById(id);
+
+    /* ================================================================
+       BOOT
+    ================================================================ */
+    document.addEventListener('DOMContentLoaded', () => {
+        loadFacilities().then(() => {
+            loadStats();
+            loadTasks();
+            loadInspections();
+            renderCalendar();
+        });
+        bindControls();
+        bindModals();
+    });
+
+    /* ================================================================
+       API
+    ================================================================ */
+    async function api(url, opts = {}) {
+        const r = await fetch(url, {
+            headers: { 'Content-Type': 'application/json' },
+            ...opts
+        });
+        return r.json();
     }
 
-    async init() {
+    async function loadFacilities() {
         try {
-            await this.loadFacilities();
-            await this.loadStats();
-            await this.loadActiveTasks();
-            await this.loadUpcomingInspections();
-            await this.renderCalendar();
-            this.bindEvents();
-        } catch (error) {
-            console.error('Initialization error:', error);
-            this.showToast('Failed to initialize maintenance dashboard', 'error');
-        }
-    }
-
-    bindEvents() {
-        // Forms
-        const maintenanceForm = document.getElementById('maintenanceForm');
-        if (maintenanceForm) {
-            maintenanceForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.saveMaintenanceTask();
-            });
-        }
-
-        const inspectionForm = document.getElementById('inspectionForm');
-        if (inspectionForm) {
-            inspectionForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.saveInspection();
-            });
-        }
-
-        // Filters
-        const priorityFilter = document.getElementById('taskPriorityFilter');
-        const statusFilter = document.getElementById('taskStatusFilter');
-        const groundFilter = document.getElementById('groundFilter');
-
-        if (priorityFilter) {
-            priorityFilter.addEventListener('change', (e) => {
-                this.currentFilterPriority = e.target.value;
-                this.loadActiveTasks();
-            });
-        }
-
-        if (statusFilter) {
-            statusFilter.addEventListener('change', (e) => {
-                this.currentFilterStatus = e.target.value;
-                this.loadActiveTasks();
-            });
-        }
-
-        if (groundFilter) {
-            groundFilter.addEventListener('change', (e) => {
-                this.selectedFacilityId = e.target.value;
-                this.loadActiveTasks();
-            });
-        }
-
-        // Calendar navigation
-        const prevBtn = document.getElementById('prevCalendarMonth');
-        const nextBtn = document.getElementById('nextCalendarMonth');
-
-        if (prevBtn) prevBtn.addEventListener('click', () => this.navigateMonth(-1));
-        if (nextBtn) nextBtn.addEventListener('click', () => this.navigateMonth(1));
-    }
-
-    async loadFacilities() {
-        try {
-            const response = await fetch('/api/ground-owner/facilities');
-            const data = await response.json();
-
+            const data = await api('/api/ground-owner/facilities');
             if (data.success) {
-                this.facilities = data.facilities || [];
-                this.updateFacilityDropdowns();
+                facilities = data.facilities || [];
+                populateFacilityDropdowns();
             }
-        } catch (error) {
-            console.error('Error loading facilities:', error);
-        }
+        } catch (e) { console.error('facilities', e); }
     }
 
-    async loadStats() {
+    async function loadStats() {
         try {
-            const response = await fetch('/api/ground-owner/maintenance/stats');
-            const data = await response.json();
-
-            if (data.success) {
-                this.stats = data.stats;
-                this.updateStatsDisplay();
-            }
-        } catch (error) {
-            console.error('Error loading stats:', error);
-        }
+            const data = await api('/api/ground-owner/maintenance/stats');
+            if (data.success) renderStats(data.stats || {});
+        } catch (e) { console.error('stats', e); }
     }
 
-    async loadActiveTasks() {
+    async function loadTasks() {
+        const list = $('mtTasksList');
+        list.innerHTML = '<div class="mt-loading"><div class="mt-spinner"></div><p>Loading tasks…</p></div>';
+
+        const priority   = $('mtPriorityFilter').value;
+        const status     = $('mtStatusFilter').value;
+        const facilityId = $('mtGroundFilter').value;
+
+        let url = '/api/ground-owner/maintenance/tasks/active';
+        const params = [];
+        if (priority)   params.push(`priority=${priority}`);
+        if (facilityId) params.push(`facility_id=${facilityId}`);
+        // if a status filter is set use the full tasks endpoint for flexibility
+        if (status || priority || facilityId) {
+            url = '/api/ground-owner/maintenance/tasks';
+            if (status) params.push(`status=${status}`);
+        }
+        if (params.length) url += '?' + params.join('&');
+
         try {
-            let url = '/api/ground-owner/maintenance/tasks/active';
-            const params = [];
-
-            if (this.currentFilterPriority) params.push(`priority=${this.currentFilterPriority}`);
-            if (this.currentFilterStatus) params.push(`status=${this.currentFilterStatus}`);
-            if (this.selectedFacilityId) params.push(`facility_id=${this.selectedFacilityId}`);
-
-            if (params.length > 0) {
-                url = `/api/ground-owner/maintenance/tasks?${params.join('&')}`;
-            }
-
-            const response = await fetch(url);
-            const data = await response.json();
-
-            if (data.success) {
-                this.tasks = data.tasks || [];
-                this.renderTasksList();
-            }
-        } catch (error) {
-            console.error('Error loading tasks:', error);
-            this.showToast('Failed to load tasks', 'error');
+            const data = await api(url);
+            if (data.success) renderTasks(data.tasks || []);
+            else list.innerHTML = '<div class="mt-empty"><i class="fas fa-exclamation-circle"></i><p>Failed to load tasks.</p></div>';
+        } catch (e) {
+            list.innerHTML = '<div class="mt-empty"><i class="fas fa-exclamation-circle"></i><p>Network error.</p></div>';
         }
     }
 
-    async loadUpcomingInspections() {
+    async function loadInspections() {
         try {
-            const response = await fetch('/api/ground-owner/inspections/upcoming?limit=5');
-            const data = await response.json();
+            const data = await api('/api/ground-owner/inspections/upcoming?limit=5');
+            if (data.success) renderInspections(data.inspections || []);
+        } catch (e) { console.error('inspections', e); }
+    }
 
-            if (data.success) {
-                this.inspections = data.inspections || [];
-                this.renderInspectionsList();
-            }
-        } catch (error) {
-            console.error('Error loading inspections:', error);
+    async function renderCalendar() {
+        const year  = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
+        const start = new Date(year, month, 1);
+        const end   = new Date(year, month + 1, 0);
+
+        // Update label
+        $('mtCalMonth').textContent = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        try {
+            const data = await api(
+                `/api/ground-owner/maintenance/calendar?start_date=${fmtISO(start)}&end_date=${fmtISO(end)}`
+            );
+            buildCalendarGrid(data.success ? data.tasks || [] : [], year, month);
+        } catch (e) { buildCalendarGrid([], year, month); }
+    }
+
+    /* ================================================================
+       RENDER
+    ================================================================ */
+    function renderStats(s) {
+        $('mtActiveTasks').textContent = s.active_tasks    || 0;
+        $('mtHighPri').textContent     = s.high_priority_tasks  || 0;
+        $('mtMedPri').textContent      = s.medium_priority_tasks || 0;
+        $('mtOverdue').textContent     = s.overdue_tasks   || 0;
+        $('mtCompleted').textContent   = s.completed_month || 0;
+        $('mtCompRate').textContent    = (s.completion_rate || 0) + '%';
+        $('mtCost').textContent        = 'LKR ' + Number(s.monthly_cost || 0).toLocaleString();
+    }
+
+    function renderTasks(tasks) {
+        const list = $('mtTasksList');
+        if (!tasks.length) {
+            list.innerHTML = '<div class="mt-empty"><i class="fas fa-tasks"></i><p>No active tasks. All maintenance is up to date!</p></div>';
+            return;
         }
+        list.innerHTML = tasks.map(t => {
+            const pc = priorityColor(t.priority);
+            const sc = statusColor(t.status);
+            return `
+            <div class="mt-task-card" style="border-left-color:${pc}" data-task-id="${t.id}">
+                <div class="mt-task-row1">
+                    <span class="mt-task-title">${esc(t.title)}</span>
+                    <span class="mt-priority-badge" style="background:${pc}20;color:${pc}">${esc(t.priority)}</span>
+                </div>
+                <div class="mt-task-meta">
+                    <span><i class="fas fa-map-marker-alt"></i> ${esc(t.facility_name || '—')}</span>
+                    <span><i class="fas fa-calendar"></i> ${fmtDate(t.scheduled_date)}</span>
+                    <span><i class="fas fa-tools"></i> ${esc(t.task_type)}</span>
+                    <span class="mt-task-status" style="background:${sc}20;color:${sc}">${esc(t.status)}</span>
+                </div>
+            </div>`;
+        }).join('');
+
+        // click to view details
+        list.querySelectorAll('.mt-task-card').forEach(card => {
+            card.addEventListener('click', () => openTaskDetails(+card.dataset.taskId));
+        });
     }
 
-    updateStatsDisplay() {
-        // Update stat cards
-        const activeTasks = document.getElementById('activeTasks');
-        const highPriority = document.getElementById('highPriorityTasks');
-        const mediumPriority = document.getElementById('mediumPriorityTasks');
-        const overdueTasks = document.getElementById('overdueTasks');
-        const completedMonth = document.getElementById('completedMonth');
-        const completionRate = document.getElementById('completionRate');
-        const monthlyCost = document.getElementById('monthlyCost');
-
-        if (activeTasks) activeTasks.textContent = this.stats.active_tasks || 0;
-        if (highPriority) highPriority.textContent = this.stats.high_priority_tasks || 0;
-        if (mediumPriority) mediumPriority.textContent = this.stats.medium_priority_tasks || 0;
-        if (overdueTasks) overdueTasks.textContent = this.stats.overdue_tasks || 0;
-        if (completedMonth) completedMonth.textContent = this.stats.completed_month || 0;
-        if (completionRate) completionRate.textContent = `${this.stats.completion_rate || 0}%`;
-        if (monthlyCost) monthlyCost.textContent = `LKR ${(this.stats.monthly_cost || 0).toLocaleString()}`;
+    function renderInspections(insp) {
+        const list = $('mtInspectionsList');
+        if (!insp.length) {
+            list.innerHTML = '<div class="mt-empty"><i class="fas fa-clipboard-check"></i><p>No upcoming inspections.</p></div>';
+            return;
+        }
+        list.innerHTML = insp.map(i => `
+            <div class="mt-insp-card">
+                <div class="mt-insp-row1">
+                    <span class="mt-insp-name">${esc(i.facility_name || '—')}</span>
+                    <span class="mt-insp-type">${esc(i.inspection_type)}</span>
+                </div>
+                <div class="mt-insp-meta">
+                    <span><i class="fas fa-calendar"></i> ${fmtDate(i.inspection_date)}</span>
+                    ${i.inspection_time ? ` &nbsp;<i class="fas fa-clock"></i> ${i.inspection_time.slice(0,5)}` : ''}
+                    ${i.inspector ? ` &nbsp;<i class="fas fa-user"></i> ${esc(i.inspector)}` : ''}
+                </div>
+            </div>`).join('');
     }
 
-    updateFacilityDropdowns() {
-        const taskGround = document.getElementById('taskGround');
-        const inspectionGround = document.getElementById('inspectionGround');
-        const groundFilter = document.getElementById('groundFilter');
+    function buildCalendarGrid(tasks, year, month) {
+        const container = $('mtCalendar');
+        const firstDay  = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today     = new Date();
 
-        [taskGround, inspectionGround].forEach(select => {
-            if (select) {
-                select.innerHTML = '<option value="">Select Ground</option>';
-                this.facilities.forEach(facility => {
-                    const option = document.createElement('option');
-                    option.value = facility.id;
-                    option.textContent = facility.name;
-                    select.appendChild(option);
-                });
-            }
+        // group tasks by date
+        const byDate = {};
+        tasks.forEach(t => {
+            const d = t.scheduled_date;
+            if (!byDate[d]) byDate[d] = [];
+            byDate[d].push(t);
         });
 
-        if (groundFilter && this.facilities.length > 0) {
-            groundFilter.innerHTML = '<option value="">All Grounds</option>';
-            this.facilities.forEach(facility => {
-                const option = document.createElement('option');
-                option.value = facility.id;
-                option.textContent = facility.name;
-                groundFilter.appendChild(option);
-            });
-        }
-    }
+        let html = '';
+        ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+            html += `<div class="mt-cal-day-header">${d}</div>`;
+        });
 
-    renderTasksList() {
-        const container = document.getElementById('activeTasksList');
-        if (!container) return;
+        for (let i = 0; i < firstDay; i++) html += '<div class="mt-cal-cell empty"></div>';
 
-        if (this.tasks.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #6b7280;">
-                    <i class="fas fa-tasks" style="font-size: 48px; margin-bottom: 16px;"></i>
-                    <h3>No Active Tasks</h3>
-                    <p>All maintenance tasks are up to date!</p>
-                </div>
-            `;
-            return;
+        for (let day = 1; day <= daysInMonth; day++) {
+            const d    = new Date(year, month, day);
+            const dStr = fmtISO(d);
+            const isToday = d.toDateString() === today.toDateString();
+            const dayTasks = byDate[dStr] || [];
+
+            html += `<div class="mt-cal-cell${isToday ? ' today' : ''}">
+                <div class="mt-cal-day-num">${day}</div>
+                ${dayTasks.slice(0,2).map(t => `
+                    <div class="mt-cal-task-dot ${t.status}" title="${esc(t.title)}">
+                        ${esc(t.title.slice(0,14))}${t.title.length > 14 ? '…' : ''}
+                    </div>`).join('')}
+                ${dayTasks.length > 2 ? `<div class="mt-cal-more">+${dayTasks.length - 2} more</div>` : ''}
+            </div>`;
         }
 
-        container.innerHTML = this.tasks.map(task => `
-            <div class="task-card" style="border-left: 4px solid ${this.getPriorityColor(task.priority)}; padding: 16px; margin-bottom: 12px; background: white; border-radius: 8px; cursor: pointer;" onclick="maintenanceManager.viewTaskDetails(${task.id})">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                    <h4 style="margin: 0; font-size: 16px;">${task.title}</h4>
-                    <span class="priority-badge" style="padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; background: ${this.getPriorityColor(task.priority)}20; color: ${this.getPriorityColor(task.priority)}; text-transform: uppercase;">
-                        ${task.priority}
-                    </span>
-                </div>
-                <div style="color: #6b7280; font-size: 14px; margin-bottom: 8px;">
-                    <i class="fas fa-map-marker-alt"></i> ${task.facility_name}
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
-                    <span><i class="fas fa-calendar"></i> ${this.formatDate(task.scheduled_date)}</span>
-                    <span><i class="fas fa-tools"></i> ${task.task_type}</span>
-                    <span style="color: ${this.getStatusColor(task.status)}; font-weight: 600;">
-                        <i class="fas fa-circle" style="font-size: 8px;"></i> ${task.status}
-                    </span>
-                </div>
-            </div>
-        `).join('');
+        container.innerHTML = html;
     }
 
-    renderInspectionsList() {
-        const container = document.getElementById('inspectionsList');
-        if (!container) return;
+    /* ================================================================
+       TASK DETAILS MODAL
+    ================================================================ */
+    async function openTaskDetails(taskId) {
+        currentTaskId = taskId;
+        const modal = $('mtDetailModal');
+        modal.style.display = 'flex';
 
-        if (this.inspections.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #6b7280;">
-                    <i class="fas fa-clipboard-check" style="font-size: 48px; margin-bottom: 16px;"></i>
-                    <h3>No Upcoming Inspections</h3>
-                    <p>Schedule your next inspection</p>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = this.inspections.map(inspection => `
-            <div class="inspection-card" style="padding: 16px; margin-bottom: 12px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #3b82f6;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <h4 style="margin: 0; font-size: 15px;">${inspection.facility_name}</h4>
-                    <span style="padding: 4px 10px; background: #3b82f6; color: white; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                        ${inspection.inspection_type}
-                    </span>
-                </div>
-                <div style="color: #6b7280; font-size: 13px;">
-                    <div><i class="fas fa-calendar"></i> ${this.formatDate(inspection.inspection_date)} ${inspection.inspection_time ? `at ${inspection.inspection_time.substring(0, 5)}` : ''}</div>
-                    ${inspection.inspector ? `<div><i class="fas fa-user"></i> ${inspection.inspector}</div>` : ''}
-                </div>
-            </div>
-        `).join('');
-    }
-
-    async renderCalendar() {
-        try {
-            const startDate = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), 1);
-            const endDate = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 0);
-
-            const response = await fetch(`/api/ground-owner/maintenance/calendar?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`);
-            const data = await response.json();
-
-            if (!data.success) return;
-
-            const calendarTasks = data.tasks || [];
-
-            // Update month display
-            const monthDisplay = document.getElementById('calendarMonth');
-            if (monthDisplay) {
-                monthDisplay.textContent = this.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            }
-
-            const container = document.getElementById('maintenanceCalendar');
-            if (!container) return;
-
-            // Generate calendar
-            const firstDay = startDate.getDay();
-            const daysInMonth = endDate.getDate();
-
-            let html = '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">';
-
-            // Day headers
-            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
-                html += `<div style="text-align: center; font-weight: 600; padding: 8px; background: #f3f4f6; border-radius: 4px;">${day}</div>`;
-            });
-
-            // Empty cells for days before month starts
-            for (let i = 0; i < firstDay; i++) {
-                html += '<div></div>';
-            }
-
-            // Calendar days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const currentDate = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), day);
-                const dateStr = currentDate.toISOString().split('T')[0];
-                const dayTasks = calendarTasks.filter(t => t.scheduled_date === dateStr);
-                const isToday = this.isToday(currentDate);
-
-                html += `
-                    <div style="min-height: 80px; padding: 8px; background: white; border: 2px solid ${isToday ? '#3b82f6' : '#e5e7eb'}; border-radius: 8px; ${isToday ? 'box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);' : ''}">
-                        <div style="font-weight: bold; margin-bottom: 4px; ${isToday ? 'color: #3b82f6;' : ''}">${day}</div>
-                        ${dayTasks.slice(0, 2).map(task => `
-                            <div style="font-size: 10px; padding: 2px 4px; margin: 2px 0; background: ${this.getStatusColorLight(task.status)}; border-left: 3px solid ${this.getStatusColor(task.status)}; border-radius: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${task.title}">
-                                ${task.title.substring(0, 15)}${task.title.length > 15 ? '...' : ''}
-                            </div>
-                        `).join('')}
-                        ${dayTasks.length > 2 ? `<div style="font-size: 10px; color: #6b7280; margin-top: 2px;">+${dayTasks.length - 2} more</div>` : ''}
-                    </div>
-                `;
-            }
-
-            html += '</div>';
-            container.innerHTML = html;
-
-        } catch (error) {
-            console.error('Error rendering calendar:', error);
-        }
-    }
-
-    navigateMonth(direction) {
-        this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + direction, 1);
-        this.renderCalendar();
-    }
-
-    async saveMaintenanceTask() {
-        const form = document.getElementById('maintenanceForm');
-        const formData = new FormData(form);
-
-        const data = {
-            facility_id: formData.get('ground_id'),
-            title: formData.get('title'),
-            description: formData.get('description'),
-            task_type: formData.get('task_type'),
-            category: formData.get('category'),
-            priority: formData.get('priority'),
-            scheduled_date: formData.get('scheduled_date'),
-            estimated_duration: formData.get('estimated_duration'),
-            estimated_cost: formData.get('estimated_cost'),
-            assigned_to: formData.get('assigned_to'),
-            required_tools: formData.get('required_tools'),
-            block_bookings: formData.get('block_bookings') === 'on',
-            send_notifications: formData.get('send_notifications') === 'on'
-        };
+        // reset
+        ['dtTitle','dtGround','dtType','dtPriority','dtStatus','dtDate','dtDuration','dtEstCost','dtActCost','dtAssigned','dtDesc','dtTools'].forEach(id => {
+            $(id).textContent = '—';
+        });
+        $('dtProgressList').innerHTML = '';
 
         try {
-            const response = await fetch('/api/ground-owner/maintenance/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+            const data = await api(`/api/ground-owner/maintenance/tasks/${taskId}`);
+            if (!data.success) { toast('Failed to load task details.', 'error'); return; }
 
-            const result = await response.json();
+            const t = data.task;
+            $('dtTitle').textContent    = t.title        || '—';
+            $('dtGround').textContent   = t.facility_name || '—';
+            $('dtType').textContent     = t.task_type    || '—';
+            $('dtDesc').textContent     = t.description  || '—';
+            $('dtTools').textContent    = t.required_tools || '—';
+            $('dtAssigned').textContent = t.assigned_to  || '—';
+            $('dtDate').textContent     = fmtDate(t.scheduled_date);
+            $('dtDuration').textContent = t.estimated_duration ? t.estimated_duration + ' hrs' : '—';
+            $('dtEstCost').textContent  = t.estimated_cost ? 'LKR ' + Number(t.estimated_cost).toLocaleString() : '—';
+            $('dtActCost').textContent  = t.actual_cost   ? 'LKR ' + Number(t.actual_cost).toLocaleString()   : '—';
 
-            if (result.success) {
-                this.showToast('Maintenance task created successfully', 'success');
-                this.closeModal(document.getElementById('maintenanceModal'));
-                await this.loadStats();
-                await this.loadActiveTasks();
-                await this.renderCalendar();
-                form.reset();
-            } else {
-                this.showToast(result.message || 'Failed to create task', 'error');
-            }
-        } catch (error) {
-            console.error('Error creating task:', error);
-            this.showToast('Error creating maintenance task', 'error');
+            // Priority + Status badges
+            const pc = priorityColor(t.priority);
+            const sc = statusColor(t.status);
+            $('dtPriority').innerHTML = `<span style="background:${pc}20;color:${pc};padding:2px 8px;border-radius:12px;font-weight:700;font-size:12px;">${t.priority}</span>`;
+            $('dtStatus').innerHTML   = `<span style="background:${sc}20;color:${sc};padding:2px 8px;border-radius:12px;font-weight:700;font-size:12px;">${t.status}</span>`;
+
+            // Show/hide complete button
+            $('mtCompleteTaskBtn').style.display = t.status === 'completed' ? 'none' : 'flex';
+
+            // Progress updates
+            const updates = t.progress_updates || [];
+            $('dtProgressList').innerHTML = updates.length
+                ? updates.map(u => `
+                    <div class="mt-progress-item">
+                        <p>${esc(u.update_text)}</p>
+                        <small>${u.created_at ? fmtDate(u.created_at) : ''}</small>
+                    </div>`).join('')
+                : '<p style="font-size:13px;color:#9ca3af;margin:0 0 8px;">No progress updates yet.</p>';
+
+        } catch (e) {
+            toast('Network error.', 'error');
         }
     }
 
-    async saveInspection() {
-        const form = document.getElementById('inspectionForm');
-        const formData = new FormData(form);
-
-        const data = {
-            facility_id: formData.get('ground_id'),
-            inspection_type: formData.get('inspection_type'),
-            inspector: formData.get('inspector'),
-            inspection_date: formData.get('inspection_date'),
-            inspection_time: formData.get('inspection_time'),
-            notes: formData.get('notes')
-        };
+    /* ================================================================
+       COMPLETE TASK
+    ================================================================ */
+    async function completeTask() {
+        if (!currentTaskId) return;
+        const btn = $('mtCompleteTaskBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Completing…';
 
         try {
-            const response = await fetch('/api/ground-owner/inspections', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                this.showToast('Inspection scheduled successfully', 'success');
-                this.closeModal(document.getElementById('inspectionModal'));
-                await this.loadUpcomingInspections();
-                form.reset();
-            } else {
-                this.showToast(result.message || 'Failed to schedule inspection', 'error');
-            }
-        } catch (error) {
-            console.error('Error scheduling inspection:', error);
-            this.showToast('Error scheduling inspection', 'error');
-        }
-    }
-
-    async viewTaskDetails(taskId) {
-        try {
-            const response = await fetch(`/api/ground-owner/maintenance/tasks/${taskId}`);
-            const data = await response.json();
-
+            const data = await api(`/api/ground-owner/maintenance/tasks/${currentTaskId}/complete`, { method: 'PUT', body: '{}' });
             if (data.success) {
-                const task = data.task;
-
-                // Populate modal
-                document.getElementById('detailTaskTitle').textContent = task.title;
-                document.getElementById('detailTaskGround').textContent = task.facility_name;
-                document.getElementById('detailTaskType').textContent = task.task_type;
-                document.getElementById('detailTaskPriority').textContent = task.priority;
-                document.getElementById('detailTaskStatus').textContent = task.status;
-                document.getElementById('detailScheduledDate').textContent = this.formatDate(task.scheduled_date);
-                document.getElementById('detailDuration').textContent = `${task.estimated_duration || 0} hours`;
-                document.getElementById('detailEstimatedCost').textContent = `LKR ${(task.estimated_cost || 0).toLocaleString()}`;
-                document.getElementById('detailActualCost').textContent = task.actual_cost ? `LKR ${task.actual_cost.toLocaleString()}` : '-';
-                document.getElementById('detailAssignedTo').textContent = task.assigned_to || '-';
-                document.getElementById('detailTaskDescription').textContent = task.description || '-';
-                document.getElementById('detailRequiredTools').textContent = task.required_tools || '-';
-
-                // Show modal
-                document.getElementById('taskDetailsModal').style.display = 'block';
+                toast('Task marked as completed!', 'success');
+                closeModal('mtDetailModal');
+                loadStats();
+                loadTasks();
+                renderCalendar();
+            } else {
+                toast(data.message || 'Could not complete task.', 'error');
             }
-        } catch (error) {
-            console.error('Error loading task details:', error);
-            this.showToast('Failed to load task details', 'error');
+        } catch (e) {
+            toast('Network error.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Mark Complete';
         }
     }
 
-    // Helper methods
-    getPriorityColor(priority) {
-        const colors = {
-            urgent: '#ef4444',
-            high: '#f59e0b',
-            medium: '#3b82f6',
-            low: '#10b981'
+    /* ================================================================
+       DELETE TASK
+    ================================================================ */
+    async function deleteTask() {
+        if (!currentTaskId) return;
+        if (!confirm('Delete this task? This cannot be undone.')) return;
+
+        try {
+            const data = await api(`/api/ground-owner/maintenance/tasks/${currentTaskId}`, { method: 'DELETE' });
+            if (data.success) {
+                toast('Task deleted.', 'info');
+                closeModal('mtDetailModal');
+                loadStats();
+                loadTasks();
+                renderCalendar();
+            } else {
+                toast(data.message || 'Could not delete task.', 'error');
+            }
+        } catch (e) {
+            toast('Network error.', 'error');
+        }
+    }
+
+    /* ================================================================
+       EDIT TASK — opens the add/edit modal pre-filled
+    ================================================================ */
+    async function editTask() {
+        if (!currentTaskId) return;
+        closeModal('mtDetailModal');
+
+        try {
+            const data = await api(`/api/ground-owner/maintenance/tasks/${currentTaskId}`);
+            if (!data.success) { toast('Could not load task.', 'error'); return; }
+
+            const t = data.task;
+            $('mtTaskModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Maintenance Task';
+            $('mtEditTaskId').value         = t.id;
+            $('mtFormGround').value         = t.facility_id   || '';
+            $('mtFormType').value           = t.task_type     || '';
+            $('mtFormTitle').value          = t.title         || '';
+            $('mtFormDesc').value           = t.description   || '';
+            $('mtFormPriority').value       = t.priority      || 'medium';
+            $('mtFormCategory').value       = t.category      || 'routine';
+            $('mtFormDate').value           = t.scheduled_date || '';
+            $('mtFormDuration').value       = t.estimated_duration || '';
+            $('mtFormCost').value           = t.estimated_cost || '';
+            $('mtFormAssigned').value       = t.assigned_to   || '';
+            $('mtFormTools').value          = t.required_tools || '';
+            $('mtFormBlock').checked        = !!+t.block_bookings;
+            $('mtFormNotify').checked       = t.send_notifications === null ? true : !!+t.send_notifications;
+
+            $('mtTaskModal').style.display = 'flex';
+        } catch (e) {
+            toast('Network error.', 'error');
+        }
+    }
+
+    /* ================================================================
+       ADD PROGRESS UPDATE
+    ================================================================ */
+    async function addProgressUpdate() {
+        if (!currentTaskId) return;
+        const ta   = $('dtProgressText');
+        const text = (ta.value || '').trim();
+        if (!text) { toast('Please write a progress note first.', 'info'); return; }
+
+        const btn = $('mtAddProgressBtn');
+        btn.disabled = true;
+
+        try {
+            const data = await api(`/api/ground-owner/maintenance/tasks/${currentTaskId}/progress`, {
+                method: 'POST',
+                body: JSON.stringify({ update_text: text, progress_percentage: 0 })
+            });
+            if (data.success) {
+                toast('Progress note added.', 'success');
+                ta.value = '';
+                // Re-open details to refresh progress list
+                openTaskDetails(currentTaskId);
+            } else {
+                toast(data.message || 'Could not add note.', 'error');
+            }
+        } catch (e) {
+            toast('Network error.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    /* ================================================================
+       SAVE TASK (create or update)
+    ================================================================ */
+    async function saveTask() {
+        const editId = $('mtEditTaskId').value;
+        const payload = {
+            facility_id:          $('mtFormGround').value,
+            task_type:            $('mtFormType').value,
+            title:                $('mtFormTitle').value.trim(),
+            description:          $('mtFormDesc').value.trim(),
+            priority:             $('mtFormPriority').value,
+            category:             $('mtFormCategory').value,
+            scheduled_date:       $('mtFormDate').value,
+            estimated_duration:   $('mtFormDuration').value || null,
+            estimated_cost:       $('mtFormCost').value     || 0,
+            assigned_to:          $('mtFormAssigned').value.trim() || null,
+            required_tools:       $('mtFormTools').value.trim()    || null,
+            block_bookings:       $('mtFormBlock').checked,
+            send_notifications:   $('mtFormNotify').checked
         };
-        return colors[priority] || '#6b7280';
+
+        if (!payload.facility_id || !payload.task_type || !payload.title || !payload.scheduled_date || !payload.priority) {
+            toast('Please fill in all required fields.', 'info');
+            return;
+        }
+
+        const btn = $('mtTaskModalSave');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+
+        try {
+            const isEdit = !!editId;
+            const url    = isEdit ? `/api/ground-owner/maintenance/tasks/${editId}` : '/api/ground-owner/maintenance/tasks';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            const data = await api(url, { method, body: JSON.stringify(payload) });
+            if (data.success) {
+                toast(isEdit ? 'Task updated!' : 'Task created!', 'success');
+                closeModal('mtTaskModal');
+                resetTaskForm();
+                loadStats();
+                loadTasks();
+                renderCalendar();
+            } else {
+                toast(data.message || 'Could not save task.', 'error');
+            }
+        } catch (e) {
+            toast('Network error.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Save Task';
+        }
     }
 
-    getStatusColor(status) {
-        const colors = {
-            scheduled: '#3b82f6',
-            'in-progress': '#f59e0b',
-            completed: '#10b981',
-            cancelled: '#ef4444',
-            overdue: '#dc2626'
+    /* ================================================================
+       SAVE INSPECTION
+    ================================================================ */
+    async function saveInspection() {
+        const payload = {
+            facility_id:     $('mtInspGround').value,
+            inspection_type: $('mtInspType').value,
+            inspection_date: $('mtInspDate').value,
+            inspection_time: $('mtInspTime').value || null,
+            inspector:       $('mtInspector').value.trim() || null,
+            notes:           $('mtInspNotes').value.trim() || null
         };
-        return colors[status] || '#6b7280';
+
+        if (!payload.facility_id || !payload.inspection_date) {
+            toast('Please fill in required fields.', 'info');
+            return;
+        }
+
+        const btn = $('mtInspectionSave');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scheduling…';
+
+        try {
+            const data = await api('/api/ground-owner/inspections', { method: 'POST', body: JSON.stringify(payload) });
+            if (data.success) {
+                toast('Inspection scheduled!', 'success');
+                closeModal('mtInspectionModal');
+                $('mtInspectionForm').reset();
+                loadInspections();
+            } else {
+                toast(data.message || 'Could not schedule inspection.', 'error');
+            }
+        } catch (e) {
+            toast('Network error.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-calendar-plus"></i> Schedule';
+        }
     }
 
-    getStatusColorLight(status) {
-        const colors = {
-            scheduled: '#dbeafe',
-            'in-progress': '#fef3c7',
-            completed: '#d1fae5',
-            cancelled: '#fee2e2',
-            overdue: '#fecaca'
-        };
-        return colors[status] || '#f3f4f6';
+    /* ================================================================
+       FACILITY DROPDOWNS
+    ================================================================ */
+    function populateFacilityDropdowns() {
+        const opts = facilities.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
+        [$('mtFormGround'), $('mtInspGround')].forEach(sel => {
+            if (sel) sel.innerHTML = '<option value="">Select Ground</option>' + opts;
+        });
+        const filter = $('mtGroundFilter');
+        if (filter) filter.innerHTML = '<option value="">All Grounds</option>' + opts;
     }
 
-    formatDate(dateStr) {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    /* ================================================================
+       BIND CONTROLS & MODALS
+    ================================================================ */
+    function bindControls() {
+        $('mtPriorityFilter').addEventListener('change', loadTasks);
+        $('mtStatusFilter').addEventListener('change', loadTasks);
+        $('mtGroundFilter').addEventListener('change', loadTasks);
+        $('mtPrevMonth').addEventListener('click', () => { currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1); renderCalendar(); });
+        $('mtNextMonth').addEventListener('click', () => { currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1); renderCalendar(); });
     }
 
-    isToday(date) {
-        const today = new Date();
-        return date.toDateString() === today.toDateString();
+    function bindModals() {
+        // Add task buttons
+        $('mtBtnAdd').addEventListener('click', () => {
+            $('mtTaskModalTitle').innerHTML = '<i class="fas fa-tools"></i> Add Maintenance Task';
+            $('mtEditTaskId').value = '';
+            resetTaskForm();
+            $('mtTaskModal').style.display = 'flex';
+        });
+
+        // Inspection buttons
+        $('mtBtnInspection').addEventListener('click', () => { $('mtInspectionModal').style.display = 'flex'; });
+        $('mtBtnInspection2').addEventListener('click', () => { $('mtInspectionModal').style.display = 'flex'; });
+
+        // Task modal
+        $('mtTaskModalClose').addEventListener('click', () => { closeModal('mtTaskModal'); resetTaskForm(); });
+        $('mtTaskModalCancel').addEventListener('click', () => { closeModal('mtTaskModal'); resetTaskForm(); });
+        $('mtTaskModalSave').addEventListener('click', saveTask);
+
+        // Detail modal
+        $('mtDetailClose').addEventListener('click', () => closeModal('mtDetailModal'));
+        $('mtDetailClose2').addEventListener('click', () => closeModal('mtDetailModal'));
+        $('mtCompleteTaskBtn').addEventListener('click', completeTask);
+        $('mtDeleteTaskBtn').addEventListener('click', deleteTask);
+        $('mtEditTaskBtn').addEventListener('click', editTask);
+        $('mtAddProgressBtn').addEventListener('click', addProgressUpdate);
+
+        // Inspection modal
+        $('mtInspectionClose').addEventListener('click', () => { closeModal('mtInspectionModal'); });
+        $('mtInspectionCancel').addEventListener('click', () => { closeModal('mtInspectionModal'); });
+        $('mtInspectionSave').addEventListener('click', saveInspection);
+
+        // Backdrop click to close
+        ['mtTaskModal','mtDetailModal','mtInspectionModal'].forEach(id => {
+            $(id).addEventListener('click', e => { if (e.target === $(id)) closeModal(id); });
+        });
     }
 
-    closeModal(modal) {
-        if (modal) modal.style.display = 'none';
+    /* ================================================================
+       HELPERS
+    ================================================================ */
+    function closeModal(id) {
+        const el = typeof id === 'string' ? $(id) : id;
+        if (el) el.style.display = 'none';
     }
 
-    showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 10000;
-        `;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+    function resetTaskForm() {
+        $('mtTaskForm').reset();
+        $('mtEditTaskId').value = '';
+        $('mtFormNotify').checked = true;
     }
-}
 
-// Global functions for HTML onclick handlers
-function addMaintenanceTask() {
-    document.getElementById('maintenanceModal').style.display = 'block';
-}
+    function priorityColor(p) {
+        return { urgent: '#ef4444', high: '#f59e0b', medium: '#3b82f6', low: '#10b981' }[p] || '#6b7280';
+    }
+    function statusColor(s) {
+        return { scheduled: '#3b82f6', 'in-progress': '#f59e0b', completed: '#10b981', cancelled: '#6b7280', overdue: '#ef4444' }[s] || '#6b7280';
+    }
 
-function scheduleInspection() {
-    document.getElementById('inspectionModal').style.display = 'block';
-}
+    function fmtDate(str) {
+        if (!str) return '—';
+        // parse YYYY-MM-DD safely avoiding UTC offset issues
+        const [y, m, d] = String(str).split('T')[0].split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
 
-function closeMaintenanceModal() {
-    document.getElementById('maintenanceModal').style.display = 'none';
-}
+    function fmtISO(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
 
-function closeInspectionModal() {
-    document.getElementById('inspectionModal').style.display = 'none';
-}
+    function esc(str) {
+        if (str == null) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
 
-function closeTaskDetailsModal() {
-    document.getElementById('taskDetailsModal').style.display = 'none';
-}
+    function toast(msg, type = 'info') {
+        const el = $('mtToast');
+        if (!el) return;
+        clearTimeout(toastTimer);
+        el.textContent = msg;
+        el.className   = `mt-toast ${type} show`;
+        toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+    }
 
-// Initialize when DOM is ready
-let maintenanceManager;
-document.addEventListener('DOMContentLoaded', () => {
-    maintenanceManager = new MaintenanceManager();
-});
+})();
