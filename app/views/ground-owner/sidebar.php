@@ -50,6 +50,12 @@
                     <span>Schedule</span>
                 </a>
             </li>
+            <li class="<?= strpos($_SERVER['REQUEST_URI'], '/ground-owner/availability') !== false ? 'active' : '' ?>">
+                <a href="/ground-owner/availability">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Availability</span>
+                </a>
+            </li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/ground-owner/maintenance') !== false ? 'active' : '' ?>">
                 <a href="/ground-owner/maintenance">
                     <i class="fas fa-tools"></i>

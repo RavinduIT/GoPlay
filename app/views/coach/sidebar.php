@@ -71,12 +71,6 @@
                 </a>
             </li> -->
             <li class="nav-divider"></li>
-            <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/settings') !== false ? 'active' : '' ?>">
-                <a href="/coach/settings">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </a>
-            </li>
             <li>
                 <a href="/logout" class="logout-link" onclick="return confirm('Are you sure you want to logout?')">
                     <i class="fas fa-sign-out-alt"></i>
@@ -118,14 +112,15 @@ async function loadSidebarStats() {
     try {
         const response = await fetch('/api/coach/sidebar-stats');
         const stats = await response.json();
-        
-        document.getElementById('activeClients').textContent = stats.activeClients || 0;
-        document.getElementById('monthSessions').textContent = stats.monthSessions || 0;
-        document.getElementById('scheduleCount').textContent = stats.upcomingSchedule || 0;
-        document.getElementById('clientsCount').textContent = stats.totalClients || 0;
-        document.getElementById('reviewsCount').textContent = stats.pendingReviews || 0;
+
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        set('activeClients', stats.activeClients || 0);
+        set('monthSessions', stats.monthSessions || 0);
+        set('scheduleCount', stats.upcomingSchedule || 0);
+        set('clientsCount',  stats.totalClients || 0);
+        set('reviewsCount',  stats.pendingReviews || 0);
     } catch (error) {
-        console.error('Error loading sidebar stats:', error);
+        // Sidebar stats are non-critical; fail silently
     }
 }
 
