@@ -44,12 +44,11 @@ class CoachController extends BaseController
      */
     public function dashboard(Request $request): Response
     {
-        // Check if user is authenticated and is coach
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->redirect('/login');
         }
-        
+
         return $this->view('coach/dashboard');
     }
 
@@ -58,12 +57,12 @@ class CoachController extends BaseController
      */
     public function profilePage(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->redirect('/login');
         }
-        
-        return $this->view('coach/profile');
+
+        return $this->viewWithoutLayout('coach/profile');
     }
 
     /**
@@ -71,12 +70,12 @@ class CoachController extends BaseController
      */
     public function sessionsPage(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->redirect('/login');
         }
-        
-        return $this->view('coach/sessions');
+
+        return $this->viewWithoutLayout('coach/sessions');
     }
 
     /**
@@ -84,12 +83,12 @@ class CoachController extends BaseController
      */
     public function clientsPage(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->redirect('/login');
         }
-        
-        return $this->view('coach/clients');
+
+        return $this->viewWithoutLayout('coach/clients');
     }
 
     /**
@@ -209,7 +208,7 @@ class CoachController extends BaseController
             return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
         }
 
-        $body     = json_decode(file_get_contents('php://input'), true) ?? [];
+        $body     = $request->getBody();
         $schedule = $body['schedule'] ?? [];
 
         if (empty($schedule)) {
@@ -346,7 +345,7 @@ class CoachController extends BaseController
         }
 
         $reviewId = (int)($request->getParam('id') ?? 0);
-        $body     = json_decode(file_get_contents('php://input'), true) ?? [];
+        $body     = $request->getBody();
         $text     = trim($body['reply_text'] ?? '');
 
         if (!$reviewId || !$text) {

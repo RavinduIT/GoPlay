@@ -8,13 +8,24 @@ use App\Models\SportsFacility;
 use App\Models\SportsCategory;
 use App\Models\GroundBooking;
 use App\Models\GroundOwnerEarnings;
+use App\Models\GroundOwnerNotification;
+use App\Models\FacilityAvailability;
 
 class GroundOwnerController extends BaseController
 {
     private ?SportsFacility $facilityModel = null;
     private ?SportsCategory $categoryModel = null;
     private ?GroundBooking $bookingModel = null;
-    
+    private ?FacilityAvailability $availModel = null;
+
+    private function getAvailModel(): FacilityAvailability
+    {
+        if ($this->availModel === null) {
+            $this->availModel = new FacilityAvailability();
+        }
+        return $this->availModel;
+    }
+
     private function getFacilityModel(): SportsFacility
     {
         if ($this->facilityModel === null) {
@@ -70,71 +81,80 @@ class GroundOwnerController extends BaseController
         if (!$this->checkGroundOwnerAuth()) {
             return $this->redirect('/login');
         }
-        
-        return $this->view('ground-owner/grounds');
+
+        return $this->viewWithoutLayout('ground-owner/grounds');
     }
-    
+
     public function bookingsPage(Request $request): Response
     {
         if (!$this->checkGroundOwnerAuth()) {
             return $this->redirect('/login');
         }
 
-        return $this->view('ground-owner/booking-dashboard');
+        return $this->viewWithoutLayout('ground-owner/booking-dashboard');
     }
-    
+
     public function earningsPage(Request $request): Response
     {
         if (!$this->checkGroundOwnerAuth()) {
             return $this->redirect('/login');
         }
-        
-        return $this->view('ground-owner/earnings');
+
+        return $this->viewWithoutLayout('ground-owner/earnings');
     }
-    
+
     public function reviewsPage(Request $request): Response
     {
         if (!$this->checkGroundOwnerAuth()) {
             return $this->redirect('/login');
         }
-        
-        return $this->view('ground-owner/reviews');
+
+        return $this->viewWithoutLayout('ground-owner/reviews');
     }
-    
+
     public function schedulePage(Request $request): Response
     {
         if (!$this->checkGroundOwnerAuth()) {
             return $this->redirect('/login');
         }
-        
-        return $this->view('ground-owner/schedule');
+
+        return $this->viewWithoutLayout('ground-owner/schedule');
     }
-    
+
+    public function availabilityPage(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+
+        return $this->viewWithoutLayout('ground-owner/availability');
+    }
+
     public function maintenancePage(Request $request): Response
     {
         if (!$this->checkGroundOwnerAuth()) {
             return $this->redirect('/login');
         }
-        
-        return $this->view('ground-owner/maintenance');
+
+        return $this->viewWithoutLayout('ground-owner/maintenance');
     }
-    
+
     public function profilePage(Request $request): Response
     {
         if (!$this->checkGroundOwnerAuth()) {
             return $this->redirect('/login');
         }
-        
-        return $this->view('ground-owner/profile');
+
+        return $this->viewWithoutLayout('ground-owner/profile');
     }
-    
+
     public function settingsPage(Request $request): Response
     {
         if (!$this->checkGroundOwnerAuth()) {
             return $this->redirect('/login');
         }
-        
-        return $this->view('ground-owner/settings');
+
+        return $this->viewWithoutLayout('ground-owner/settings');
     }
     
     // API Methods for Ground Management
@@ -712,6 +732,15 @@ class GroundOwnerController extends BaseController
             // Get all owner's facilities for the dropdown
             $facilities = $this->getFacilityModel()->getByOwnerId($ownerId);
 
+            // Get blocked dates for the date range
+            $facilityIds = array_column($facilities, 'id');
+            if ($facilityId) {
+                $facilityIds = [$facilityId];
+            }
+            $blockedDates = $this->getAvailModel()->getBlockedDatesForFacilities(
+                $facilityIds, $startDate, $endDate
+            );
+
             // Calculate statistics for the date range
             $totalBookings = count($bookings);
             $bookedSlots = count(array_filter($bookings, fn($b) =>
@@ -722,10 +751,11 @@ class GroundOwnerController extends BaseController
                 'schedule' => [
                     'bookings' => $bookings,
                     'facilities' => $facilities,
+                    'blocked_dates' => $blockedDates,
                     'stats' => [
                         'total_bookings' => $totalBookings,
                         'booked_slots' => $bookedSlots,
-                        'available_slots' => 0, // Can be calculated based on facility hours
+                        'available_slots' => 0,
                         'occupancy_rate' => $bookedSlots > 0 ? round(($bookedSlots / max($totalBookings, 1)) * 100) : 0
                     ],
                     'date_range' => [
@@ -887,7 +917,7 @@ class GroundOwnerController extends BaseController
     }
 
     /**
-     * Update ground owner profile
+     * Update ground owner profile (users table + ground_owner_profiles table)
      */
     public function updateProfile(Request $request): Response
     {
@@ -897,17 +927,23 @@ class GroundOwnerController extends BaseController
 
         try {
             $ownerId = $_SESSION['user_id'];
-            $data = $request->getJsonBody();
+            $data    = $request->getJsonBody();
 
-            $profileModel = new \App\Models\GroundOwnerProfile();
-            $success = $profileModel->updateProfile($ownerId, $data);
-
-            if (!$success) {
-                return $this->json([
-                    'success' => false,
-                    'message' => 'Failed to update profile'
-                ], 500);
+            // --- Update users table fields ---
+            $userFields = [];
+            foreach (['first_name', 'last_name', 'phone'] as $f) {
+                if (array_key_exists($f, $data)) {
+                    $userFields[$f] = trim($data[$f]);
+                }
             }
+            if (!empty($userFields)) {
+                $userModel = new \App\Models\User();
+                $userModel->update($ownerId, $userFields);
+            }
+
+            // --- Update ground_owner_profiles table ---
+            $profileModel = new \App\Models\GroundOwnerProfile();
+            $profileModel->updateProfile($ownerId, $data);
 
             return $this->json([
                 'success' => true,
@@ -918,9 +954,58 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to update profile',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Upload ground owner avatar / profile picture
+     * POST /api/ground-owner/upload-avatar
+     */
+    public function uploadAvatar(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        if (empty($_FILES['avatar'])) {
+            return $this->json(['success' => false, 'message' => 'No file uploaded'], 400);
+        }
+
+        $file = $_FILES['avatar'];
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return $this->json(['success' => false, 'message' => 'Upload error'], 400);
+        }
+
+        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $mime    = mime_content_type($file['tmp_name']);
+        if (!in_array($mime, $allowed)) {
+            return $this->json(['success' => false, 'message' => 'Invalid file type. Only JPG, PNG, GIF, WEBP allowed'], 400);
+        }
+
+        if ($file['size'] > 5 * 1024 * 1024) {
+            return $this->json(['success' => false, 'message' => 'File too large (max 5 MB)'], 400);
+        }
+
+        $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $filename = 'owner_' . $_SESSION['user_id'] . '_' . time() . '.' . $ext;
+        $dir      = ROOT_PATH . '/public/assets/images/owners/';
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
+            return $this->json(['success' => false, 'message' => 'Failed to save file'], 500);
+        }
+
+        $path      = '/public/assets/images/owners/' . $filename;
+        $userModel = new \App\Models\User();
+        $userModel->update((int)$_SESSION['user_id'], ['profile_picture' => $path]);
+
+        return $this->json(['success' => true, 'avatar_url' => $path]);
     }
 
     // ======================
@@ -928,7 +1013,7 @@ class GroundOwnerController extends BaseController
     // ======================
 
     /**
-     * Get all reviews for ground owner's facilities
+     * Get all reviews for ground owner's facilities (includes reply data)
      */
     public function getReviews(Request $request): Response
     {
@@ -937,40 +1022,22 @@ class GroundOwnerController extends BaseController
         }
 
         try {
-            $ownerId = $_SESSION['user_id'];
-            $facilityId = $request->getQuery('facility_id');
-
+            $ownerId     = $_SESSION['user_id'];
             $reviewModel = new \App\Models\FacilityReview();
-
-            if ($facilityId) {
-                // Verify facility belongs to owner
-                $facility = $this->getFacilityModel()->find((int)$facilityId);
-                if (!$facility || $facility['owner_id'] != $ownerId) {
-                    return $this->json([
-                        'success' => false,
-                        'message' => 'Facility not found'
-                    ], 404);
-                }
-
-                $reviews = $reviewModel->getByFacilityId((int)$facilityId);
-                $stats = $reviewModel->getReviewStats((int)$facilityId);
-            } else {
-                // Get all reviews for all owner's facilities
-                $reviews = $reviewModel->getByOwnerId($ownerId);
-                $stats = $reviewModel->getOwnerReviewStats($ownerId);
-            }
+            $reviews     = $reviewModel->getByOwnerIdWithReplies($ownerId);
+            $stats       = $reviewModel->getOwnerReviewStatsDetailed($ownerId);
 
             return $this->json([
                 'success' => true,
                 'reviews' => $reviews,
-                'stats' => $stats
+                'stats'   => $stats
             ]);
 
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load reviews',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage()
             ], 500);
         }
     }
@@ -985,21 +1052,113 @@ class GroundOwnerController extends BaseController
         }
 
         try {
-            $ownerId = $_SESSION['user_id'];
+            $ownerId     = $_SESSION['user_id'];
             $reviewModel = new \App\Models\FacilityReview();
-
-            $stats = $reviewModel->getOwnerReviewStats($ownerId);
+            $stats       = $reviewModel->getOwnerReviewStatsDetailed($ownerId);
 
             return $this->json([
                 'success' => true,
-                'stats' => $stats
+                'stats'   => $stats
             ]);
 
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load review statistics',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * POST   /api/ground-owner/reviews/{id}/reply  → create / update reply
+     * DELETE /api/ground-owner/reviews/{id}/reply  → delete reply
+     */
+    public function respondToReview(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        $reviewId    = (int) $request->getParam('id');
+        $ownerId     = $_SESSION['user_id'];
+        $reviewModel = new \App\Models\FacilityReview();
+        $method      = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'POST');
+
+        try {
+            if ($method === 'DELETE') {
+                $ok = $reviewModel->deleteReply($reviewId, $ownerId);
+                if (!$ok) {
+                    return $this->json(['success' => false, 'message' => 'Reply not found or not authorised'], 404);
+                }
+                return $this->json(['success' => true, 'message' => 'Reply deleted']);
+            }
+
+            // POST — create or update
+            $data      = $request->getJsonBody();
+            $replyText = trim($data['reply_text'] ?? '');
+
+            if (empty($replyText)) {
+                return $this->json(['success' => false, 'message' => 'Reply text is required'], 400);
+            }
+            if (mb_strlen($replyText) > 1000) {
+                return $this->json(['success' => false, 'message' => 'Reply cannot exceed 1000 characters'], 400);
+            }
+
+            $ok = $reviewModel->saveReply($reviewId, $ownerId, $replyText);
+            if (!$ok) {
+                return $this->json(['success' => false, 'message' => 'Review not found or not authorised'], 404);
+            }
+
+            return $this->json([
+                'success'    => true,
+                'message'    => 'Reply saved successfully',
+                'reply_text' => $replyText
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to save reply',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /api/ground-owner/reviews/{id}/report
+     */
+    public function reportReview(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        $reviewId    = (int) $request->getParam('id');
+        $ownerId     = $_SESSION['user_id'];
+        $reviewModel = new \App\Models\FacilityReview();
+
+        try {
+            $data        = $request->getJsonBody();
+            $reason      = trim($data['reason']      ?? '');
+            $description = trim($data['description'] ?? '') ?: null;
+
+            if (empty($reason)) {
+                return $this->json(['success' => false, 'message' => 'Reason is required'], 400);
+            }
+
+            $ok = $reviewModel->reportReview($reviewId, $ownerId, $reason, $description);
+            if (!$ok) {
+                return $this->json(['success' => false, 'message' => 'Could not submit report (already reported or invalid reason)'], 400);
+            }
+
+            return $this->json(['success' => true, 'message' => 'Review reported to admin']);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to report review',
+                'error'   => $e->getMessage()
             ], 500);
         }
     }
@@ -2060,6 +2219,431 @@ class GroundOwnerController extends BaseController
                 'message' => 'Failed to load payment analytics',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Add a walk-in customer transaction
+     */
+    public function addWalkInTransaction(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+
+            // Validate required fields
+            $required = ['facility_id', 'amount', 'earning_date', 'payment_method'];
+            foreach ($required as $field) {
+                if (empty($data[$field])) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => "Field '{$field}' is required"
+                    ], 400);
+                }
+            }
+
+            $amount = floatval($data['amount']);
+            if ($amount <= 0) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Amount must be greater than 0'
+                ], 400);
+            }
+
+            // Verify the facility belongs to this owner
+            $facility = $this->getFacilityModel()->find((int)$data['facility_id']);
+            if (!$facility || $facility['owner_id'] != $ownerId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Ground not found or does not belong to you'
+                ], 403);
+            }
+
+            $db = \Core\Database::getInstance()->getConnection();
+            $earningsModel = new GroundOwnerEarnings($db);
+
+            $id = $earningsModel->addWalkIn($ownerId, [
+                'facility_id'    => (int)$data['facility_id'],
+                'amount'         => $amount,
+                'earning_date'   => $data['earning_date'],
+                'payment_method' => $data['payment_method'],
+                'notes'          => $data['notes'] ?? null
+            ]);
+
+            if (!$id) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to save transaction'
+                ], 500);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Walk-in transaction recorded successfully',
+                'id'      => $id
+            ], 201);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to record walk-in transaction',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // =============================================
+    // NOTIFICATION METHODS
+    // =============================================
+
+    /**
+     * Get notifications for ground owner
+     */
+    public function getNotifications(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        $ownerId = $_SESSION['user_id'];
+
+        try {
+            $notificationModel = new GroundOwnerNotification();
+
+            $type = $request->getQuery('type');
+            $unreadOnly = $request->getQuery('unread') === 'true';
+            $limit = (int) ($request->getQuery('limit') ?? 50);
+
+            $notifications = $notificationModel->getByOwner($ownerId, $type, $unreadOnly, $limit);
+            $stats = $notificationModel->getStats($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'notifications' => $notifications,
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Error getting notifications: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'Error loading notifications',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get notification statistics
+     */
+    public function getNotificationStats(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        $ownerId = $_SESSION['user_id'];
+
+        try {
+            $notificationModel = new GroundOwnerNotification();
+            $stats = $notificationModel->getStats($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error loading notification stats',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public function markNotificationRead(Request $request, $id): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        $ownerId = $_SESSION['user_id'];
+
+        try {
+            $notificationModel = new GroundOwnerNotification();
+            $success = $notificationModel->markAsRead($id, $ownerId);
+
+            return $this->json([
+                'success' => $success,
+                'message' => $success ? 'Notification marked as read' : 'Notification not found'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error updating notification',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark all notifications as read
+     */
+    public function markAllNotificationsRead(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        $ownerId = $_SESSION['user_id'];
+
+        try {
+            $notificationModel = new GroundOwnerNotification();
+            $notificationModel->markAllAsRead($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'All notifications marked as read'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error updating notifications',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a notification
+     */
+    public function deleteNotification(Request $request, $id): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        $ownerId = $_SESSION['user_id'];
+
+        try {
+            $notificationModel = new GroundOwnerNotification();
+            $success = $notificationModel->deleteNotification($id, $ownerId);
+
+            return $this->json([
+                'success' => $success,
+                'message' => $success ? 'Notification deleted' : 'Notification not found'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error deleting notification',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Clear all notifications
+     */
+    public function clearAllNotifications(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        $ownerId = $_SESSION['user_id'];
+
+        try {
+            $notificationModel = new GroundOwnerNotification();
+            $notificationModel->clearAll($ownerId);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'All notifications cleared'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error clearing notifications',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ── Availability & Blocked Dates ──────────────────────────────
+
+    /**
+     * GET /api/ground-owner/availability?facility_id=
+     * Returns the 7-day weekly schedule for a facility.
+     */
+    public function getAvailability(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+        try {
+            $ownerId    = $_SESSION['user_id'];
+            $facilityId = (int)$request->getQuery('facility_id');
+
+            if (!$facilityId) {
+                return $this->json(['success' => false, 'message' => 'facility_id required'], 400);
+            }
+
+            $facility = $this->getFacilityModel()->find($facilityId);
+            if (!$facility || $facility['owner_id'] != $ownerId) {
+                return $this->json(['success' => false, 'message' => 'Facility not found'], 404);
+            }
+
+            $schedule = $this->getAvailModel()->getWeeklySchedule($facilityId);
+
+            return $this->json(['success' => true, 'schedule' => $schedule]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Failed to get availability', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * PUT /api/ground-owner/availability
+     * Body: { facility_id, schedule: [{day_of_week, is_available, opening_time, closing_time, slot_duration, buffer_time}] }
+     */
+    public function saveWeeklyAvailability(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $data    = $request->getBody();
+
+            $facilityId = (int)($data['facility_id'] ?? 0);
+            if (!$facilityId) {
+                return $this->json(['success' => false, 'message' => 'facility_id required'], 400);
+            }
+
+            $facility = $this->getFacilityModel()->find($facilityId);
+            if (!$facility || $facility['owner_id'] != $ownerId) {
+                return $this->json(['success' => false, 'message' => 'Facility not found'], 404);
+            }
+
+            $schedule = $data['schedule'] ?? [];
+            if (empty($schedule)) {
+                return $this->json(['success' => false, 'message' => 'Schedule data required'], 400);
+            }
+
+            $this->getAvailModel()->saveWeeklySchedule($facilityId, $schedule);
+
+            return $this->json(['success' => true, 'message' => 'Schedule saved successfully']);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Failed to save schedule', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/ground-owner/blocked-dates?facility_id=
+     */
+    public function getBlockedDates(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+        try {
+            $ownerId    = $_SESSION['user_id'];
+            $facilityId = (int)$request->getQuery('facility_id');
+
+            if (!$facilityId) {
+                return $this->json(['success' => false, 'message' => 'facility_id required'], 400);
+            }
+
+            $facility = $this->getFacilityModel()->find($facilityId);
+            if (!$facility || $facility['owner_id'] != $ownerId) {
+                return $this->json(['success' => false, 'message' => 'Facility not found'], 404);
+            }
+
+            $blockedDates = $this->getAvailModel()->getAllBlockedDates($facilityId);
+
+            return $this->json(['success' => true, 'blocked_dates' => $blockedDates]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Failed to get blocked dates', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * POST /api/ground-owner/blocked-dates
+     * Body: { facility_id, start_date, end_date, start_time?, end_time?, reason, notes? }
+     */
+    public function addBlockedDate(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $data    = $request->getBody();
+
+            $facilityId = (int)($data['facility_id'] ?? 0);
+            if (!$facilityId) {
+                return $this->json(['success' => false, 'message' => 'facility_id required'], 400);
+            }
+
+            $facility = $this->getFacilityModel()->find($facilityId);
+            if (!$facility || $facility['owner_id'] != $ownerId) {
+                return $this->json(['success' => false, 'message' => 'Facility not found'], 404);
+            }
+
+            if (empty($data['start_date']) || empty($data['end_date'])) {
+                return $this->json(['success' => false, 'message' => 'start_date and end_date required'], 400);
+            }
+
+            $blockId = $this->getAvailModel()->addBlockedDate($facilityId, $ownerId, $data);
+
+            return $this->json(['success' => true, 'message' => 'Dates blocked successfully', 'id' => $blockId], 201);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Failed to block dates', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * DELETE /api/ground-owner/blocked-dates/{id}
+     */
+    public function removeBlockedDate(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+        try {
+            $ownerId = $_SESSION['user_id'];
+            $blockId = (int)$request->getParam('id');
+
+            if (!$blockId) {
+                return $this->json(['success' => false, 'message' => 'Block ID required'], 400);
+            }
+
+            $removed = $this->getAvailModel()->removeBlockedDate($blockId, $ownerId);
+
+            if (!$removed) {
+                return $this->json(['success' => false, 'message' => 'Block not found or unauthorized'], 404);
+            }
+
+            return $this->json(['success' => true, 'message' => 'Blocked date removed']);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Failed to remove blocked date', 'error' => $e->getMessage()], 500);
         }
     }
 }

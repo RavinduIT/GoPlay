@@ -237,6 +237,31 @@ class GroundOwnerEarnings {
         }
     }
 
+    // Insert a walk-in (cash/card on-site) transaction
+    public function addWalkIn($ownerId, $data) {
+        try {
+            $query = "INSERT INTO {$this->table}
+                (owner_id, facility_id, amount, earning_date, earning_type,
+                 payment_status, payment_method, notes, created_at)
+                VALUES (?, ?, ?, ?, 'booking', 'paid', ?, ?, NOW())";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute([
+                $ownerId,
+                $data['facility_id'],
+                $data['amount'],
+                $data['earning_date'],
+                $data['payment_method'],
+                $data['notes'] ?? null
+            ]);
+
+            return (int) $this->conn->lastInsertId();
+        } catch (PDOException $e) {
+            error_log("Error in addWalkIn: " . $e->getMessage());
+            return false;
+        }
+    }
+
     // Get all earnings data in one call (for main API endpoint)
     public function getAllEarningsData($ownerId) {
         return [

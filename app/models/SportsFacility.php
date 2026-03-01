@@ -49,7 +49,7 @@ class SportsFacility extends BaseModel
         $sql = "SELECT sf.*, sc.name as category_name, sc.icon as category_icon
                 FROM {$this->table} sf 
                 LEFT JOIN sports_categories sc ON sf.sport_category_id = sc.id 
-                WHERE sf.owner_id = ? AND sf.status != 'inactive'
+                WHERE sf.owner_id = ?
                 ORDER BY sf.created_at DESC";
         
         $statement = $this->query($sql, [$ownerId]);
