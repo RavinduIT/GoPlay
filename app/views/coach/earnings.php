@@ -1,195 +1,135 @@
-<?php
-$title = 'Earnings - Coach Dashboard';
-$additionalCSS = ['/public/css/pages/coach-earnings.css'];
-$additionalJS = ['/public/js/pages/coach-earnings.js'];
-?>
+<?php $currentPage = 'earnings'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earnings - Coach Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/public/css/coach/sidebar.css">
+    <link rel="stylesheet" href="/public/css/pages/coach-earnings.css">
 
+</head>
+<body>
 <div class="coach-dashboard">
-    <!-- Include Sidebar -->
-    <?php include __DIR__ . '/sidebar.php'; ?>
+    <?php include 'sidebar.php'; ?>
 
-    <!-- Main Content -->
-    <main class="dashboard-main">
-        <!-- Top Header -->
-        <header class="dashboard-header">
+    <main class="main-content">
+
+        <!-- ── Page Header ─────────────────────────────────── -->
+        <div class="page-header">
             <div class="header-left">
                 <button class="sidebar-toggle" onclick="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title">
-                    <i class="fas fa-wallet"></i> Earnings
-                </h1>
+                <div>
+                    <h1 class="page-title"><i class="fas fa-wallet"></i> Earnings</h1>
+                    <p class="page-subtitle">Track your income and session revenue</p>
+                </div>
             </div>
-            <!-- <div class="header-right">
-                <button class="btn btn-secondary" onclick="earningsManager.exportEarnings()">
-                    <i class="fas fa-download"></i> Export Report
+            <div class="header-right">
+                <button class="btn btn-secondary" id="exportBtn">
+                    <i class="fas fa-download"></i> Export CSV
                 </button>
-            </div> -->
-        </header>
+            </div>
+        </div>
 
-        <!-- Dashboard Content -->
-        <div class="dashboard-content">
-            <!-- Stats Cards -->
+        <div class="earnings-content">
+
+            <!-- ── Stat Cards ──────────────────────────────── -->
             <div class="stats-grid">
                 <div class="stat-card total-earnings">
-                    <div class="stat-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Total Earnings</h3>
-                        <p class="stat-number" id="totalEarnings">LKR 0</p>
-                        <div class="stat-change">
-                            <span id="earningsChange">This month</span>
-                        </div>
+                    <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                    <div class="stat-body">
+                        <div class="stat-value" id="totalEarnings">—</div>
+                        <div class="stat-label">Total Earnings</div>
+                        <div class="stat-change" id="earningsChange"></div>
                     </div>
                 </div>
-
                 <div class="stat-card pending-payments">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Pending Payments</h3>
-                        <p class="stat-number" id="pendingPayments">LKR 0</p>
-                        <div class="stat-change">
-                            <span id="pendingCount">0 sessions</span>
-                        </div>
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-body">
+                        <div class="stat-value" id="pendingPayments">—</div>
+                        <div class="stat-label">Pending Payments</div>
+                        <div class="stat-change" id="pendingCount"></div>
                     </div>
                 </div>
-
                 <div class="stat-card completed-sessions">
-                    <div class="stat-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Completed Sessions</h3>
-                        <p class="stat-number" id="completedSessions">0</p>
-                        <div class="stat-change">
-                            <span id="completedChange">This month</span>
-                        </div>
+                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-body">
+                        <div class="stat-value" id="completedSessions">—</div>
+                        <div class="stat-label">Completed Sessions</div>
+                        <div class="stat-change" id="completedChange"></div>
                     </div>
                 </div>
-
                 <div class="stat-card avg-rate">
-                    <div class="stat-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Average Rate</h3>
-                        <p class="stat-number" id="avgRate">LKR 0/hr</p>
-                        <div class="stat-change">
-                            <span id="rateChange">Per session</span>
-                        </div>
+                    <div class="stat-icon"><i class="fas fa-tag"></i></div>
+                    <div class="stat-body">
+                        <div class="stat-value" id="avgRate">—</div>
+                        <div class="stat-label">Hourly Rate</div>
+                        <div class="stat-change">Your base rate</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts Section -->
-            <div class="charts-section">
-                <div class="chart-card earnings-trend">
-                    <div class="card-header">
-                        <h2>
-                            <i class="fas fa-chart-area"></i>
-                            Earnings Trend
-                        </h2>
-                        <div class="period-selector">
-                            <button class="period-btn active" data-period="6months">6 Months</button>
-                            <button class="period-btn" data-period="12months">12 Months</button>
-                            <button class="period-btn" data-period="year">This Year</button>
-                        </div>
+            <!-- ── Filters ──────────────────────────────────── -->
+            <div class="filters-card">
+                <div class="filters-row">
+                    <div class="fgroup">
+                        <label>Date Range</label>
+                        <select id="dateRange">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month" selected>This Month</option>
+                            <option value="lastMonth">Last Month</option>
+                            <option value="quarter">This Quarter</option>
+                            <option value="year">This Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
                     </div>
-                    <div class="card-body">
-                        <canvas id="earningsTrendChart"></canvas>
+                    <div class="fgroup" id="customStart" style="display:none">
+                        <label>From</label>
+                        <input type="date" id="startDate">
                     </div>
-                </div>
-
-                <div class="chart-card session-breakdown">
-                    <div class="card-header">
-                        <h2>
-                            <i class="fas fa-chart-pie"></i>
-                            Earnings by Session Type
-                        </h2>
+                    <div class="fgroup" id="customEnd" style="display:none">
+                        <label>To</label>
+                        <input type="date" id="endDate">
                     </div>
-                    <div class="card-body">
-                        <canvas id="sessionBreakdownChart"></canvas>
-                        <div class="breakdown-legend" id="breakdownLegend"></div>
+                    <div class="fgroup">
+                        <label>Session Type</label>
+                        <select id="sessionType">
+                            <option value="">All Types</option>
+                            <option value="individual">Individual</option>
+                            <option value="group">Group</option>
+                            <option value="assessment">Assessment</option>
+                        </select>
                     </div>
-                </div>
-            </div>
-
-            <!-- Filters Section -->
-            <div class="content-card filters-card">
-                <div class="card-header">
-                    <h2>
-                        <i class="fas fa-filter"></i>
-                        Filter Earnings
-                    </h2>
-                </div>
-                <div class="card-body">
-                    <div class="filters-grid">
-                        <div class="filter-group">
-                            <label for="dateRange">Date Range</label>
-                            <select id="dateRange" class="filter-select">
-                                <option value="all">All Time</option>
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month" selected>This Month</option>
-                                <option value="lastMonth">Last Month</option>
-                                <option value="quarter">This Quarter</option>
-                                <option value="year">This Year</option>
-                                <option value="custom">Custom Range</option>
-                            </select>
-                        </div>
-
-                        <div class="filter-group" id="customDateGroup" style="display: none;">
-                            <label for="startDate">Start Date</label>
-                            <input type="date" id="startDate" class="filter-input">
-                        </div>
-
-                        <div class="filter-group" id="customDateGroup2" style="display: none;">
-                            <label for="endDate">End Date</label>
-                            <input type="date" id="endDate" class="filter-input">
-                        </div>
-
-                        <div class="filter-group">
-                            <label for="sessionType">Session Type</label>
-                            <select id="sessionType" class="filter-select">
-                                <option value="">All Types</option>
-                                <option value="individual">Individual</option>
-                                <option value="group">Group</option>
-                                <option value="assessment">Assessment</option>
-                            </select>
-                        </div>
-
-                        <div class="filter-group">
-                            <label for="paymentStatus">Payment Status</label>
-                            <select id="paymentStatus" class="filter-select">
-                                <option value="">All Status</option>
-                                <option value="paid">Paid</option>
-                                <option value="pending">Pending</option>
-                                <option value="refunded">Refunded</option>
-                                <option value="failed">Failed</option>
-                            </select>
-                        </div>
-
-                        <div class="filter-group">
-                            <button class="btn btn-primary" onclick="earningsManager.applyFilters()">
-                                <i class="fas fa-search"></i> Apply Filters
-                            </button>
-                        </div>
+                    <div class="fgroup">
+                        <label>Payment Status</label>
+                        <select id="paymentStatus">
+                            <option value="">All Status</option>
+                            <option value="paid">Paid</option>
+                            <option value="pending">Pending</option>
+                            <option value="refunded">Refunded</option>
+                        </select>
+                    </div>
+                    <div class="fgroup fgroup-btn">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" id="applyFilters">
+                            <i class="fas fa-search"></i> Apply
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Earnings List -->
-            <div class="content-card">
-                <div class="card-header">
-                    <h2>
-                        <i class="fas fa-list"></i>
-                        Recent Earnings
-                    </h2>
-                    <div class="sort-controls">
-                        <select id="sortBy" class="filter-select">
+            <!-- ── Earnings Table ────────────────────────────── -->
+            <div class="table-card">
+                <div class="table-card-header">
+                    <h3><i class="fas fa-list"></i> Session Earnings</h3>
+                    <div class="table-controls">
+                        <span class="results-label" id="resultsLabel"></span>
+                        <select id="sortBy">
                             <option value="date_desc">Latest First</option>
                             <option value="date_asc">Oldest First</option>
                             <option value="amount_desc">Highest Amount</option>
@@ -198,69 +138,263 @@ $additionalJS = ['/public/js/pages/coach-earnings.js'];
                     </div>
                 </div>
 
-                <div class="card-body">
-                    <!-- Loading State -->
-                    <div id="loadingMessage" class="loading-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading earnings...</p>
-                    </div>
+                <div id="tableLoading" class="table-loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading earnings…
+                </div>
 
-                    <!-- Earnings Table -->
-                    <div class="table-responsive" id="earningsTableContainer" style="display: none;">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Client</th>
-                                    <th>Session Type</th>
-                                    <th>Duration</th>
-                                    <th>Amount</th>
-                                    <th>Payment Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="earningsTableBody">
-                            </tbody>
-                        </table>
-                    </div>
+                <div id="earningsTableContainer" style="display:none">
+                    <table class="earnings-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Client</th>
+                                <th>Session Type</th>
+                                <th>Duration</th>
+                                <th>Amount</th>
+                                <th>Payment</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="earningsTableBody"></tbody>
+                    </table>
+                </div>
 
-                    <!-- No Earnings State -->
-                    <div id="noEarnings" class="empty-state" style="display: none;">
-                        <i class="fas fa-receipt"></i>
-                        <h3>No earnings found</h3>
-                        <p>No earnings match your current filters.</p>
-                    </div>
+                <div id="noEarnings" class="empty-state" style="display:none">
+                    <i class="fas fa-receipt"></i>
+                    <h3>No earnings found</h3>
+                    <p>Try adjusting your filters or date range.</p>
+                </div>
 
-                    <!-- Pagination -->
-                    <div class="pagination" id="pagination" style="display: none;">
-                        <button class="btn btn-secondary" id="prevPage" onclick="earningsManager.previousPage()">
-                            <i class="fas fa-chevron-left"></i> Previous
-                        </button>
-                        <span class="page-info" id="pageInfo">Page 1 of 1</span>
-                        <button class="btn btn-secondary" id="nextPage" onclick="earningsManager.nextPage()">
-                            Next <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
+                <div id="pagination" class="pagination" style="display:none">
+                    <button class="pg-btn" id="prevPage"><i class="fas fa-chevron-left"></i></button>
+                    <span id="pageInfo" class="pg-info">Page 1 of 1</span>
+                    <button class="pg-btn" id="nextPage"><i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
-        </div>
+
+        </div><!-- .earnings-content -->
     </main>
 </div>
 
-<!-- Session Details Modal -->
-<div id="sessionDetailsModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>
-                <i class="fas fa-info-circle"></i>
-                Session Details
-            </h3>
-            <button class="modal-close" onclick="earningsManager.closeModal('sessionDetailsModal')">
-                <i class="fas fa-times"></i>
-            </button>
+<!-- ── Session Detail Modal ─────────────────────────────── -->
+<div id="detailModal" class="e-modal">
+    <div class="e-modal-box">
+        <div class="e-modal-head">
+            <h3><i class="fas fa-receipt"></i> Session Details</h3>
+            <button id="closeDetail"><i class="fas fa-times"></i></button>
         </div>
-        <div class="modal-body" id="sessionDetailsContent">
-            <!-- Content loaded dynamically -->
-        </div>
+        <div class="e-modal-body" id="detailContent"></div>
     </div>
 </div>
+<div id="detailBackdrop" class="e-backdrop"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     JavaScript
+══════════════════════════════════════════════════════ -->
+<script>
+(function () {
+'use strict';
+
+/* ── state ─────────────────────────────────────────────── */
+let page       = 1;
+let totalPages = 1;
+
+/* ── currency helper ─────────────────────────────────── */
+function lkr(n) {
+    const val = parseFloat(n || 0);
+    return 'Rs. ' + val.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function changeHtml(val) {
+    if (val === null || val === undefined) return '';
+    const up   = val >= 0;
+    const icon = up ? 'fa-arrow-up' : 'fa-arrow-down';
+    const cls  = up ? 'chg-up' : 'chg-down';
+    return `<span class="${cls}"><i class="fas ${icon}"></i> ${Math.abs(val)}% from last period</span>`;
+}
+
+/* ── filters ──────────────────────────────────────────── */
+function getFilters() {
+    return {
+        dateRange:     document.getElementById('dateRange').value,
+        sessionType:   document.getElementById('sessionType').value,
+        paymentStatus: document.getElementById('paymentStatus').value,
+        sortBy:        document.getElementById('sortBy').value,
+        startDate:     document.getElementById('startDate').value || '',
+        endDate:       document.getElementById('endDate').value   || '',
+    };
+}
+
+function filtersToQuery(f, extra = {}) {
+    return new URLSearchParams({ ...f, ...extra }).toString();
+}
+
+/* ── load earnings list ───────────────────────────────── */
+async function loadEarnings(pg = 1) {
+    page = pg;
+    document.getElementById('tableLoading').style.display       = 'block';
+    document.getElementById('earningsTableContainer').style.display = 'none';
+    document.getElementById('noEarnings').style.display         = 'none';
+    document.getElementById('pagination').style.display         = 'none';
+
+    try {
+        const f   = getFilters();
+        const qs  = filtersToQuery(f, { page: pg, limit: 10 });
+        const res = await fetch('/api/coach/earnings?' + qs);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed');
+
+        renderStats(data.stats || {});
+        renderTable(data.earnings || []);
+        totalPages = data.totalPages || 1;
+        updatePagination(pg, totalPages, data.total || 0);
+
+    } catch (e) {
+        document.getElementById('tableLoading').innerHTML =
+            `<i class="fas fa-exclamation-circle"></i> ${e.message}`;
+    }
+}
+
+/* ── render stats ─────────────────────────────────────── */
+function renderStats(s) {
+    document.getElementById('totalEarnings').textContent    = lkr(s.total_earnings);
+    document.getElementById('earningsChange').innerHTML     = changeHtml(s.earnings_change);
+    document.getElementById('pendingPayments').textContent  = lkr(s.pending_payments);
+    document.getElementById('pendingCount').textContent     = (s.pending_count || 0) + ' sessions pending';
+    document.getElementById('completedSessions').textContent = s.completed_sessions || 0;
+    document.getElementById('completedChange').innerHTML    = changeHtml(s.completed_change);
+    document.getElementById('avgRate').textContent          = lkr(s.avg_rate) + '/hr';
+}
+
+/* ── render table ─────────────────────────────────────── */
+function renderTable(rows) {
+    document.getElementById('tableLoading').style.display = 'none';
+    if (!rows.length) {
+        document.getElementById('noEarnings').style.display = 'block';
+        return;
+    }
+    document.getElementById('earningsTableContainer').style.display = 'block';
+
+    const typeColors = { individual: '#3b82f6', group: '#10b981', assessment: '#8b5cf6' };
+    const payColors  = { paid: '#10b981', pending: '#f59e0b', refunded: '#ef4444' };
+
+    document.getElementById('earningsTableBody').innerHTML = rows.map(r => `
+        <tr>
+            <td>
+                <strong>${fmtDate(r.booking_date)}</strong>
+                <div class="cell-sub">${r.start_time} – ${r.end_time}</div>
+            </td>
+            <td>
+                <strong>${r.client_name || '—'}</strong>
+                <div class="cell-sub">${r.client_email || ''}</div>
+            </td>
+            <td>
+                <span class="type-pill" style="background:${typeColors[r.session_type] || '#94a3b8'}">
+                    ${(r.session_type || 'session').charAt(0).toUpperCase() + (r.session_type || '').slice(1)}
+                </span>
+            </td>
+            <td>${r.duration_hours}h</td>
+            <td class="amount-cell">${lkr(r.total_amount)}</td>
+            <td>
+                <span class="pay-pill" style="background:${payColors[r.payment_status]||'#94a3b8'}20;color:${payColors[r.payment_status]||'#94a3b8'}">
+                    ${(r.payment_status || '').charAt(0).toUpperCase() + (r.payment_status || '').slice(1)}
+                </span>
+            </td>
+            <td>
+                <button class="tbl-eye" onclick="viewDetail(${r.id})">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        </tr>`).join('');
+}
+
+/* ── pagination ───────────────────────────────────────── */
+function updatePagination(pg, total, count) {
+    const pag  = document.getElementById('pagination');
+    const info = document.getElementById('pageInfo');
+    const prev = document.getElementById('prevPage');
+    const next = document.getElementById('nextPage');
+    const lbl  = document.getElementById('resultsLabel');
+
+    lbl.textContent = count + ' record' + (count !== 1 ? 's' : '');
+    if (total <= 1 && pg === 1 && count <= 10) { pag.style.display = 'none'; return; }
+    pag.style.display  = 'flex';
+    info.textContent   = `Page ${pg} of ${total}`;
+    prev.disabled      = pg <= 1;
+    next.disabled      = pg >= total;
+}
+
+document.getElementById('prevPage').addEventListener('click', () => page > 1 && loadEarnings(page - 1));
+document.getElementById('nextPage').addEventListener('click', () => page < totalPages && loadEarnings(page + 1));
+
+/* ── session detail modal ─────────────────────────────── */
+window.viewDetail = async function (id) {
+    document.getElementById('detailContent').innerHTML =
+        '<div class="d-loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>';
+    openDetail();
+
+    try {
+        const res  = await fetch('/api/coach/earnings/' + id);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Not found');
+
+        const s = data.session;
+        const payColor = { paid: '#10b981', pending: '#f59e0b', refunded: '#ef4444' }[s.payment_status] || '#94a3b8';
+
+        document.getElementById('detailContent').innerHTML = `
+            <div class="detail-grid">
+                <div class="drow"><span>Session ID</span><strong>#${s.id}</strong></div>
+                <div class="drow"><span>Client</span><strong>${s.client_name || '—'}</strong></div>
+                <div class="drow"><span>Email</span><strong>${s.client_email || '—'}</strong></div>
+                <div class="drow"><span>Phone</span><strong>${s.client_phone || '—'}</strong></div>
+                <div class="drow"><span>Date</span><strong>${fmtDate(s.booking_date)}</strong></div>
+                <div class="drow"><span>Time</span><strong>${s.start_time} – ${s.end_time}</strong></div>
+                <div class="drow"><span>Duration</span><strong>${s.duration_hours} hr</strong></div>
+                <div class="drow"><span>Session Type</span><strong>${(s.session_type||'').charAt(0).toUpperCase()+(s.session_type||'').slice(1)}</strong></div>
+                <div class="drow"><span>Amount</span><strong class="d-amount">${lkr(s.total_amount)}</strong></div>
+                <div class="drow"><span>Payment</span>
+                    <strong style="color:${payColor}">${(s.payment_status||'').charAt(0).toUpperCase()+(s.payment_status||'').slice(1)}</strong>
+                </div>
+                <div class="drow"><span>Booking Status</span><strong>${(s.status||'').charAt(0).toUpperCase()+(s.status||'').slice(1)}</strong></div>
+                ${s.special_requests ? `<div class="drow drow-full"><span>Special Requests</span><p>${s.special_requests}</p></div>` : ''}
+                ${s.coach_notes      ? `<div class="drow drow-full"><span>Coach Notes</span><p>${s.coach_notes}</p></div>` : ''}
+            </div>`;
+    } catch (e) {
+        document.getElementById('detailContent').innerHTML = `<p class="d-err">${e.message}</p>`;
+    }
+};
+
+function openDetail()  { document.getElementById('detailModal').classList.add('open'); document.getElementById('detailBackdrop').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeDetail() { document.getElementById('detailModal').classList.remove('open'); document.getElementById('detailBackdrop').classList.remove('open'); document.body.style.overflow=''; }
+document.getElementById('closeDetail').addEventListener('click', closeDetail);
+document.getElementById('detailBackdrop').addEventListener('click', closeDetail);
+
+/* ── export ───────────────────────────────────────────── */
+document.getElementById('exportBtn').addEventListener('click', () => {
+    const f  = getFilters();
+    const qs = filtersToQuery(f);
+    window.location.href = '/api/coach/earnings/export?' + qs;
+});
+
+/* ── event wiring ─────────────────────────────────────── */
+document.getElementById('dateRange').addEventListener('change', e => {
+    const isCustom = e.target.value === 'custom';
+    document.getElementById('customStart').style.display = isCustom ? 'flex' : 'none';
+    document.getElementById('customEnd').style.display   = isCustom ? 'flex' : 'none';
+});
+
+document.getElementById('applyFilters').addEventListener('click', () => loadEarnings(1));
+document.getElementById('sortBy').addEventListener('change', () => loadEarnings(1));
+
+/* ── init ─────────────────────────────────────────────── */
+loadEarnings(1);
+
+})();
+</script>
+</body>
+</html>

@@ -1,459 +1,375 @@
-<?php 
-$title = 'Maintenance Management - GoPlay';
+<?php
+$title = 'Maintenance - GoPlay';
 $additionalCSS = [
     '/public/css/pages/ground-owner-dashboard.css',
     '/public/css/pages/ground-owner-maintenance.css'
 ];
 $additionalJS = ['/public/js/pages/ground-owner-maintenance.js'];
+include __DIR__ . '/layout-head.php';
 ?>
 
 <div class="ground-owner-dashboard">
-    <!-- Include Sidebar -->
     <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <!-- Main Content -->
     <main class="dashboard-main">
-        <!-- Top Header -->
         <header class="dashboard-header">
             <div class="header-left">
                 <button class="sidebar-toggle" onclick="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title">Maintenance Management</h1>
+                <h1 class="page-title">Maintenance</h1>
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <button class="btn-primary" onclick="addMaintenanceTask()">
-                        <i class="fas fa-plus"></i>
-                        Add Task
-                    </button>
-                    <button class="btn-secondary" onclick="scheduleInspection()">
-                        <i class="fas fa-search"></i>
-                        Schedule Inspection
-                    </button>
-                    <select id="groundFilter" class="filter-select">
+                    <select id="mtGroundFilter" class="filter-select">
                         <option value="">All Grounds</option>
                     </select>
-                </div>
-                <div class="header-notifications">
-                    <button class="notification-btn">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-count">3</span>
+                    <button class="btn-secondary" id="mtBtnInspection">
+                        <i class="fas fa-clipboard-check"></i> Inspection
                     </button>
-                </div>
-                <div class="owner-profile">
-                    <div class="profile-info">
-                        <span class="profile-name">Rajesh Perera</span>
-                        <span class="profile-role">Ground Owner</span>
-                    </div>
-                    <img src="/public/assets/images/owner-avatar.jpg" alt="Owner" class="profile-avatar">
-                    <button class="profile-dropdown">
-                        <i class="fas fa-chevron-down"></i>
+                    <button class="btn-primary" id="mtBtnAdd">
+                        <i class="fas fa-plus"></i> Add Task
                     </button>
                 </div>
             </div>
         </header>
 
-        <!-- Maintenance Content -->
         <div class="dashboard-content">
-            <!-- Maintenance Overview -->
-            <div class="maintenance-overview">
-                <div class="overview-card active-tasks">
-                    <div class="card-icon">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3>Active Tasks</h3>
-                        <p class="stat-number" id="activeTasks">0</p>
-                        <div class="priority-breakdown">
-                            <span class="high-priority">High: <strong id="highPriorityTasks">0</strong></span>
-                            <span class="medium-priority">Medium: <strong id="mediumPriorityTasks">0</strong></span>
+
+            <!-- Stat Cards -->
+            <div class="mt-stats-row">
+                <div class="mt-stat-card">
+                    <div class="mt-stat-icon mt-si-blue"><i class="fas fa-tools"></i></div>
+                    <div class="mt-stat-body">
+                        <div class="mt-stat-value" id="mtActiveTasks">—</div>
+                        <div class="mt-stat-label">Active Tasks</div>
+                        <div class="mt-stat-sub">
+                            High: <strong id="mtHighPri">0</strong> &nbsp;
+                            Medium: <strong id="mtMedPri">0</strong>
                         </div>
                     </div>
                 </div>
-
-                <div class="overview-card overdue-tasks">
-                    <div class="card-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3>Overdue Tasks</h3>
-                        <p class="stat-number warning" id="overdueTasks">0</p>
-                        <span class="urgency-indicator">Needs immediate attention</span>
+                <div class="mt-stat-card">
+                    <div class="mt-stat-icon mt-si-red"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="mt-stat-body">
+                        <div class="mt-stat-value" id="mtOverdue">—</div>
+                        <div class="mt-stat-label">Overdue</div>
+                        <div class="mt-stat-sub">Needs attention</div>
                     </div>
                 </div>
-
-                <div class="overview-card completed-month">
-                    <div class="card-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3>Completed This Month</h3>
-                        <p class="stat-number" id="completedMonth">0</p>
-                        <div class="completion-rate">
-                            <span id="completionRate">0%</span> completion rate
-                        </div>
+                <div class="mt-stat-card">
+                    <div class="mt-stat-icon mt-si-green"><i class="fas fa-check-circle"></i></div>
+                    <div class="mt-stat-body">
+                        <div class="mt-stat-value" id="mtCompleted">—</div>
+                        <div class="mt-stat-label">Completed This Month</div>
+                        <div class="mt-stat-sub"><span id="mtCompRate">0%</span> completion rate</div>
                     </div>
                 </div>
-
-                <div class="overview-card maintenance-cost">
-                    <div class="card-icon">
-                        <i class="fas fa-rupee-sign"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3>Monthly Cost</h3>
-                        <p class="stat-number" id="monthlyCost">LKR 0</p>
-                        <div class="cost-breakdown">
-                            <span class="cost-change" id="costChange">vs last month</span>
-                        </div>
+                <div class="mt-stat-card">
+                    <div class="mt-stat-icon mt-si-purple"><i class="fas fa-coins"></i></div>
+                    <div class="mt-stat-body">
+                        <div class="mt-stat-value" id="mtCost">—</div>
+                        <div class="mt-stat-label">Monthly Cost</div>
+                        <div class="mt-stat-sub">Estimated + Actual</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Maintenance Calendar -->
-            <div class="maintenance-calendar-section">
-                <div class="section-header">
+            <!-- Calendar -->
+            <div class="mt-calendar-card">
+                <div class="mt-section-header">
                     <h3>Maintenance Calendar</h3>
-                    <div class="calendar-controls">
-                        <button class="calendar-nav" id="prevCalendarMonth">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <h4 id="calendarMonth">December 2024</h4>
-                        <button class="calendar-nav" id="nextCalendarMonth">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+                    <div class="mt-cal-nav">
+                        <button id="mtPrevMonth"><i class="fas fa-chevron-left"></i></button>
+                        <span id="mtCalMonth">—</span>
+                        <button id="mtNextMonth"><i class="fas fa-chevron-right"></i></button>
                     </div>
                 </div>
-                <div class="maintenance-calendar" id="maintenanceCalendar">
-                    <!-- Calendar will be generated dynamically -->
-                </div>
-                <div class="calendar-legend">
-                    <div class="legend-item">
-                        <div class="legend-color scheduled"></div>
-                        <span>Scheduled</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color in-progress"></div>
-                        <span>In Progress</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color overdue"></div>
-                        <span>Overdue</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color completed"></div>
-                        <span>Completed</span>
-                    </div>
+                <div id="mtCalendar" class="mt-calendar"></div>
+                <div class="mt-cal-legend">
+                    <span class="mt-leg scheduled">Scheduled</span>
+                    <span class="mt-leg in-progress">In Progress</span>
+                    <span class="mt-leg overdue">Overdue</span>
+                    <span class="mt-leg completed">Completed</span>
                 </div>
             </div>
 
-            <!-- Tasks and Inspections -->
-            <div class="maintenance-content-grid">
-                <!-- Active Tasks -->
-                <div class="maintenance-section active-tasks-section">
-                    <div class="section-header">
-                        <h3>Active Maintenance Tasks</h3>
-                        <div class="section-filters">
-                            <select id="taskPriorityFilter" class="filter-select">
+            <!-- Tasks + Inspections -->
+            <div class="mt-content-grid">
+
+                <!-- Tasks -->
+                <div class="mt-panel">
+                    <div class="mt-section-header">
+                        <h3>Active Tasks</h3>
+                        <div class="mt-filters">
+                            <select id="mtPriorityFilter">
                                 <option value="">All Priorities</option>
-                                <option value="high">High Priority</option>
-                                <option value="medium">Medium Priority</option>
-                                <option value="low">Low Priority</option>
+                                <option value="urgent">Urgent</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
                             </select>
-                            <select id="taskStatusFilter" class="filter-select">
+                            <select id="mtStatusFilter">
                                 <option value="">All Status</option>
                                 <option value="scheduled">Scheduled</option>
                                 <option value="in-progress">In Progress</option>
-                                <option value="overdue">Overdue</option>
                             </select>
                         </div>
                     </div>
-                    <div class="tasks-list" id="activeTasksList">
-                        <!-- Dynamic tasks will be loaded here -->
+                    <div id="mtTasksList">
+                        <div class="mt-loading"><div class="mt-spinner"></div><p>Loading tasks…</p></div>
                     </div>
                 </div>
 
-                <!-- Inspection Schedule -->
-                <div class="maintenance-section inspection-section">
-                    <div class="section-header">
+                <!-- Inspections -->
+                <div class="mt-panel">
+                    <div class="mt-section-header">
                         <h3>Upcoming Inspections</h3>
-                        <button class="btn-secondary" onclick="scheduleInspection()">
-                            <i class="fas fa-plus"></i>
-                            Schedule New
+                        <button class="mt-btn-sm" id="mtBtnInspection2">
+                            <i class="fas fa-plus"></i> Schedule
                         </button>
                     </div>
-                    <div class="inspections-list" id="inspectionsList">
-                        <!-- Dynamic inspections will be loaded here -->
+                    <div id="mtInspectionsList">
+                        <div class="mt-loading"><div class="mt-spinner"></div><p>Loading…</p></div>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
     </main>
+</div>
 
-    <!-- Add Maintenance Task Modal -->
-    <div id="maintenanceModal" class="modal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h3 id="maintenanceModalTitle">Add Maintenance Task</h3>
-                <button class="modal-close" onclick="closeMaintenanceModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="maintenanceForm">
-                    <input type="hidden" id="taskId" name="task_id">
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="taskGround">Ground *</label>
-                            <select id="taskGround" name="ground_id" required>
-                                <option value="">Select Ground</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="taskType">Task Type *</label>
-                            <select id="taskType" name="task_type" required>
-                                <option value="">Select Type</option>
-                                <option value="cleaning">Cleaning</option>
-                                <option value="repair">Repair</option>
-                                <option value="inspection">Inspection</option>
-                                <option value="equipment">Equipment Maintenance</option>
-                                <option value="landscaping">Landscaping</option>
-                                <option value="painting">Painting</option>
-                                <option value="safety">Safety Check</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="taskTitle">Task Title *</label>
-                        <input type="text" id="taskTitle" name="title" required placeholder="e.g., Replace damaged goalpost">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="taskDescription">Description</label>
-                        <textarea id="taskDescription" name="description" rows="3" placeholder="Detailed description of the maintenance task..."></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="taskPriority">Priority *</label>
-                            <select id="taskPriority" name="priority" required>
-                                <option value="low">Low Priority</option>
-                                <option value="medium" selected>Medium Priority</option>
-                                <option value="high">High Priority</option>
-                                <option value="urgent">Urgent</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="taskCategory">Category</label>
-                            <select id="taskCategory" name="category">
-                                <option value="">Select Category</option>
-                                <option value="preventive">Preventive</option>
-                                <option value="corrective">Corrective</option>
-                                <option value="emergency">Emergency</option>
-                                <option value="routine">Routine</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="scheduledDate">Scheduled Date *</label>
-                            <input type="date" id="scheduledDate" name="scheduled_date" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="estimatedDuration">Est. Duration (hours)</label>
-                            <input type="number" id="estimatedDuration" name="estimated_duration" step="0.5" min="0.5">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="estimatedCost">Estimated Cost (LKR)</label>
-                            <input type="number" id="estimatedCost" name="estimated_cost" step="0.01" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="assignedTo">Assigned To</label>
-                            <input type="text" id="assignedTo" name="assigned_to" placeholder="Staff member or contractor">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="requiredTools">Required Tools/Materials</label>
-                        <textarea id="requiredTools" name="required_tools" rows="2" placeholder="List tools and materials needed..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="blockBookings" name="block_bookings">
-                            Block bookings during maintenance
-                        </label>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="sendNotifications" name="send_notifications" checked>
-                            Send notifications to relevant parties
-                        </label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeMaintenanceModal()">Cancel</button>
-                <button type="submit" class="btn-primary" form="maintenanceForm">Save Task</button>
-            </div>
+<!-- ══════════════════════════════════════
+     MODAL: Add / Edit Task
+════════════════════════════════════════ -->
+<div id="mtTaskModal" class="mt-modal-backdrop" style="display:none">
+    <div class="mt-modal mt-modal-lg">
+        <div class="mt-modal-header">
+            <h3 id="mtTaskModalTitle"><i class="fas fa-tools"></i> Add Maintenance Task</h3>
+            <button class="mt-modal-close" id="mtTaskModalClose"><i class="fas fa-times"></i></button>
         </div>
-    </div>
+        <div class="mt-modal-body">
+            <form id="mtTaskForm">
+                <input type="hidden" id="mtEditTaskId">
 
-    <!-- Task Details Modal -->
-    <div id="taskDetailsModal" class="modal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h3>Task Details</h3>
-                <button class="modal-close" onclick="closeTaskDetailsModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="task-details-content">
-                    <div class="task-info-grid">
-                        <div class="info-section basic-info">
-                            <h4>Basic Information</h4>
-                            <div class="info-items">
-                                <div class="info-item">
-                                    <label>Title:</label>
-                                    <span id="detailTaskTitle">-</span>
-                                </div>
-                                <div class="info-item">
-                                    <label>Ground:</label>
-                                    <span id="detailTaskGround">-</span>
-                                </div>
-                                <div class="info-item">
-                                    <label>Type:</label>
-                                    <span id="detailTaskType">-</span>
-                                </div>
-                                <div class="info-item">
-                                    <label>Priority:</label>
-                                    <span id="detailTaskPriority" class="priority-badge">-</span>
-                                </div>
-                                <div class="info-item">
-                                    <label>Status:</label>
-                                    <span id="detailTaskStatus" class="status-badge">-</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="info-section schedule-info">
-                            <h4>Schedule & Cost</h4>
-                            <div class="info-items">
-                                <div class="info-item">
-                                    <label>Scheduled:</label>
-                                    <span id="detailScheduledDate">-</span>
-                                </div>
-                                <div class="info-item">
-                                    <label>Duration:</label>
-                                    <span id="detailDuration">-</span>
-                                </div>
-                                <div class="info-item">
-                                    <label>Estimated Cost:</label>
-                                    <span id="detailEstimatedCost">-</span>
-                                </div>
-                                <div class="info-item">
-                                    <label>Actual Cost:</label>
-                                    <span id="detailActualCost">-</span>
-                                </div>
-                                <div class="info-item">
-                                    <label>Assigned To:</label>
-                                    <span id="detailAssignedTo">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="task-description">
-                        <h4>Description</h4>
-                        <p id="detailTaskDescription">-</p>
-                    </div>
-
-                    <div class="task-tools">
-                        <h4>Required Tools/Materials</h4>
-                        <p id="detailRequiredTools">-</p>
-                    </div>
-
-                    <div class="task-progress">
-                        <h4>Progress Updates</h4>
-                        <div id="taskProgressList">
-                            <!-- Progress updates will be shown here -->
-                        </div>
-                        <div class="add-progress">
-                            <textarea id="progressUpdate" placeholder="Add progress update..." rows="2"></textarea>
-                            <button class="btn-secondary" onclick="addProgressUpdate()">Add Update</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeTaskDetailsModal()">Close</button>
-                <button type="button" class="btn-success" onclick="completeTask()" id="completeTaskBtn">Mark Complete</button>
-                <button type="button" class="btn-primary" onclick="editTask()">Edit Task</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Inspection Modal -->
-    <div id="inspectionModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Schedule Inspection</h3>
-                <button class="modal-close" onclick="closeInspectionModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="inspectionForm">
-                    <div class="form-group">
-                        <label for="inspectionGround">Ground *</label>
-                        <select id="inspectionGround" name="ground_id" required>
+                <div class="mt-form-row">
+                    <div class="mt-form-group">
+                        <label>Ground *</label>
+                        <select id="mtFormGround" required>
                             <option value="">Select Ground</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="inspectionType">Inspection Type *</label>
-                        <select id="inspectionType" name="inspection_type" required>
-                            <option value="routine">Routine Inspection</option>
-                            <option value="safety">Safety Inspection</option>
-                            <option value="quality">Quality Check</option>
-                            <option value="equipment">Equipment Check</option>
-                            <option value="compliance">Compliance Check</option>
+                    <div class="mt-form-group">
+                        <label>Task Type *</label>
+                        <select id="mtFormType" required>
+                            <option value="">Select Type</option>
+                            <option value="cleaning">Cleaning</option>
+                            <option value="repair">Repair</option>
+                            <option value="inspection">Inspection</option>
+                            <option value="equipment">Equipment</option>
+                            <option value="landscaping">Landscaping</option>
+                            <option value="painting">Painting</option>
+                            <option value="safety">Safety Check</option>
+                            <option value="other">Other</option>
                         </select>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="inspectionDate">Inspection Date *</label>
-                            <input type="date" id="inspectionDate" name="inspection_date" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="inspectionTime">Time</label>
-                            <input type="time" id="inspectionTime" name="inspection_time">
-                        </div>
+                </div>
+
+                <div class="mt-form-group">
+                    <label>Task Title *</label>
+                    <input type="text" id="mtFormTitle" required placeholder="e.g., Replace damaged goalpost">
+                </div>
+
+                <div class="mt-form-group">
+                    <label>Description</label>
+                    <textarea id="mtFormDesc" rows="3" placeholder="Detailed description…"></textarea>
+                </div>
+
+                <div class="mt-form-row">
+                    <div class="mt-form-group">
+                        <label>Priority *</label>
+                        <select id="mtFormPriority" required>
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label for="inspector">Inspector</label>
-                        <input type="text" id="inspector" name="inspector" placeholder="Inspector name">
+                    <div class="mt-form-group">
+                        <label>Category</label>
+                        <select id="mtFormCategory">
+                            <option value="routine" selected>Routine</option>
+                            <option value="preventive">Preventive</option>
+                            <option value="corrective">Corrective</option>
+                            <option value="emergency">Emergency</option>
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label for="inspectionNotes">Notes</label>
-                        <textarea id="inspectionNotes" name="notes" rows="3"></textarea>
+                </div>
+
+                <div class="mt-form-row">
+                    <div class="mt-form-group">
+                        <label>Scheduled Date *</label>
+                        <input type="date" id="mtFormDate" required>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeInspectionModal()">Cancel</button>
-                <button type="submit" class="btn-primary" form="inspectionForm">Schedule Inspection</button>
-            </div>
+                    <div class="mt-form-group">
+                        <label>Duration (hours)</label>
+                        <input type="number" id="mtFormDuration" step="0.5" min="0.5" placeholder="e.g., 2">
+                    </div>
+                </div>
+
+                <div class="mt-form-row">
+                    <div class="mt-form-group">
+                        <label>Estimated Cost (LKR)</label>
+                        <input type="number" id="mtFormCost" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="mt-form-group">
+                        <label>Assigned To</label>
+                        <input type="text" id="mtFormAssigned" placeholder="Staff or contractor">
+                    </div>
+                </div>
+
+                <div class="mt-form-group">
+                    <label>Required Tools / Materials</label>
+                    <textarea id="mtFormTools" rows="2" placeholder="List tools and materials…"></textarea>
+                </div>
+
+                <div class="mt-checks-row">
+                    <label class="mt-check-label">
+                        <input type="checkbox" id="mtFormBlock">
+                        Block bookings during maintenance
+                    </label>
+                    <label class="mt-check-label">
+                        <input type="checkbox" id="mtFormNotify" checked>
+                        Send notifications
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="mt-modal-footer">
+            <button class="mt-btn-secondary" id="mtTaskModalCancel">Cancel</button>
+            <button class="mt-btn-primary" id="mtTaskModalSave">
+                <i class="fas fa-save"></i> Save Task
+            </button>
         </div>
     </div>
 </div>
+
+<!-- ══════════════════════════════════════
+     MODAL: Task Details
+════════════════════════════════════════ -->
+<div id="mtDetailModal" class="mt-modal-backdrop" style="display:none">
+    <div class="mt-modal mt-modal-lg">
+        <div class="mt-modal-header">
+            <h3><i class="fas fa-info-circle"></i> Task Details</h3>
+            <button class="mt-modal-close" id="mtDetailClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="mt-modal-body">
+            <div class="mt-detail-grid">
+                <div class="mt-detail-section">
+                    <h4>Basic Info</h4>
+                    <div class="mt-info-rows">
+                        <div class="mt-info-row"><span>Title</span><strong id="dtTitle">—</strong></div>
+                        <div class="mt-info-row"><span>Ground</span><strong id="dtGround">—</strong></div>
+                        <div class="mt-info-row"><span>Type</span><strong id="dtType">—</strong></div>
+                        <div class="mt-info-row"><span>Priority</span><strong id="dtPriority">—</strong></div>
+                        <div class="mt-info-row"><span>Status</span><strong id="dtStatus">—</strong></div>
+                    </div>
+                </div>
+                <div class="mt-detail-section">
+                    <h4>Schedule & Cost</h4>
+                    <div class="mt-info-rows">
+                        <div class="mt-info-row"><span>Scheduled</span><strong id="dtDate">—</strong></div>
+                        <div class="mt-info-row"><span>Duration</span><strong id="dtDuration">—</strong></div>
+                        <div class="mt-info-row"><span>Est. Cost</span><strong id="dtEstCost">—</strong></div>
+                        <div class="mt-info-row"><span>Actual Cost</span><strong id="dtActCost">—</strong></div>
+                        <div class="mt-info-row"><span>Assigned To</span><strong id="dtAssigned">—</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-detail-full">
+                <h4>Description</h4>
+                <p id="dtDesc" class="mt-detail-text">—</p>
+            </div>
+            <div class="mt-detail-full">
+                <h4>Required Tools / Materials</h4>
+                <p id="dtTools" class="mt-detail-text">—</p>
+            </div>
+            <div class="mt-detail-full">
+                <h4>Progress Updates</h4>
+                <div id="dtProgressList" class="mt-progress-list"></div>
+                <div class="mt-add-progress">
+                    <textarea id="dtProgressText" placeholder="Add a progress note…" rows="2"></textarea>
+                    <button class="mt-btn-secondary" id="mtAddProgressBtn">
+                        <i class="fas fa-plus"></i> Add Note
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="mt-modal-footer">
+            <button class="mt-btn-secondary" id="mtDetailClose2">Close</button>
+            <button class="mt-btn-danger" id="mtDeleteTaskBtn"><i class="fas fa-trash-alt"></i> Delete</button>
+            <button class="mt-btn-secondary" id="mtEditTaskBtn"><i class="fas fa-edit"></i> Edit</button>
+            <button class="mt-btn-success" id="mtCompleteTaskBtn"><i class="fas fa-check"></i> Mark Complete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: Schedule Inspection
+════════════════════════════════════════ -->
+<div id="mtInspectionModal" class="mt-modal-backdrop" style="display:none">
+    <div class="mt-modal">
+        <div class="mt-modal-header">
+            <h3><i class="fas fa-clipboard-check"></i> Schedule Inspection</h3>
+            <button class="mt-modal-close" id="mtInspectionClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="mt-modal-body">
+            <form id="mtInspectionForm">
+                <div class="mt-form-group">
+                    <label>Ground *</label>
+                    <select id="mtInspGround" required>
+                        <option value="">Select Ground</option>
+                    </select>
+                </div>
+                <div class="mt-form-group">
+                    <label>Inspection Type *</label>
+                    <select id="mtInspType" required>
+                        <option value="routine">Routine</option>
+                        <option value="safety">Safety</option>
+                        <option value="quality">Quality Check</option>
+                        <option value="equipment">Equipment</option>
+                        <option value="compliance">Compliance</option>
+                    </select>
+                </div>
+                <div class="mt-form-row">
+                    <div class="mt-form-group">
+                        <label>Date *</label>
+                        <input type="date" id="mtInspDate" required>
+                    </div>
+                    <div class="mt-form-group">
+                        <label>Time</label>
+                        <input type="time" id="mtInspTime">
+                    </div>
+                </div>
+                <div class="mt-form-group">
+                    <label>Inspector</label>
+                    <input type="text" id="mtInspector" placeholder="Inspector name">
+                </div>
+                <div class="mt-form-group">
+                    <label>Notes</label>
+                    <textarea id="mtInspNotes" rows="3" placeholder="Additional notes…"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="mt-modal-footer">
+            <button class="mt-btn-secondary" id="mtInspectionCancel">Cancel</button>
+            <button class="mt-btn-primary" id="mtInspectionSave">
+                <i class="fas fa-calendar-plus"></i> Schedule
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="mtToast" class="mt-toast" aria-live="polite"></div>
+<?php include __DIR__ . '/layout-foot.php'; ?>

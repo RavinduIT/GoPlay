@@ -1,153 +1,92 @@
 <?php
-$title = 'Ground Owner Dashboard - GoPlay';
+$title = 'Dashboard - GoPlay Ground Owner';
 $additionalCSS = ['/public/css/pages/ground-owner-dashboard.css'];
 $additionalJS = [
     'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
     '/public/js/pages/ground-owner-dashboard.js'
 ];
+
 ?>
 
 <div class="ground-owner-dashboard">
-    <!-- Include Sidebar -->
     <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <!-- Main Content -->
     <main class="dashboard-main">
-        <!-- Top Header -->
         <header class="dashboard-header">
             <div class="header-left">
                 <button class="sidebar-toggle" onclick="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title">Dashboard Overview</h1>
+                <h1 class="page-title">Dashboard</h1>
             </div>
             <div class="header-right">
-                <div class="header-notifications">
-                    <button class="notification-btn">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-count">3</span>
-                    </button>
-                </div>
-                <div class="owner-profile">
-                    <div class="profile-info">
-                        <span class="profile-name">Rajesh Perera</span>
-                        <span class="profile-role">Ground Owner</span>
-                    </div>
-                    <img src="/public/assets/images/owner-avatar.jpg" alt="Owner" class="profile-avatar">
-                    <button class="profile-dropdown">
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                </div>
             </div>
         </header>
 
-        <!-- Dashboard Content -->
         <div class="dashboard-content">
-            <!-- Stats Cards -->
+
+            <!-- Stats Row -->
             <div class="stats-grid">
                 <div class="stat-card earnings">
-                    <div class="stat-icon">
-                        <i class="fas fa-rupee-sign"></i>
-                    </div>
+                    <div class="stat-icon si-green"><i class="fas fa-coins"></i></div>
                     <div class="stat-content">
-                        <h3>Total Earnings</h3>
-                        <p class="stat-number" id="totalEarnings">LKR 0</p>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span id="earningsChange">Loading...</span>
-                        </div>
+                        <h3>Monthly Earnings</h3>
+                        <p class="stat-number" id="dbEarnings">—</p>
+                        <div class="stat-change" id="dbEarningsChange"><span>Loading…</span></div>
                     </div>
                 </div>
-
                 <div class="stat-card bookings">
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
+                    <div class="stat-icon si-blue"><i class="fas fa-calendar-check"></i></div>
                     <div class="stat-content">
                         <h3>Total Bookings</h3>
-                        <p class="stat-number" id="totalBookings">0</p>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span id="bookingsChange">Loading...</span>
-                        </div>
+                        <p class="stat-number" id="dbBookings">—</p>
+                        <div class="stat-change" id="dbBookingsChange"><span>Loading…</span></div>
                     </div>
                 </div>
-
                 <div class="stat-card occupancy">
-                    <div class="stat-icon">
-                        <i class="fas fa-percentage"></i>
-                    </div>
+                    <div class="stat-icon si-purple"><i class="fas fa-map-marker-alt"></i></div>
                     <div class="stat-content">
-                        <h3>Occupancy Rate</h3>
-                        <p class="stat-number" id="occupancyRate">0%</p>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span id="occupancyChange">Loading...</span>
-                        </div>
+                        <h3>Active Grounds</h3>
+                        <p class="stat-number" id="dbGrounds">—</p>
+                        <div class="stat-change" id="dbGroundsChange"><span>Loading…</span></div>
                     </div>
                 </div>
-
                 <div class="stat-card rating">
-                    <div class="stat-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
+                    <div class="stat-icon si-amber"><i class="fas fa-star"></i></div>
                     <div class="stat-content">
-                        <h3>Average Rating</h3>
-                        <p class="stat-number" id="averageRating">0</p>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span id="ratingInfo">Loading...</span>
-                        </div>
+                        <h3>Avg Rating</h3>
+                        <p class="stat-number" id="dbRating">—</p>
+                        <div class="stat-change" id="dbRatingChange"><span>Loading…</span></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Main Dashboard Grid -->
+            <!-- Dashboard Grid -->
             <div class="dashboard-grid">
+
                 <!-- Earnings Chart -->
                 <div class="dashboard-card earnings-chart">
                     <div class="card-header">
                         <h3>Earnings Overview</h3>
+                        <select id="dbChartPeriod" class="filter-select">
+                            <option value="7">7 Days</option>
+                            <option value="30" selected>30 Days</option>
+                            <option value="90">90 Days</option>
+                        </select>
                     </div>
                     <div class="chart-container">
-                        <canvas id="earningsChart"></canvas>
+                        <canvas id="dbEarningsChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Recent Bookings -->
+                <!-- Today's Bookings -->
                 <div class="dashboard-card recent-bookings">
                     <div class="card-header">
-                        <h3>Recent Bookings</h3>
+                        <h3>Today's Bookings</h3>
                         <a href="/ground-owner/bookings" class="view-all">View All</a>
                     </div>
-                    <div class="booking-list">
-                        <div class="booking-item">
-                            <div class="booking-info">
-                                <h4>Football Ground A</h4>
-                                <p>Kavinda Ranasighe</p>
-                                <span class="booking-details">Today, 3:00 PM - 5:00 PM</span>
-                                <span class="booking-amount">LKR 1,200</span>
-                            </div>
-                            <span class="status-badge confirmed">Confirmed</span>
-                        </div>
-                        <div class="booking-item">
-                            <div class="booking-info">
-                                <h4>Cricket Ground B</h4>
-                                <p>Sanduni Rajapakse</p>
-                                <span class="booking-details">Tomorrow, 10:00 AM - 1:00 PM</span>
-                                <span class="booking-amount">LKR 1,800</span>
-                            </div>
-                            <span class="status-badge pending">Pending</span>
-                        </div>
-                        <div class="booking-item">
-                            <div class="booking-info">
-                                <h4>Tennis Court 1</h4>
-                                <p>Dilan Wijesinghe</p>
-                                <span class="booking-details">Dec 25, 4:00 PM - 5:00 PM</span>
-                                <span class="booking-amount">LKR 600</span>
-                            </div>
-                            <span class="status-badge confirmed">Confirmed</span>
-                        </div>
+                    <div class="booking-list" id="dbTodayBookings">
+                        <div class="db-loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
                     </div>
                 </div>
 
@@ -155,48 +94,10 @@ $additionalJS = [
                 <div class="dashboard-card ground-performance">
                     <div class="card-header">
                         <h3>Ground Performance</h3>
-                        <div class="performance-period">This Month</div>
+                        <span class="performance-period">This Month</span>
                     </div>
-                    <div class="performance-list">
-                        <div class="performance-item">
-                            <div class="ground-info">
-                                <h4>Football Ground A</h4>
-                                <div class="performance-stats">
-                                    <span class="bookings">68 bookings</span>
-                                    <span class="earnings">LKR 20,400</span>
-                                </div>
-                            </div>
-                            <div class="performance-chart">
-                                <div class="chart-bar" style="width: 85%"></div>
-                                <span class="performance-rate">85%</span>
-                            </div>
-                        </div>
-                        <div class="performance-item">
-                            <div class="ground-info">
-                                <h4>Cricket Ground B</h4>
-                                <div class="performance-stats">
-                                    <span class="bookings">45 bookings</span>
-                                    <span class="earnings">LKR.13,500</span>
-                                </div>
-                            </div>
-                            <div class="performance-chart">
-                                <div class="chart-bar" style="width: 72%"></div>
-                                <span class="performance-rate">72%</span>
-                            </div>
-                        </div>
-                        <div class="performance-item">
-                            <div class="ground-info">
-                                <h4>Tennis Court 1</h4>
-                                <div class="performance-stats">
-                                    <span class="bookings">43 bookings</span>
-                                    <span class="earnings">LKR 11,770</span>
-                                </div>
-                            </div>
-                            <div class="performance-chart">
-                                <div class="chart-bar" style="width: 78%"></div>
-                                <span class="performance-rate">78%</span>
-                            </div>
-                        </div>
+                    <div class="performance-list" id="dbPerformance">
+                        <div class="db-loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
                     </div>
                 </div>
 
@@ -206,21 +107,21 @@ $additionalJS = [
                         <h3>Quick Actions</h3>
                     </div>
                     <div class="actions-grid">
-                        <a href="/ground-owner/grounds/create" class="action-btn primary">
-                            <i class="fas fa-plus-circle"></i>
-                            <span>Add New Ground</span>
+                        <a href="/ground-owner/grounds" class="action-btn primary">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>My Grounds</span>
                         </a>
-                        <a href="/ground-owner/availability" class="action-btn secondary">
+                        <a href="/ground-owner/bookings" class="action-btn secondary">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Bookings</span>
+                        </a>
+                        <a href="/ground-owner/schedule" class="action-btn accent">
                             <i class="fas fa-clock"></i>
-                            <span>Update Availability</span>
+                            <span>Schedule</span>
                         </a>
-                        <a href="/ground-owner/pricing" class="action-btn accent">
-                            <i class="fas fa-tags"></i>
-                            <span>Manage Pricing</span>
-                        </a>
-                        <a href="/ground-owner/reports" class="action-btn success">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>View Reports</span>
+                        <a href="/ground-owner/maintenance" class="action-btn success">
+                            <i class="fas fa-tools"></i>
+                            <span>Maintenance</span>
                         </a>
                     </div>
                 </div>
@@ -231,44 +132,12 @@ $additionalJS = [
                         <h3>Recent Reviews</h3>
                         <a href="/ground-owner/reviews" class="view-all">View All</a>
                     </div>
-                    <div class="reviews-list">
-                        <div class="review-item">
-                            <div class="reviewer-info">
-                                <img src="/public/assets/images/user1.jpg" alt="User" class="reviewer-avatar">
-                                <div class="reviewer-details">
-                                    <h5>Kavinda Ranasighe</h5>
-                                    <div class="review-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="review-text">"Excellent football ground with good facilities. Well maintained and clean."</p>
-                            <span class="review-time">2 hours ago</span>
-                        </div>
-                        <div class="review-item">
-                            <div class="reviewer-info">
-                                <img src="/public/assets/images/user2.jpg" alt="User" class="reviewer-avatar">
-                                <div class="reviewer-details">
-                                    <h5>Sanduni Rajapakse</h5>
-                                    <div class="review-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="far fa-star"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="review-text">"Great cricket ground! Good pitch and facilities. Will book again."</p>
-                            <span class="review-time">1 day ago</span>
-                        </div>
+                    <div class="reviews-list" id="dbReviews">
+                        <div class="db-loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
                     </div>
                 </div>
-            </div>
-        </div>
+
+            </div><!-- /dashboard-grid -->
+        </div><!-- /dashboard-content -->
     </main>
 </div>
