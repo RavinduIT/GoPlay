@@ -1206,11 +1206,13 @@ class ShopOwnerController extends BaseController
             }
             
             // Prepare product data
+            $comparePrice = floatval($_POST['compare_price'] ?? 0);
             $productData = [
                 'name' => $name,
                 'description' => $_POST['description'] ?? '',
                 'category_id' => $categoryId,
                 'price' => $price,
+                'compare_price' => $comparePrice > 0 ? $comparePrice : null,
                 'stock_quantity' => (int)($_POST['stock_quantity'] ?? 0),
                 'images' => $imagePaths,
                 'status' => $_POST['status'] ?? 'active',
@@ -1311,12 +1313,15 @@ class ShopOwnerController extends BaseController
             }
             
             // Prepare product data
+            $comparePrice = floatval($_POST['compare_price'] ?? 0);
             $productData = [
                 'name' => $name,
                 'description' => $_POST['description'] ?? '',
                 'category_id' => $categoryId,
                 'price' => $price,
+                'compare_price' => $comparePrice > 0 ? $comparePrice : null,
                 'stock_quantity' => (int)($_POST['stock_quantity'] ?? $existingProduct['stock_quantity']),
+                'min_stock_level' => (int)($_POST['min_stock_level'] ?? $existingProduct['min_stock_level'] ?? 10),
                 'images' => $allImages,
                 'status' => $_POST['status'] ?? $existingProduct['status']
             ];
@@ -1545,6 +1550,66 @@ class ShopOwnerController extends BaseController
         }
     }
 
+    // ============================================================
+    // BULK PRODUCT ACTIONS
+    // ============================================================
+
+    public function handleBulkDelete(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $data        = json_decode(file_get_contents('php://input'), true) ?? [];
+            $ids         = array_map('intval', $data['product_ids'] ?? []);
+            $shopOwnerId = $_SESSION['user_id'];
+
+            if (empty($ids)) {
+                return $this->json(['success' => false, 'message' => 'No products selected'], 400);
+            }
+
+            $count = $this->getProductModel()->bulkDeleteForShopOwner($ids, $shopOwnerId);
+
+            return $this->json([
+                'success' => true,
+                'message' => "$count product(s) deleted successfully",
+                'count'   => $count,
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function handleBulkStatus(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $data        = json_decode(file_get_contents('php://input'), true) ?? [];
+            $ids         = array_map('intval', $data['product_ids'] ?? []);
+            $status      = $data['status'] ?? '';
+            $shopOwnerId = $_SESSION['user_id'];
+
+            $allowed = ['active', 'inactive', 'out_of_stock'];
+            if (empty($ids) || !in_array($status, $allowed)) {
+                return $this->json(['success' => false, 'message' => 'Invalid request'], 400);
+            }
+
+            $count = $this->getProductModel()->bulkUpdateStatusForShopOwner($ids, $status, $shopOwnerId);
+
+            return $this->json([
+                'success' => true,
+                'message' => "$count product(s) updated to " . ucfirst(str_replace('_', ' ', $status)),
+                'count'   => $count,
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     /**
      * Get all reviews for shop owner's products (API endpoint)
      */
@@ -1625,11 +1690,63 @@ class ShopOwnerController extends BaseController
             }
             
             return $this->redirect('/shop-owner/reviews');
-            
+
         } catch (\Exception $e) {
             error_log("Delete review error: " . $e->getMessage());
             $_SESSION['error_message'] = 'An error occurred while deleting the review';
             return $this->redirect('/shop-owner/reviews');
+        }
+    }
+
+    /**
+     * POST /api/shop-owner/reviews/{id}/reply  — save or update reply
+     * DELETE /api/shop-owner/reviews/{id}/reply — remove reply
+     */
+    public function respondToReview(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $reviewId    = (int)$request->getParam('id', 0);
+        $shopOwnerId = (int)$_SESSION['user_id'];
+
+        if ($reviewId <= 0) {
+            return $this->json(['success' => false, 'message' => 'Invalid review ID'], 400);
+        }
+
+        $method = strtoupper($_SERVER['REQUEST_METHOD']);
+
+        try {
+            if ($method === 'DELETE') {
+                $ok = $this->getReviewModel()->deleteReply($reviewId, $shopOwnerId);
+                return $this->json([
+                    'success' => $ok,
+                    'message' => $ok ? 'Reply removed' : 'Reply not found or access denied',
+                ]);
+            }
+
+            // POST — save reply
+            $body      = json_decode(file_get_contents('php://input'), true) ?? [];
+            $replyText = trim($body['reply_text'] ?? '');
+
+            if ($replyText === '') {
+                return $this->json(['success' => false, 'message' => 'Reply text is required'], 400);
+            }
+            if (mb_strlen($replyText) > 1000) {
+                return $this->json(['success' => false, 'message' => 'Reply must be 1000 characters or less'], 422);
+            }
+
+            $ok = $this->getReviewModel()->saveReply($reviewId, $shopOwnerId, $replyText);
+            return $this->json([
+                'success'    => $ok,
+                'message'    => $ok ? 'Reply saved' : 'Review not found or access denied',
+                'reply_text' => $ok ? $replyText : null,
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("respondToReview error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Server error'], 500);
         }
     }
 }

@@ -313,10 +313,14 @@ try {
     $router->post('/shop-owner/products/create', 'ShopOwnerController@handleCreateProduct');
     $router->post('/shop-owner/products/update', 'ShopOwnerController@handleUpdateProduct');
     $router->post('/shop-owner/products/delete', 'ShopOwnerController@handleDeleteProduct');
+    $router->post('/shop-owner/products/bulk-delete', 'ShopOwnerController@handleBulkDelete');
+    $router->post('/shop-owner/products/bulk-status', 'ShopOwnerController@handleBulkStatus');
 
     // Shop Owner review management routes
     $router->get('/api/shop-owner/reviews', 'ShopOwnerController@getReviews');
     $router->post('/shop-owner/reviews/delete', 'ShopOwnerController@deleteProductReview');
+    $router->post('/api/shop-owner/reviews/{id}/reply', 'ShopOwnerController@respondToReview');
+    $router->delete('/api/shop-owner/reviews/{id}/reply', 'ShopOwnerController@respondToReview');
 
     // Redirect old .php URLs to new routes
     $router->get('/shop-owner/products.php', 'ShopOwnerController@productsPage');

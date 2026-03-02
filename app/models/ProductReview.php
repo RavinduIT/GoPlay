@@ -159,7 +159,7 @@ class ProductReview extends BaseModel
     /**
      * Get all reviews for products owned by a shop owner
      */
-    public function getShopOwnerReviews(int $shopOwnerId, int $limit = null): array
+    public function getShopOwnerReviews(int $shopOwnerId, ?int $limit = null): array
     {
         $sql = "SELECT pr.*, p.name as product_name, p.id as product_id,
                        CONCAT(u.first_name, ' ', u.last_name) as customer_name, u.email as user_email
@@ -168,15 +168,44 @@ class ProductReview extends BaseModel
                 LEFT JOIN users u ON pr.user_id = u.id
                 WHERE p.shop_owner_id = ?
                 ORDER BY pr.created_at DESC";
-        
+
         if ($limit !== null) {
-            $sql .= " LIMIT ?";
-            $statement = $this->query($sql, [$shopOwnerId, $limit]);
-        } else {
-            $statement = $this->query($sql, [$shopOwnerId]);
+            $sql .= " LIMIT " . intval($limit);
         }
-        
+
+        $statement = $this->query($sql, [$shopOwnerId]);
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Save (upsert) a shop owner reply to a review they own
+     */
+    public function saveReply(int $reviewId, int $shopOwnerId, string $replyText): bool
+    {
+        // Verify review belongs to this owner's product
+        $check = "SELECT pr.id FROM {$this->table} pr
+                  INNER JOIN products p ON pr.product_id = p.id
+                  WHERE pr.id = ? AND p.shop_owner_id = ?";
+        if (!$this->queryFirst($check, [$reviewId, $shopOwnerId])) return false;
+
+        $sql = "UPDATE {$this->table}
+                SET owner_reply = ?, owner_reply_at = NOW()
+                WHERE id = ?";
+        $stmt = $this->query($sql, [$replyText, $reviewId]);
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Delete a shop owner reply from a review they own
+     */
+    public function deleteReply(int $reviewId, int $shopOwnerId): bool
+    {
+        $sql = "UPDATE {$this->table} pr
+                INNER JOIN products p ON pr.product_id = p.id
+                SET pr.owner_reply = NULL, pr.owner_reply_at = NULL
+                WHERE pr.id = ? AND p.shop_owner_id = ?";
+        $stmt = $this->query($sql, [$reviewId, $shopOwnerId]);
+        return $stmt && $stmt->rowCount() > 0;
     }
 
     /**
@@ -184,28 +213,32 @@ class ProductReview extends BaseModel
      */
     public function getShopOwnerReviewStats(int $shopOwnerId): array
     {
-        $sql = "SELECT 
+        $sql = "SELECT
                     COUNT(*) as total_reviews,
                     AVG(pr.rating) as avg_rating,
                     SUM(CASE WHEN pr.rating = 5 THEN 1 ELSE 0 END) as five_star,
                     SUM(CASE WHEN pr.rating = 4 THEN 1 ELSE 0 END) as four_star,
                     SUM(CASE WHEN pr.rating = 3 THEN 1 ELSE 0 END) as three_star,
                     SUM(CASE WHEN pr.rating = 2 THEN 1 ELSE 0 END) as two_star,
-                    SUM(CASE WHEN pr.rating = 1 THEN 1 ELSE 0 END) as one_star
+                    SUM(CASE WHEN pr.rating = 1 THEN 1 ELSE 0 END) as one_star,
+                    SUM(CASE WHEN (pr.owner_reply IS NULL OR pr.owner_reply = '') THEN 1 ELSE 0 END) as pending_replies,
+                    SUM(CASE WHEN pr.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as recent_count
                 FROM {$this->table} pr
                 INNER JOIN products p ON pr.product_id = p.id
                 WHERE p.shop_owner_id = ?";
-        
+
         $result = $this->queryFirst($sql, [$shopOwnerId]);
-        
+
         return [
-            'total_reviews' => (int)($result['total_reviews'] ?? 0),
-            'avg_rating' => $result['avg_rating'] ? round($result['avg_rating'], 1) : 0,
-            'five_star' => (int)($result['five_star'] ?? 0),
-            'four_star' => (int)($result['four_star'] ?? 0),
-            'three_star' => (int)($result['three_star'] ?? 0),
-            'two_star' => (int)($result['two_star'] ?? 0),
-            'one_star' => (int)($result['one_star'] ?? 0)
+            'total_reviews'   => (int)($result['total_reviews']   ?? 0),
+            'avg_rating'      => $result['avg_rating'] ? round($result['avg_rating'], 1) : 0,
+            'five_star'       => (int)($result['five_star']        ?? 0),
+            'four_star'       => (int)($result['four_star']        ?? 0),
+            'three_star'      => (int)($result['three_star']       ?? 0),
+            'two_star'        => (int)($result['two_star']         ?? 0),
+            'one_star'        => (int)($result['one_star']         ?? 0),
+            'pending_replies' => (int)($result['pending_replies']  ?? 0),
+            'recent_count'    => (int)($result['recent_count']     ?? 0),
         ];
     }
 

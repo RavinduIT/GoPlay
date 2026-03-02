@@ -1,148 +1,166 @@
-// Shop Owner Inventory Management JavaScript
+/* ═══════════════════════════════════════════════════════════════
+   Shop Owner — Inventory Dashboard JS
+   ═══════════════════════════════════════════════════════════════ */
 
-// Modal functions for Add Stock
-function openAddStockModal(productId, productName, currentStock) {
-    document.getElementById('add_product_id').value = productId;
-    document.getElementById('add_product_name').textContent = productName;
-    document.getElementById('add_current_stock').textContent = currentStock + ' units';
-    document.getElementById('add_quantity').value = '';
-    document.getElementById('addStockModal').style.display = 'flex';
-}
+let currentFilter = 'all';
+let currentSearch = '';
 
-function closeAddStockModal() {
-    document.getElementById('addStockModal').style.display = 'none';
-}
-
-// Modal functions for Remove Stock
-function openRemoveStockModal(productId, productName, currentStock) {
-    document.getElementById('remove_product_id').value = productId;
-    document.getElementById('remove_product_name').textContent = productName;
-    document.getElementById('remove_current_stock').textContent = currentStock + ' units';
-    document.getElementById('remove_quantity').value = '';
-    document.getElementById('remove_reason').value = '';
-    document.getElementById('removeStockModal').style.display = 'flex';
-}
-
-function closeRemoveStockModal() {
-    document.getElementById('removeStockModal').style.display = 'none';
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const addModal = document.getElementById('addStockModal');
-    const removeModal = document.getElementById('removeStockModal');
-    
-    if (event.target === addModal) {
-        closeAddStockModal();
-    }
-    if (event.target === removeModal) {
-        closeRemoveStockModal();
-    }
-}
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeAddStockModal();
-        closeRemoveStockModal();
-    }
-});
-
-// Search functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('inventorySearch');
-    
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const inventoryCards = document.querySelectorAll('.inventory-item-card');
-            
-            inventoryCards.forEach(card => {
-                const productName = card.querySelector('.col-product').textContent.toLowerCase();
-                const sku = card.querySelector('.col-sku').textContent.toLowerCase();
-                
-                const matches = productName.includes(searchTerm) || sku.includes(searchTerm);
-                
-                if (matches) {
-                    card.style.display = 'grid';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    }
-
-    // Auto-hide alerts after 5 seconds
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
+/* ── Init ─────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+    // Auto-dismiss alerts
+    document.querySelectorAll('.si-alert').forEach(el => {
         setTimeout(() => {
-            alert.style.transition = 'opacity 0.3s ease-out';
-            alert.style.opacity = '0';
-            setTimeout(() => {
-                alert.remove();
-            }, 300);
+            el.style.transition = 'opacity .3s';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 300);
         }, 5000);
     });
 
-    // Form validation for Add Stock
-    const addStockForm = document.querySelector('#addStockModal form');
-    if (addStockForm) {
-        addStockForm.addEventListener('submit', function(e) {
-            const quantity = parseInt(document.getElementById('add_quantity').value);
-            
-            if (isNaN(quantity) || quantity < 1) {
-                e.preventDefault();
-                alert('Please enter a valid quantity (minimum 1).');
-                return false;
-            }
+    // Filter tabs
+    document.querySelectorAll('.si-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.si-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            applyFilters();
+        });
+    });
+
+    // Search
+    const searchEl = document.getElementById('inventorySearch');
+    if (searchEl) {
+        let debounce;
+        searchEl.addEventListener('input', () => {
+            clearTimeout(debounce);
+            debounce = setTimeout(() => {
+                currentSearch = searchEl.value.toLowerCase().trim();
+                applyFilters();
+            }, 220);
         });
     }
 
-    // Form validation for Remove Stock
-    const removeStockForm = document.querySelector('#removeStockModal form');
-    if (removeStockForm) {
-        removeStockForm.addEventListener('submit', function(e) {
-            const quantity = parseInt(document.getElementById('remove_quantity').value);
-            const reason = document.getElementById('remove_reason').value;
-            
-            if (isNaN(quantity) || quantity < 1) {
-                e.preventDefault();
-                alert('Please enter a valid quantity (minimum 1).');
-                return false;
-            }
-            
-            if (!reason) {
-                e.preventDefault();
-                alert('Please select a reason for removing stock.');
-                return false;
-            }
+    // Form validations
+    setupAddForm();
+    setupRemoveForm();
 
-            // Confirm before removing stock
-            const productName = document.getElementById('remove_product_name').textContent;
-            const confirmed = confirm(`Are you sure you want to remove ${quantity} units of "${productName}"?\nReason: ${reason}`);
-            
-            if (!confirmed) {
-                e.preventDefault();
-                return false;
-            }
-        });
-    }
+    // Backdrop close
+    document.querySelectorAll('.si-modal').forEach(m => {
+        m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+    });
+
+    // ESC key
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') document.querySelectorAll('.si-modal.open').forEach(m => closeModal(m.id));
+    });
 });
 
-// Helper function to format numbers with commas
-function formatNumber(num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+/* ── Filter & Search ─────────────────────────────────────────── */
+function applyFilters() {
+    const rows = document.querySelectorAll('#inventoryBody tr[data-status]');
+    let visible = 0;
+    rows.forEach(row => {
+        const status  = row.dataset.status;
+        const name    = row.querySelector('.si-product-name')?.textContent.toLowerCase() || '';
+        const sku     = row.querySelector('.si-sku')?.textContent.toLowerCase() || '';
+        const matchF  = currentFilter === 'all' || status === currentFilter;
+        const matchS  = !currentSearch || name.includes(currentSearch) || sku.includes(currentSearch);
+        const show    = matchF && matchS;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    const countEl = document.getElementById('siCount');
+    if (countEl) countEl.textContent = `${visible} product${visible !== 1 ? 's' : ''}`;
 }
 
-// Stock status indicator
-function getStockStatusColor(quantity, minLevel) {
-    if (quantity === 0) return 'red';
-    if (quantity <= minLevel) return 'orange';
-    return 'green';
+/* ── Modals ──────────────────────────────────────────────────── */
+function openModal(id) {
+    const m = document.getElementById(id);
+    if (m) { m.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+function closeModal(id) {
+    const m = document.getElementById(id);
+    if (m) { m.classList.remove('open'); document.body.style.overflow = ''; }
 }
 
-// Export functions to global scope
-window.openAddStockModal = openAddStockModal;
-window.closeAddStockModal = closeAddStockModal;
-window.openRemoveStockModal = openRemoveStockModal;
-window.closeRemoveStockModal = closeRemoveStockModal;
+/* Add Stock */
+function openAddModal(productId, productName, currentStock) {
+    document.getElementById('add-product-id').value = productId;
+    document.getElementById('add-pname').textContent = productName;
+
+    const stockEl = document.getElementById('add-pstock');
+    stockEl.innerHTML = `Current stock: <strong>${currentStock}</strong> units`;
+    stockEl.className = 'si-modal-pstock' + (currentStock === 0 ? ' has-out' : currentStock <= 5 ? ' has-low' : '');
+
+    document.getElementById('add-quantity').value = '';
+    openModal('addStockModal');
+    setTimeout(() => document.getElementById('add-quantity').focus(), 200);
+}
+
+/* Remove Stock */
+function openRemoveModal(productId, productName, currentStock) {
+    document.getElementById('rem-product-id').value = productId;
+    document.getElementById('rem-pname').textContent = productName;
+
+    const stockEl = document.getElementById('rem-pstock');
+    stockEl.innerHTML = `Current stock: <strong>${currentStock}</strong> units`;
+    stockEl.className = 'si-modal-pstock' + (currentStock === 0 ? ' has-out' : currentStock <= 5 ? ' has-low' : '');
+
+    document.getElementById('rem-quantity').value = '';
+    document.getElementById('rem-reason').value = '';
+    openModal('removeStockModal');
+    setTimeout(() => document.getElementById('rem-quantity').focus(), 200);
+}
+
+/* Reorder Level */
+function openReorderModal(productId, productName, currentLevel) {
+    document.getElementById('reorder-product-id').value = productId;
+    document.getElementById('reorder-pname').textContent = productName;
+    document.getElementById('reorder-level').value = currentLevel;
+    openModal('reorderModal');
+    setTimeout(() => document.getElementById('reorder-level').focus(), 200);
+}
+
+/* ── Form Validation ─────────────────────────────────────────── */
+function setupAddForm() {
+    document.getElementById('addStockForm')?.addEventListener('submit', e => {
+        const qty = parseInt(document.getElementById('add-quantity').value);
+        if (!qty || qty < 1) {
+            e.preventDefault();
+            showToast('Please enter a valid quantity (minimum 1)', 'error');
+        }
+    });
+}
+
+function setupRemoveForm() {
+    document.getElementById('removeStockForm')?.addEventListener('submit', e => {
+        const qty    = parseInt(document.getElementById('rem-quantity').value);
+        const reason = document.getElementById('rem-reason').value;
+        const name   = document.getElementById('rem-pname').textContent;
+
+        if (!qty || qty < 1) {
+            e.preventDefault();
+            showToast('Please enter a valid quantity (minimum 1)', 'error');
+            return;
+        }
+        if (!reason) {
+            e.preventDefault();
+            showToast('Please select a reason for removing stock', 'error');
+            return;
+        }
+        if (!confirm(`Remove ${qty} units of "${name}"?\nReason: ${reason}\n\nThis cannot be undone.`)) {
+            e.preventDefault();
+        }
+    });
+}
+
+/* ── Toast ───────────────────────────────────────────────────── */
+function showToast(message, type = 'success') {
+    const t = document.getElementById('siToast');
+    if (!t) return;
+    const icons = { success: 'fa-check-circle', error: 'fa-times-circle' };
+    t.innerHTML  = `<i class="fas ${icons[type] || icons.success}"></i> ${message}`;
+    t.className  = `si-toast si-toast--${type} show`;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+}

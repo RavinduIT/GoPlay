@@ -1,469 +1,737 @@
-// Shop Owner Products Management JavaScript
+/**
+ * Shop Owner — Products Dashboard
+ * Renders products from window.shopProducts (PHP JSON embed).
+ * Handles: filter, sort, paginate, table/grid view, edit/delete modals.
+ */
 
-let currentEditingRow = null;
-let currentDeletingRow = null;
+const ITEMS_PER_PAGE = 20;
 
-document.addEventListener('DOMContentLoaded', function() {
-    initializeProductsPage();
-    setupActionButtons();
+let filteredProducts = [];
+let currentPage      = 1;
+let currentView      = 'table';
+
+// ============================================================
+// INIT
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    filteredProducts = [...(window.shopProducts || [])];
+    sortProducts();
+    renderProducts();
+    updatePagination();
+    updateResultsCount();
+    setupSearch();
+    setupFilters();
+    autoHideAlerts();
 });
 
-function initializeProductsPage() {
-    setupSearchFilter();
-    setupCheckboxes();
-    setupFilters();
-    setupFormSubmissions();
+// ============================================================
+// FILTER + SORT
+// ============================================================
+
+function applyFilters() {
+    const search   = (document.getElementById('productSearch')?.value || '').toLowerCase().trim();
+    const category = document.getElementById('categoryFilter')?.value || '';
+    const stock    = document.getElementById('stockFilter')?.value   || '';
+
+    filteredProducts = (window.shopProducts || []).filter(p => {
+        if (search) {
+            const haystack = (p.name + ' ' + p.sku + ' ' + (p.brand || '')).toLowerCase();
+            if (!haystack.includes(search)) return false;
+        }
+        if (category && String(p.category_id) !== String(category)) return false;
+        if (stock) {
+            if (getStockClass(p) !== stock) return false;
+        }
+        return true;
+    });
+
+    sortProducts();
+    currentPage = 1;
+    renderProducts();
+    updatePagination();
+    updateResultsCount();
+
+    // Show/hide search clear button
+    const clearBtn = document.getElementById('searchClearBtn');
+    if (clearBtn) clearBtn.style.display = search ? '' : 'none';
 }
 
-// ============================================
-// SEARCH AND FILTER FUNCTIONALITY
-// ============================================
-
-function setupSearchFilter() {
-    const searchInput = document.getElementById('productSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            filterProducts(searchTerm);
-        });
-    }
-}
-
-function filterProducts(searchTerm) {
-    const rows = document.querySelectorAll('.product-row');
-
-    rows.forEach(row => {
-        const productName = row.querySelector('.product-details h4').textContent.toLowerCase();
-        const productId = row.querySelector('.product-id').textContent.toLowerCase();
-        const brand = row.querySelector('.brand-tag').textContent.toLowerCase();
-
-        const matches = productName.includes(searchTerm) ||
-                       productId.includes(searchTerm) ||
-                       brand.includes(searchTerm);
-
-        row.style.display = matches ? '' : 'none';
+function sortProducts() {
+    const sort = document.getElementById('sortFilter')?.value || 'newest';
+    filteredProducts.sort((a, b) => {
+        switch (sort) {
+            case 'name-asc':   return a.name.localeCompare(b.name);
+            case 'name-desc':  return b.name.localeCompare(a.name);
+            case 'price-low':  return a.price - b.price;
+            case 'price-high': return b.price - a.price;
+            case 'stock-low':  return a.stock_quantity - b.stock_quantity;
+            case 'oldest':     return new Date(a.updated_at) - new Date(b.updated_at);
+            default:           return new Date(b.updated_at) - new Date(a.updated_at);
+        }
     });
 }
 
-function setupCheckboxes() {
-    const selectAllCheckbox = document.getElementById('selectAll');
-    const productCheckboxes = document.querySelectorAll('.product-checkbox');
-
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function() {
-            productCheckboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
-        });
-    }
-
-    productCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const allChecked = Array.from(productCheckboxes).every(cb => cb.checked);
-            const someChecked = Array.from(productCheckboxes).some(cb => cb.checked);
-
-            if (selectAllCheckbox) {
-                selectAllCheckbox.checked = allChecked;
-                selectAllCheckbox.indeterminate = someChecked && !allChecked;
-            }
-        });
+function setupSearch() {
+    const input = document.getElementById('productSearch');
+    if (!input) return;
+    let timer;
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(applyFilters, 280);
     });
 }
 
 function setupFilters() {
-    const categoryFilter = document.getElementById('categoryFilter');
-    const stockFilter = document.getElementById('stockFilter');
-    const sortFilter = document.getElementById('sortFilter');
-
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', applyFilters);
-    }
-
-    if (stockFilter) {
-        stockFilter.addEventListener('change', applyFilters);
-    }
-
-    if (sortFilter) {
-        sortFilter.addEventListener('change', applySorting);
-    }
-}
-
-function applyFilters() {
-    const categoryFilter = document.getElementById('categoryFilter').value;
-    const stockFilter = document.getElementById('stockFilter').value;
-    const rows = document.querySelectorAll('.product-row');
-
-    rows.forEach(row => {
-        let showRow = true;
-
-        // Category filter
-        if (categoryFilter) {
-            const category = row.querySelector('.category-badge').textContent.toLowerCase();
-            if (!category.includes(categoryFilter)) {
-                showRow = false;
-            }
-        }
-
-        // Stock filter
-        if (stockFilter) {
-            const stockIndicator = row.querySelector('.stock-indicator');
-            if (stockFilter === 'in-stock' && !stockIndicator.classList.contains('in-stock')) {
-                showRow = false;
-            } else if (stockFilter === 'low-stock' && !stockIndicator.classList.contains('low-stock')) {
-                showRow = false;
-            } else if (stockFilter === 'out-of-stock' && !stockIndicator.classList.contains('out-of-stock')) {
-                showRow = false;
-            }
-        }
-
-        row.style.display = showRow ? '' : 'none';
+    ['categoryFilter', 'stockFilter'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', applyFilters);
     });
-}
-
-function applySorting() {
-    const sortValue = document.getElementById('sortFilter').value;
-    const tbody = document.getElementById('productsTableBody');
-    const rows = Array.from(tbody.querySelectorAll('.product-row'));
-
-    rows.sort((a, b) => {
-        switch(sortValue) {
-            case 'name-asc':
-                return a.querySelector('.product-details h4').textContent.localeCompare(
-                    b.querySelector('.product-details h4').textContent
-                );
-            case 'name-desc':
-                return b.querySelector('.product-details h4').textContent.localeCompare(
-                    a.querySelector('.product-details h4').textContent
-                );
-            case 'price-low':
-                return getPriceValue(a) - getPriceValue(b);
-            case 'price-high':
-                return getPriceValue(b) - getPriceValue(a);
-            default:
-                return 0;
-        }
+    document.getElementById('sortFilter')?.addEventListener('change', () => {
+        sortProducts();
+        currentPage = 1;
+        renderProducts();
+        updatePagination();
     });
-
-    rows.forEach(row => tbody.appendChild(row));
-}
-
-function getPriceValue(row) {
-    const priceText = row.querySelector('td:nth-child(5)').textContent;
-    return parseFloat(priceText.replace(/[^0-9.-]+/g, ''));
 }
 
 function clearFilters() {
-    document.getElementById('productSearch').value = '';
-    document.getElementById('categoryFilter').value = '';
-    document.getElementById('stockFilter').value = '';
-    document.getElementById('sortFilter').value = 'newest';
-
-    const rows = document.querySelectorAll('.product-row');
-    rows.forEach(row => row.style.display = '');
+    ['productSearch', 'categoryFilter', 'stockFilter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    const sort = document.getElementById('sortFilter');
+    if (sort) sort.value = 'newest';
+    const clearBtn = document.getElementById('searchClearBtn');
+    if (clearBtn) clearBtn.style.display = 'none';
+    applyFilters();
 }
 
-// ============================================
-// MODAL MANAGEMENT
-// ============================================
+function clearSearch() {
+    const input = document.getElementById('productSearch');
+    if (input) { input.value = ''; input.focus(); }
+    const clearBtn = document.getElementById('searchClearBtn');
+    if (clearBtn) clearBtn.style.display = 'none';
+    applyFilters();
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+
+function renderProducts() {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const page  = filteredProducts.slice(start, start + ITEMS_PER_PAGE);
+    currentView === 'table' ? renderTable(page) : renderGrid(page);
+}
+
+/* --- TABLE --- */
+function renderTable(products) {
+    const tbody = document.getElementById('productsTableBody');
+    if (!tbody) return;
+
+    if (products.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="10">
+                <div class="sp-empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <h3>No products found</h3>
+                    <p>${filteredProducts.length === 0 && (window.shopProducts || []).length > 0
+                        ? 'Try adjusting your search or filters.'
+                        : 'Get started by adding your first product.'}</p>
+                    <button class="sp-btn-primary" onclick="openAddProductModal()">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </div>
+            </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = products.map(buildTableRow).join('');
+    setupSelectAllCheckbox();
+}
+
+function buildTableRow(p) {
+    const img       = getFirstImage(p);
+    const sc        = getStockClass(p);
+    const disc      = getDiscount(p);
+    const timeAgo   = getTimeAgo(p.updated_at);
+
+    return `
+    <tr class="sp-product-row" data-id="${p.id}">
+        <td><input type="checkbox" class="sp-checkbox sp-product-checkbox" value="${p.id}"></td>
+        <td>
+            <div class="sp-product-info">
+                <div class="sp-product-thumb">
+                    <img src="${esc(img)}" alt="${esc(p.name)}"
+                         onerror="this.src='/public/assets/images/placeholder-product.svg'">
+                    ${disc ? `<span class="sp-discount-badge">-${disc}%</span>` : ''}
+                </div>
+                <div class="sp-product-meta">
+                    <h4 title="${esc(p.name)}">${esc(p.name)}</h4>
+                    <span class="sp-brand-tag">${esc(p.brand || 'No Brand')}</span>
+                </div>
+            </div>
+        </td>
+        <td><span class="sp-sku">${esc(p.sku)}</span></td>
+        <td><span class="sp-category-badge">${esc(p.category_name)}</span></td>
+        <td>
+            <div class="sp-price-cell">
+                <span class="sp-price">LKR ${fmt(p.price)}</span>
+                ${p.compare_price && p.compare_price > p.price
+                    ? `<span class="sp-compare-price">LKR ${fmt(p.compare_price)}</span>` : ''}
+            </div>
+        </td>
+        <td>
+            <div class="sp-stock-cell ${sc}">
+                <span class="sp-stock-dot"></span>
+                <span>${p.stock_quantity} units</span>
+            </div>
+        </td>
+        <td><span class="sp-status-badge ${p.status}">${capFirst(p.status)}</span></td>
+        <td>
+            <div class="sp-rating">
+                <i class="fas fa-star"></i>
+                <span>${parseFloat(p.rating || 0).toFixed(1)} (${p.total_reviews || 0})</span>
+            </div>
+        </td>
+        <td><span class="sp-time-ago">${timeAgo}</span></td>
+        <td>
+            <div class="sp-action-btns">
+                <button class="sp-btn-action sp-btn-edit"
+                        onclick="editProduct(${p.id})" title="Edit product">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="sp-btn-action sp-btn-delete"
+                        onclick="deleteProduct(${p.id}, '${esc(p.name)}')" title="Delete product">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </td>
+    </tr>`;
+}
+
+/* --- GRID --- */
+function renderGrid(products) {
+    const grid = document.getElementById('gridView');
+    if (!grid) return;
+
+    if (products.length === 0) {
+        grid.innerHTML = `
+            <div class="sp-empty-full sp-empty-state">
+                <i class="fas fa-box-open"></i>
+                <h3>No products found</h3>
+                <p>Try adjusting your filters.</p>
+                <button class="sp-btn-primary" onclick="openAddProductModal()">
+                    <i class="fas fa-plus"></i> Add Product
+                </button>
+            </div>`;
+        return;
+    }
+
+    grid.innerHTML = products.map(buildGridCard).join('');
+}
+
+function buildGridCard(p) {
+    const img  = getFirstImage(p);
+    const sc   = getStockClass(p);
+    const disc = getDiscount(p);
+
+    return `
+    <div class="sp-product-card ${sc}">
+        <div class="sp-card-img">
+            <img src="${esc(img)}" alt="${esc(p.name)}"
+                 onerror="this.src='/public/assets/images/placeholder-product.svg'">
+            <div class="sp-card-badges">
+                <span class="sp-status-badge ${p.status}">${capFirst(p.status)}</span>
+                ${disc ? `<span class="sp-discount-badge">-${disc}%</span>` : ''}
+            </div>
+        </div>
+        <div class="sp-card-body">
+            <div class="sp-card-category">${esc(p.category_name)}</div>
+            <h4 class="sp-card-name" title="${esc(p.name)}">${esc(p.name)}</h4>
+            <div class="sp-card-brand">${esc(p.brand || 'No Brand')}</div>
+            <div class="sp-card-price-row">
+                <span class="sp-price">LKR ${fmt(p.price)}</span>
+                ${p.compare_price && p.compare_price > p.price
+                    ? `<span class="sp-compare-price">LKR ${fmt(p.compare_price)}</span>` : ''}
+            </div>
+            <div class="sp-card-stock ${sc}">
+                <span class="sp-stock-dot"></span>
+                <span>${p.stock_quantity} units</span>
+            </div>
+            <div class="sp-card-rating">
+                <i class="fas fa-star"></i>
+                <span>${parseFloat(p.rating || 0).toFixed(1)} (${p.total_reviews || 0})</span>
+            </div>
+        </div>
+        <div class="sp-card-actions">
+            <button class="sp-card-btn sp-card-btn-edit" onclick="editProduct(${p.id})">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="sp-card-btn sp-card-btn-delete"
+                    onclick="deleteProduct(${p.id}, '${esc(p.name)}')" title="Delete">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+    </div>`;
+}
+
+// ============================================================
+// VIEW TOGGLE
+// ============================================================
+
+function setView(view) {
+    currentView = view;
+    const tableView = document.getElementById('tableView');
+    const gridView  = document.getElementById('gridView');
+    const tableBtn  = document.getElementById('tableViewBtn');
+    const gridBtn   = document.getElementById('gridViewBtn');
+
+    if (view === 'table') {
+        tableView.style.display = '';
+        gridView.style.display  = 'none';
+        tableBtn.classList.add('active');
+        gridBtn.classList.remove('active');
+    } else {
+        tableView.style.display = 'none';
+        gridView.style.display  = 'grid';
+        tableBtn.classList.remove('active');
+        gridBtn.classList.add('active');
+    }
+    renderProducts();
+}
+
+// ============================================================
+// PAGINATION
+// ============================================================
+
+function updatePagination() {
+    const total      = filteredProducts.length;
+    const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+    const start      = total === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+    const end        = Math.min(currentPage * ITEMS_PER_PAGE, total);
+
+    const infoEl = document.getElementById('paginationInfo');
+    if (infoEl) {
+        infoEl.textContent = total === 0
+            ? 'No products'
+            : `Showing ${start}–${end} of ${total} product${total !== 1 ? 's' : ''}`;
+    }
+
+    const btnsEl = document.getElementById('paginationBtns');
+    if (!btnsEl) return;
+    if (totalPages <= 1) { btnsEl.innerHTML = ''; return; }
+
+    let html = `<button class="sp-page-btn" onclick="goToPage(${currentPage - 1})"
+                        ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i>
+                </button>`;
+
+    for (let p = 1; p <= totalPages; p++) {
+        if (p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1) {
+            html += `<button class="sp-page-btn ${p === currentPage ? 'active' : ''}"
+                             onclick="goToPage(${p})">${p}</button>`;
+        } else if (Math.abs(p - currentPage) === 2) {
+            html += `<span class="sp-page-ellipsis">…</span>`;
+        }
+    }
+
+    html += `<button class="sp-page-btn" onclick="goToPage(${currentPage + 1})"
+                     ${currentPage === totalPages ? 'disabled' : ''}>
+                 <i class="fas fa-chevron-right"></i>
+             </button>`;
+
+    btnsEl.innerHTML = html;
+}
+
+function goToPage(page) {
+    const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderProducts();
+    updatePagination();
+    // Scroll table/grid into view
+    document.getElementById('tableView')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateResultsCount() {
+    const el    = document.getElementById('resultsCount');
+    const total = filteredProducts.length;
+    if (el) el.textContent = `${total} product${total !== 1 ? 's' : ''}`;
+}
+
+// ============================================================
+// CHECKBOXES
+// ============================================================
+
+function setupSelectAllCheckbox() {
+    const selectAll = document.getElementById('selectAll');
+    if (!selectAll) return;
+    selectAll.checked       = false;
+    selectAll.indeterminate = false;
+
+    selectAll.addEventListener('change', function () {
+        document.querySelectorAll('.sp-product-checkbox')
+            .forEach(cb => { cb.checked = this.checked; });
+    });
+
+    document.querySelectorAll('.sp-product-checkbox').forEach(cb => {
+        cb.addEventListener('change', () => {
+            const all     = document.querySelectorAll('.sp-product-checkbox');
+            const checked = document.querySelectorAll('.sp-product-checkbox:checked');
+            selectAll.checked       = all.length === checked.length;
+            selectAll.indeterminate = checked.length > 0 && checked.length < all.length;
+        });
+    });
+}
+
+// ============================================================
+// EDIT PRODUCT
+// ============================================================
+
+function editProduct(productId) {
+    const p = (window.shopProducts || []).find(x => x.id === productId);
+    if (!p) return;
+
+    setValue('editProductId',   productId);
+    setValue('editProductName', p.name);
+    setValue('editProductSku',  p.sku);
+    setValue('editBrand',       p.brand || '');
+    setValue('editPrice',       p.price);
+    setValue('editComparePrice',p.compare_price || '');
+    setValue('editStock',       p.stock_quantity);
+    setValue('editMinStock',    p.min_stock_level || 10);
+    setValue('editStatus',      p.status);
+    setValue('editDescription', p.description || '');
+
+    const catSel = document.getElementById('editCategory');
+    if (catSel) catSel.value = String(p.category_id);
+
+    // Show existing images
+    const imgWrap = document.getElementById('editCurrentImages');
+    const images  = p.images || [];
+    if (imgWrap) {
+        if (images.length > 0) {
+            imgWrap.innerHTML = images.map(src => `
+                <div class="sp-existing-img">
+                    <img src="${esc(src)}"
+                         onerror="this.src='/public/assets/images/placeholder-product.svg'">
+                </div>`).join('');
+            imgWrap.style.display = 'flex';
+        } else {
+            imgWrap.innerHTML    = '';
+            imgWrap.style.display = 'none';
+        }
+    }
+
+    // Clear new-image preview
+    const newPrev = document.getElementById('imagePreviewEdit');
+    if (newPrev) newPrev.innerHTML = '';
+    const fileInput = document.getElementById('editProductImages');
+    if (fileInput) fileInput.value = '';
+
+    openModal('editProductModal');
+}
+
+// ============================================================
+// DELETE PRODUCT
+// ============================================================
+
+function deleteProduct(productId, productName) {
+    setValue('deleteProductId', productId);
+    const nameEl = document.getElementById('deleteProductName');
+    if (nameEl) nameEl.textContent = productName;
+    openModal('deleteProductModal');
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+
+function openModal(id) {
+    document.getElementById(id)?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+    document.getElementById(id)?.classList.remove('active');
+    document.body.style.overflow = '';
+}
 
 function openAddProductModal() {
-    const modal = document.getElementById('addProductModal');
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-
-    // Reset form
-    document.getElementById('addProductForm').reset();
+    document.getElementById('addProductForm')?.reset();
+    const p = document.getElementById('imagePreviewAdd');
+    if (p) p.innerHTML = '';
+    openModal('addProductModal');
 }
+function closeAddProductModal()  { closeModal('addProductModal');  }
+function closeEditProductModal() { closeModal('editProductModal'); }
+function closeDeleteProductModal(){ closeModal('deleteProductModal'); }
 
-function closeAddProductModal() {
-    const modal = document.getElementById('addProductModal');
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-// Removed old openEditProductModal function - now using editProduct(productId) instead
-
-function closeEditProductModal() {
-    const modal = document.getElementById('editProductModal');
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-    currentEditingRow = null;
-}
-
-function openDeleteProductModal(button) {
-    const row = button.closest('.product-row');
-    currentDeletingRow = row;
-
-    const productName = row.querySelector('.product-details h4').textContent;
-    document.getElementById('deleteProductName').textContent = productName;
-
-    const modal = document.getElementById('deleteProductModal');
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeDeleteProductModal() {
-    const modal = document.getElementById('deleteProductModal');
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-    currentDeletingRow = null;
-}
-
-// ============================================
-// FORM SUBMISSIONS
-// ============================================
-
-function setupFormSubmissions() {
-    // Forms will submit normally to the server
-    // No preventDefault needed since we're using traditional form submission
-    // Just add validation if needed
-    
-    const addForm = document.getElementById('addProductForm');
-    if (addForm) {
-        addForm.addEventListener('submit', function(e) {
-            // Optional: Add client-side validation here
-            const name = document.getElementById('productName');
-            const category = document.getElementById('category');
-            const brand = document.getElementById('brand');
-            const price = document.getElementById('price');
-            const stock = document.getElementById('stock');
-            
-            if (!name.value.trim()) {
-                alert('Please enter product name');
-                e.preventDefault();
-                return false;
-            }
-            
-            // Let the form submit normally to /shop-owner/products/create
-        });
+// Close modal on Escape key
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        ['addProductModal','editProductModal','deleteProductModal'].forEach(closeModal);
     }
+});
 
-    const editForm = document.getElementById('editProductForm');
-    if (editForm) {
-        editForm.addEventListener('submit', function(e) {
-            // Optional: Add client-side validation here
-            // Let the form submit normally to /shop-owner/products/update
-        });
-    }
-}
-
-// Product forms are now handled by server-side POST requests
-// No client-side manipulation needed
-
-// Delete is now handled by server-side POST request via deleteProduct() function
-
-
-// ============================================
-// ACTION BUTTONS SETUP
-// ============================================
-
-function setupActionButtons() {
-    // Edit buttons
-    document.querySelectorAll('.btn-action.edit').forEach(button => {
-        button.addEventListener('click', function() {
-            openEditProductModal(this);
-        });
-    });
-
-    // Delete buttons
-    document.querySelectorAll('.btn-action.delete').forEach(button => {
-        button.addEventListener('click', function() {
-            openDeleteProductModal(this);
-        });
-    });
-}
-
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-
-function updateProductStats(productChange, stockChange) {
-    // Update total products
-    const totalProductsCard = document.querySelector('.stat-card.blue .stat-value');
-    if (totalProductsCard) {
-        const currentTotal = parseInt(totalProductsCard.textContent);
-        totalProductsCard.textContent = currentTotal + productChange;
-    }
-
-    // Update in stock count
-    const inStockCard = document.querySelector('.stat-card.green .stat-value');
-    if (inStockCard && stockChange > 0) {
-        const currentInStock = parseInt(inStockCard.textContent);
-        inStockCard.textContent = currentInStock + productChange;
-    }
-}
-
-function showSuccessMessage(message) {
-    const successDiv = document.createElement('div');
-    successDiv.className = 'success-message';
-    successDiv.innerHTML = `
-        <i class="fas fa-check-circle"></i>
-        <span>${message}</span>
-    `;
-
-    document.body.appendChild(successDiv);
-
-    setTimeout(() => {
-        successDiv.remove();
-    }, 3000);
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('dashboardSidebar');
-    if (sidebar) {
-        sidebar.classList.toggle('collapsed');
-    }
-}
-
-// ============================================
-// IMAGE PREVIEW FUNCTIONALITY
-// ============================================
+// ============================================================
+// IMAGE PREVIEW
+// ============================================================
 
 function previewImages(input, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    
     container.innerHTML = '';
-    
-    if (input.files && input.files.length > 0) {
-        // Limit to 5 images
-        const maxFiles = Math.min(input.files.length, 5);
-        
-        for (let i = 0; i < maxFiles; i++) {
-            const file = input.files[i];
-            
-            // Validate file type
-            if (!file.type.match('image.*')) {
-                continue;
-            }
-            
-            // Validate file size (5MB max)
-            if (file.size > 5 * 1024 * 1024) {
-                alert(`${file.name} is too large. Max size is 5MB.`);
-                continue;
-            }
-            
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'image-preview-item';
-                previewDiv.innerHTML = `
-                    <img src="${e.target.result}" alt="Preview">
-                    <div class="image-preview-overlay">
-                        <span class="image-name">${file.name}</span>
-                        <span class="image-size">${formatFileSize(file.size)}</span>
-                    </div>
-                `;
-                container.appendChild(previewDiv);
-            };
-            
-            reader.readAsDataURL(file);
+
+    const files    = input.files;
+    if (!files || files.length === 0) return;
+    const maxFiles = Math.min(files.length, 5);
+
+    for (let i = 0; i < maxFiles; i++) {
+        const file = files[i];
+        if (!file.type.match('image.*')) continue;
+        if (file.size > 5 * 1024 * 1024) {
+            alert(`"${file.name}" is too large (max 5 MB).`);
+            continue;
         }
+        const reader = new FileReader();
+        reader.onload = e => {
+            const div = document.createElement('div');
+            div.className = 'sp-img-preview-item';
+            div.innerHTML = `
+                <img src="${e.target.result}">
+                <div class="sp-img-preview-overlay">
+                    <span>${esc(file.name)}</span>
+                    <span>${fmtBytes(file.size)}</span>
+                </div>`;
+            container.appendChild(div);
+        };
+        reader.readAsDataURL(file);
     }
 }
 
-function formatFileSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+function fmtBytes(b) {
+    if (b < 1024)     return b + ' B';
+    if (b < 1048576)  return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(1) + ' MB';
 }
 
-// ============================================
-// EDIT PRODUCT FUNCTIONALITY
-// ============================================
+// ============================================================
+// SIDEBAR TOGGLE
+// ============================================================
 
-function editProduct(productId) {
-    // Extract product data from the table row using data attributes
-    const row = document.querySelector(`tr[data-product-id="${productId}"]`);
-    if (!row) {
-        console.error('Product row not found for ID:', productId);
-        alert('Error: Product not found. Please refresh the page.');
-        return;
-    }
-    
-    // Get data from attributes
-    const productName = row.dataset.productName || '';
-    const productSku = row.dataset.productSku || '';
-    const categoryId = row.dataset.productCategoryId || '';
-    const brand = row.dataset.productBrand || '';
-    const price = row.dataset.productPrice || '0';
-    const stock = row.dataset.productStock || '0';
-    const status = row.dataset.productStatus || 'active';
-    const description = row.dataset.productDescription || '';
-    
-    // Populate edit form
-    document.getElementById('editProductId').value = productId;
-    document.getElementById('editProductName').value = productName;
-    document.getElementById('editProductSku').value = productSku;
-    document.getElementById('editBrand').value = brand;
-    document.getElementById('editPrice').value = price;
-    document.getElementById('editStock').value = stock;
-    document.getElementById('editStatus').value = status;
-    document.getElementById('editDescription').value = description;
-    
-    // Select category by ID
-    const categorySelect = document.getElementById('editCategory');
-    if (categoryId) {
-        categorySelect.value = categoryId;
-    }
-    
-    // Debug: Log to verify product ID is set
-    console.log('Editing product ID:', productId);
-    console.log('Product ID field value:', document.getElementById('editProductId').value);
-    console.log('Product data:', { productName, productSku, categoryId, brand, price, stock, status });
-    
-    // Clear image preview
-    document.getElementById('imagePreviewEdit').innerHTML = '';
-    
-    // Open edit modal
-    const modal = document.getElementById('editProductModal');
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+function toggleSidebar() {
+    document.getElementById('dashboardSidebar')?.classList.toggle('collapsed');
 }
 
-// ============================================
-// DELETE PRODUCT FUNCTIONALITY
-// ============================================
-
-let productToDelete = null;
-
-function deleteProduct(productId, productName) {
-    productToDelete = productId;
-    document.getElementById('deleteProductId').value = productId;
-    document.getElementById('deleteProductName').textContent = productName;
-    openDeleteProductModal();
-}
-
-function confirmDeleteProduct() {
-    if (productToDelete) {
-        document.getElementById('deleteProductForm').submit();
-    }
-}
-
-// ============================================
+// ============================================================
 // AUTO-HIDE ALERTS
-// ============================================
+// ============================================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
+function autoHideAlerts() {
+    document.querySelectorAll('.sp-alert').forEach(el => {
         setTimeout(() => {
-            alert.style.opacity = '0';
-            alert.style.transition = 'opacity 0.3s ease';
-            setTimeout(() => alert.remove(), 300);
+            el.style.transition = 'opacity .4s';
+            el.style.opacity    = '0';
+            setTimeout(() => el.remove(), 400);
         }, 5000);
     });
+}
+
+// ============================================================
+// UTILITY
+// ============================================================
+
+function getFirstImage(p) {
+    const imgs = p.images || [];
+    return imgs.length > 0 ? imgs[0] : '/public/assets/images/placeholder-product.svg';
+}
+
+function getStockClass(p) {
+    if (p.stock_quantity === 0)                                    return 'out-of-stock';
+    if (p.stock_quantity <= (p.min_stock_level || 10))             return 'low-stock';
+    return 'in-stock';
+}
+
+function getDiscount(p) {
+    if (p.compare_price && p.compare_price > p.price) {
+        return Math.round((1 - p.price / p.compare_price) * 100);
+    }
+    return 0;
+}
+
+function getTimeAgo(dateStr) {
+    if (!dateStr) return '—';
+    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+    if (diff < 60)     return 'Just now';
+    if (diff < 3600)   return Math.floor(diff / 60)    + 'm ago';
+    if (diff < 86400)  return Math.floor(diff / 3600)  + 'h ago';
+    if (diff < 172800) return 'Yesterday';
+    if (diff < 2592000)return Math.floor(diff / 86400) + 'd ago';
+    return Math.floor(diff / 2592000) + 'mo ago';
+}
+
+function fmt(n) {
+    return parseFloat(n || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2, maximumFractionDigits: 2
+    });
+}
+
+function capFirst(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, ' ');
+}
+
+function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = String(str || '');
+    return d.innerHTML;
+}
+
+function setValue(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+}
+
+// ============================================================
+// BULK ACTIONS
+// ============================================================
+
+function getSelectedIds() {
+    return [...document.querySelectorAll('.sp-product-checkbox:checked')]
+        .map(cb => parseInt(cb.value))
+        .filter(Boolean);
+}
+
+function updateBulkBar() {
+    const count  = document.querySelectorAll('.sp-product-checkbox:checked').length;
+    const bar    = document.getElementById('spBulkBar');
+    const badge  = document.getElementById('spBulkCount');
+    if (bar)   bar.classList.toggle('active', count > 0);
+    if (badge) badge.textContent = count;
+}
+
+function clearBulkSelection() {
+    document.querySelectorAll('.sp-product-checkbox').forEach(cb => { cb.checked = false; });
+    const sa = document.getElementById('selectAll');
+    if (sa) { sa.checked = false; sa.indeterminate = false; }
+    updateBulkBar();
+}
+
+async function bulkDelete() {
+    const ids = getSelectedIds();
+    if (ids.length === 0) return;
+    if (!confirm(`Permanently delete ${ids.length} product(s)? This cannot be undone.`)) return;
+
+    try {
+        const res  = await fetch('/shop-owner/products/bulk-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_ids: ids }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            window.shopProducts = (window.shopProducts || []).filter(p => !ids.includes(p.id));
+            applyFilters();
+            clearBulkSelection();
+            showToast(data.message, 'success');
+        } else {
+            showToast(data.message || 'Delete failed', 'error');
+        }
+    } catch {
+        showToast('Network error — please try again', 'error');
+    }
+}
+
+async function bulkSetStatus(status) {
+    const ids = getSelectedIds();
+    if (ids.length === 0) return;
+    const label = status === 'active' ? 'Activate' : 'Deactivate';
+    if (!confirm(`${label} ${ids.length} selected product(s)?`)) return;
+
+    try {
+        const res  = await fetch('/shop-owner/products/bulk-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_ids: ids, status }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            const now = new Date().toISOString();
+            window.shopProducts = (window.shopProducts || []).map(p =>
+                ids.includes(p.id) ? { ...p, status, updated_at: now } : p
+            );
+            applyFilters();
+            clearBulkSelection();
+            showToast(data.message, 'success');
+        } else {
+            showToast(data.message || 'Update failed', 'error');
+        }
+    } catch {
+        showToast('Network error — please try again', 'error');
+    }
+}
+
+function bulkExportCsv() {
+    const ids      = getSelectedIds();
+    const source   = ids.length > 0
+        ? (window.shopProducts || []).filter(p => ids.includes(p.id))
+        : filteredProducts;
+
+    if (source.length === 0) { showToast('No products to export', 'error'); return; }
+
+    const headers = ['ID','Name','SKU','Brand','Category','Price (LKR)','Compare Price','Stock','Min Stock','Status','Rating','Reviews'];
+    const rows    = source.map(p => [
+        p.id, p.name, p.sku, p.brand || '',
+        p.category_name, p.price, p.compare_price || '',
+        p.stock_quantity, p.min_stock_level, p.status,
+        parseFloat(p.rating || 0).toFixed(1), p.total_reviews || 0,
+    ]);
+
+    const csv  = [headers, ...rows]
+        .map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `products-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    const scope = ids.length > 0 ? `${ids.length} selected` : `${source.length} filtered`;
+    showToast(`Exported ${scope} product(s)`, 'success');
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `sp-toast sp-toast-${type}`;
+    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i><span>${message}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 380);
+    }, 3500);
+}
+
+// Wire bulk-bar updates into checkbox state changes using event delegation
+document.addEventListener('change', e => {
+    if (e.target.matches('.sp-product-checkbox, #selectAll')) {
+        updateBulkBar();
+    }
 });
 
-// Export for use in HTML
-if (typeof window !== 'undefined') {
-    window.clearFilters = clearFilters;
-    window.openAddProductModal = openAddProductModal;
-    window.closeAddProductModal = closeAddProductModal;
-    window.closeEditProductModal = closeEditProductModal;
-    window.closeDeleteProductModal = closeDeleteProductModal;
-    window.editProduct = editProduct;
-    window.deleteProduct = deleteProduct;
-    window.previewImages = previewImages;
-}
+// ============================================================
+// GLOBAL EXPORTS
+// ============================================================
+
+Object.assign(window, {
+    applyFilters, clearFilters, clearSearch,
+    setView, goToPage,
+    editProduct, deleteProduct,
+    openAddProductModal, closeAddProductModal,
+    closeEditProductModal, closeDeleteProductModal,
+    previewImages, toggleSidebar,
+    clearBulkSelection, bulkDelete, bulkSetStatus, bulkExportCsv,
+});
