@@ -745,6 +745,148 @@ body {
         padding: 1.5rem;
     }
 }
+
+/* Feature Badges */
+.feature-badges {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+.feature-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    background: var(--background-light);
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+}
+.feature-badge i { color: var(--success-color); }
+
+/* Sold By Card */
+.sold-by-card {
+    background: var(--background-white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-light);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    display: none;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.sold-by-card.visible { display: flex; }
+.sold-by-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: var(--background-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+.sold-by-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+.sold-by-logo i { display: flex; }
+.sold-by-main { flex: 1; min-width: 200px; }
+.sold-by-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+.sold-by-name { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem; }
+.sold-by-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+.sold-by-meta i { color: var(--primary-color); margin-right: 0.25rem; }
+.sold-by-meta .shop-stars-inline { color: var(--accent-color); font-size: 0.8rem; }
+.sold-by-desc { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.6rem; }
+.sold-by-socials { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
+.sold-by-actions { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; justify-content: center; }
+.btn-visit-shop {
+    padding: 0.6rem 1.2rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    text-decoration: none;
+}
+.btn-visit-shop:hover { background: var(--primary-dark); }
+
+/* Tabs */
+.tabs-container {
+    background: var(--background-white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-light);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+.tab-bar {
+    display: flex;
+    border-bottom: 2px solid var(--border-color);
+    background: var(--background-white);
+    overflow-x: auto;
+}
+.tab-btn {
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+}
+.tab-btn:hover { color: var(--primary-color); background: var(--background-light); }
+.tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+.tab-pane { display: none; padding: 2rem; }
+.tab-pane.active { display: block; }
+
+/* Review orders note */
+.review-orders-note {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    background: var(--primary-light);
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+}
+.review-orders-note i { color: var(--primary-color); flex-shrink: 0; }
+.review-orders-note a { color: var(--primary-color); font-weight: 600; text-decoration: none; }
+.review-orders-note a:hover { text-decoration: underline; }
 </style>
 
 <!-- Product Details Content -->
@@ -809,13 +951,13 @@ body {
                     <div id="product-stars" class="stars"></div>
                     <span id="product-rating" class="rating-text">4.5</span>
                 </div>
-                <a href="#reviews" id="reviews-link" class="reviews-link">(24 reviews)</a>
+                <a href="#" id="reviews-link" class="reviews-link" onclick="switchTab('reviews', document.querySelector('[data-tab=reviews]')); return false;">(0 reviews)</a>
             </div>
             
             <div class="price-section">
                 <span id="product-price-current" class="price-current">LKR 0</span>
                 <span id="product-price-original" class="price-original" style="display: none;">LKR 0</span>
-                <!--<span id="product-price-discount" class="price-discount" style="display: none;">0% OFF</span>-->
+                <span id="product-price-discount" class="price-discount" style="display: none;">0% OFF</span>
             </div>
             
             <div id="stock-info" class="stock-info in-stock">
@@ -846,272 +988,75 @@ body {
                     Back to Shop
                 </a>
             </div>
+
+            <div class="feature-badges">
+                <span class="feature-badge"><i class="fas fa-truck"></i> Free Delivery over LKR 5,000</span>
+                <span class="feature-badge"><i class="fas fa-undo"></i> 30-day Returns</span>
+                <span class="feature-badge"><i class="fas fa-shield-alt"></i> Secure Payment</span>
+            </div>
         </div>
     </div>
 
-    <!-- Product Content -->
-    <div class="product-content">
-        <div class="main-content">
-            <!-- Description -->
-            <div class="content-section">
-                <h3 class="section-title">
-                    <i class="fas fa-info-circle"></i>
-                    Description
-                </h3>
-                <div id="product-description" class="product-description">
-                    Product description will be loaded here...
-                </div>
-            </div>
+    <!-- Sold By Card -->
+    <div id="sold-by-card" class="sold-by-card">
+        <div class="sold-by-logo" id="sold-by-logo">
+            <i class="fas fa-store"></i>
+            <!-- img replaced dynamically by JS; FA icon is the fallback -->
+        </div>
+        <div class="sold-by-main">
+            <div class="sold-by-label">Sold By</div>
+            <div class="sold-by-name" id="sold-by-name">Shop Name</div>
+            <div class="sold-by-meta" id="sold-by-meta"></div>
+            <div class="sold-by-desc" id="sold-by-desc" style="display:none;"></div>
+            <div class="sold-by-socials" id="sold-by-socials"></div>
+        </div>
+        <div class="sold-by-actions">
+            <button id="sold-by-visit-btn" class="btn-visit-shop" style="display:none;">
+                <i class="fas fa-store"></i> Visit Shop
+            </button>
+        </div>
+    </div>
 
-            <!-- Specifications -->
-            <div class="content-section">
-                <h3 class="section-title">
-                    <i class="fas fa-cog"></i>
-                    Specifications
-                </h3>
-                <div id="product-specs" class="specs-grid">
-                    <!-- Specifications will be populated dynamically -->
-                </div>
-            </div>
+    <!-- Tabs: Description | Specifications | Reviews -->
+    <div class="tabs-container">
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="description" onclick="switchTab('description', this)">
+                <i class="fas fa-info-circle"></i> Description
+            </button>
+            <button class="tab-btn" data-tab="specifications" onclick="switchTab('specifications', this)">
+                <i class="fas fa-cog"></i> Specifications
+            </button>
+            <button class="tab-btn" data-tab="reviews" onclick="switchTab('reviews', this)">
+                <i class="fas fa-star"></i> Reviews (<span id="reviews-count">0</span>)
+            </button>
+        </div>
 
-            <!-- Reviews -->
-            <div id="reviews" class="content-section">
-                <h3 class="section-title">
-                    <i class="fas fa-star"></i>
-                    Customer Reviews
-                </h3>
-                <div class="reviews-summary">
-                    <div class="rating">
-                        <div id="reviews-stars" class="stars"></div>
-                        <span id="reviews-average" class="rating-text">4.5</span>
-                        <span class="reviews-text">based on <span id="reviews-count">0</span> reviews</span>
-                    </div>
-                </div>
-                
-                <!-- Review Form (for logged-in users who haven't reviewed yet) -->
-                <?php 
-                // Session is already started by the controller
-                $isLoggedIn = isset($_SESSION['user_id']);
-                $userReview = $userReview ?? null;
-                
-                // Display success/error messages
-                if (isset($_SESSION['success_message'])): ?>
-                    <div class="alert alert-success" style="margin: 1rem 0; padding: 1rem; background: #d1fae5; color: #065f46; border-radius: 8px; border-left: 4px solid #10b981;">
-                        <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['success_message']); unset($_SESSION['success_message']); ?>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if (isset($_SESSION['error_message'])): ?>
-                    <div class="alert alert-error" style="margin: 1rem 0; padding: 1rem; background: #fee2e2; color: #991b1b; border-radius: 8px; border-left: 4px solid #ef4444;">
-                        <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($_SESSION['error_message']); unset($_SESSION['error_message']); ?>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if (!$isLoggedIn): ?>
-                    <!-- Guest user - show login prompt -->
-                    <div class="review-login-prompt" style="margin: 2rem 0; padding: 2rem; background: var(--primary-light); border-radius: var(--border-radius); text-align: center;">
-                        <i class="fas fa-lock" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
-                        <h4 style="margin-bottom: 0.5rem;">Want to leave a review?</h4>
-                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Please log in to write a review for this product</p>
-                        <a href="/login" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt"></i> Login to Review
-                        </a>
-                    </div>
-                <?php elseif ($userReview): ?>
-                    <!-- User has already reviewed - show their review with edit/delete options -->
-                    <div class="user-review-card" style="margin: 2rem 0; padding: 1.5rem; background: #fef3c7; border-radius: var(--border-radius); border-left: 4px solid var(--accent-color);">
-                        <h4 style="margin-bottom: 1rem;"><i class="fas fa-edit"></i> Your Review</h4>
-                        <div id="user-review-display">
-                            <div class="review-rating-display">
-                                <?php 
-                                for ($i = 1; $i <= 5; $i++) {
-                                    echo $i <= $userReview['rating'] ? '<i class="fas fa-star" style="color: var(--accent-color);"></i>' : '<i class="far fa-star" style="color: var(--accent-color);"></i>';
-                                }
-                                ?>
-                            </div>
-                            <?php if ($userReview['title']): ?>
-                                <h5 style="margin-top: 0.5rem;"><?php echo htmlspecialchars($userReview['title']); ?></h5>
-                            <?php endif; ?>
-                            <?php if ($userReview['review_text']): ?>
-                                <p style="margin-top: 0.5rem; color: var(--text-secondary);"><?php echo nl2br(htmlspecialchars($userReview['review_text'])); ?></p>
-                            <?php endif; ?>
-                            <div style="margin-top: 1rem;">
-                                <button onclick="showEditReviewForm()" class="btn btn-secondary" style="margin-right: 0.5rem;">
-                                    <i class="fas fa-edit"></i> Edit Review
-                                </button>
-                                <button onclick="deleteReview(<?php echo $userReview['id']; ?>)" class="btn btn-secondary" style="background: var(--danger-color); color: white; border-color: var(--danger-color);">
-                                    <i class="fas fa-trash"></i> Delete Review
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Edit form (hidden by default) -->
-                        <form id="edit-review-form" action="/product/review/update" method="POST" style="display: none;">
-                            <input type="hidden" name="review_id" value="<?php echo $userReview['id']; ?>">
-                            <input type="hidden" name="product_id" value="<?php echo $product['id'] ?? 0; ?>">
-                            
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Rating *</label>
-                                <div class="star-rating-input" id="edit-star-rating">
-                                    <i class="far fa-star" data-rating="1"></i>
-                                    <i class="far fa-star" data-rating="2"></i>
-                                    <i class="far fa-star" data-rating="3"></i>
-                                    <i class="far fa-star" data-rating="4"></i>
-                                    <i class="far fa-star" data-rating="5"></i>
-                                </div>
-                                <input type="hidden" name="rating" id="edit-rating-value" value="<?php echo $userReview['rating']; ?>" required>
-                            </div>
-                            
-                            <div style="margin-bottom: 1rem;">
-                                <label for="edit-title" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Review Title</label>
-                                <input type="text" id="edit-title" name="title" value="<?php echo htmlspecialchars($userReview['title'] ?? ''); ?>" 
-                                       style="width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: var(--border-radius);" 
-                                       maxlength="200" placeholder="Sum up your experience (optional)">
-                            </div>
-                            
-                            <div style="margin-bottom: 1rem;">
-                                <label for="edit-review-text" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Your Review</label>
-                                <textarea id="edit-review-text" name="review_text" rows="4" 
-                                          style="width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: var(--border-radius);" 
-                                          maxlength="2000" placeholder="Share your thoughts about this product (optional)"><?php echo htmlspecialchars($userReview['review_text'] ?? ''); ?></textarea>
-                            </div>
-                            
-                            <div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Update Review
-                                </button>
-                                <button type="button" onclick="hideEditReviewForm()" class="btn btn-secondary" style="margin-left: 0.5rem;">
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                <?php else: ?>
-                    <!-- Logged-in user hasn't reviewed yet - show review form -->
-                    <div class="write-review-card" style="margin: 2rem 0; padding: 2rem; background: var(--background-light); border-radius: var(--border-radius);">
-                        <h4 style="margin-bottom: 1.5rem;"><i class="fas fa-pencil-alt"></i> Write a Review</h4>
-                        <form id="review-form" action="/product/<?php echo $product['id'] ?? 0; ?>/review" method="POST">
-                            <div style="margin-bottom: 1.5rem;">
-                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Rating *</label>
-                                <div class="star-rating-input" id="star-rating">
-                                    <i class="far fa-star" data-rating="1"></i>
-                                    <i class="far fa-star" data-rating="2"></i>
-                                    <i class="far fa-star" data-rating="3"></i>
-                                    <i class="far fa-star" data-rating="4"></i>
-                                    <i class="far fa-star" data-rating="5"></i>
-                                </div>
-                                <input type="hidden" name="rating" id="rating-value" required>
-                                <small style="color: var(--text-secondary);">Click on the stars to rate this product</small>
-                            </div>
-                            
-                            <div style="margin-bottom: 1.5rem;">
-                                <label for="review-title" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Review Title</label>
-                                <input type="text" id="review-title" name="title" 
-                                       style="width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 1rem;" 
-                                       maxlength="200" placeholder="Sum up your experience (optional)">
-                            </div>
-                            
-                            <div style="margin-bottom: 1.5rem;">
-                                <label for="review-text" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Your Review</label>
-                                <textarea id="review-text" name="review_text" rows="5" 
-                                          style="width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 1rem;" 
-                                          maxlength="2000" placeholder="Share your thoughts about this product (optional)"></textarea>
-                                <small style="color: var(--text-secondary);">Maximum 2000 characters</small>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane"></i> Submit Review
-                            </button>
-                        </form>
-                    </div>
-                <?php endif; ?>
-                
-                <!-- All Reviews List -->
-                <div style="margin-top: 2rem;">
-                    <h4 style="margin-bottom: 1rem;">All Reviews</h4>
-                    <div id="reviews-list">
-                        <!-- Reviews will be populated dynamically -->
-                    </div>
-                </div>
+        <!-- Description tab -->
+        <div id="tab-description" class="tab-pane active">
+            <div id="product-description" class="product-description">
+                Product description will be loaded here...
             </div>
         </div>
 
-        <div class="sidebar">
-            <!-- Delivery Info -->
-            <div class="sidebar-section">
-                <h3 class="section-title">
-                    <i class="fas fa-truck"></i>
-                    Delivery
-                </h3>
-                <div class="spec-item">
-                    <span class="spec-label">Free delivery</span>
-                    <span class="spec-value">Orders over LKR 5000</span>
-                </div>
-                <div class="spec-item">
-                    <span class="spec-label">Standard delivery</span>
-                    <span class="spec-value">2-3 business days</span>
-                </div>
-                <div class="spec-item">
-                    <span class="spec-label">Express delivery</span>
-                    <span class="spec-value">Next business day</span>
-                </div>
-            </div>
+        <!-- Specifications tab -->
+        <div id="tab-specifications" class="tab-pane">
+            <div id="product-specs" class="specs-grid"></div>
+        </div>
 
-            <!-- Return Policy -->
-            <div class="sidebar-section">
-                <h3 class="section-title">
-                    <i class="fas fa-undo"></i>
-                    Return Policy
-                </h3>
-                <div class="spec-item">
-                    <span class="spec-label">Return window</span>
-                    <span class="spec-value">30 days</span>
-                </div>
-                <div class="spec-item">
-                    <span class="spec-label">Condition</span>
-                    <span class="spec-value">Original packaging</span>
-                </div>
-                <div class="spec-item">
-                    <span class="spec-label">Return fee</span>
-                    <span class="spec-value">Free</span>
+        <!-- Reviews tab -->
+        <div id="tab-reviews" class="tab-pane">
+            <div class="reviews-summary">
+                <div class="rating">
+                    <div id="reviews-stars" class="stars"></div>
+                    <span id="reviews-average" class="rating-text">0</span>
+                    <span class="reviews-text">based on <span id="reviews-count-detail">0</span> reviews</span>
                 </div>
             </div>
-            
-            <!-- Shop Owner Info -->
-            <div id="shop-owner-section" class="sidebar-section" style="display: none;">
-                <h3 class="section-title">
-                    <i class="fas fa-store"></i>
-                    Sold By
-                </h3>
-                
-                <div class="shop-info-content">
-                    <h4 id="shop-name" class="shop-name-title">Shop Name</h4>
-                    <p id="shop-business-name" class="shop-business-subtitle"></p>
-                </div>
-                
-                <div id="shop-rating-section" class="shop-rating" style="display: none;">
-                    <div id="shop-stars" class="stars"></div>
-                    <span id="shop-rating-text" class="rating-text">0 (0 reviews)</span>
-                </div>
-                
-                <div id="shop-description-section" class="shop-description" style="display: none;">
-                    <p id="shop-description-text"></p>
-                </div>
-                
-                <div id="shop-contact-section" class="shop-contact" style="display: none;">
-                    <div id="shop-contact-details">
-                        <!-- Contact items will be added dynamically -->
-                    </div>
-                </div>
-                
-                <div id="shop-social-section" class="shop-social" style="display: none;">
-                    <!-- Social links will be added dynamically -->
-                </div>
-                
-                <button id="visit-shop-btn" class="visit-shop-btn" style="display: none;">
-                    <i class="fas fa-store"></i> Visit Shop
-                </button>
+            <div class="review-orders-note">
+                <i class="fas fa-info-circle"></i>
+                <span>Purchased this product? Leave a review from <a href="/my-orders">My Orders</a></span>
             </div>
+            <div id="reviews-list"></div>
         </div>
     </div>
 
@@ -1129,9 +1074,9 @@ body {
 
 <script>
 // Product data will be loaded from PHP
-const productData = <?php echo json_encode($product ?? null); ?>;
-const relatedProducts = <?php echo json_encode($relatedProducts ?? []); ?>;
-const reviews = <?php echo json_encode($reviews ?? []); ?>;
+const productData = <?php echo json_encode($product ?? null, JSON_HEX_TAG | JSON_INVALID_UTF8_SUBSTITUTE) ?: 'null'; ?>;
+const relatedProducts = <?php echo json_encode($relatedProducts ?? [], JSON_HEX_TAG | JSON_INVALID_UTF8_SUBSTITUTE) ?: '[]'; ?>;
+const reviews = <?php echo json_encode($reviews ?? [], JSON_HEX_TAG | JSON_INVALID_UTF8_SUBSTITUTE) ?: '[]'; ?>;
 
 let currentQuantity = 1;
 
@@ -1216,148 +1161,88 @@ function displayProductDetails(product) {
     displayShopOwnerInfo(product);
 }
 
-// Display shop owner information
-function displayShopOwnerInfo(product) {
-    const sidebar = document.getElementById('shop-owner-section');
-    
-    // Check if shop owner information exists
-    if (!product.shop_name && !product.business_name && !product.shop_owner_id) {
-        sidebar.style.display = 'none';
-        return;
-    }
-    
-    sidebar.style.display = 'block';
-    
-    // Shop name
-    const shopName = product.shop_name || product.business_name || 'GoPlay Store';
-    document.getElementById('shop-name').textContent = shopName;
-    
-    // Business name (show only if different from shop name)
-    const businessNameEl = document.getElementById('shop-business-name');
-    if (product.business_name && product.shop_name && product.business_name !== product.shop_name) {
-        businessNameEl.textContent = product.business_name;
-        businessNameEl.style.display = 'block';
-    } else {
-        businessNameEl.style.display = 'none';
-    }
-    
-    // Shop rating
-    if (product.average_rating && product.average_rating > 0) {
-        const ratingSection = document.getElementById('shop-rating-section');
-        ratingSection.style.display = 'flex';
-        displayShopRating(product.average_rating);
-        document.getElementById('shop-rating-text').textContent = 
-            `${product.average_rating.toFixed(1)} (${product.total_reviews || 0} reviews)`;
-    }
-    
-    // Shop description
-    if (product.business_description) {
-        document.getElementById('shop-description-section').style.display = 'block';
-        document.getElementById('shop-description-text').textContent = 
-            product.business_description.substring(0, 120) + (product.business_description.length > 120 ? '...' : '');
-    }
-    
-    // Contact information
-    let hasContact = false;
-    let contactHTML = '';
-    
-    if (product.business_phone) {
-        hasContact = true;
-        contactHTML += `
-            <div class="contact-item">
-                <i class="fas fa-phone"></i>
-                <span>${product.business_phone}</span>
-            </div>
-        `;
-    }
-    
-    if (product.business_email) {
-        hasContact = true;
-        contactHTML += `
-            <div class="contact-item">
-                <i class="fas fa-envelope"></i>
-                <span>${product.business_email}</span>
-            </div>
-        `;
-    }
-    
-    if (product.shop_city) {
-        hasContact = true;
-        const location = [product.shop_city, product.shop_state].filter(Boolean).join(', ');
-        contactHTML += `
-            <div class="contact-item">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>${location}</span>
-            </div>
-        `;
-    }
-    
-    if (hasContact) {
-        document.getElementById('shop-contact-section').style.display = 'block';
-        document.getElementById('shop-contact-details').innerHTML = contactHTML;
-    }
-    
-    // Social media links
-    let hasSocial = false;
-    let socialHTML = '';
-    
-    if (product.facebook) {
-        hasSocial = true;
-        socialHTML += `<a href="${product.facebook}" target="_blank" class="social-link" title="Facebook"><i class="fab fa-facebook-f"></i></a>`;
-    }
-    
-    if (product.instagram) {
-        hasSocial = true;
-        socialHTML += `<a href="${product.instagram}" target="_blank" class="social-link" title="Instagram"><i class="fab fa-instagram"></i></a>`;
-    }
-    
-    if (product.twitter) {
-        hasSocial = true;
-        socialHTML += `<a href="${product.twitter}" target="_blank" class="social-link" title="Twitter"><i class="fab fa-twitter"></i></a>`;
-    }
-    
-    if (product.website_url) {
-        hasSocial = true;
-        socialHTML += `<a href="${product.website_url}" target="_blank" class="social-link" title="Website"><i class="fas fa-globe"></i></a>`;
-    }
-    
-    if (hasSocial) {
-        document.getElementById('shop-social-section').style.display = 'flex';
-        document.getElementById('shop-social-section').innerHTML = socialHTML;
-    }
-    
-    // Visit shop button
-    if (product.shop_owner_id) {
-        const visitBtn = document.getElementById('visit-shop-btn');
-        visitBtn.style.display = 'flex';
-        visitBtn.onclick = function() {
-            window.location.href = `/shop?owner=${product.shop_owner_id}`;
-        };
-    }
+// Generate inline shop star HTML
+function generateShopStars(rating) {
+    const full = Math.floor(rating);
+    const half = rating % 1 >= 0.5;
+    let s = '';
+    for (let i = 0; i < full; i++) s += '<i class="fas fa-star"></i>';
+    if (half) s += '<i class="fas fa-star-half-alt"></i>';
+    const empty = 5 - full - (half ? 1 : 0);
+    for (let i = 0; i < empty; i++) s += '<i class="far fa-star"></i>';
+    return s;
 }
 
-// Display shop rating stars
-function displayShopRating(rating) {
-    const starsContainer = document.getElementById('shop-stars');
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
+// Switch tab
+function switchTab(tabName, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+    if (btn) btn.classList.add('active');
+}
 
-    let starsHTML = '';
-    
-    for (let i = 0; i < fullStars; i++) {
-        starsHTML += '<i class="fas fa-star"></i>';
-    }
-    
-    if (hasHalfStar) {
-        starsHTML += '<i class="fas fa-star-half-alt"></i>';
-    }
-    
-    const remainingStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-    for (let i = 0; i < remainingStars; i++) {
-        starsHTML += '<i class="far fa-star"></i>';
+// Display shop owner information in sold-by card
+function displayShopOwnerInfo(product) {
+    const card = document.getElementById('sold-by-card');
+
+    if (!product.shop_name && !product.business_name && !product.shop_owner_id) {
+        return; // card stays hidden
     }
 
-    starsContainer.innerHTML = starsHTML;
+    card.classList.add('visible');
+
+    // Logo — always set an img; onerror falls back to the FA icon
+    const logoEl = document.getElementById('sold-by-logo');
+    const logoSrc = product.shop_logo || '';
+    logoEl.innerHTML = logoSrc
+        ? `<img src="${logoSrc}" alt="Shop Logo" onerror="this.style.display='none';this.parentElement.querySelector('i').style.display='flex';">
+           <i class="fas fa-store" style="display:none;"></i>`
+        : `<i class="fas fa-store"></i>`;
+
+    // Name — prefer shop_name, then business_name, then owner's real name, then generic fallback
+    const ownerName = [product.owner_first_name, product.owner_last_name].filter(Boolean).join(' ');
+    const shopName = product.shop_name || product.business_name || ownerName || 'GoPlay Store';
+    document.getElementById('sold-by-name').textContent = shopName;
+
+    // Meta row: rating + location + contact
+    let metaHTML = '';
+    if (product.average_rating && product.average_rating > 0) {
+        metaHTML += `<span><span class="shop-stars-inline">${generateShopStars(product.average_rating)}</span> ${parseFloat(product.average_rating).toFixed(1)} (${product.total_reviews || 0} reviews)</span>`;
+    }
+    if (product.shop_city) {
+        const location = [product.shop_city, product.shop_state].filter(Boolean).join(', ');
+        metaHTML += `<span><i class="fas fa-map-marker-alt"></i>${location}</span>`;
+    }
+    if (product.business_phone) {
+        metaHTML += `<span><i class="fas fa-phone"></i>${product.business_phone}</span>`;
+    }
+    if (product.business_email) {
+        metaHTML += `<span><i class="fas fa-envelope"></i>${product.business_email}</span>`;
+    }
+    document.getElementById('sold-by-meta').innerHTML = metaHTML;
+
+    // Description snippet
+    if (product.business_description) {
+        const descEl = document.getElementById('sold-by-desc');
+        descEl.textContent = product.business_description.substring(0, 150) + (product.business_description.length > 150 ? '...' : '');
+        descEl.style.display = 'block';
+    }
+
+
+    // Social links
+    let socialHTML = '';
+    if (product.facebook) socialHTML += `<a href="${product.facebook}" target="_blank" class="social-link" title="Facebook"><i class="fab fa-facebook-f"></i></a>`;
+    if (product.instagram) socialHTML += `<a href="${product.instagram}" target="_blank" class="social-link" title="Instagram"><i class="fab fa-instagram"></i></a>`;
+    if (product.twitter) socialHTML += `<a href="${product.twitter}" target="_blank" class="social-link" title="Twitter"><i class="fab fa-twitter"></i></a>`;
+    if (product.website_url) socialHTML += `<a href="${product.website_url}" target="_blank" class="social-link" title="Website"><i class="fas fa-globe"></i></a>`;
+    if (socialHTML) document.getElementById('sold-by-socials').innerHTML = socialHTML;
+
+    // Visit shop button
+    if (product.shop_owner_id) {
+        const visitBtn = document.getElementById('sold-by-visit-btn');
+        visitBtn.style.display = 'flex';
+        visitBtn.onclick = () => window.location.href = `/store/${product.shop_owner_id}`;
+    }
 }
 
 // Display product images
@@ -1544,11 +1429,15 @@ function displayRelatedProducts(products) {
 // Display reviews
 function displayReviews(reviews) {
     if (!reviews || reviews.length === 0) {
-        document.getElementById('reviews-list').innerHTML = '<p style="color: var(--text-secondary); padding: 1rem; text-align: center;">No reviews yet. Be the first to review this product!</p>';
+        document.getElementById('reviews-list').innerHTML = '<p style="color: var(--text-secondary); padding: 1rem; text-align: center;">No reviews yet.</p>';
         return;
     }
 
     document.getElementById('reviews-count').textContent = reviews.length;
+    const detail = document.getElementById('reviews-count-detail');
+    if (detail) detail.textContent = reviews.length;
+    const rl = document.getElementById('reviews-link');
+    if (rl) rl.textContent = `(${reviews.length} reviews)`;
 
     const reviewsHTML = reviews.map(review => `
         <div class="review-item" style="padding: 1.5rem 0; border-bottom: 1px solid var(--border-color);">
@@ -1581,157 +1470,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Initialize star rating inputs
-document.addEventListener('DOMContentLoaded', function() {
-    // For new review form
-    const starRating = document.getElementById('star-rating');
-    if (starRating) {
-        initStarRating(starRating, 'rating-value');
-    }
-    
-    // For edit review form
-    const editStarRating = document.getElementById('edit-star-rating');
-    if (editStarRating) {
-        const currentRating = document.getElementById('edit-rating-value').value;
-        initStarRating(editStarRating, 'edit-rating-value', parseInt(currentRating));
-    }
-});
-
-// Initialize interactive star rating
-function initStarRating(container, inputId, defaultRating = 0) {
-    const stars = container.querySelectorAll('i');
-    const input = document.getElementById(inputId);
-    
-    // Set default rating if provided
-    if (defaultRating > 0) {
-        stars.forEach((star, index) => {
-            if (index < defaultRating) {
-                star.classList.remove('far');
-                star.classList.add('fas');
-            }
-        });
-    }
-    
-    stars.forEach(star => {
-        // Hover effect
-        star.addEventListener('mouseenter', function() {
-            const rating = parseInt(this.getAttribute('data-rating'));
-            highlightStars(stars, rating);
-        });
-        
-        // Click to select
-        star.addEventListener('click', function() {
-            const rating = parseInt(this.getAttribute('data-rating'));
-            input.value = rating;
-            setStars(stars, rating);
-        });
-    });
-    
-    // Reset on mouse leave
-    container.addEventListener('mouseleave', function() {
-        const currentRating = input.value ? parseInt(input.value) : 0;
-        setStars(stars, currentRating);
-    });
-}
-
-// Highlight stars on hover
-function highlightStars(stars, rating) {
-    stars.forEach((star, index) => {
-        if (index < rating) {
-            star.classList.remove('far');
-            star.classList.add('fas');
-            star.style.color = 'var(--accent-color)';
-        } else {
-            star.classList.remove('fas');
-            star.classList.add('far');
-            star.style.color = 'var(--text-light)';
-        }
-    });
-}
-
-// Set stars permanently
-function setStars(stars, rating) {
-    stars.forEach((star, index) => {
-        if (index < rating) {
-            star.classList.remove('far');
-            star.classList.add('fas');
-            star.style.color = 'var(--accent-color)';
-        } else {
-            star.classList.remove('fas');
-            star.classList.add('far');
-            star.style.color = 'var(--text-light)';
-        }
-    });
-}
-
-// Show edit review form
-function showEditReviewForm() {
-    document.getElementById('user-review-display').style.display = 'none';
-    document.getElementById('edit-review-form').style.display = 'block';
-}
-
-// Hide edit review form
-function hideEditReviewForm() {
-    document.getElementById('user-review-display').style.display = 'block';
-    document.getElementById('edit-review-form').style.display = 'none';
-}
-
-// Delete review with confirmation
-function deleteReview(reviewId) {
-    if (!confirm('Are you sure you want to delete your review? This action cannot be undone.')) {
-        return;
-    }
-    
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/product/review/delete';
-    
-    const reviewIdInput = document.createElement('input');
-    reviewIdInput.type = 'hidden';
-    reviewIdInput.name = 'review_id';
-    reviewIdInput.value = reviewId;
-    
-    const productIdInput = document.createElement('input');
-    productIdInput.type = 'hidden';
-    productIdInput.name = 'product_id';
-    productIdInput.value = productData.id;
-    
-    form.appendChild(reviewIdInput);
-    form.appendChild(productIdInput);
-    document.body.appendChild(form);
-    form.submit();
-}
-
-// Add CSS for star rating
-const starRatingStyles = document.createElement('style');
-starRatingStyles.innerHTML = `
-    .star-rating-input {
-        display: flex;
-        gap: 0.5rem;
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .star-rating-input i {
-        cursor: pointer;
-        transition: all 0.2s ease;
-        color: var(--text-light);
-    }
-    
-    .star-rating-input i:hover {
-        transform: scale(1.2);
-        color: var(--accent-color);
-    }
-    
-    .star-rating-input i.fas {
-        color: var(--accent-color);
-    }
-    
-    .review-item:last-child {
-        border-bottom: none !important;
-    }
-`;
-document.head.appendChild(starRatingStyles);
 
 
 // Generate stars for reviews

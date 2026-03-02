@@ -1080,6 +1080,38 @@ $additionalJS = ['/public/js/cart-api.js'];
             </div>
         </div>
 
+        <!-- Shop Owner Banner (shown when filtering by owner) -->
+        <?php if (!empty($shopOwnerInfo)): ?>
+        <div style="background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:1.25rem 1.75rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;">
+            <div style="width:52px;height:52px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;border:1px solid #e9ecef;">
+                <?php if (!empty($shopOwnerInfo['shop_logo'])): ?>
+                    <img src="<?php echo htmlspecialchars($shopOwnerInfo['shop_logo']); ?>" alt="Shop Logo" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                    <i class="fas fa-store" style="display:none;color:#2563eb;font-size:1.4rem;"></i>
+                <?php else: ?>
+                    <i class="fas fa-store" style="color:#2563eb;font-size:1.4rem;"></i>
+                <?php endif; ?>
+            </div>
+            <div style="flex:1;min-width:180px;">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6c757d;margin-bottom:.2rem;">Viewing products from</div>
+                <div style="font-size:1.15rem;font-weight:700;color:#2c3e50;">
+                    <?php echo htmlspecialchars($shopOwnerInfo['shop_name'] ?? $shopOwnerInfo['business_name'] ?? $shopOwnerInfo['owner_name']); ?>
+                </div>
+                <?php if (!empty($shopOwnerInfo['shop_city'])): ?>
+                    <div style="font-size:.85rem;color:#6c757d;margin-top:.15rem;"><i class="fas fa-map-marker-alt" style="color:#2563eb;margin-right:.3rem;"></i><?php echo htmlspecialchars($shopOwnerInfo['shop_city']); ?></div>
+                <?php endif; ?>
+                <?php if (!empty($shopOwnerInfo['business_description'])): ?>
+                    <div style="font-size:.85rem;color:#6c757d;margin-top:.3rem;"><?php echo htmlspecialchars(mb_substr($shopOwnerInfo['business_description'], 0, 120)) . (mb_strlen($shopOwnerInfo['business_description']) > 120 ? '...' : ''); ?></div>
+                <?php endif; ?>
+            </div>
+            <a href="/store/<?php echo (int)($shopOwnerInfo['user_id']); ?>" style="padding:.5rem 1rem;background:#2563eb;border-radius:8px;font-size:.85rem;font-weight:600;color:#fff;text-decoration:none;white-space:nowrap;">
+                <i class="fas fa-store" style="margin-right:.3rem;"></i> Visit Store
+            </a>
+            <a href="/shop" style="padding:.5rem 1rem;border:1.5px solid #e9ecef;border-radius:8px;font-size:.85rem;font-weight:600;color:#6c757d;text-decoration:none;white-space:nowrap;">
+                <i class="fas fa-times" style="margin-right:.3rem;"></i> Clear Filter
+            </a>
+        </div>
+        <?php endif; ?>
+
         <!-- Search Section -->
         <div class="search-section">
             <div class="search-container">

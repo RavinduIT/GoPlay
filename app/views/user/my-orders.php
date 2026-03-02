@@ -154,6 +154,45 @@ $additionalJS = [];
     </div>
 </div>
 
+<!-- Write Review Modal -->
+<div id="reviewModal" class="modal" style="display:none;">
+    <div class="modal-content review-modal-container">
+        <div class="modal-header">
+            <h2><i class="fas fa-star"></i> Write a Review</h2>
+            <button class="modal-close" onclick="closeReviewModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="review-product-info" class="review-product-info"></div>
+            <div class="review-form-group">
+                <label>Your Rating *</label>
+                <div class="star-rating-input" id="review-stars">
+                    <i class="far fa-star" data-rating="1"></i>
+                    <i class="far fa-star" data-rating="2"></i>
+                    <i class="far fa-star" data-rating="3"></i>
+                    <i class="far fa-star" data-rating="4"></i>
+                    <i class="far fa-star" data-rating="5"></i>
+                </div>
+                <input type="hidden" id="review-rating-value">
+                <small class="form-hint">Click the stars to rate</small>
+            </div>
+            <div class="review-form-group">
+                <label for="review-title-input">Title (optional)</label>
+                <input type="text" id="review-title-input" class="review-input" placeholder="Sum up your experience" maxlength="200">
+            </div>
+            <div class="review-form-group">
+                <label for="review-text-input">Your Review (optional)</label>
+                <textarea id="review-text-input" class="review-textarea" rows="4" placeholder="Share your experience with this product..." maxlength="2000"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeReviewModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitReviewFromOrders()">
+                <i class="fas fa-paper-plane"></i> Submit Review
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast Notification -->
 <div id="toast" class="toast"></div>
 

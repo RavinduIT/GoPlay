@@ -217,4 +217,14 @@ class ProductReview extends BaseModel
         $review = $this->find($reviewId);
         return $review && $review['user_id'] == $userId;
     }
+
+    /**
+     * Get all product IDs reviewed by a specific user
+     */
+    public function getReviewedProductIdsByUser(int $userId): array
+    {
+        $sql = "SELECT product_id FROM {$this->table} WHERE user_id = ?";
+        $results = $this->query($sql, [$userId])->fetchAll(\PDO::FETCH_COLUMN);
+        return $results ?: [];
+    }
 }

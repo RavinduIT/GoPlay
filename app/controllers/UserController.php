@@ -1496,4 +1496,83 @@ class UserController extends BaseController
             return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
+
+    // =====================================================================
+    // PRODUCT REVIEWS (from My Orders page)
+    // =====================================================================
+
+    /**
+     * GET /api/user/reviewed-products
+     * Returns list of product IDs the current user has already reviewed.
+     */
+    public function getReviewedProducts(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $reviewModel = new \App\Models\ProductReview();
+            $ids = $reviewModel->getReviewedProductIdsByUser((int)$_SESSION['user_id']);
+            return $this->json(['success' => true, 'product_ids' => $ids]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * POST /api/user/reviews
+     * Submit a product review from the My Orders page (verified purchase).
+     */
+    public function submitProductReview(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $userId = (int)$_SESSION['user_id'];
+            $data = $request->getJsonBody() ?: [];
+
+            $productId  = (int)($data['product_id'] ?? 0);
+            $rating     = (int)($data['rating']     ?? 0);
+            $title      = trim($data['title']        ?? '');
+            $reviewText = trim($data['review_text']  ?? '');
+
+            if (!$productId) {
+                return $this->json(['success' => false, 'message' => 'Product ID is required'], 400);
+            }
+            if ($rating < 1 || $rating > 5) {
+                return $this->json(['success' => false, 'message' => 'Rating must be between 1 and 5'], 400);
+            }
+
+            $reviewModel = new \App\Models\ProductReview();
+
+            // Prevent duplicate reviews
+            if ($reviewModel->getUserProductReview($userId, $productId)) {
+                return $this->json(['success' => false, 'message' => 'You have already reviewed this product'], 400);
+            }
+
+            $reviewId = $reviewModel->createReview([
+                'product_id'           => $productId,
+                'user_id'              => $userId,
+                'rating'               => $rating,
+                'title'                => $title,
+                'review_text'          => $reviewText,
+                'is_verified_purchase' => 1,
+            ]);
+
+            if (!$reviewId) {
+                return $this->json(['success' => false, 'message' => 'Failed to submit review'], 500);
+            }
+
+            return $this->json(['success' => true, 'message' => 'Review submitted successfully', 'review_id' => $reviewId]);
+
+        } catch (\Exception $e) {
+            error_log('submitProductReview error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'An error occurred'], 500);
+        }
+    }
 }

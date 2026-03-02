@@ -67,7 +67,8 @@ class ProductController extends BaseController
                 'search' => $request->getQuery('search'),
                 'sort' => $request->getQuery('sort', 'featured'),
                 'min_price' => $request->getQuery('min_price'),
-                'max_price' => $request->getQuery('max_price')
+                'max_price' => $request->getQuery('max_price'),
+                'owner' => $request->getQuery('owner')
             ];
             
             // Remove empty filters
@@ -75,18 +76,25 @@ class ProductController extends BaseController
             
             // Get products from database
             $products = $this->getProductModel()->getActiveProducts($filters);
-            
+
             // Get categories for filters
             $categories = $this->getCategoryModel()->getCategoriesWithProductCounts();
-            
+
             // Get featured products for homepage section
             $featuredProducts = $this->getProductModel()->getFeaturedProducts(6);
-            
+
+            // If filtering by owner, fetch shop owner info for the banner
+            $shopOwnerInfo = null;
+            if (!empty($filters['owner'])) {
+                $shopOwnerInfo = $this->getProductModel()->getShopOwnerInfo((int)$filters['owner']);
+            }
+
             return $this->view('shop/shop', [
                 'products' => $products,
                 'categories' => $categories,
                 'featuredProducts' => $featuredProducts,
-                'currentFilters' => $filters
+                'currentFilters' => $filters,
+                'shopOwnerInfo' => $shopOwnerInfo
             ]);
             
         } catch (\Exception $e) {
@@ -161,6 +169,36 @@ class ProductController extends BaseController
     }
 
     /**
+     * Dedicated store page for a single shop owner
+     */
+    public function storePage(Request $request): Response
+    {
+        try {
+            $ownerId = (int)$request->getParam('id');
+            if (!$ownerId) {
+                return $this->redirect('/shop');
+            }
+
+            $shopOwner = $this->getProductModel()->getShopOwnerInfo($ownerId);
+            if (!$shopOwner) {
+                return new Response('Store not found', 404);
+            }
+
+            $products  = $this->getProductModel()->getProductsByOwner($ownerId);
+            $categories = array_values(array_unique(array_filter(array_column($products, 'category_name'))));
+
+            return $this->view('shop/store', [
+                'shopOwner' => $shopOwner,
+                'products'  => $products,
+                'categories' => $categories,
+            ]);
+        } catch (\Exception $e) {
+            error_log('storePage error: ' . $e->getMessage());
+            return new Response('Server Error', 500);
+        }
+    }
+
+    /**
      * Display product details
      */
     public function show(Request $request): Response
@@ -188,18 +226,11 @@ class ProductController extends BaseController
             
             // Get product reviews
             $reviews = $this->getReviewModel()->getProductReviews($id);
-            
-            // Check if current user has reviewed this product
-            $userReview = null;
-            if ($this->checkUserAuth()) {
-                $userReview = $this->getReviewModel()->getUserProductReview($this->getUserId(), $id);
-            }
-            
+
             return $this->view('shop/product-details', [
                 'product' => $product,
                 'relatedProducts' => $relatedProducts,
-                'reviews' => $reviews,
-                'userReview' => $userReview
+                'reviews' => $reviews
             ]);
             
         } catch (\Exception $e) {

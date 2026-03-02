@@ -90,7 +90,13 @@ class Product extends BaseModel
             $params[] = $filters['max_price'];
         }
         
-        // Add featured filter  
+        // Add shop owner filter
+        if (!empty($filters['owner'])) {
+            $sql .= " AND p.shop_owner_id = ?";
+            $params[] = (int)$filters['owner'];
+        }
+
+        // Add featured filter
         if (!empty($filters['featured'])) {
             $sql .= " AND p.rating >= 4.5";
         }
@@ -186,6 +192,34 @@ class Product extends BaseModel
     }
     
     /**
+     * Get shop owner profile info by user ID
+     */
+    public function getShopOwnerInfo(int $userId): ?array
+    {
+        $sql = "SELECT sop.*,
+                       CONCAT(u.first_name, ' ', u.last_name) AS owner_name,
+                       u.email AS owner_email, u.phone AS owner_phone
+                FROM shop_owner_profiles sop
+                JOIN users u ON sop.user_id = u.id
+                WHERE sop.user_id = ?";
+        return $this->queryFirst($sql, [$userId]);
+    }
+
+    /**
+     * Get all active products for a specific shop owner
+     */
+    public function getProductsByOwner(int $userId): array
+    {
+        $sql = "SELECT p.*, c.name AS category_name, c.slug AS category_slug
+                FROM {$this->table} p
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.shop_owner_id = ? AND p.status = 'active'
+                ORDER BY p.rating DESC, p.created_at DESC";
+        $results = $this->query($sql, [$userId])->fetchAll();
+        return array_map([$this, 'castAttributes'], $results);
+    }
+
+    /**
      * Get product with category and shop owner details
      */
     public function getProductWithShopOwner(int $id): ?array
@@ -201,10 +235,10 @@ class Product extends BaseModel
                        sop.total_reviews, sop.return_policy, sop.warranty_policy,
                        u.first_name as owner_first_name, u.last_name as owner_last_name,
                        u.email as owner_email
-                FROM {$this->table} p 
-                LEFT JOIN categories c ON p.category_id = c.id 
+                FROM {$this->table} p
+                LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN shop_owner_profiles sop ON p.shop_owner_id = sop.user_id
-                LEFT JOIN users u ON sop.user_id = u.id
+                LEFT JOIN users u ON p.shop_owner_id = u.id
                 WHERE p.id = ? AND p.status = 'active'";
         
         $result = $this->query($sql, [$id])->fetch(\PDO::FETCH_ASSOC);
@@ -220,17 +254,24 @@ class Product extends BaseModel
         if (!is_array($product['images'])) {
             $product['images'] = $product['images'] ? [$product['images']] : [];
         }
-        
+
+        // Ensure other JSON fields are arrays (not null)
+        foreach (['specifications', 'features', 'tags'] as $field) {
+            if (!is_array($product[$field])) {
+                $product[$field] = [];
+            }
+        }
+
         // Add original_price if compare_price exists
         if ($product['compare_price'] && $product['compare_price'] > $product['price']) {
             $product['original_price'] = $product['compare_price'];
         }
-        
+
         // Set default rating if not set
         if (!$product['rating']) {
             $product['rating'] = 4.5;
         }
-        
+
         // Parse JSON fields from shop owner profile
         if (!empty($product['operating_hours']) && is_string($product['operating_hours'])) {
             $product['operating_hours'] = json_decode($product['operating_hours'], true);

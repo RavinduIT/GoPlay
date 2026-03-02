@@ -266,6 +266,7 @@ try {
     $router->get('/api/facility/reviews', 'BookingController@getFacilityReviews');
     $router->get('/coaches', 'CoachController@index');
     $router->get('/shop', 'ProductController@index');
+    $router->get('/store/{id}', 'ProductController@storePage');
     $router->get('/api/products', 'ProductController@getProducts');
     $router->get('/api/categories', 'ProductController@getCategories');
     $router->get('/api/products/search', 'ProductController@search');
@@ -382,6 +383,8 @@ $router->get('/news/{slug}', 'NewsController@show');
     $router->get('/api/user/orders/stats', 'UserController@getOrderStats');
     $router->get('/api/user/orders/{id}', 'UserController@getOrderDetails');
     $router->post('/api/user/orders/{id}/cancel', 'UserController@cancelOrder');
+    $router->get('/api/user/reviewed-products', 'UserController@getReviewedProducts');
+    $router->post('/api/user/product-reviews', 'UserController@submitProductReview');
 
     // User Ground Booking API routes
     $router->get('/api/user/ground-bookings', 'UserController@getGroundBookings');
