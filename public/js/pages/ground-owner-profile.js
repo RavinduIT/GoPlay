@@ -43,13 +43,10 @@
         $('gpHeroName').textContent = name;
         $('gpHeroBiz').textContent  = op.business_name || '';
 
-        // Initials or avatar
+        // Always show an image — use profile picture or default avatar
         const av = $('gpAvatarDisplay');
-        if (u.profile_picture) {
-            av.innerHTML = `<img src="${esc(u.profile_picture)}" alt="${esc(name)}">`;
-        } else {
-            $('gpInitials').textContent = initials(name);
-        }
+        const src = u.profile_picture || '/public/assets/images/default-avatar.svg';
+        av.innerHTML = `<img src="${esc(src)}" alt="${esc(name)}" onerror="this.src='/public/assets/images/default-avatar.svg'">`;
 
         // Stats
         $('gpStatGrounds').textContent  = s.total_facilities ?? '0';
