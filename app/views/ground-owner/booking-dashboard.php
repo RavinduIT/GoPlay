@@ -4,6 +4,7 @@ $additionalCSS = [
     '/public/css/pages/ground-owner-dashboard.css',
     '/public/css/pages/ground-owner-bookings.css',
 ];
+$additionalJS = ['/public/js/pages/ground-owner-bookings.js'];
 include __DIR__ . '/layout-head.php';
 ?>
 
@@ -222,4 +223,4 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
-<script src="/public/js/pages/ground-owner-bookings.js"></script>
+<?php include __DIR__ . '/layout-foot.php'; ?>

@@ -298,4 +298,4 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
-<script src="/public/js/pages/ground-owner-grounds.js"></script>
+<?php include __DIR__ . '/layout-foot.php'; ?>
