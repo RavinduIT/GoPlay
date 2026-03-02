@@ -414,7 +414,7 @@ class Product extends BaseModel
         $sql = "SELECT p.*, c.name as category_name 
                 FROM {$this->table} p 
                 LEFT JOIN categories c ON p.category_id = c.id 
-                WHERE (p.shop_owner_id = ? OR p.shop_owner_id IS NULL)";
+                WHERE p.shop_owner_id = ?";
         
         $params = [$shopOwnerId];
         
@@ -510,7 +510,7 @@ class Product extends BaseModel
                     SUM(CASE WHEN stock_quantity > 0 AND stock_quantity <= min_stock_level THEN 1 ELSE 0 END) as low_stock,
                     SUM(CASE WHEN stock_quantity = 0 THEN 1 ELSE 0 END) as out_of_stock
                 FROM {$this->table} 
-                WHERE (shop_owner_id = ? OR shop_owner_id IS NULL)";
+                WHERE shop_owner_id = ?";
         $result = $this->queryFirst($sql, [$shopOwnerId]);
         return $result ? $result : ['total_products' => 0, 'active_products' => 0, 'in_stock' => 0, 'low_stock' => 0, 'out_of_stock' => 0];
     }
@@ -534,7 +534,7 @@ class Product extends BaseModel
                 FROM {$this->table} p 
                 LEFT JOIN categories c ON p.category_id = c.id 
                 WHERE p.shop_owner_id = ? 
-                AND (p.stock_quantity = 0 OR p.stock_quantity < 10)
+                AND (p.stock_quantity = 0 OR p.stock_quantity <= p.min_stock_level)
                 ORDER BY p.stock_quantity ASC, p.name ASC
                 LIMIT ?";
         $statement = $this->query($sql, [$shopOwnerId, $limit]);
@@ -598,6 +598,23 @@ class Product extends BaseModel
     }
 
     /**
+     * Get inventory summary stats for a shop owner
+     */
+    public function getInventoryStats(int $shopOwnerId): array
+    {
+        $sql = "SELECT
+                    COUNT(*) as total_products,
+                    SUM(CASE WHEN stock_quantity = 0 THEN 1 ELSE 0 END) as out_of_stock,
+                    SUM(CASE WHEN stock_quantity > 0 AND stock_quantity <= min_stock_level THEN 1 ELSE 0 END) as low_stock,
+                    SUM(CASE WHEN stock_quantity > min_stock_level THEN 1 ELSE 0 END) as in_stock,
+                    COALESCE(SUM(stock_quantity), 0) as total_units
+                FROM {$this->table}
+                WHERE shop_owner_id = ?";
+        $row = $this->query($sql, [$shopOwnerId])->fetch(\PDO::FETCH_ASSOC);
+        return $row ?: ['total_products'=>0,'out_of_stock'=>0,'low_stock'=>0,'in_stock'=>0,'total_units'=>0];
+    }
+
+    /**
      * Add stock quantity to product
      */
     public function addStock(int $productId, int $quantity, int $shopOwnerId): bool
@@ -628,11 +645,36 @@ class Product extends BaseModel
      */
     public function updateMinStockLevel(int $productId, int $minLevel, int $shopOwnerId): bool
     {
-        $sql = "UPDATE {$this->table} 
-                SET min_stock_level = ?
+        $sql = "UPDATE {$this->table}
+                SET min_stock_level = ?, updated_at = NOW()
                 WHERE id = ? AND shop_owner_id = ?";
         $statement = $this->query($sql, [$minLevel, $productId, $shopOwnerId]);
         return $statement && $statement->rowCount() > 0;
+    }
+
+    /**
+     * Bulk delete products owned by a shop owner
+     */
+    public function bulkDeleteForShopOwner(array $ids, int $shopOwnerId): int
+    {
+        if (empty($ids)) return 0;
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql  = "DELETE FROM {$this->table} WHERE id IN ($placeholders) AND shop_owner_id = ?";
+        $stmt = $this->query($sql, array_merge($ids, [$shopOwnerId]));
+        return $stmt ? $stmt->rowCount() : 0;
+    }
+
+    /**
+     * Bulk update status for products owned by a shop owner
+     */
+    public function bulkUpdateStatusForShopOwner(array $ids, string $status, int $shopOwnerId): int
+    {
+        if (empty($ids)) return 0;
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql  = "UPDATE {$this->table} SET status = ?, updated_at = NOW()
+                 WHERE id IN ($placeholders) AND shop_owner_id = ?";
+        $stmt = $this->query($sql, array_merge([$status], $ids, [$shopOwnerId]));
+        return $stmt ? $stmt->rowCount() : 0;
     }
 
     /**

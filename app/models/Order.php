@@ -199,9 +199,9 @@ class Order extends BaseModel
     public function getOrdersByShopOwner(int $shopOwnerId, array $filters = [], ?int $limit = null): array
     {
         // Build SQL query to get orders containing products from this shop owner
-        $sql = "SELECT 
+        $sql = "SELECT
                     o.*,
-                    u.username as customer_name,
+                    CONCAT(u.first_name, ' ', u.last_name) as customer_name,
                     u.email as customer_email,
                     u.phone as customer_phone,
                     COUNT(DISTINCT oi.id) as total_items
@@ -215,8 +215,9 @@ class Order extends BaseModel
         
         // Search filter
         if (!empty($filters['search'])) {
-            $sql .= " AND (o.order_number LIKE ? OR u.username LIKE ? OR u.email LIKE ?)";
+            $sql .= " AND (o.order_number LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.email LIKE ?)";
             $search = '%' . $filters['search'] . '%';
+            $params[] = $search;
             $params[] = $search;
             $params[] = $search;
             $params[] = $search;
@@ -270,7 +271,7 @@ class Order extends BaseModel
     {
         // Get order with customer details - verify shop owner has at least one product in this order
         $sql = "SELECT DISTINCT o.*,
-                    u.username as customer_name,
+                    CONCAT(u.first_name, ' ', u.last_name) as customer_name,
                     u.email as customer_email,
                     u.phone as customer_phone
                 FROM {$this->table} o

@@ -1,566 +1,348 @@
-// Shop Owner Orders JavaScript
+/* ═══════════════════════════════════════════════════════════════
+   Shop Owner — Orders Dashboard JS
+   ═══════════════════════════════════════════════════════════════ */
+
 let currentOrderData = null;
 
-// Initialize page
-document.addEventListener('DOMContentLoaded', function() {
-    setupEventListeners();
-    setupSearchAndFilters();
+/* ── Init ─────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+    setupFilters();
+    document.getElementById('editOrderForm')
+        ?.addEventListener('submit', handleUpdateOrderStatus);
+
+    // Close modals on backdrop click
+    document.querySelectorAll('.so-modal').forEach(m => {
+        m.addEventListener('click', e => {
+            if (e.target === m) closeModal(m.id);
+        });
+    });
 });
 
-// Setup event listeners
-function setupEventListeners() {
-    // Edit Order Form Submit
-    const editOrderForm = document.getElementById('editOrderForm');
-    if (editOrderForm) {
-        editOrderForm.addEventListener('submit', handleUpdateOrderStatus);
-    }
-}
-
-// Setup search and filters
-function setupSearchAndFilters() {
-    const searchInput = document.getElementById('orderSearch');
-    const statusFilter = document.getElementById('statusFilter');
-    const paymentMethodFilter = document.getElementById('paymentMethodFilter');
-    const paymentStatusFilter = document.getElementById('paymentStatusFilter');
-    const dateFrom = document.getElementById('dateFrom');
-    const dateTo = document.getElementById('dateTo');
-    
-    // Real-time search with debounce
-    let searchTimeout;
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                applyFilters();
-            }, 500);
-        });
-    }
-    
-    // Filter change events
-    [statusFilter, paymentMethodFilter, paymentStatusFilter, dateFrom, dateTo].forEach(element => {
-        if (element) {
-            element.addEventListener('change', applyFilters);
-        }
+/* ── Filter / Search ─────────────────────────────────────────── */
+function setupFilters() {
+    let debounce;
+    document.getElementById('orderSearch')?.addEventListener('input', () => {
+        clearTimeout(debounce);
+        debounce = setTimeout(applyFilters, 480);
     });
+
+    ['statusFilter','paymentMethodFilter','paymentStatusFilter','dateFrom','dateTo']
+        .forEach(id => document.getElementById(id)?.addEventListener('change', applyFilters));
 }
 
-// Apply filters and reload
 function applyFilters() {
-    const search = document.getElementById('orderSearch')?.value || '';
-    const status = document.getElementById('statusFilter')?.value || '';
-    const paymentMethod = document.getElementById('paymentMethodFilter')?.value || '';
-    const paymentStatus = document.getElementById('paymentStatusFilter')?.value || '';
-    const dateFrom = document.getElementById('dateFrom')?.value || '';
-    const dateTo = document.getElementById('dateTo')?.value || '';
-    
     const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (status) params.append('status', status);
-    if (paymentMethod) params.append('payment_method', paymentMethod);
-    if (paymentStatus) params.append('payment_status', paymentStatus);
-    if (dateFrom) params.append('date_from', dateFrom);
-    if (dateTo) params.append('date_to', dateTo);
-    
-    const queryString = params.toString();
-    const newUrl = window.location.pathname + (queryString ? '?' + queryString : '');
-    window.location.href = newUrl;
+    const get = id => document.getElementById(id)?.value || '';
+    if (get('orderSearch'))        params.set('search',         get('orderSearch'));
+    if (get('statusFilter'))       params.set('status',         get('statusFilter'));
+    if (get('paymentMethodFilter'))params.set('payment_method', get('paymentMethodFilter'));
+    if (get('paymentStatusFilter'))params.set('payment_status', get('paymentStatusFilter'));
+    if (get('dateFrom'))           params.set('date_from',      get('dateFrom'));
+    if (get('dateTo'))             params.set('date_to',        get('dateTo'));
+
+    const qs = params.toString();
+    window.location.href = window.location.pathname + (qs ? '?' + qs : '');
 }
 
-// Clear all filters
-function clearFilters() {
-    window.location.href = window.location.pathname;
-}
+function clearFilters()  { window.location.href = window.location.pathname; }
+function refreshOrders() { window.location.reload(); }
 
-// Refresh orders
-function refreshOrders() {
-    window.location.reload();
-}
-
-// View order details
+/* ── View Order ──────────────────────────────────────────────── */
 async function viewOrder(orderId) {
+    openModal('viewOrderModal');
+    document.getElementById('orderDetailsContent').innerHTML = `
+        <div class="so-loading">
+            <i class="fas fa-spinner fa-spin"></i><p>Loading order details…</p>
+        </div>`;
+
     try {
-        console.log('=== VIEW ORDER START ===');
-        console.log('Order ID:', orderId);
-        
-        const url = `/shop-owner/get-order?id=${orderId}`;
-        console.log('Fetching URL:', url);
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            credentials: 'same-origin', // Include cookies/session
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-        
-        console.log('Response status:', response.status);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-        console.log('Response ok:', response.ok);
-        
-        const contentType = response.headers.get('content-type');
-        console.log('Content-Type:', contentType);
-        
-        const text = await response.text();
-        console.log('Raw response text:', text);
-        
+        const res  = await fetch(`/shop-owner/get-order?id=${orderId}`, { credentials: 'same-origin' });
+        const text = await res.text();
         let data;
-        try {
-            data = JSON.parse(text);
-            console.log('Parsed JSON data:', data);
-        } catch (e) {
-            console.error('Failed to parse JSON:', e);
-            console.error('Response was:', text);
+        try { data = JSON.parse(text); } catch {
             showToast('Invalid server response', 'error');
+            closeModal('viewOrderModal');
             return;
         }
-        
         if (data.success && data.order) {
-            console.log('Order loaded successfully:', data.order);
-            openModal('viewOrderModal');
             displayOrderDetails(data.order);
         } else {
-            console.error('Request failed:', data.message);
-            showToast(data.message || 'Failed to load order details', 'error');
+            showToast(data.message || 'Failed to load order', 'error');
+            closeModal('viewOrderModal');
         }
-    } catch (error) {
-        console.error('=== ERROR IN VIEW ORDER ===');
-        console.error('Error:', error);
-        console.error('Stack:', error.stack);
+    } catch {
         showToast('Failed to load order details', 'error');
+        closeModal('viewOrderModal');
     }
 }
 
-// Display order details in modal
+/* ── Render Order Detail ─────────────────────────────────────── */
 function displayOrderDetails(order) {
-    const content = document.getElementById('orderDetailsContent');
-    
-    // Parse addresses
-    let shippingAddress = '';
-    let billingAddress = '';
-    
-    try {
-        if (order.shipping_address) {
-            const addr = typeof order.shipping_address === 'string' 
-                ? JSON.parse(order.shipping_address) 
-                : order.shipping_address;
-            shippingAddress = formatAddress(addr);
-        }
-        
-        if (order.billing_address) {
-            const addr = typeof order.billing_address === 'string' 
-                ? JSON.parse(order.billing_address) 
-                : order.billing_address;
-            billingAddress = formatAddress(addr);
-        }
-    } catch (e) {
-        console.error('Error parsing addresses:', e);
-    }
-    
-    // Format date
-    const orderDate = new Date(order.created_at);
-    const formattedDate = orderDate.toLocaleDateString('en-US', { 
-        year: 'numeric', month: 'long', day: 'numeric', 
-        hour: '2-digit', minute: '2-digit' 
+    const orderDate    = new Date(order.created_at);
+    const formattedDate = orderDate.toLocaleDateString('en-LK', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit',
     });
-    
-    let html = `
-        <div class="order-details">
-            <div class="order-header-info">
-                <div class="detail-group">
-                    <label>Order Number:</label>
-                    <span class="order-number-large">${escapeHtml(order.order_number)}</span>
+
+    let shippingAddr = '';
+    try {
+        const a = typeof order.shipping_address === 'string'
+            ? JSON.parse(order.shipping_address) : order.shipping_address;
+        shippingAddr = formatAddress(a);
+    } catch { /* ignore */ }
+
+    /* items rows */
+    const itemRows = (order.items || []).map(item => `
+        <tr>
+            <td>${esc(item.item_name || item.product_name || 'N/A')}</td>
+            <td>${esc(item.sku || '—')}</td>
+            <td>${item.quantity}</td>
+            <td>Rs. ${parseFloat(item.unit_price).toFixed(2)}</td>
+            <td>Rs. ${parseFloat(item.total_price).toFixed(2)}</td>
+        </tr>`).join('');
+
+    /* summary rows */
+    const summaryRows = order.is_multi_seller
+        ? `<div class="so-sum-row"><label>Your Products Subtotal</label><span>Rs. ${parseFloat(order.shop_owner_subtotal||0).toFixed(2)}</span></div>`
+        : `<div class="so-sum-row"><label>Subtotal</label><span>Rs. ${parseFloat(order.shop_owner_subtotal||0).toFixed(2)}</span></div>
+           <div class="so-sum-row"><label>Tax</label><span>Rs. ${parseFloat(order.tax_amount||0).toFixed(2)}</span></div>
+           <div class="so-sum-row"><label>Shipping</label><span>Rs. ${parseFloat(order.shipping_amount||0).toFixed(2)}</span></div>
+           ${order.discount_amount > 0 ? `<div class="so-sum-row"><label>Discount</label><span>− Rs. ${parseFloat(order.discount_amount).toFixed(2)}</span></div>` : ''}
+           <div class="so-sum-row so-sum-row--total"><label>Order Total</label><span>Rs. ${parseFloat(order.total_amount).toFixed(2)}</span></div>`;
+
+    document.getElementById('orderDetailsContent').innerHTML = `
+        <div class="so-detail">
+            <div class="so-detail-meta">
+                <div class="so-detail-kv">
+                    <label>Order Number</label>
+                    <span class="so-order-num-lg">#${esc(order.order_number)}</span>
                 </div>
-                <div class="detail-group">
-                    <label>Order Date:</label>
+                <div class="so-detail-kv">
+                    <label>Placed On</label>
                     <span>${formattedDate}</span>
                 </div>
-                <div class="detail-group">
-                    <label>Status:</label>
-                    <span class="badge badge-${order.status}">${capitalizeFirst(order.status)}</span>
+                <div class="so-detail-kv">
+                    <label>Order Status</label>
+                    <span><span class="so-badge so-badge--${order.status}">${cap(order.status)}</span></span>
+                </div>
+                <div class="so-detail-kv">
+                    <label>Payment Status</label>
+                    <span><span class="so-badge so-badge--pay-${order.payment_status}">
+                        ${order.payment_status === 'paid' ? '<i class="fas fa-lock" style="font-size:.6rem;"></i> ' : ''}${cap(order.payment_status)}
+                    </span></span>
                 </div>
             </div>
-            
-            <div class="customer-section">
-                <h3><i class="fas fa-user"></i> Customer Information</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label>Name:</label>
-                        <span>${escapeHtml(order.customer_name || 'N/A')}</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Email:</label>
-                        <span>${escapeHtml(order.customer_email || 'N/A')}</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Phone:</label>
-                        <span>${escapeHtml(order.customer_phone || 'N/A')}</span>
-                    </div>
+
+            <div class="so-section">
+                <p class="so-section-head"><i class="fas fa-user"></i> Customer</p>
+                <div class="so-info-grid">
+                    <div class="so-info-item"><label>Name</label><span>${esc(order.customer_name||'N/A')}</span></div>
+                    <div class="so-info-item"><label>Email</label><span>${esc(order.customer_email||'N/A')}</span></div>
+                    <div class="so-info-item"><label>Phone</label><span>${esc(order.customer_phone||'N/A')}</span></div>
                 </div>
             </div>
-            
-            ${shippingAddress ? `
-            <div class="address-section">
-                <h3><i class="fas fa-map-marker-alt"></i> Shipping Address</h3>
-                <div class="address-text">${shippingAddress}</div>
-            </div>
-            ` : ''}
-            
-            <div class="items-section">
-                <h3><i class="fas fa-box"></i> Order Items</h3>
-                <table class="order-items-table">
+
+            ${shippingAddr ? `
+            <div class="so-section">
+                <p class="so-section-head"><i class="fas fa-map-marker-alt"></i> Shipping Address</p>
+                <div class="so-addr-box">${shippingAddr}</div>
+            </div>` : ''}
+
+            <div class="so-section">
+                <p class="so-section-head"><i class="fas fa-box-open"></i> Items (your products)</p>
+                ${order.is_multi_seller ? `
+                <div class="so-multi-notice">
+                    <i class="fas fa-info-circle"></i>
+                    <span>This order has products from multiple sellers. Showing your ${order.shop_owner_item_count} of ${order.total_item_count} items.</span>
+                </div>` : ''}
+                <table class="so-items-table">
                     <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>SKU</th>
-                            <th>Quantity</th>
-                            <th>Unit Price</th>
-                            <th>Total</th>
-                        </tr>
+                        <tr><th>Product</th><th>SKU</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
                     </thead>
-                    <tbody>
-    `;
-    
-    if (order.items && order.items.length > 0) {
-        order.items.forEach(item => {
-            html += `
-                <tr>
-                    <td>${escapeHtml(item.item_name || item.product_name || 'N/A')}</td>
-                    <td>${escapeHtml(item.sku || '-')}</td>
-                    <td>${item.quantity}</td>
-                    <td>Rs. ${parseFloat(item.unit_price).toFixed(2)}</td>
-                    <td>Rs. ${parseFloat(item.total_price).toFixed(2)}</td>
-                </tr>
-            `;
-        });
-    }
-    
-    html += `
-                    </tbody>
+                    <tbody>${itemRows}</tbody>
                 </table>
             </div>
-            
-            ${order.is_multi_seller ? `
-            <div class="multi-seller-notice">
-                <i class="fas fa-info-circle"></i>
-                <span>This order contains products from multiple sellers. Showing only your products (${order.shop_owner_item_count} of ${order.total_item_count} items).</span>
+
+            <div class="so-section">
+                <p class="so-section-head"><i class="fas fa-receipt"></i> Order Summary</p>
+                <div class="so-summary">${summaryRows}</div>
             </div>
-            ` : ''}
-            
-            <div class="order-summary">
-                <div class="summary-row">
-                    <label>Your Products Subtotal:</label>
-                    <span>Rs. ${parseFloat(order.shop_owner_subtotal || 0).toFixed(2)}</span>
+
+            <div class="so-section">
+                <p class="so-section-head"><i class="fas fa-credit-card"></i> Payment</p>
+                <div class="so-info-grid">
+                    <div class="so-info-item"><label>Method</label><span>${cap(order.payment_method)}</span></div>
                 </div>
-                ${!order.is_multi_seller ? `
-                <div class="summary-row">
-                    <label>Tax:</label>
-                    <span>Rs. ${parseFloat(order.tax_amount || 0).toFixed(2)}</span>
-                </div>
-                <div class="summary-row">
-                    <label>Shipping:</label>
-                    <span>Rs. ${parseFloat(order.shipping_amount || 0).toFixed(2)}</span>
-                </div>
-                ${order.discount_amount > 0 ? `
-                <div class="summary-row">
-                    <label>Discount:</label>
-                    <span>- Rs. ${parseFloat(order.discount_amount).toFixed(2)}</span>
-                </div>
-                ` : ''}\n                <div class="summary-row total">
-                    <label>Order Total:</label>
-                    <span>Rs. ${parseFloat(order.total_amount).toFixed(2)}</span>
-                </div>
-                ` : ''}
+                ${order.payment_status === 'paid'
+                    ? '<p style="font-size:.75rem;color:#059669;margin-top:.5rem;"><i class="fas fa-lock"></i> Payment is verified and locked.</p>'
+                    : ''}
             </div>
-            
-            <div class="payment-info">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label>Payment Method:</label>
-                        <span>${capitalizeFirst(order.payment_method)}</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Payment Status:</label>
-                        <span class="badge badge-payment-${order.payment_status}">
-                            ${order.payment_status === 'paid' ? '<i class="fas fa-lock"></i> ' : ''}${capitalizeFirst(order.payment_status)}
-                        </span>
-                        ${order.payment_status === 'paid' ? '<small style="color: #059669; font-size: 0.75rem; display: block; margin-top: 0.25rem;">✓ Payment verified and locked</small>' : ''}
-                    </div>
-                </div>
-            </div>
-            
+
             ${order.notes ? `
-            <div class="notes-section">
-                <h3><i class="fas fa-sticky-note"></i> Order Notes</h3>
-                <p>${escapeHtml(order.notes)}</p>
-            </div>
-            ` : ''}
-        </div>
-    `;
-    
-    content.innerHTML = html;
+            <div class="so-section">
+                <p class="so-section-head"><i class="fas fa-sticky-note"></i> Notes</p>
+                <div class="so-addr-box">${esc(order.notes)}</div>
+            </div>` : ''}
+        </div>`;
 }
 
-// Edit order status
+/* ── Edit Status ─────────────────────────────────────────────── */
 async function editOrderStatus(orderId) {
     try {
-        console.log('Editing order status:', orderId);
-        // Fetch order details
-        const response = await fetch(`/shop-owner/get-order?id=${orderId}`, {
-            credentials: 'same-origin'
-        });
-        console.log('Edit response status:', response.status);
-        
-        const data = await response.json();
-        console.log('Edit response data:', data);
-        
-        if (data.success && data.order) {
-            currentOrderData = data.order;
-            
-            // Populate form with current values
-            document.getElementById('editOrderId').value = orderId;
-            document.getElementById('orderStatus').value = data.order.status || 'pending';
-            
-            const paymentStatusSelect = document.getElementById('paymentStatus');
-            paymentStatusSelect.value = data.order.payment_status || 'pending';
-            
-            // Disable payment status dropdown if already paid (security measure)
-            if (data.order.payment_status === 'paid') {
-                paymentStatusSelect.disabled = true;
-                paymentStatusSelect.style.backgroundColor = '#f3f4f6';
-                paymentStatusSelect.style.cursor = 'not-allowed';
-                
-                // Update hint text
-                const hint = document.querySelector('#paymentStatusGroup .form-hint');
-                if (hint) {
-                    hint.textContent = 'Payment status cannot be changed for paid orders';
-                    hint.style.color = '#059669';
-                    hint.style.fontWeight = '500';
-                }
-            } else {
-                // Re-enable if not paid (in case it was previously disabled)
-                paymentStatusSelect.disabled = false;
-                paymentStatusSelect.style.backgroundColor = '';
-                paymentStatusSelect.style.cursor = '';
-                
-                // Reset hint text
-                const hint = document.querySelector('#paymentStatusGroup .form-hint');
-                if (hint) {
-                    hint.textContent = 'Will update both order and payment status';
-                    hint.style.color = '';
-                    hint.style.fontWeight = '';
-                }
-            }
-            
-            openModal('editOrderModal');
-        } else {
+        const res  = await fetch(`/shop-owner/get-order?id=${orderId}`, { credentials: 'same-origin' });
+        const data = await res.json();
+        if (!data.success || !data.order) {
             showToast(data.message || 'Failed to load order', 'error');
+            return;
         }
-    } catch (error) {
-        console.error('Error fetching order:', error);
+        currentOrderData = data.order;
+
+        document.getElementById('editOrderId').value    = orderId;
+        document.getElementById('orderStatus').value    = data.order.status || 'pending';
+        const payEl = document.getElementById('paymentStatus');
+        const hint  = document.getElementById('payHint');
+
+        payEl.value = data.order.payment_status || 'pending';
+
+        if (data.order.payment_status === 'paid') {
+            payEl.disabled            = true;
+            hint.textContent          = 'Payment is verified — cannot be changed.';
+            hint.className            = 'so-form-hint so-form-hint--ok';
+        } else {
+            payEl.disabled            = false;
+            hint.textContent          = 'Updates payment status alongside order status.';
+            hint.className            = 'so-form-hint';
+        }
+
+        openModal('editOrderModal');
+    } catch {
         showToast('Failed to load order', 'error');
     }
 }
 
-// Handle update order status
+/* ── Submit Status Update ────────────────────────────────────── */
 async function handleUpdateOrderStatus(e) {
     e.preventDefault();
-    
-    const orderId = document.getElementById('editOrderId').value;
-    const status = document.getElementById('orderStatus').value;
-    const paymentStatus = document.getElementById('paymentStatus').value;
-    const paymentStatusDisabled = document.getElementById('paymentStatus').disabled;
-    
-    console.log('=== UPDATE ORDER STATUS START ===');
-    console.log('Order ID:', orderId);
-    console.log('New Status:', status);
-    console.log('Payment Status:', paymentStatus);
-    console.log('Payment Status Disabled:', paymentStatusDisabled);
-    console.log('Current Order Data:', currentOrderData);
-    
-    if (!orderId || !status) {
-        showToast('Please select order status', 'error');
-        return;
-    }
-    
-    // Check if trying to change payment status when it's already paid
-    if (currentOrderData && currentOrderData.payment_status === 'paid' && !paymentStatusDisabled) {
-        showToast('Cannot modify payment status for paid orders', 'error');
-        return;
-    }
-    
-    // Confirmation
-    if (!confirm('Are you sure you want to update this order?')) {
-        return;
-    }
-    
+
+    const orderId  = document.getElementById('editOrderId').value;
+    const status   = document.getElementById('orderStatus').value;
+    const payEl    = document.getElementById('paymentStatus');
+
+    if (!orderId || !status) { showToast('Please select an order status', 'error'); return; }
+
+    const payload = { order_id: parseInt(orderId), status };
+    if (!payEl.disabled) payload.payment_status = payEl.value;
+
     try {
-        const payload = {
-            order_id: parseInt(orderId),
-            status: status
-        };
-        
-        // Only include payment_status if it's not already paid
-        if (!paymentStatusDisabled && currentOrderData.payment_status !== 'paid') {
-            payload.payment_status = paymentStatus;
-        }
-        
-        console.log('Updating order with payload:', payload);
-        
-        const response = await fetch('/shop-owner/update-order-status', {
+        const res  = await fetch('/shop-owner/update-order-status', {
             method: 'POST',
             credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(payload)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
         });
-        
-        console.log('Update response status:', response.status);
-        console.log('Update response ok:', response.ok);
-        
-        const text = await response.text();
-        console.log('Raw update response:', text);
-        
+        const text = await res.text();
         let data;
-        try {
-            data = JSON.parse(text);
-            console.log('Parsed update response:', data);
-        } catch (e) {
-            console.error('Failed to parse JSON:', e);
-            console.error('Response was:', text);
-            showToast('Invalid server response', 'error');
-            return;
+        try { data = JSON.parse(text); } catch {
+            showToast('Invalid server response', 'error'); return;
         }
-        
+
         if (data.success) {
             showToast(data.message || 'Order updated successfully', 'success');
             closeModal('editOrderModal');
-            setTimeout(() => refreshOrders(), 1000);
+            setTimeout(refreshOrders, 900);
         } else {
             showToast(data.message || 'Failed to update order', 'error');
         }
-    } catch (error) {
-        console.error('=== ERROR IN UPDATE ORDER ===');
-        console.error('Error:', error);
-        console.error('Stack:', error.stack);
+    } catch {
         showToast('Failed to update order', 'error');
     }
 }
 
-// Delete order
+/* ── Delete Order ────────────────────────────────────────────── */
 function deleteOrder(orderId) {
-    // Find order row to get order number
     const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
-    const orderNumber = row ? row.querySelector('.order-number')?.textContent : '';
-    
-    document.getElementById('deleteOrderId').value = orderId;
-    document.getElementById('deleteOrderInfo').textContent = `Order: ${orderNumber}`;
-    
+    const num = row?.querySelector('.so-order-num')?.textContent || '';
+    document.getElementById('deleteOrderId').value   = orderId;
+    document.getElementById('deleteOrderInfo').textContent = num;
     openModal('deleteOrderModal');
 }
 
-// Confirm delete order
 async function confirmDeleteOrder() {
     const orderId = document.getElementById('deleteOrderId').value;
-    
-    console.log('Deleting order:', orderId);
-    
     try {
-        const response = await fetch('/shop-owner/delete-order', {
+        const res  = await fetch('/shop-owner/delete-order', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ order_id: parseInt(orderId) })
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: parseInt(orderId) }),
         });
-        
-        console.log('Delete response status:', response.status);
-        const data = await response.json();
-        console.log('Delete response data:', data);
-        
+        const data = await res.json();
         if (data.success) {
-            showToast(data.message || 'Order deleted successfully', 'success');
+            showToast(data.message || 'Order deleted', 'success');
             closeModal('deleteOrderModal');
-            setTimeout(() => refreshOrders(), 1000);
+            // Remove row from DOM without full reload
+            const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+            if (row) {
+                row.style.transition = 'opacity .3s';
+                row.style.opacity = '0';
+                setTimeout(() => { row.remove(); updateCount(-1); }, 300);
+            }
         } else {
             showToast(data.message || 'Failed to delete order', 'error');
         }
-    } catch (error) {
-        console.error('Error deleting order:', error);
+    } catch {
         showToast('Failed to delete order', 'error');
     }
 }
 
-// Modal functions
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+function updateCount(delta) {
+    const el = document.querySelector('.so-table-count');
+    if (!el) return;
+    const m = el.textContent.match(/(\d+)/);
+    if (m) {
+        const n = Math.max(0, parseInt(m[1]) + delta);
+        el.textContent = n + ' result' + (n !== 1 ? 's' : '');
     }
 }
 
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
+/* ── Modal ───────────────────────────────────────────────────── */
+function openModal(id) {
+    const m = document.getElementById(id);
+    if (!m) return;
+    m.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+    const m = document.getElementById(id);
+    if (!m) return;
+    m.classList.remove('open');
+    document.body.style.overflow = '';
 }
 
-// Close modal when clicking outside
-window.addEventListener('click', function(event) {
-    if (event.target.classList.contains('modal')) {
-        event.target.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-});
-
-// Toast notification
+/* ── Toast ───────────────────────────────────────────────────── */
 function showToast(message, type = 'info') {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    
-    toast.textContent = message;
-    toast.className = `toast toast-${type} show`;
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+    const t = document.getElementById('soToast');
+    if (!t) return;
+    const icons = { success:'fa-check-circle', error:'fa-times-circle', warning:'fa-exclamation-triangle', info:'fa-info-circle' };
+    t.innerHTML  = `<i class="fas ${icons[type]||icons.info}"></i> ${message}`;
+    t.className  = `so-toast so-toast--${type} show`;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-// Utility functions
-function escapeHtml(text) {
+/* ── Utilities ───────────────────────────────────────────────── */
+function esc(text) {
     if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
 }
-
-function capitalizeFirst(str) {
+function cap(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
-
-function formatAddress(addr) {
-    if (!addr) return '';
-    
-    const parts = [];
-    if (addr.street) parts.push(addr.street);
-    if (addr.address) parts.push(addr.address);
-    if (addr.city) parts.push(addr.city);
-    if (addr.state) parts.push(addr.state);
-    if (addr.zip || addr.postal_code) parts.push(addr.zip || addr.postal_code);
-    if (addr.country) parts.push(addr.country);
-    
-    return parts.join(', ');
-}
-
-// Sidebar toggle (if needed)
-function toggleSidebar() {
-    const sidebar = document.querySelector('.dashboard-sidebar');
-    if (sidebar) {
-        sidebar.classList.toggle('collapsed');
-    }
+function formatAddress(a) {
+    if (!a || typeof a !== 'object') return '';
+    return [a.street, a.address, a.city, a.state, a.zip || a.postal_code, a.country]
+        .filter(Boolean).join(', ');
 }
