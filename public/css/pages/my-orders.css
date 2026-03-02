@@ -1013,3 +1013,121 @@
         font-size: 2rem;
     }
 }
+
+/* ─── Review Modal ─────────────────────────────────────────── */
+.review-modal-container {
+    max-width: 500px;
+    width: 100%;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.review-product-info {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #2c3e50;
+    background: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.25rem;
+    border-left: 3px solid #2563eb;
+}
+
+.review-form-group {
+    margin-bottom: 1.25rem;
+}
+.review-form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    margin-bottom: 0.4rem;
+}
+.form-hint {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Interactive star rating input */
+.star-rating-input {
+    display: flex;
+    gap: 0.4rem;
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+}
+.star-rating-input i {
+    cursor: pointer;
+    transition: transform 0.15s ease, color 0.15s ease;
+    color: #adb5bd;
+}
+.star-rating-input i:hover {
+    transform: scale(1.2);
+    color: #ffc107;
+}
+.star-rating-input i.fas {
+    color: #ffc107;
+}
+
+/* Review form inputs */
+.review-input,
+.review-textarea {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: #2c3e50;
+    background: #fff;
+    transition: border-color 0.2s;
+    resize: vertical;
+}
+.review-input:focus,
+.review-textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+/* Reviewed badge shown on order items */
+.badge-reviewed {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.7rem;
+    background: #d1fae5;
+    color: #065f46;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Review button on order items */
+.btn-write-review {
+    padding: 0.35rem 0.8rem;
+    background: transparent;
+    border: 1.5px solid #2563eb;
+    color: #2563eb;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.btn-write-review:hover {
+    background: #2563eb;
+    color: #fff;
+}
+
+/* Order items table review column */
+.order-items-table .review-col { text-align: center; }

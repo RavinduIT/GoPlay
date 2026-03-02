@@ -1,4 +1,7 @@
 // My Orders JavaScript
+let reviewedProductIds = new Set();
+let currentReviewProductId = null;
+
 class MyOrdersDashboard {
     constructor() {
         this.orders = [];
@@ -15,6 +18,8 @@ class MyOrdersDashboard {
     init() {
         this.setupEventListeners();
         this.loadData();
+        this.loadReviewedProducts();
+        this.initReviewStarInput();
     }
 
     setupEventListeners() {
@@ -64,6 +69,52 @@ class MyOrdersDashboard {
             this.loadOrders(),
             this.loadStats()
         ]);
+    }
+
+    async loadReviewedProducts() {
+        try {
+            const response = await fetch('/api/user/reviewed-products', { credentials: 'same-origin' });
+            if (!response.ok) return;
+            const data = await response.json();
+            if (data.success && data.product_ids) {
+                reviewedProductIds = new Set(data.product_ids.map(Number));
+            }
+        } catch (e) {
+            // silently ignore — user may not be logged in
+        }
+    }
+
+    initReviewStarInput() {
+        const container = document.getElementById('review-stars');
+        if (!container) return;
+        const stars = container.querySelectorAll('i');
+        const input = document.getElementById('review-rating-value');
+
+        stars.forEach(star => {
+            star.addEventListener('mouseenter', () => {
+                const r = parseInt(star.getAttribute('data-rating'));
+                stars.forEach((s, i) => {
+                    s.classList.toggle('fas', i < r);
+                    s.classList.toggle('far', i >= r);
+                });
+            });
+            star.addEventListener('click', () => {
+                const r = parseInt(star.getAttribute('data-rating'));
+                input.value = r;
+                stars.forEach((s, i) => {
+                    s.classList.toggle('fas', i < r);
+                    s.classList.toggle('far', i >= r);
+                });
+            });
+        });
+
+        container.addEventListener('mouseleave', () => {
+            const current = parseInt(input.value) || 0;
+            stars.forEach((s, i) => {
+                s.classList.toggle('fas', i < current);
+                s.classList.toggle('far', i >= current);
+            });
+        });
     }
 
     async loadOrders() {
@@ -365,13 +416,25 @@ class MyOrdersDashboard {
                                 <th>Quantity</th>
                                 <th>Unit Price</th>
                                 <th>Total</th>
+                                ${order.status === 'delivered' ? '<th class="review-col">Review</th>' : ''}
                             </tr>
                         </thead>
                         <tbody>
         `;
 
         if (order.items && order.items.length > 0) {
+            const isDelivered = order.status === 'delivered';
             order.items.forEach(item => {
+                const productId = item.product_id ? parseInt(item.product_id) : null;
+                let reviewCell = '';
+                if (isDelivered && productId) {
+                    if (reviewedProductIds.has(productId)) {
+                        reviewCell = `<span class="badge-reviewed"><i class="fas fa-check"></i> Reviewed</span>`;
+                    } else {
+                        const itemName = this.escapeHtml(item.item_name || item.product_name || 'Product');
+                        reviewCell = `<button class="btn-write-review" onclick="openReviewModal(${productId}, '${itemName}')"><i class="fas fa-star"></i> Review</button>`;
+                    }
+                }
                 html += `
                     <tr>
                         <td>${this.escapeHtml(item.item_name || item.product_name || 'N/A')}</td>
@@ -379,6 +442,7 @@ class MyOrdersDashboard {
                         <td>${item.quantity}</td>
                         <td>Rs. ${parseFloat(item.unit_price).toFixed(2)}</td>
                         <td>Rs. ${parseFloat(item.total_price).toFixed(2)}</td>
+                        ${isDelivered ? `<td class="review-col">${reviewCell}</td>` : ''}
                     </tr>
                 `;
             });
@@ -590,14 +654,87 @@ function clearFilters() {
 window.onclick = function(event) {
     const viewModal = document.getElementById('viewOrderModal');
     const cancelModal = document.getElementById('cancelOrderModal');
-    
-    if (event.target === viewModal) {
-        closeModal();
-    }
-    if (event.target === cancelModal) {
-        closeCancelModal();
-    }
+    const reviewModal = document.getElementById('reviewModal');
+
+    if (event.target === viewModal) closeModal();
+    if (event.target === cancelModal) closeCancelModal();
+    if (event.target === reviewModal) closeReviewModal();
 };
+
+// ─── Review Modal ─────────────────────────────────────────────
+
+function openReviewModal(productId, productName) {
+    currentReviewProductId = productId;
+
+    // Populate product name
+    document.getElementById('review-product-info').textContent = productName;
+
+    // Reset form
+    document.getElementById('review-rating-value').value = '';
+    document.getElementById('review-title-input').value = '';
+    document.getElementById('review-text-input').value = '';
+    document.querySelectorAll('#review-stars i').forEach(s => {
+        s.classList.remove('fas');
+        s.classList.add('far');
+    });
+
+    document.getElementById('reviewModal').style.display = 'flex';
+}
+
+function closeReviewModal() {
+    document.getElementById('reviewModal').style.display = 'none';
+    currentReviewProductId = null;
+}
+
+async function submitReviewFromOrders() {
+    const rating = parseInt(document.getElementById('review-rating-value').value);
+    if (!rating || rating < 1 || rating > 5) {
+        dashboard.showToast('Please select a star rating', 'error');
+        return;
+    }
+    if (!currentReviewProductId) return;
+
+    const title = document.getElementById('review-title-input').value.trim();
+    const reviewText = document.getElementById('review-text-input').value.trim();
+
+    try {
+        const response = await fetch('/api/user/product-reviews', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                product_id: currentReviewProductId,
+                rating,
+                title,
+                review_text: reviewText
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            reviewedProductIds.add(currentReviewProductId);
+            closeReviewModal();
+            dashboard.showToast('Review submitted! Thank you.', 'success');
+
+            // Update any open order detail: swap Review button → Reviewed badge
+            const pid = currentReviewProductId;
+            document.querySelectorAll('.btn-write-review').forEach(btn => {
+                if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`openReviewModal(${pid},`)) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge-reviewed';
+                    badge.innerHTML = '<i class="fas fa-check"></i> Reviewed';
+                    btn.replaceWith(badge);
+                }
+            });
+        } else {
+            dashboard.showToast(data.message || 'Failed to submit review', 'error');
+        }
+    } catch (e) {
+        console.error('Review submit error:', e);
+        dashboard.showToast('Failed to submit review', 'error');
+    }
+}
 
 // Initialize dashboard
 let dashboard;
