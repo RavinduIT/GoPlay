@@ -121,11 +121,25 @@ try {
     $router->post('/api/coach/achievements', 'CoachController@addAchievement');
     $router->put('/api/coach/achievements/{id}', 'CoachController@updateAchievement');
     $router->delete('/api/coach/achievements/{id}', 'CoachController@deleteAchievement');
-    
+
+    // Coach Facility Management API (authenticated, specific before wildcard)
+    $router->get('/api/coach/facilities',                       'CoachController@getCoachFacilities');
+    $router->post('/api/coach/facilities',                      'CoachController@linkCoachFacility');
+    $router->delete('/api/coach/facilities/{facilityId}',       'CoachController@unlinkCoachFacility');
+    $router->put('/api/coach/facilities/{facilityId}/primary',  'CoachController@setPrimaryCoachFacility');
+
     // Public Coach API routes (for booking)
+    // Specific sub-paths before {id} wildcard
+    $router->post('/api/coach-bookings/bundled',                'CoachController@createBundledBooking');
+    $router->get('/api/coaches/{id}/facilities/available',      'CoachController@getAvailableFacilitiesForSlot');
+    $router->get('/api/coaches/{id}/facilities',                'CoachController@getCoachPublicFacilities');
     $router->get('/api/coaches', 'CoachController@getCoachesForBooking');
     $router->get('/api/coaches/{id}', 'CoachController@getCoachDetails');
     $router->get('/api/sports-categories', 'CoachController@getSportsCategories');
+
+    // Public: coaches at a facility
+    $router->get('/api/facility/{id}/slots',   'BookingController@getFacilitySlots');
+    $router->get('/api/facility/{id}/coaches', 'BookingController@getFacilityCoaches');
     
     // Public Grounds API routes (for booking)
     $router->get('/api/grounds', 'BookingController@getGrounds');
@@ -152,6 +166,7 @@ try {
     $router->get('/ground-owner/schedule', 'GroundOwnerController@schedulePage');
     $router->get('/ground-owner/availability', 'GroundOwnerController@availabilityPage');
     $router->get('/ground-owner/maintenance', 'GroundOwnerController@maintenancePage');
+    $router->get('/ground-owner/coaches', 'GroundOwnerController@coachesPage');
     $router->get('/ground-owner/profile', 'GroundOwnerController@profilePage');
     $router->get('/ground-owner/settings', 'GroundOwnerController@settingsPage');
     
@@ -168,6 +183,13 @@ try {
     $router->get('/api/ground-owner/profile', 'GroundOwnerController@getProfile');
     $router->put('/api/ground-owner/profile', 'GroundOwnerController@updateProfile');
     $router->post('/api/ground-owner/upload-avatar', 'GroundOwnerController@uploadAvatar');
+
+    // Ground Owner Coach Management API routes
+    $router->get('/api/ground-owner/coaches', 'GroundOwnerController@getOwnerCoaches');
+    $router->get('/api/ground-owner/coaches/{linkId}', 'GroundOwnerController@getOwnerCoachDetail');
+    $router->put('/api/ground-owner/coaches/{linkId}/approve', 'GroundOwnerController@approveCoach');
+    $router->put('/api/ground-owner/coaches/{linkId}/reject', 'GroundOwnerController@rejectCoach');
+    $router->delete('/api/ground-owner/coaches/{linkId}', 'GroundOwnerController@removeCoach');
 
     // Ground Owner Reviews API routes
     $router->get('/api/ground-owner/reviews', 'GroundOwnerController@getReviews');

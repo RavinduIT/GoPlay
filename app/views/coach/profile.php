@@ -117,6 +117,10 @@
                     <i class="fas fa-trophy"></i> Achievements
                     <span class="tab-count" id="achCount">0</span>
                 </button>
+                <button class="tab-btn" data-tab="facilities">
+                    <i class="fas fa-map-marker-alt"></i> Facilities
+                    <span class="tab-count" id="facilCount">0</span>
+                </button>
             </nav>
 
             <!-- ── Profile Tab ─────────────────────────────── -->
@@ -411,6 +415,46 @@
                 </div>
             </div>
 
+            <!-- ── Facilities Tab ──────────────────────────── -->
+            <div class="tab-panel" id="tab-facilities">
+                <div class="profile-body">
+                    <div class="cred-section-header">
+                        <h3>
+                            <i class="fas fa-map-marker-alt" style="color:#3b82f6;"></i>
+                            My Facilities
+                        </h3>
+                    </div>
+
+                    <!-- Linked facilities list -->
+                    <div id="facility-linked-list" style="margin-bottom:24px;"></div>
+
+                    <!-- Add new facility -->
+                    <div class="pcard" style="max-width:600px;">
+                        <div class="pcard-head">
+                            <h3>
+                                <span class="head-icon" style="background:rgba(59,130,246,.1);color:#3b82f6;">
+                                    <i class="fas fa-plus"></i>
+                                </span>
+                                Link a Facility
+                            </h3>
+                        </div>
+                        <div class="pcard-body">
+                            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                                <select id="facility-picker" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--c-border,#e2e8f0);border-radius:8px;font-size:.9rem;">
+                                    <option value="">— Select a facility —</option>
+                                </select>
+                                <label style="display:flex;align-items:center;gap:6px;font-size:.9rem;white-space:nowrap;">
+                                    <input type="checkbox" id="facility-is-primary"> Set as primary
+                                </label>
+                                <button class="btn btn-primary btn-sm" onclick="coachProfile.addFacility()">
+                                    <i class="fas fa-link"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div><!-- /profileContent -->
     </main>
 </div><!-- /coach-dashboard -->
@@ -629,6 +673,7 @@ class CoachProfile {
                 document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
                 btn.classList.add('active');
                 document.getElementById('tab-' + tab).classList.add('active');
+                if (tab === 'facilities') this.loadFacilities();
             });
         });
     }
@@ -1065,6 +1110,106 @@ class CoachProfile {
             this.closeModal('modalDelete');
             if (type === 'cert') await this.loadCertificates();
             else                 await this.loadAchievements();
+        } catch (e) { this.toast('Error: ' + e.message, 'error'); }
+    }
+
+    /* ── Facilities ────────────────────────────────────── */
+    async loadFacilities() {
+        try {
+            const r = await fetch('/api/coach/facilities');
+            const d = await r.json();
+            if (!d.success) throw new Error(d.error || 'Failed');
+            this._renderFacilities(d.linked || []);
+            this._populateFacilityPicker(d.all_facilities || [], d.linked || []);
+        } catch (e) { this.toast('Failed to load facilities: ' + e.message, 'error'); }
+    }
+
+    _renderFacilities(list) {
+        document.getElementById('facilCount').textContent = list.length;
+        const el = document.getElementById('facility-linked-list');
+        if (!list.length) {
+            el.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <h4>No facilities linked yet</h4>
+                    <p>Link the facilities where you train to help students find you.</p>
+                </div>`;
+            return;
+        }
+        const statusBadge = s => {
+            if (s === 'approved') return `<span style="background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:600;"><i class="fas fa-check" style="margin-right:4px;"></i>Approved</span>`;
+            if (s === 'pending')  return `<span style="background:#fef9c3;color:#ca8a04;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:600;"><i class="fas fa-clock" style="margin-right:4px;"></i>Pending</span>`;
+            return `<span style="background:#fee2e2;color:#dc2626;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:600;"><i class="fas fa-times" style="margin-right:4px;"></i>Rejected</span>`;
+        };
+        el.innerHTML = `<div style="display:flex;flex-direction:column;gap:12px;">` +
+            list.map(f => {
+                const status = f.link_status || 'pending';
+                const approved = status === 'approved';
+                return `
+                <div class="pcard" style="flex-direction:row;align-items:center;gap:16px;padding:16px 20px;${status === 'rejected' ? 'opacity:.6;' : ''}">
+                    <div style="flex:1;">
+                        <div style="font-weight:600;font-size:.95rem;">${this.esc(f.name)}</div>
+                        <div style="font-size:.82rem;color:var(--c-muted,#64748b);margin-top:2px;">
+                            <i class="fas fa-city" style="margin-right:4px;"></i>${this.esc(f.city || '')}
+                            ${f.hourly_rate ? ` &bull; Rs. ${Number(f.hourly_rate).toLocaleString()}/hr` : ''}
+                        </div>
+                    </div>
+                    ${f.is_primary && approved ? `<span style="background:#dbeafe;color:#1d4ed8;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:600;">Primary</span>` : ''}
+                    ${statusBadge(status)}
+                    <div style="display:flex;gap:8px;">
+                        ${approved && !f.is_primary ? `<button class="btn btn-xs btn-outline" onclick="coachProfile.setPrimary(${f.facility_id})" title="Set as primary"><i class="fas fa-star"></i></button>` : ''}
+                        <button class="btn btn-xs btn-danger-soft" onclick="coachProfile.unlinkFacility(${f.facility_id})" title="Unlink"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+            }).join('') + `</div>`;
+    }
+
+    _populateFacilityPicker(all, linked) {
+        const linkedIds = new Set(linked.map(l => l.facility_id));
+        const sel = document.getElementById('facility-picker');
+        sel.innerHTML = '<option value="">— Select a facility —</option>' +
+            all.filter(f => !linkedIds.has(f.id))
+               .map(f => `<option value="${f.id}">${this.esc(f.name)} – ${this.esc(f.city || '')}</option>`)
+               .join('');
+    }
+
+    async setPrimary(facilityId) {
+        try {
+            const r = await fetch(`/api/coach/facilities/${facilityId}/primary`, { method: 'PUT' });
+            const d = await r.json();
+            if (!d.success) throw new Error(d.error || 'Failed');
+            this.toast('Primary facility updated', 'success');
+            await this.loadFacilities();
+        } catch (e) { this.toast('Error: ' + e.message, 'error'); }
+    }
+
+    async unlinkFacility(facilityId) {
+        if (!confirm('Remove this facility from your profile?')) return;
+        try {
+            const r = await fetch(`/api/coach/facilities/${facilityId}`, { method: 'DELETE' });
+            const d = await r.json();
+            if (!d.success) throw new Error(d.error || 'Failed');
+            this.toast('Facility removed', 'success');
+            await this.loadFacilities();
+        } catch (e) { this.toast('Error: ' + e.message, 'error'); }
+    }
+
+    async addFacility() {
+        const sel       = document.getElementById('facility-picker');
+        const facilityId = parseInt(sel.value);
+        const isPrimary  = document.getElementById('facility-is-primary').checked;
+        if (!facilityId) { this.toast('Please select a facility', 'error'); return; }
+        try {
+            const r = await fetch('/api/coach/facilities', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ facility_id: facilityId, is_primary: isPrimary }),
+            });
+            const d = await r.json();
+            if (!d.success) throw new Error(d.error || 'Failed');
+            this.toast('Facility linked!', 'success');
+            document.getElementById('facility-is-primary').checked = false;
+            await this.loadFacilities();
         } catch (e) { this.toast('Error: ' + e.message, 'error'); }
     }
 

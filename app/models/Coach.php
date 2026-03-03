@@ -777,4 +777,199 @@ class Coach extends BaseModel
             [$coachId, $start, $end]
         )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
     }
+
+    // =====================================================================
+    // COACH ↔ FACILITY ASSOCIATION
+    // =====================================================================
+
+    /**
+     * Get approved facilities linked to a coach (public-facing).
+     */
+    public function getFacilities(int $coachId): array
+    {
+        return $this->query(
+            "SELECT cf.id, cf.facility_id, cf.is_primary, cf.status AS link_status, cf.created_at,
+                    sf.name, sf.address, sf.city, sf.hourly_rate, sf.status AS facility_status,
+                    sc.name AS category_name, sc.icon AS category_icon
+             FROM coach_facilities cf
+             JOIN sports_facilities sf ON cf.facility_id = sf.id
+             LEFT JOIN sports_categories sc ON sf.sport_category_id = sc.id
+             WHERE cf.coach_id = ?
+               AND cf.status = 'approved'
+               AND sf.status = 'active'
+             ORDER BY cf.is_primary DESC, cf.created_at ASC",
+            [$coachId]
+        )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Get all facilities linked to a coach (all statuses — for coach's own dashboard).
+     */
+    public function getCoachFacilitiesWithStatus(int $coachId): array
+    {
+        return $this->query(
+            "SELECT cf.id, cf.facility_id, cf.is_primary, cf.status AS link_status, cf.created_at,
+                    sf.name, sf.address, sf.city, sf.hourly_rate,
+                    sc.name AS category_name, sc.icon AS category_icon
+             FROM coach_facilities cf
+             JOIN sports_facilities sf ON cf.facility_id = sf.id
+             LEFT JOIN sports_categories sc ON sf.sport_category_id = sc.id
+             WHERE cf.coach_id = ?
+               AND sf.status = 'active'
+             ORDER BY cf.is_primary DESC, cf.created_at ASC",
+            [$coachId]
+        )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Get all coaches linked to any facility owned by $ownerId,
+     * optionally filtered by status.
+     */
+    public function getCoachesByOwner(int $ownerId, ?string $status = null): array
+    {
+        $sql = "SELECT cf.id AS link_id, cf.coach_id, cf.facility_id, cf.is_primary,
+                       cf.status AS link_status, cf.created_at,
+                       c.hourly_rate, c.rating, c.experience_years,
+                       u.first_name, u.last_name, u.email, u.profile_picture,
+                       sc.name AS sport_name, sc.icon AS sport_icon,
+                       sf.name AS facility_name
+                FROM coach_facilities cf
+                JOIN coaches c          ON cf.coach_id    = c.id
+                JOIN users u            ON c.user_id      = u.id
+                LEFT JOIN sports_categories sc ON c.sport_category_id = sc.id
+                JOIN sports_facilities sf  ON cf.facility_id = sf.id
+                WHERE sf.owner_id = ?";
+        $params = [$ownerId];
+
+        if ($status !== null) {
+            $sql .= " AND cf.status = ?";
+            $params[] = $status;
+        }
+
+        $sql .= " ORDER BY cf.created_at DESC";
+        return $this->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Approve a coach-facility link. Returns true on success.
+     */
+    public function approveLink(int $linkId, int $approvedByUserId): bool
+    {
+        $stmt = $this->query(
+            "UPDATE coach_facilities
+             SET status = 'approved', approved_by = ?, approved_at = NOW()
+             WHERE id = ?",
+            [$approvedByUserId, $linkId]
+        );
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Reject a coach-facility link.
+     */
+    public function rejectLink(int $linkId, int $rejectedByUserId): bool
+    {
+        $stmt = $this->query(
+            "UPDATE coach_facilities
+             SET status = 'rejected', approved_by = ?, approved_at = NOW()
+             WHERE id = ?",
+            [$rejectedByUserId, $linkId]
+        );
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Delete a coach_facilities row by its primary key.
+     */
+    public function deleteLink(int $linkId): bool
+    {
+        $stmt = $this->query("DELETE FROM coach_facilities WHERE id = ?", [$linkId]);
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Count completed coach_bookings for a coach.
+     */
+    public function getCompletedSessionCount(int $coachId): int
+    {
+        $row = $this->query(
+            "SELECT COUNT(*) AS cnt FROM coach_bookings WHERE coach_id = ? AND status = 'completed'",
+            [$coachId]
+        )->fetch(\PDO::FETCH_ASSOC);
+        return $row ? (int)$row['cnt'] : 0;
+    }
+
+    /**
+     * Link a facility to a coach.
+     * Returns the new row ID, or null if the pair already exists.
+     */
+    public function linkFacility(int $coachId, int $facilityId, bool $isPrimary = false): ?int
+    {
+        try {
+            if ($isPrimary) {
+                $this->query(
+                    "UPDATE coach_facilities SET is_primary = 0 WHERE coach_id = ?",
+                    [$coachId]
+                );
+            }
+            $this->query(
+                "INSERT INTO coach_facilities (coach_id, facility_id, is_primary) VALUES (?, ?, ?)",
+                [$coachId, $facilityId, (int)$isPrimary]
+            );
+            return (int)$this->db->lastInsertId();
+        } catch (\Exception $e) {
+            // Duplicate key → already linked
+            return null;
+        }
+    }
+
+    /**
+     * Unlink a facility from a coach.
+     */
+    public function unlinkFacility(int $coachId, int $facilityId): bool
+    {
+        $stmt = $this->query(
+            "DELETE FROM coach_facilities WHERE coach_id = ? AND facility_id = ?",
+            [$coachId, $facilityId]
+        );
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Set a linked facility as primary (clears other primaries first).
+     */
+    public function setPrimaryFacility(int $coachId, int $facilityId): bool
+    {
+        $this->query(
+            "UPDATE coach_facilities SET is_primary = 0 WHERE coach_id = ?",
+            [$coachId]
+        );
+        $stmt = $this->query(
+            "UPDATE coach_facilities SET is_primary = 1
+             WHERE coach_id = ? AND facility_id = ?",
+            [$coachId, $facilityId]
+        );
+        return $stmt && $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Return ALL linked facilities for a slot, each with 'available' (bool)
+     * and 'unavailable_reason' (string) so the UI can show why a facility is blocked.
+     */
+    public function getFacilitiesForSlot(int $coachId, string $date, string $start, string $end): array
+    {
+        $facilities = $this->getFacilities($coachId);
+        if (empty($facilities)) {
+            return [];
+        }
+
+        $facilityModel = new \App\Models\SportsFacility();
+        foreach ($facilities as &$fac) {
+            $reason                    = $facilityModel->getAvailabilityReason((int)$fac['facility_id'], $date, $start, $end);
+            $fac['available']          = ($reason === '');
+            $fac['unavailable_reason'] = $reason;
+        }
+        unset($fac);
+        return $facilities;
+    }
 }
