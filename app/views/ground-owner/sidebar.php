@@ -62,6 +62,13 @@
                     <span>Maintenance</span>
                 </a>
             </li>
+            <li class="<?= strpos($_SERVER['REQUEST_URI'], '/ground-owner/coaches') !== false ? 'active' : '' ?>">
+                <a href="/ground-owner/coaches">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Coaches</span>
+                    <span class="badge new" id="coachesPendingCount" style="display:none;">0</span>
+                </a>
+            </li>
             <li class="nav-divider"></li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/ground-owner/profile') !== false ? 'active' : '' ?>">
                 <a href="/ground-owner/profile">

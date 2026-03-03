@@ -114,6 +114,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .page-loading{display:flex;align-items:center;justify-content:center;padding:6rem;flex-direction:column;gap:1rem;color:var(--txt-2)}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Available-At facilities (Phase 1) ────── */
+.facilities-section{margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.2rem}
+.facility-link-card{display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;border-radius:8px;background:var(--bg);margin-bottom:.5rem;text-decoration:none;color:inherit;transition:var(--transition)}
+.facility-link-card:hover{background:#dbeafe}
+.facility-link-card .fac-name{font-weight:600;font-size:.9rem}
+.facility-link-card .fac-city{font-size:.8rem;color:var(--txt-2)}
+.primary-badge{background:#dbeafe;color:#1d4ed8;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:auto;white-space:nowrap}
+
+/* ── Facility upsell (Phase 2) ────────────── */
+.upsell-panel{background:#eff6ff;border:2px solid #bfdbfe;border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.2rem}
+.upsell-title{font-size:.9rem;font-weight:700;color:#1d4ed8;margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem}
+.upsell-options{display:flex;flex-direction:column;gap:.5rem}
+.upsell-option{display:flex;align-items:center;gap:.6rem;font-size:.87rem;cursor:pointer;padding:.35rem .5rem;border-radius:6px;transition:background .2s}
+.upsell-option:hover{background:rgba(37,99,235,.07)}
+.upsell-option input[type=radio]{accent-color:var(--primary)}
+.upsell-option.unavailable{opacity:.55;cursor:not-allowed}
+.upsell-option.unavailable:hover{background:transparent}
+.upsell-reason{font-size:.75rem;color:#dc2626;display:block;margin-top:2px}
+.upsell-loading{font-size:.85rem;color:var(--txt-2);padding:.4rem 0}
+.upsell-none{font-size:.85rem;color:var(--txt-2);padding:.3rem 0;display:flex;align-items:center;gap:.5rem}
 </style>
 
 <!-- Breadcrumb -->
@@ -186,6 +207,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
                     <div class="info-item"><i class="fas fa-clock"></i><span id="info-exp">—</span></div>
                 </div>
 
+                <!-- Phase 1: Available-At Facilities -->
+                <div class="facilities-section" id="facilities-section" style="display:none">
+                    <div class="section-title"><i class="fas fa-map-marker-alt" style="color:var(--primary)"></i> Available At</div>
+                    <div id="facilities-list"></div>
+                </div>
+
                 <!-- Reviews -->
                 <div class="reviews-section">
                     <div class="section-title"><i class="fas fa-comments" style="color:var(--accent)"></i> Reviews</div>
@@ -230,6 +257,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
                     </div>
                     <input type="hidden" id="selected-start" value="">
                     <input type="hidden" id="selected-end"   value="">
+                </div>
+
+                <!-- Phase 2: Facility upsell (appears after slot selection) -->
+                <div id="facility-upsell" class="upsell-panel" style="display:none">
+                    <div class="upsell-title"><i class="fas fa-building"></i> Add a Facility Slot?</div>
+                    <div id="upsell-options" class="upsell-options">
+                        <div class="upsell-loading"><i class="fas fa-spinner fa-spin"></i> Checking availability…</div>
+                    </div>
+                    <input type="hidden" id="selected-facility-id" value="">
                 </div>
 
                 <div class="form-group">
@@ -354,6 +390,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
                 c.certifications.map(s => `<span class="tag cert">${s}</span>`).join('');
         }
 
+        // Phase 1: facilities this coach works at
+        if (c.facilities && c.facilities.length) {
+            document.getElementById('facilities-section').style.display = '';
+            document.getElementById('facilities-list').innerHTML = c.facilities.map(f => `
+                <a href="/ground-details?id=${f.facility_id}" class="facility-link-card">
+                    <i class="fas fa-map-marker-alt" style="color:var(--primary);flex-shrink:0"></i>
+                    <div>
+                        <div class="fac-name">${esc(f.name)}</div>
+                        <div class="fac-city">${esc(f.city || '')}${f.hourly_rate ? ' &bull; Rs. ' + Number(f.hourly_rate).toLocaleString() + '/hr' : ''}</div>
+                    </div>
+                    ${f.is_primary ? '<span class="primary-badge">Primary</span>' : ''}
+                </a>`).join('');
+        }
+
         // Reviews
         const rl = document.getElementById('reviews-list');
         if (c.reviews_list && c.reviews_list.length) {
@@ -370,6 +420,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
                     <p class="review-text">${r.review_text || ''}</p>
                 </div>`).join('');
         }
+    }
+
+    // ── Helpers ─────────────────────────────────────────────────
+    function esc(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     // ── Availability slots ─────────────────────────────────────
@@ -426,6 +481,83 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         document.getElementById('selected-start').value = selectedStart;
         document.getElementById('selected-end').value   = selectedEnd;
         updateSummary();
+        loadFacilityUpsell();
+    }
+
+    // ── Phase 2: Facility upsell ───────────────────────────────
+    async function loadFacilityUpsell() {
+        const coachId = document.getElementById('coach-id').value;
+        const date    = document.getElementById('booking-date').value;
+        if (!coachId || !date || !selectedStart || !selectedEnd) return;
+
+        const upsell = document.getElementById('facility-upsell');
+        const opts   = document.getElementById('upsell-options');
+        upsell.style.display = '';
+        opts.innerHTML = '<div class="upsell-loading"><i class="fas fa-spinner fa-spin"></i> Checking availability…</div>';
+        document.getElementById('selected-facility-id').value = '';
+
+        try {
+            const url = `/api/coaches/${coachId}/facilities/available?date=${date}&start_time=${selectedStart}&end_time=${selectedEnd}`;
+            const res = await fetch(url);
+            const d   = await res.json();
+            const list = d.success ? (d.facilities || []) : [];
+
+            if (!list.length) {
+                // Coach has no linked facilities at all — hide the panel
+                upsell.style.display = 'none';
+                return;
+            }
+
+            const anyAvailable = list.some(f => f.available);
+
+            // Always start with "No facility" (coach-only) option
+            let html = `
+                <label class="upsell-option">
+                    <input type="radio" name="facility_pick" value="" checked
+                        onchange="document.getElementById('selected-facility-id').value=''">
+                    <span>Coach session only</span>
+                </label>`;
+
+            html += list.map(f => {
+                const meta = `${esc(f.city || '')}${f.hourly_rate ? ' &bull; Rs. ' + Number(f.hourly_rate).toLocaleString() + '/hr' : ''}`;
+                const primary = f.is_primary
+                    ? '<span style="background:#dbeafe;color:#1d4ed8;font-size:.7rem;padding:1px 7px;border-radius:999px;margin-left:5px;font-weight:700;">Primary</span>'
+                    : '';
+
+                if (f.available) {
+                    return `
+                    <label class="upsell-option">
+                        <input type="radio" name="facility_pick" value="${f.facility_id}"
+                            onchange="document.getElementById('selected-facility-id').value='${f.facility_id}'">
+                        <span>
+                            <strong>${esc(f.name)}</strong>${primary}
+                            <span style="color:var(--txt-2);font-size:.8rem;"> – ${meta}</span>
+                        </span>
+                    </label>`;
+                } else {
+                    return `
+                    <div class="upsell-option unavailable">
+                        <i class="fas fa-ban" style="color:#dc2626;font-size:.85rem;flex-shrink:0;width:16px"></i>
+                        <span>
+                            <strong>${esc(f.name)}</strong>${primary}
+                            <span style="color:var(--txt-2);font-size:.8rem;"> – ${meta}</span>
+                            <span class="upsell-reason"><i class="fas fa-exclamation-circle"></i> ${esc(f.unavailable_reason)}</span>
+                        </span>
+                    </div>`;
+                }
+            }).join('');
+
+            if (!anyAvailable) {
+                html += `<p class="upsell-none" style="margin-top:.5rem;">
+                    <i class="fas fa-info-circle" style="color:#f59e0b"></i>
+                    No linked facility is available for this time slot — you can still book the coach session only.
+                </p>`;
+            }
+
+            opts.innerHTML = html;
+        } catch (e) {
+            opts.innerHTML = '<p class="upsell-none"><i class="fas fa-exclamation-triangle" style="color:#dc2626"></i> Could not check facility availability.</p>';
+        }
     }
 
     function updateSummary() {
@@ -456,15 +588,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         return ((h % 12) || 12) + ':' + String(m).padStart(2,'0') + ' ' + ampm;
     }
 
-    // ── Submit Booking ──────────────────────────────────────────
+    // ── Submit Booking (bundled) ────────────────────────────────
     window.submitBooking = async function () {
-        const coachId  = document.getElementById('coach-id').value;
-        const date     = document.getElementById('booking-date').value;
-        const start    = document.getElementById('selected-start').value;
-        const end      = document.getElementById('selected-end').value;
-        const type     = document.getElementById('session-type').value;
-        const requests = document.getElementById('special-requests').value;
-        const price    = coachData ? parseFloat(coachData.price) : 0;
+        const coachId    = document.getElementById('coach-id').value;
+        const date       = document.getElementById('booking-date').value;
+        const start      = document.getElementById('selected-start').value;
+        const end        = document.getElementById('selected-end').value;
+        const type       = document.getElementById('session-type').value;
+        const requests   = document.getElementById('special-requests').value;
+        const facilityId = document.getElementById('selected-facility-id').value || null;
+        const price      = coachData ? parseFloat(coachData.price) : 0;
 
         if (!coachId || !date || !start || !end) {
             showToast('Please select a date and time slot.', 'error');
@@ -475,25 +608,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         btn.disabled   = true;
         btn.innerHTML  = '<i class="fas fa-spinner fa-spin"></i> Booking…';
 
+        const payload = {
+            coach_id:         coachId,
+            booking_date:     date,
+            start_time:       start,
+            end_time:         end,
+            session_type:     type,
+            total_amount:     price,
+            special_requests: requests,
+        };
+        if (facilityId) payload.facility_id = facilityId;
+
         try {
-            const res = await fetch('/api/coach-bookings', {
+            const res  = await fetch('/api/coach-bookings/bundled', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    coach_id:         coachId,
-                    booking_date:     date,
-                    start_time:       start,
-                    end_time:         end,
-                    session_type:     type,
-                    total_amount:     price,
-                    special_requests: requests,
-                }),
+                body: JSON.stringify(payload),
             });
-
             const data = await res.json();
 
             if (data.success) {
-                showToast('Session booked successfully!', 'success');
+                const msg = facilityId
+                    ? 'Session + facility booked successfully!'
+                    : 'Session booked successfully!';
+                showToast(msg, 'success');
                 setTimeout(() => (window.location.href = '/my-coach-sessions'), 1500);
             } else if (data.error === 'login_required') {
                 showToast('Please log in to book a session.', 'error');
@@ -525,6 +663,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 
         document.getElementById('booking-date').addEventListener('change', e => {
             if (e.target.value) loadSlots(e.target.value);
+            document.getElementById('facility-upsell').style.display = 'none';
+            document.getElementById('selected-facility-id').value = '';
             updateSummary();
         });
 

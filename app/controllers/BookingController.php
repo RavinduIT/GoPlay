@@ -288,25 +288,15 @@ class BookingController extends BaseController
                 ], 400);
             }
 
-            $available = $this->getGroundBookingModel()->isTimeSlotAvailable($facilityId, $date, $startTime, $endTime);
-
-            $blockedReason = null;
-            if ($available) {
-                $availModel = new \App\Models\FacilityAvailability();
-                if ($availModel->isDateBlocked($facilityId, $date, $startTime, $endTime)) {
-                    $available = false;
-                    $blockedReason = 'blocked';
-                } elseif (!$availModel->isWithinOperatingHours($facilityId, $date, $startTime, $endTime)) {
-                    $available = false;
-                    $blockedReason = 'outside_hours';
-                }
-            }
+            // Use getAvailabilityReason which checks all blocking conditions
+            $reason    = $this->getFacilityModel()->getAvailabilityReason($facilityId, $date, $startTime, $endTime);
+            $available = $reason === '';
 
             return $this->json([
-                'success'  => true,
+                'success'   => true,
                 'available' => $available,
-                'reason'   => $blockedReason,
-                'message'  => $available ? 'Time slot is available' : 'Time slot is not available'
+                'reason'    => $reason,
+                'message'   => $available ? 'Time slot is available' : $reason,
             ]);
 
         } catch (\Exception $e) {
@@ -445,6 +435,63 @@ class BookingController extends BaseController
                 'message' => 'Error loading reviews',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * GET /api/facility/{id}/coaches
+     * Public: coaches linked to a facility.
+     */
+    public function getFacilityCoaches(Request $request): Response
+    {
+        try {
+            $facilityId = (int)$request->getParam('id');
+            if (!$facilityId) {
+                return $this->json(['success' => false, 'error' => 'Facility ID required'], 400);
+            }
+
+            $coaches = $this->getFacilityModel()->getLinkedCoaches($facilityId);
+            return $this->json(['success' => true, 'coaches' => $coaches]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/facility/{id}/slots?date=YYYY-MM-DD
+     * Returns 1-hour time slots for the day with availability status.
+     */
+    public function getFacilitySlots(Request $request): Response
+    {
+        try {
+            $facilityId = (int)$request->getParam('id');
+            $date       = $request->getQuery('date');
+
+            if (!$facilityId || !$date) {
+                return $this->json(['success' => false, 'error' => 'facility id and date are required'], 400);
+            }
+
+            // Validate date
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                return $this->json(['success' => false, 'error' => 'Invalid date format'], 400);
+            }
+
+            // Reject past dates
+            if ($date < date('Y-m-d')) {
+                return $this->json(['success' => false, 'error' => 'Date is in the past'], 400);
+            }
+
+            $slots = $this->getFacilityModel()->getSlotsForDay($facilityId, $date);
+
+            return $this->json([
+                'success' => true,
+                'date'    => $date,
+                'slots'   => $slots,
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 }

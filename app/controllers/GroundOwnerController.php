@@ -10,6 +10,8 @@ use App\Models\GroundBooking;
 use App\Models\GroundOwnerEarnings;
 use App\Models\GroundOwnerNotification;
 use App\Models\FacilityAvailability;
+use App\Models\Coach;
+use App\Models\Notification;
 
 class GroundOwnerController extends BaseController
 {
@@ -156,7 +158,218 @@ class GroundOwnerController extends BaseController
 
         return $this->viewWithoutLayout('ground-owner/settings');
     }
-    
+
+    public function coachesPage(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+
+        return $this->viewWithoutLayout('ground-owner/coaches');
+    }
+
+    // Coach Enrollment Management API
+    public function getOwnerCoaches(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId    = $_SESSION['user_id'];
+            $coachModel = new Coach();
+
+            $pending  = $coachModel->getCoachesByOwner($ownerId, 'pending');
+            $approved = $coachModel->getCoachesByOwner($ownerId, 'approved');
+            $rejected = $coachModel->getCoachesByOwner($ownerId, 'rejected');
+
+            return $this->json([
+                'success'  => true,
+                'pending'  => $pending,
+                'approved' => $approved,
+                'rejected' => $rejected,
+                'pending_count' => count($pending),
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Failed to load coaches', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getOwnerCoachDetail(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $linkId     = (int)$request->getParam('linkId');
+            $ownerId    = $_SESSION['user_id'];
+            $coachModel = new Coach();
+
+            // Verify this link belongs to one of the owner's facilities
+            $all  = $coachModel->getCoachesByOwner($ownerId);
+            $link = null;
+            foreach ($all as $c) {
+                if ((int)$c['link_id'] === $linkId) { $link = $c; break; }
+            }
+            if (!$link) {
+                return $this->json(['success' => false, 'message' => 'Not found'], 404);
+            }
+
+            // Full coach row (includes bio, specializations, location, total_sessions, etc.)
+            $coachRow = $coachModel->find((int)$link['coach_id']);
+            if (!$coachRow) {
+                return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+            }
+
+            // Merge user profile data already in $link with the coaches row
+            $detail = array_merge($coachRow, [
+                'first_name'      => $link['first_name'],
+                'last_name'       => $link['last_name'],
+                'email'           => $link['email'],
+                'profile_picture' => $link['profile_picture'],
+                'sport_name'      => $link['sport_name'],
+                'sport_icon'      => $link['sport_icon'],
+                'facility_name'   => $link['facility_name'],
+                'link_status'     => $link['link_status'],
+                'link_id'         => $link['link_id'],
+                'is_primary'      => $link['is_primary'],
+                'linked_since'    => $link['created_at'],
+            ]);
+
+            $detail['certificates']  = $coachModel->getCertificates((int)$link['coach_id']);
+            $detail['achievements']  = $coachModel->getAchievements((int)$link['coach_id']);
+
+            // Total completed sessions with this owner's facility bookings
+            $detail['completed_sessions'] = $coachModel->getCompletedSessionCount((int)$link['coach_id']);
+
+            return $this->json(['success' => true, 'coach' => $detail]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Failed to load coach details', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function approveCoach(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $linkId     = (int)$request->getParam('linkId');
+            $ownerId    = $_SESSION['user_id'];
+            $coachModel = new Coach();
+
+            // Verify link belongs to this owner
+            $coaches = $coachModel->getCoachesByOwner($ownerId);
+            $link = null;
+            foreach ($coaches as $c) {
+                if ((int)$c['link_id'] === $linkId) { $link = $c; break; }
+            }
+            if (!$link) {
+                return $this->json(['success' => false, 'message' => 'Link not found or unauthorized'], 404);
+            }
+
+            $ok = $coachModel->approveLink($linkId, $ownerId);
+            if (!$ok) {
+                return $this->json(['success' => false, 'message' => 'Failed to approve'], 500);
+            }
+
+            // Notify the coach
+            try {
+                $coachRow = $coachModel->find((int)$link['coach_id']);
+                if ($coachRow) {
+                    (new Notification())->createNotification(
+                        (int)$coachRow['user_id'],
+                        'facility_approved',
+                        'Facility Request Approved',
+                        "Your request to train at {$link['facility_name']} has been approved.",
+                        ['link_id' => $linkId]
+                    );
+                }
+            } catch (\Exception $ignored) {}
+
+            return $this->json(['success' => true, 'message' => 'Coach approved']);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Error approving coach', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function rejectCoach(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $linkId     = (int)$request->getParam('linkId');
+            $ownerId    = $_SESSION['user_id'];
+            $coachModel = new Coach();
+
+            // Verify link belongs to this owner
+            $coaches = $coachModel->getCoachesByOwner($ownerId);
+            $link = null;
+            foreach ($coaches as $c) {
+                if ((int)$c['link_id'] === $linkId) { $link = $c; break; }
+            }
+            if (!$link) {
+                return $this->json(['success' => false, 'message' => 'Link not found or unauthorized'], 404);
+            }
+
+            $ok = $coachModel->rejectLink($linkId, $ownerId);
+            if (!$ok) {
+                return $this->json(['success' => false, 'message' => 'Failed to reject'], 500);
+            }
+
+            // Notify the coach
+            try {
+                $coachRow = $coachModel->find((int)$link['coach_id']);
+                if ($coachRow) {
+                    (new Notification())->createNotification(
+                        (int)$coachRow['user_id'],
+                        'facility_rejected',
+                        'Facility Request Rejected',
+                        "Your request to train at {$link['facility_name']} was not approved.",
+                        ['link_id' => $linkId]
+                    );
+                }
+            } catch (\Exception $ignored) {}
+
+            return $this->json(['success' => true, 'message' => 'Coach rejected']);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Error rejecting coach', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function removeCoach(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $linkId     = (int)$request->getParam('linkId');
+            $ownerId    = $_SESSION['user_id'];
+            $coachModel = new Coach();
+
+            // Verify link belongs to this owner before deleting
+            $coaches = $coachModel->getCoachesByOwner($ownerId);
+            $found = false;
+            foreach ($coaches as $c) {
+                if ((int)$c['link_id'] === $linkId) { $found = true; break; }
+            }
+            if (!$found) {
+                return $this->json(['success' => false, 'message' => 'Link not found or unauthorized'], 404);
+            }
+
+            $coachModel->deleteLink($linkId);
+            return $this->json(['success' => true, 'message' => 'Coach removed']);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Error removing coach', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     // API Methods for Ground Management
     public function getGrounds(Request $request): Response
     {

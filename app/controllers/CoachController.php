@@ -6,6 +6,8 @@ use Core\Request;
 use Core\Response;
 use App\Models\Coach;
 use App\Models\CoachBooking;
+use App\Models\SportsFacility;
+use App\Models\GroundOwnerNotification;
 
 /**
  * Coach Controller
@@ -1159,11 +1161,13 @@ class CoachController extends BaseController
                 }, $reviews)
             ];
             
+            $formattedCoach['facilities'] = $coachModel->getFacilities((int)$id);
+
             return $this->json([
                 'success' => true,
                 'coach' => $formattedCoach
             ]);
-            
+
         } catch (Exception $e) {
             return $this->json([
                 'success' => false,
@@ -1851,6 +1855,311 @@ class CoachController extends BaseController
             $bookings     = $bookingModel->getBookingsByUser((int)$_SESSION['user_id']);
 
             return $this->json(['success' => true, 'bookings' => $bookings]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // =====================================================================
+    // COACH ↔ FACILITY MANAGEMENT (authenticated coach)
+    // =====================================================================
+
+    /**
+     * GET /api/coach/facilities
+     * Returns linked facilities + all active facilities for the picker.
+     */
+    public function getCoachFacilities(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $coachModel = new Coach();
+            $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
+            if (!$coach) {
+                return $this->json(['success' => false, 'error' => 'Coach profile not found'], 404);
+            }
+
+            $facilityModel = new \App\Models\SportsFacility();
+            $linked        = $coachModel->getCoachFacilitiesWithStatus((int)$coach['id']);
+            $allFacilities = $facilityModel->getAvailableFacilities([]);
+
+            return $this->json([
+                'success'       => true,
+                'linked'        => $linked,
+                'all_facilities' => $allFacilities,
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * POST /api/coach/facilities
+     * Body: {facility_id, is_primary}
+     */
+    public function linkCoachFacility(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $data       = $request->getBody() ?: $request->getJsonBody();
+            $facilityId = (int)($data['facility_id'] ?? 0);
+            $isPrimary  = !empty($data['is_primary']);
+
+            if (!$facilityId) {
+                return $this->json(['success' => false, 'error' => 'facility_id is required'], 400);
+            }
+
+            $coachModel = new Coach();
+            $coach      = $coachModel->getByUserId((int)$_SESSION['user_id']);
+            if (!$coach) {
+                return $this->json(['success' => false, 'error' => 'Coach profile not found'], 404);
+            }
+
+            $newId = $coachModel->linkFacility((int)$coach['id'], $facilityId, $isPrimary);
+            if ($newId === null) {
+                return $this->json(['success' => false, 'error' => 'Facility already linked'], 409);
+            }
+
+            // Notify the ground owner
+            try {
+                $facilityModel = new SportsFacility();
+                $facility = $facilityModel->find($facilityId);
+                if ($facility) {
+                    $coachName = trim(($coach['first_name'] ?? '') . ' ' . ($coach['last_name'] ?? ''));
+                    (new GroundOwnerNotification())->createNotification(
+                        (int)$facility['owner_id'],
+                        'New Coach Request',
+                        "Coach {$coachName} has requested to train at {$facility['name']}. Review in your Coaches tab.",
+                        'coach_request',
+                        $newId,
+                        'coach_facility',
+                        'normal'
+                    );
+                }
+            } catch (\Exception $ignored) {}
+
+            return $this->json(['success' => true, 'id' => $newId, 'status' => 'pending']);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * DELETE /api/coach/facilities/{facilityId}
+     */
+    public function unlinkCoachFacility(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $facilityId = (int)$request->getParam('facilityId');
+            if (!$facilityId) {
+                return $this->json(['success' => false, 'error' => 'facilityId is required'], 400);
+            }
+
+            $coachModel = new Coach();
+            $coach      = $coachModel->getByUserId((int)$_SESSION['user_id']);
+            if (!$coach) {
+                return $this->json(['success' => false, 'error' => 'Coach profile not found'], 404);
+            }
+
+            $ok = $coachModel->unlinkFacility((int)$coach['id'], $facilityId);
+            return $this->json(['success' => $ok]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * PUT /api/coach/facilities/{facilityId}/primary
+     */
+    public function setPrimaryCoachFacility(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $facilityId = (int)$request->getParam('facilityId');
+            if (!$facilityId) {
+                return $this->json(['success' => false, 'error' => 'facilityId is required'], 400);
+            }
+
+            $coachModel = new Coach();
+            $coach      = $coachModel->getByUserId((int)$_SESSION['user_id']);
+            if (!$coach) {
+                return $this->json(['success' => false, 'error' => 'Coach profile not found'], 404);
+            }
+
+            $ok = $coachModel->setPrimaryFacility((int)$coach['id'], $facilityId);
+            return $this->json(['success' => $ok]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // =====================================================================
+    // COACH ↔ FACILITY PUBLIC ENDPOINTS
+    // =====================================================================
+
+    /**
+     * GET /api/coaches/{id}/facilities
+     * Public: list facilities linked to a coach.
+     */
+    public function getCoachPublicFacilities(Request $request): Response
+    {
+        try {
+            $id = (int)$request->getParam('id');
+            if (!$id) {
+                return $this->json(['success' => false, 'error' => 'Coach ID required'], 400);
+            }
+
+            $coachModel = new Coach();
+            $facilities = $coachModel->getFacilities($id);
+
+            return $this->json(['success' => true, 'facilities' => $facilities]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/coaches/{id}/facilities/available?date=YYYY-MM-DD&start_time=HH:MM&end_time=HH:MM
+     * Public: facilities linked to coach that are available for the given slot.
+     */
+    public function getAvailableFacilitiesForSlot(Request $request): Response
+    {
+        try {
+            $id        = (int)$request->getParam('id');
+            $date      = $request->getQuery('date');
+            $startTime = $request->getQuery('start_time');
+            $endTime   = $request->getQuery('end_time');
+
+            if (!$id || !$date || !$startTime || !$endTime) {
+                return $this->json(['success' => false, 'error' => 'id, date, start_time and end_time are required'], 400);
+            }
+
+            $coachModel = new Coach();
+            $facilities = $coachModel->getFacilitiesForSlot($id, $date, $startTime, $endTime);
+
+            return $this->json(['success' => true, 'facilities' => $facilities]);
+
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // =====================================================================
+    // BUNDLED BOOKING (coach + optional facility in one transaction)
+    // =====================================================================
+
+    /**
+     * POST /api/coach-bookings/bundled
+     * Body: coach booking fields + optional facility_id
+     */
+    public function createBundledBooking(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json(['success' => false, 'error' => 'login_required'], 401);
+            }
+
+            $userId = (int)$_SESSION['user_id'];
+            $data   = $request->getBody() ?: $request->getJsonBody();
+
+            // Validate required coach booking fields
+            $required = ['coach_id', 'booking_date', 'start_time', 'end_time', 'session_type', 'total_amount'];
+            $missing  = [];
+            foreach ($required as $field) {
+                if (empty($data[$field])) {
+                    $missing[] = $field;
+                }
+            }
+            if ($missing) {
+                return $this->json(['success' => false, 'error' => 'Missing fields: ' . implode(', ', $missing)], 400);
+            }
+
+            $coachId    = (int)$data['coach_id'];
+            $date       = $data['booking_date'];
+            $startTime  = $data['start_time'];
+            $endTime    = $data['end_time'];
+            $facilityId = !empty($data['facility_id']) ? (int)$data['facility_id'] : null;
+
+            // Pre-flight: check coach slot
+            $bookingModel = new CoachBooking();
+            if (!$bookingModel->isTimeSlotAvailable($coachId, $date, $startTime, $endTime)) {
+                return $this->json(['success' => false, 'error' => 'Coach slot no longer available'], 409);
+            }
+
+            // Pre-flight: check facility slot (if requested)
+            if ($facilityId) {
+                $facilityModel = new \App\Models\SportsFacility();
+                if (!$facilityModel->isAvailable($facilityId, $date, $startTime, $endTime)) {
+                    return $this->json(['success' => false, 'error' => 'Facility slot no longer available'], 409);
+                }
+            }
+
+            // Begin transaction
+            $db = \Core\Database::getInstance();
+            $db->beginTransaction();
+
+            try {
+                $coachBookingId = $bookingModel->createBooking([
+                    'user_id'          => $userId,
+                    'coach_id'         => $coachId,
+                    'booking_date'     => $date,
+                    'start_time'       => $startTime,
+                    'end_time'         => $endTime,
+                    'duration'         => (int)($data['duration'] ?? 60),
+                    'session_type'     => $data['session_type'],
+                    'session_title'    => $data['session_title'] ?? null,
+                    'total_amount'     => (float)$data['total_amount'],
+                    'special_requests' => $data['special_requests'] ?? null,
+                ]);
+
+                $facilityBookingId = null;
+                if ($facilityId) {
+                    $groundBookingModel = new \App\Models\GroundBooking();
+                    $facilityBookingId  = $groundBookingModel->createBooking([
+                        'user_id'          => $userId,
+                        'facility_id'      => $facilityId,
+                        'booking_date'     => $date,
+                        'start_time'       => $startTime,
+                        'end_time'         => $endTime,
+                        'special_requests' => $data['special_requests'] ?? '',
+                    ]);
+                }
+
+                $db->commit();
+
+                return $this->json([
+                    'success'             => true,
+                    'coach_booking_id'    => $coachBookingId,
+                    'facility_booking_id' => $facilityBookingId,
+                ]);
+
+            } catch (\Exception $inner) {
+                $db->rollback();
+                throw $inner;
+            }
 
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'error' => $e->getMessage()], 500);

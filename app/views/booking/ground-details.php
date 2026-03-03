@@ -355,6 +355,19 @@ $groundId = $_GET['id'] ?? 1;
             box-shadow: var(--shadow-light);
         }
 
+        .coach-mini-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius);
+            background: var(--background-light);
+            transition: var(--transition);
+        }
+        .coach-mini-card:hover {
+            background: #e0eaff;
+        }
+
         .map-container {
             height: 300px;
             background: var(--background-light);
@@ -717,6 +730,143 @@ $groundId = $_GET['id'] ?? 1;
             border: 1px solid #ffeaa7;
         }
 
+        /* ── Slot Grid ── */
+        .slot-grid-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .slot-grid-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .slot-grid-loading {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        .slot-grid-closed {
+            padding: 14px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            color: #6b7280;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+        .slot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 8px;
+        }
+        .slot-btn {
+            padding: 10px 6px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+            line-height: 1.3;
+            position: relative;
+        }
+        .slot-btn.available {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #166534;
+        }
+        .slot-btn.available:hover {
+            background: #dcfce7;
+            border-color: #4ade80;
+            transform: translateY(-1px);
+        }
+        .slot-btn.selected {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(37,99,235,.3);
+        }
+        .slot-btn.in-range {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+        .slot-btn.booked {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        .slot-btn.maintenance {
+            background: #fff7ed;
+            border-color: #fdba74;
+            color: #9a3412;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        .slot-btn.blocked {
+            background: #fffbeb;
+            border-color: #fcd34d;
+            color: #78350f;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        .slot-btn.closed {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .slot-btn.unavailable-range {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+            opacity: 0.8;
+        }
+        .slot-time { display: block; font-size: 0.78rem; }
+        .slot-status-label { display: block; font-size: 0.68rem; margin-top: 2px; opacity: 0.8; }
+        .slot-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        .slot-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .slot-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            border: 1.5px solid;
+        }
+        .legend-available  { background: #f0fdf4; border-color: #86efac; }
+        .legend-selected   { background: #2563eb; border-color: #2563eb; }
+        .legend-booked     { background: #fef2f2; border-color: #fca5a5; }
+        .legend-closed     { background: #f9fafb; border-color: #d1d5db; }
+        .slot-selected-info {
+            padding: 10px 14px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: #1d4ed8;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .booking-summary {
             background: var(--background-light);
             border-radius: var(--border-radius);
@@ -953,6 +1103,15 @@ $groundId = $_GET['id'] ?? 1;
                         <!-- Contact info will be populated dynamically -->
                     </div>
                 </div>
+
+                <!-- Coaches at this facility -->
+                <div class="sidebar-section" id="coaches-section" style="display:none;">
+                    <h3 class="section-title">
+                        <i class="fas fa-user-tie"></i>
+                        Coaches Here
+                    </h3>
+                    <div id="facility-coaches-list"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -988,20 +1147,25 @@ $groundId = $_GET['id'] ?? 1;
 
                 <!-- Booking Form -->
                 <form id="booking-form" class="booking-form">
+                    <!-- Hidden time inputs used by confirmBooking / checkAvailability -->
+                    <input type="hidden" id="start-time" value="">
+                    <input type="hidden" id="end-time"   value="">
+
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">
                                 <i class="fas fa-calendar"></i>
                                 Booking Date *
                             </label>
-                            <input type="date" id="booking-date" class="form-input" required min="" onchange="updateBookingSummary(); checkAvailability();">
+                            <input type="date" id="booking-date" class="form-input" required min=""
+                                   onchange="loadSlotGrid(); updateBookingSummary();">
                         </div>
                         <div class="form-group">
                             <label class="form-label">
                                 <i class="fas fa-clock"></i>
                                 Duration *
                             </label>
-                            <select id="booking-duration" class="form-select" required onchange="calculateEndTime()">
+                            <select id="booking-duration" class="form-select" required onchange="onDurationChange()">
                                 <option value="">Select Duration</option>
                                 <option value="1">1 Hour</option>
                                 <option value="2">2 Hours</option>
@@ -1013,38 +1177,36 @@ $groundId = $_GET['id'] ?? 1;
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fas fa-play"></i>
-                                Start Time *
-                            </label>
-                            <select id="start-time" class="form-select" required onchange="calculateEndTime()">
-                                <option value="">Select Start Time</option>
-                                <option value="06:00:00">6:00 AM</option>
-                                <option value="07:00:00">7:00 AM</option>
-                                <option value="08:00:00">8:00 AM</option>
-                                <option value="09:00:00">9:00 AM</option>
-                                <option value="10:00:00">10:00 AM</option>
-                                <option value="11:00:00">11:00 AM</option>
-                                <option value="12:00:00">12:00 PM</option>
-                                <option value="13:00:00">1:00 PM</option>
-                                <option value="14:00:00">2:00 PM</option>
-                                <option value="15:00:00">3:00 PM</option>
-                                <option value="16:00:00">4:00 PM</option>
-                                <option value="17:00:00">5:00 PM</option>
-                                <option value="18:00:00">6:00 PM</option>
-                                <option value="19:00:00">7:00 PM</option>
-                                <option value="20:00:00">8:00 PM</option>
-                                <option value="21:00:00">9:00 PM</option>
-                            </select>
+                    <!-- Slot grid — shown after a date is picked -->
+                    <div class="slot-grid-section" id="slot-grid-section" style="display:none;">
+                        <label class="slot-grid-label">
+                            <i class="fas fa-th"></i>
+                            Select Start Time *
+                        </label>
+                        <div id="slot-grid-inner">
+                            <div class="slot-grid-loading">
+                                <i class="fas fa-spinner fa-spin"></i> Loading available slots…
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fas fa-stop"></i>
-                                End Time
-                            </label>
-                            <input type="text" id="end-time" class="form-input" readonly placeholder="Auto-calculated">
+                        <!-- Legend -->
+                        <div class="slot-legend">
+                            <span class="slot-legend-item">
+                                <span class="slot-legend-dot legend-available"></span> Available
+                            </span>
+                            <span class="slot-legend-item">
+                                <span class="slot-legend-dot legend-selected"></span> Selected
+                            </span>
+                            <span class="slot-legend-item">
+                                <span class="slot-legend-dot legend-booked"></span> Booked
+                            </span>
+                            <span class="slot-legend-item">
+                                <span class="slot-legend-dot legend-closed"></span> Unavailable
+                            </span>
+                        </div>
+                        <!-- Selected time display -->
+                        <div class="slot-selected-info" id="slot-selected-info" style="display:none;">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="slot-selected-text"></span>
                         </div>
                     </div>
 
@@ -1163,6 +1325,7 @@ $groundId = $_GET['id'] ?? 1;
                     currentGround = result.data;
                     console.log('Found ground:', currentGround.name);
                     displayGroundDetails(currentGround);
+                    loadFacilityCoaches(groundId);
                 } else {
                     console.log('Ground not found:', result.message);
                     showError();
@@ -1376,6 +1539,39 @@ $groundId = $_GET['id'] ?? 1;
             document.getElementById('error-state').style.display = 'block';
         }
 
+        // Load coaches linked to this facility
+        async function loadFacilityCoaches(facilityId) {
+            try {
+                const r = await fetch(`/api/facility/${facilityId}/coaches`);
+                const d = await r.json();
+                if (!d.success || !d.coaches || !d.coaches.length) return;
+
+                const section = document.getElementById('coaches-section');
+                const list    = document.getElementById('facility-coaches-list');
+                section.style.display = '';
+
+                list.innerHTML = d.coaches.map(c => `
+                    <a href="/coach-profile/${c.coach_id}" style="display:block;text-decoration:none;color:inherit;margin-bottom:12px;">
+                        <div class="coach-mini-card">
+                            <img src="${c.profile_picture || '/public/assets/images/default-avatar.png'}"
+                                 alt="${c.first_name} ${c.last_name}"
+                                 style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    ${c.first_name} ${c.last_name}
+                                    ${c.is_primary ? '<span style="background:#dbeafe;color:#1d4ed8;font-size:.7rem;padding:1px 7px;border-radius:999px;margin-left:4px;font-weight:600;">Primary</span>' : ''}
+                                </div>
+                                <div style="font-size:.8rem;color:var(--text-secondary);">${c.sport_name || ''}</div>
+                                ${c.hourly_rate ? `<div style="font-size:.8rem;font-weight:600;color:var(--primary-color);">Rs. ${Number(c.hourly_rate).toLocaleString()}/hr</div>` : ''}
+                            </div>
+                            <i class="fas fa-chevron-right" style="color:var(--text-light);font-size:.75rem;"></i>
+                        </div>
+                    </a>`).join('');
+            } catch (e) {
+                console.warn('Could not load facility coaches:', e);
+            }
+        }
+
         // Book ground function - opens the booking modal
         function bookGround() {
             if (!currentGround) {
@@ -1408,8 +1604,13 @@ $groundId = $_GET['id'] ?? 1;
 
             // Reset form
             document.getElementById('booking-form').reset();
-            document.getElementById('end-time').value = '';
+            document.getElementById('start-time').value = '';
+            document.getElementById('end-time').value   = '';
             document.getElementById('availability-status').style.display = 'none';
+            document.getElementById('slot-grid-section').style.display = 'none';
+            document.getElementById('slot-selected-info').style.display = 'none';
+            document.getElementById('confirm-booking-btn').disabled = true;
+            slotData = []; selectedSlotIndex = -1;
             resetBookingSummary();
 
             // Show modal
@@ -1419,45 +1620,166 @@ $groundId = $_GET['id'] ?? 1;
 
         // Global variables for booking
         let availabilityCheckTimeout = null;
+        let slotData = [];          // slots fetched for the current date
+        let selectedSlotIndex = -1; // index into slotData of the chosen start slot
 
         // Close booking modal
         function closeBookingModal() {
             document.getElementById('booking-modal').classList.remove('show');
             document.body.style.overflow = 'auto';
+            if (availabilityCheckTimeout) clearTimeout(availabilityCheckTimeout);
+        }
 
-            // Clear any pending availability checks
-            if (availabilityCheckTimeout) {
-                clearTimeout(availabilityCheckTimeout);
+        /* ═══════════════════════════════
+           SLOT GRID
+        ═══════════════════════════════ */
+
+        function fmt12(hhmm) {
+            const [h, m] = hhmm.split(':').map(Number);
+            const ampm = h < 12 ? 'AM' : 'PM';
+            const h12  = h % 12 || 12;
+            return m === 0 ? `${h12} ${ampm}` : `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+        }
+
+        async function loadSlotGrid() {
+            const date       = document.getElementById('booking-date').value;
+            const facilityId = currentGround?.id;
+            const section    = document.getElementById('slot-grid-section');
+            const inner      = document.getElementById('slot-grid-inner');
+
+            // Reset selection
+            selectedSlotIndex = -1;
+            slotData = [];
+            document.getElementById('start-time').value = '';
+            document.getElementById('end-time').value   = '';
+            document.getElementById('slot-selected-info').style.display = 'none';
+            document.getElementById('availability-status').style.display = 'none';
+            document.getElementById('confirm-booking-btn').disabled = true;
+
+            if (!date || !facilityId) { section.style.display = 'none'; return; }
+
+            section.style.display = 'flex';
+            inner.innerHTML = '<div class="slot-grid-loading"><i class="fas fa-spinner fa-spin"></i> Loading slots…</div>';
+
+            try {
+                const r = await fetch(`/api/facility/${facilityId}/slots?date=${date}`);
+                const d = await r.json();
+                if (!d.success) throw new Error(d.error || 'Failed');
+                slotData = d.slots || [];
+                renderSlotGrid();
+            } catch (e) {
+                inner.innerHTML = `<div class="slot-grid-loading" style="color:#ef4444;"><i class="fas fa-exclamation-circle"></i> Could not load slots: ${e.message}</div>`;
             }
         }
 
-        // Calculate end time based on start time and duration
-        function calculateEndTime() {
-            console.log('=== calculateEndTime called ===');
-            const startTime = document.getElementById('start-time').value;
-            const duration = parseInt(document.getElementById('booking-duration').value);
+        function renderSlotGrid() {
+            const inner    = document.getElementById('slot-grid-inner');
+            const duration = parseInt(document.getElementById('booking-duration').value) || 1;
 
-            console.log('calculateEndTime inputs:', { startTime, duration });
+            if (!slotData.length) {
+                inner.innerHTML = '<div class="slot-grid-closed"><i class="fas fa-door-closed"></i> No time slots available for this day.</div>';
+                return;
+            }
 
-            if (startTime && duration) {
-                const [hours, minutes, seconds] = startTime.split(':');
-                console.log('Time parts:', { hours, minutes, seconds });
+            // Single all-day closed marker
+            if (slotData[0]?.all_day) {
+                inner.innerHTML = `<div class="slot-grid-closed"><i class="fas fa-ban"></i> ${slotData[0].reason}</div>`;
+                return;
+            }
 
-                const startDate = new Date();
-                startDate.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds || 0));
+            const html = slotData.map((slot, i) => {
+                let cls = slot.status;
+                let label = '';
+                let title = slot.reason || '';
+                let clickable = false;
 
-                const endDate = new Date(startDate.getTime() + (duration * 60 * 60 * 1000));
-                const endTimeString = endDate.toTimeString().slice(0, 8); // HH:MM:SS format
+                if (slot.status === 'available') {
+                    // Check if there are enough consecutive available slots for the chosen duration
+                    const canFit = canFitDuration(i, duration);
+                    if (canFit) {
+                        clickable = true;
+                        if (i === selectedSlotIndex) cls = 'selected';
+                        else if (selectedSlotIndex >= 0 && i > selectedSlotIndex && i < selectedSlotIndex + duration) cls = 'in-range';
+                    } else if (i === selectedSlotIndex) {
+                        cls = 'unavailable-range';
+                        label = 'blocked range';
+                        title = 'Not enough consecutive free slots for selected duration';
+                    }
+                } else {
+                    const labels = { booked:'Booked', maintenance:'Maintenance', blocked:'Closed', closed:'Unavailable' };
+                    label = labels[slot.status] || '';
+                }
 
-                console.log('Calculated end time:', endTimeString);
-                document.getElementById('end-time').value = endTimeString;
+                return `<button type="button"
+                    class="slot-btn ${cls}"
+                    data-index="${i}"
+                    title="${title}"
+                    ${!clickable ? 'disabled' : `onclick="selectSlot(${i})"`}>
+                    <span class="slot-time">${fmt12(slot.start)}</span>
+                    ${label ? `<span class="slot-status-label">${label}</span>` : ''}
+                </button>`;
+            }).join('');
 
-                updateBookingSummary();
-                checkAvailability();
+            inner.innerHTML = `<div class="slot-grid">${html}</div>`;
+        }
+
+        function canFitDuration(startIdx, duration) {
+            if (startIdx + duration > slotData.length) return false;
+            for (let i = startIdx; i < startIdx + duration; i++) {
+                if (slotData[i].status !== 'available') return false;
+            }
+            return true;
+        }
+
+        function selectSlot(index) {
+            const duration = parseInt(document.getElementById('booking-duration').value) || 1;
+
+            if (!canFitDuration(index, duration)) return;
+
+            selectedSlotIndex = index;
+
+            const startSlot = slotData[index];
+            const endSlot   = slotData[index + duration - 1];
+
+            document.getElementById('start-time').value = startSlot.start_full;
+            document.getElementById('end-time').value   = endSlot.end_full;
+
+            // Update selected info banner
+            const infoEl  = document.getElementById('slot-selected-info');
+            const textEl  = document.getElementById('slot-selected-text');
+            textEl.textContent = `${fmt12(startSlot.start)} – ${fmt12(endSlot.end)}  ·  ${duration} hour${duration > 1 ? 's' : ''}`;
+            infoEl.style.display = 'flex';
+
+            renderSlotGrid();       // re-render to update highlight
+            updateBookingSummary();
+            checkAvailability();
+        }
+
+        function onDurationChange() {
+            // If a slot is already selected, re-validate the range with new duration
+            if (selectedSlotIndex >= 0) {
+                const duration = parseInt(document.getElementById('booking-duration').value) || 1;
+                if (canFitDuration(selectedSlotIndex, duration)) {
+                    selectSlot(selectedSlotIndex); // re-select with new duration
+                } else {
+                    // Range now blocked — clear selection
+                    selectedSlotIndex = -1;
+                    document.getElementById('start-time').value = '';
+                    document.getElementById('end-time').value   = '';
+                    document.getElementById('slot-selected-info').style.display = 'none';
+                    document.getElementById('confirm-booking-btn').disabled = true;
+                    renderSlotGrid();
+                    updateBookingSummary();
+                }
             } else {
-                console.log('Missing startTime or duration');
+                renderSlotGrid(); // re-render with new duration to update canFit highlights
+                updateBookingSummary();
             }
         }
+
+        // calculateEndTime kept for any legacy callers but now a no-op
+        // (end-time is set directly by selectSlot)
+        function calculateEndTime() {}
 
         // Update booking summary
         function updateBookingSummary() {
@@ -1551,8 +1873,9 @@ $groundId = $_GET['id'] ?? 1;
                         statusElement.innerHTML = '<i class="fas fa-check-circle"></i> <span>Time slot is available!</span>';
                         confirmBtn.disabled = false;
                     } else {
+                        const reason = data.reason || 'This time slot is not available.';
                         statusElement.className = 'availability-status unavailable';
-                        statusElement.innerHTML = '<i class="fas fa-times-circle"></i> <span>Time slot is not available. Please choose a different time.</span>';
+                        statusElement.innerHTML = `<i class="fas fa-times-circle"></i> <span>${reason} Please select a different slot.</span>`;
                         confirmBtn.disabled = true;
                     }
                 } else {
