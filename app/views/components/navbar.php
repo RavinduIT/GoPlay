@@ -124,11 +124,9 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
                             <i class="fas fa-user"></i> Profile
                         </a>
                         
-                        <?php if (($_SESSION['user_type'] ?? 'user') !== 'user'): ?>
-                            <a href="<?= getDashboardUrl($_SESSION['user_type']) ?>">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        <?php endif; ?>
+                        <a href="<?= getDashboardUrl($_SESSION['user_type'] ?? 'user') ?>">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
                         
                         <a href="/my-bookings"><i class="fas fa-calendar-alt"></i> My Bookings</a>
                         <a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a>
@@ -182,9 +180,7 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
         <?php endif; ?>
         <?php if (isset($_SESSION['user_id'])): ?>
             <li><a href="<?= getProfileUrl($_SESSION['user_type'] ?? 'user') ?>">Profile</a></li>
-            <?php if (($_SESSION['user_type'] ?? 'user') !== 'user'): ?>
-                <li><a href="<?= getDashboardUrl($_SESSION['user_type']) ?>">Dashboard</a></li>
-            <?php endif; ?>
+            <li><a href="<?= getDashboardUrl($_SESSION['user_type'] ?? 'user') ?>">Dashboard</a></li>
             <li><a href="/my-bookings">My Bookings</a></li>
             <li><a href="/cart">Cart</a></li>
             <li><a href="#" onclick="logout(); return false;">Logout</a></li>
