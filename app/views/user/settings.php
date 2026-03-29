@@ -695,8 +695,10 @@ function editPersonalInfo() {
 }
 
 function changePassword() {
-    // TODO: Implement password change modal
-    alert('Password change functionality coming soon!');
+    document.getElementById('pwd-modal').style.display = 'flex';
+    document.getElementById('pwd-form').reset();
+    document.getElementById('pwd-error').textContent = '';
+    document.getElementById('pwd-success').textContent = '';
 }
 
 function viewLoginActivity() {
@@ -729,4 +731,87 @@ function deleteAccount() {
         }
     }
 }
+
+function closePwdModal() {
+    document.getElementById('pwd-modal').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('pwd-form');
+    if (!form) return;
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const errEl  = document.getElementById('pwd-error');
+        const okEl   = document.getElementById('pwd-success');
+        const btn    = document.getElementById('pwd-submit-btn');
+        errEl.textContent = '';
+        okEl.textContent  = '';
+
+        const current  = document.getElementById('pwd-current').value;
+        const next     = document.getElementById('pwd-new').value;
+        const confirm  = document.getElementById('pwd-confirm').value;
+
+        if (next !== confirm) {
+            errEl.textContent = 'New passwords do not match.';
+            return;
+        }
+        if (next.length < 8) {
+            errEl.textContent = 'New password must be at least 8 characters.';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+        try {
+            const res  = await fetch('/api/user/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ current_password: current, new_password: next })
+            });
+            const data = await res.json();
+            if (data.success) {
+                okEl.textContent = data.message || 'Password changed successfully.';
+                form.reset();
+                setTimeout(closePwdModal, 1500);
+            } else {
+                errEl.textContent = data.error || 'Failed to change password.';
+            }
+        } catch (err) {
+            errEl.textContent = 'Network error. Please try again.';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Change Password';
+        }
+    });
+});
 </script>
+
+<!-- Change Password Modal -->
+<div id="pwd-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:12px; padding:2rem; width:100%; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,0.2); position:relative;">
+        <button onclick="closePwdModal()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.4rem; cursor:pointer; color:#6b7280;">&times;</button>
+        <h3 style="margin-bottom:1.25rem; font-size:1.15rem; font-weight:600; display:flex; align-items:center; gap:0.5rem;">
+            <i class="fas fa-key" style="color:#2563eb;"></i> Change Password
+        </h3>
+        <form id="pwd-form">
+            <div style="margin-bottom:1rem;">
+                <label style="display:block; font-size:0.875rem; font-weight:500; margin-bottom:0.4rem;">Current Password</label>
+                <input type="password" id="pwd-current" required style="width:100%; padding:0.6rem 0.75rem; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem; box-sizing:border-box;" placeholder="Enter current password">
+            </div>
+            <div style="margin-bottom:1rem;">
+                <label style="display:block; font-size:0.875rem; font-weight:500; margin-bottom:0.4rem;">New Password</label>
+                <input type="password" id="pwd-new" required minlength="8" style="width:100%; padding:0.6rem 0.75rem; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem; box-sizing:border-box;" placeholder="At least 8 characters">
+            </div>
+            <div style="margin-bottom:1.25rem;">
+                <label style="display:block; font-size:0.875rem; font-weight:500; margin-bottom:0.4rem;">Confirm New Password</label>
+                <input type="password" id="pwd-confirm" required minlength="8" style="width:100%; padding:0.6rem 0.75rem; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem; box-sizing:border-box;" placeholder="Re-enter new password">
+            </div>
+            <div id="pwd-error"  style="color:#dc2626; font-size:0.875rem; margin-bottom:0.75rem; min-height:1.2em;"></div>
+            <div id="pwd-success" style="color:#059669; font-size:0.875rem; margin-bottom:0.75rem; min-height:1.2em;"></div>
+            <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                <button type="button" onclick="closePwdModal()" style="padding:0.55rem 1.1rem; border:1px solid #d1d5db; border-radius:8px; background:white; cursor:pointer; font-size:0.9rem;">Cancel</button>
+                <button type="submit" id="pwd-submit-btn" style="padding:0.55rem 1.25rem; border:none; border-radius:8px; background:#2563eb; color:white; font-weight:600; cursor:pointer; font-size:0.9rem;">Change Password</button>
+            </div>
+        </form>
+    </div>
+</div>

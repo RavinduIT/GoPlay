@@ -510,18 +510,7 @@ class UserController extends BaseController
     }
 
     /**
-     * My bookings page
-     */
-    public function myBookings(Request $request): Response
-    {
-        $session = $this->requireAuth();
-        return $this->view('user/bookings', [
-            'title' => 'My Bookings - GoPlay Sports Platform'
-        ]);
-    }
-
-    /**
-     * My orders page  
+     * My orders page
      */
     public function myOrders(Request $request): Response
     {
