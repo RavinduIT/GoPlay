@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 /**
  * Admin Payments & Earnings Page
@@ -1085,7 +1085,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
             const percentage = parseFloat(document.getElementById('serviceFeeInput').value);
 
             try {
-                const response = await fetch('/api/admin/payments/service-fee', {
+                const response = await fetch((window.BASE_URL||'')+'/api/admin/payments/service-fee', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ percentage })
@@ -1135,7 +1135,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
             };
 
             try {
-                const response = await fetch('/api/admin/payments/withdrawal', {
+                const response = await fetch((window.BASE_URL||'')+'/api/admin/payments/withdrawal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)

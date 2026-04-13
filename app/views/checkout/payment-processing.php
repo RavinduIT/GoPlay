@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Processing Payment | GoPlay';
 $additionalCSS = ['/public/css/pages/checkout.css'];
@@ -161,7 +161,7 @@ async function initiatePayment() {
     
     try {
         // Call backend to initialize payment
-        const response = await fetch('/api/checkout/initialize-payhere', {
+        const response = await fetch((window.BASE_URL||'')+'/api/checkout/initialize-payhere', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

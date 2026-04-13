@@ -285,18 +285,207 @@ CREATE TABLE IF NOT EXISTS product_reviews (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 4.4 Shopping Cart
-CREATE TABLE IF NOT EXISTS shopping_cart (
+-- 4.4 Shopping Carts (header)
+CREATE TABLE IF NOT EXISTS shopping_carts (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    product_id INT NOT NULL,
-    quantity INT NOT NULL DEFAULT 1,
-    price DECIMAL(10,2) NOT NULL,
+    user_id INT DEFAULT NULL,
+    session_id VARCHAR(255) DEFAULT NULL,
+    status ENUM('active','converted','expired','abandoned') DEFAULT 'active',
+    expires_at DATETIME DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_session (session_id),
+    INDEX idx_user_status (user_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4.5 Cart Items
+CREATE TABLE IF NOT EXISTS cart_items (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    cart_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    unit_price DECIMAL(10,2) NOT NULL,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (cart_id) REFERENCES shopping_carts(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_user_product (user_id, product_id)
+    UNIQUE KEY unique_cart_product (cart_id, product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4.6 Cart Summary View
+CREATE OR REPLACE VIEW cart_summary AS
+SELECT sc.id AS cart_id, sc.user_id, sc.session_id, sc.status, sc.expires_at,
+       COALESCE(COUNT(ci.id), 0) AS item_count,
+       COALESCE(SUM(ci.quantity), 0) AS total_quantity,
+       COALESCE(SUM(ci.quantity * ci.unit_price), 0) AS subtotal
+FROM shopping_carts sc LEFT JOIN cart_items ci ON sc.id = ci.cart_id
+GROUP BY sc.id, sc.user_id, sc.session_id, sc.status, sc.expires_at;
+
+-- ============================================================
+-- SECTION 4B: COACH SUPPORT TABLES
+-- ============================================================
+
+-- 4B.1 Coach Availability
+CREATE TABLE IF NOT EXISTS coach_availability (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    coach_id INT NOT NULL,
+    day_of_week ENUM('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday') NOT NULL,
+    start_time TIME NOT NULL DEFAULT '09:00:00',
+    end_time TIME NOT NULL DEFAULT '18:00:00',
+    slot_duration INT NOT NULL DEFAULT 60,
+    is_available TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_coach_day (coach_id, day_of_week)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4B.2 Coach Certificates
+CREATE TABLE IF NOT EXISTS coach_certificates (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    coach_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    issuing_organization VARCHAR(255) DEFAULT NULL,
+    issue_date DATE DEFAULT NULL,
+    expiry_date DATE DEFAULT NULL,
+    credential_id VARCHAR(255) DEFAULT NULL,
+    certificate_file VARCHAR(500) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4B.3 Coach Achievements
+CREATE TABLE IF NOT EXISTS coach_achievements (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    coach_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT DEFAULT NULL,
+    date_achieved DATE DEFAULT NULL,
+    category ENUM('competition','certification','milestone','award','other') DEFAULT 'other',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4B.4 Coach Facilities (links coaches to sports facilities)
+CREATE TABLE IF NOT EXISTS coach_facilities (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    coach_id INT NOT NULL,
+    facility_id INT NOT NULL,
+    is_primary TINYINT(1) DEFAULT 0,
+    status ENUM('pending','approved','rejected') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE,
+    FOREIGN KEY (facility_id) REFERENCES sports_facilities(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_coach_facility (coach_id, facility_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4B.5 Coach Review Replies
+CREATE TABLE IF NOT EXISTS coach_review_replies (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    review_id INT NOT NULL,
+    coach_id INT NOT NULL,
+    reply_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (review_id) REFERENCES coach_reviews(id) ON DELETE CASCADE,
+    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_review_reply (review_id, coach_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- SECTION 4C: MISCELLANEOUS SUPPORT TABLES
+-- ============================================================
+
+-- 4C.1 Shops
+CREATE TABLE IF NOT EXISTS shops (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT DEFAULT NULL,
+    logo VARCHAR(500) DEFAULT NULL,
+    banner VARCHAR(500) DEFAULT NULL,
+    address TEXT DEFAULT NULL,
+    city VARCHAR(100) DEFAULT NULL,
+    phone VARCHAR(20) DEFAULT NULL,
+    email VARCHAR(255) DEFAULT NULL,
+    rating DECIMAL(3,2) DEFAULT 0.00,
+    total_reviews INT DEFAULT 0,
+    status ENUM('active','inactive','suspended','pending') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4C.2 Withdrawal Requests
+CREATE TABLE IF NOT EXISTS withdrawal_requests (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_method ENUM('bank_transfer','paypal','check') DEFAULT 'bank_transfer',
+    bank_name VARCHAR(255) DEFAULT NULL,
+    account_number VARCHAR(50) DEFAULT NULL,
+    account_holder VARCHAR(255) DEFAULT NULL,
+    status ENUM('pending','processing','completed','rejected') DEFAULT 'pending',
+    processed_by INT DEFAULT NULL,
+    processed_at DATETIME DEFAULT NULL,
+    transaction_reference VARCHAR(255) DEFAULT NULL,
+    rejection_reason TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4C.3 Admin Audit Log
+CREATE TABLE IF NOT EXISTS admin_audit_log (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    admin_id INT NOT NULL,
+    action_type VARCHAR(100) NOT NULL,
+    target_user_id INT DEFAULT NULL,
+    data JSON DEFAULT NULL,
+    ip_address VARCHAR(45) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4C.4 User Activities
+CREATE TABLE IF NOT EXISTS user_activities (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    activity_type VARCHAR(100) NOT NULL,
+    description TEXT DEFAULT NULL,
+    ip_address VARCHAR(45) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4C.5 Product Images
+CREATE TABLE IF NOT EXISTS product_images (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    product_id INT NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    alt_text VARCHAR(255) DEFAULT NULL,
+    sort_order INT DEFAULT 0,
+    is_primary TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4C.6 Inventory Logs
+CREATE TABLE IF NOT EXISTS inventory_logs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    product_id INT NOT NULL,
+    user_id INT DEFAULT NULL,
+    type ENUM('add','remove','adjustment','sale','return') NOT NULL,
+    quantity INT NOT NULL,
+    previous_stock INT DEFAULT NULL,
+    new_stock INT DEFAULT NULL,
+    reason TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================

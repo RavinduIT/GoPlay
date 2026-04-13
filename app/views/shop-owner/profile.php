@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Profile - GoPlay';
 
@@ -750,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData();
         formData.append('shop_logo', file);
         
-        fetch('/api/shop-owner/profile/upload-logo', {
+        fetch((window.BASE_URL||'')+'/api/shop-owner/profile/upload-logo', {
             method: 'POST',
             body: formData
         })
@@ -809,7 +809,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.querySelector('.btn-text').style.display = 'none';
             submitBtn.querySelector('.btn-loading').style.display = 'inline-flex';
             
-            fetch('/api/shop-owner/profile/update', {
+            fetch((window.BASE_URL||'')+'/api/shop-owner/profile/update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

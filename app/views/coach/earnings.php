@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'earnings'; ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -246,7 +246,7 @@ async function loadEarnings(pg = 1) {
     try {
         const f   = getFilters();
         const qs  = filtersToQuery(f, { page: pg, limit: 10 });
-        const res = await fetch('/api/coach/earnings?' + qs);
+        const res = await fetch((window.BASE_URL||'')+'/api/coach/earnings?' + qs);
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed');
 
@@ -340,7 +340,7 @@ window.viewDetail = async function (id) {
     openDetail();
 
     try {
-        const res  = await fetch('/api/coach/earnings/' + id);
+        const res  = await fetch((window.BASE_URL||'')+'/api/coach/earnings/' + id);
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Not found');
 

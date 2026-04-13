@@ -1,4 +1,4 @@
-<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
+﻿<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!-- Settings Page -->
 
 <div class="settings-container">
@@ -764,7 +764,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = true;
         btn.textContent = 'Saving…';
         try {
-            const res  = await fetch('/api/user/change-password', {
+            const res  = await fetch((window.BASE_URL||'')+'/api/user/change-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ current_password: current, new_password: next })

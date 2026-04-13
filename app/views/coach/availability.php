@@ -1,4 +1,4 @@
-<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
+﻿<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -364,7 +364,7 @@ async function saveSchedule() {
     });
 
     try {
-        const res  = await fetch('/api/coach/availability', {
+        const res  = await fetch((window.BASE_URL||'')+'/api/coach/availability', {
             method:  'PUT',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ schedule: payload }),
