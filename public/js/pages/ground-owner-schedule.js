@@ -3,19 +3,19 @@
  * Month / Week / Day calendar with bookings and blocked dates
  */
 
-/* ── Constants ──────────────────────────────────────────────── */
+/*  Constants  */
 const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTH_NAMES = ['January','February','March','April','May','June',
                      'July','August','September','October','November','December'];
 const REASON_META = {
-    maintenance : { label: '🔧 Maintenance',   cls: 'maintenance' },
-    personal    : { label: '👤 Personal Use',   cls: 'personal'    },
-    event       : { label: '🎉 Private Event',  cls: 'event'       },
-    weather     : { label: '🌧 Weather',        cls: 'weather'     },
-    other       : { label: '📌 Other',          cls: 'other'       }
+    maintenance : { label: '<i class="fas fa-wrench"></i> Maintenance',   cls: 'maintenance' },
+    personal    : { label: '<i class="fas fa-user"></i> Personal Use',   cls: 'personal'    },
+    event       : { label: '<i class="fas fa-bullhorn"></i> Private Event',  cls: 'event'       },
+    weather     : { label: ' Weather',        cls: 'weather'     },
+    other       : { label: '<i class="fas fa-thumbtack"></i> Other',          cls: 'other'       }
 };
 
-/* ── State ──────────────────────────────────────────────────── */
+/*  State  */
 let currentView        = 'month';
 let currentDate        = new Date();
 let allBookings        = [];
@@ -23,7 +23,7 @@ let facilities         = [];
 let blockedDates       = [];
 let selectedFacilityId = null;
 
-/* ── Bootstrap ──────────────────────────────────────────────── */
+/*  Bootstrap  */
 document.addEventListener('DOMContentLoaded', () => {
     bindNavButtons();
     bindViewTabs();
@@ -64,7 +64,7 @@ function setDefaultDateInputs() {
     });
 }
 
-/* ── Data ───────────────────────────────────────────────────── */
+/*  Data  */
 async function loadSchedule() {
     showLoading(true);
     try {
@@ -131,7 +131,7 @@ function updateStats(stats) {
     setEl('statOccupancy', (stats.occupancy_rate || 0) + '%');
 }
 
-/* ── Filtered sets ──────────────────────────────────────────── */
+/*  Filtered sets  */
 function filteredBookings() {
     if (!selectedFacilityId) return allBookings;
     return allBookings.filter(b => String(b.facility_id) === String(selectedFacilityId));
@@ -153,7 +153,7 @@ function filteredBlocked() {
     return blockedDates.filter(b => String(b.facility_id) === String(selectedFacilityId));
 }
 
-/* ── Navigation ─────────────────────────────────────────────── */
+/*  Navigation  */
 function navigate(dir) {
     if (currentView === 'month') {
         currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + dir, 1);
@@ -170,7 +170,7 @@ function goToToday() {
     render();
 }
 
-/* ── Render dispatcher ──────────────────────────────────────── */
+/*  Render dispatcher  */
 function render() {
     document.getElementById('viewMonth').style.display = currentView === 'month' ? '' : 'none';
     document.getElementById('viewWeek').style.display  = currentView === 'week'  ? '' : 'none';
@@ -181,9 +181,9 @@ function render() {
     else                              renderDay();
 }
 
-/* ════════════════════════════════════════════════════════════
+/* 
    MONTH VIEW
-═══════════════════════════════════════════════════════════════ */
+ */
 function renderMonth() {
     const y = currentDate.getFullYear();
     const m = currentDate.getMonth();
@@ -264,9 +264,9 @@ function navigateToDay(dateStr) {
     render();
 }
 
-/* ════════════════════════════════════════════════════════════
+/* 
    WEEK VIEW
-═══════════════════════════════════════════════════════════════ */
+ */
 function renderWeek() {
     const weekStart = getWeekStart(currentDate);
     const weekEnd   = new Date(weekStart.getTime() + 6 * 86400000);
@@ -322,7 +322,7 @@ function renderWeek() {
                 <div class="sc-week-slot${slotBook.length ? ' has-booking' : ''}">`;
 
             if (isBlocked && slotBook.length === 0) {
-                html += '<div class="sc-week-blocked-x">✕</div>';
+                html += '<div class="sc-week-blocked-x"></div>';
             }
             slotBook.forEach(b => {
                 html += `<div class="sc-week-booking ${b.status}"
@@ -347,9 +347,9 @@ function getWeekStart(date) {
     return d;
 }
 
-/* ════════════════════════════════════════════════════════════
+/* 
    DAY VIEW
-═══════════════════════════════════════════════════════════════ */
+ */
 function renderDay() {
     const dateStr   = fmtDate(currentDate);
     const blocked   = filteredBlocked();
@@ -434,9 +434,9 @@ function renderDay() {
     document.getElementById('viewDay').innerHTML = html;
 }
 
-/* ════════════════════════════════════════════════════════════
+/* 
    BOOKING DETAIL MODAL
-═══════════════════════════════════════════════════════════════ */
+ */
 function showBookingModal(bookingId) {
     const b = allBookings.find(bk => bk.booking_id == bookingId);
     if (!b) return;
@@ -474,9 +474,9 @@ function closeBookingModal(e) {
     }
 }
 
-/* ════════════════════════════════════════════════════════════
+/* 
    BLOCKED DATES PANEL
-═══════════════════════════════════════════════════════════════ */
+ */
 function renderBlockedPanel() {
     const blocked = filteredBlocked();
     const container = document.getElementById('blockedDatesList');
@@ -530,9 +530,9 @@ function renderBlockedPanel() {
     container.innerHTML = html;
 }
 
-/* ════════════════════════════════════════════════════════════
+/* 
    BLOCK DATES MODAL
-═══════════════════════════════════════════════════════════════ */
+ */
 function openBlockModal() {
     const bSel = document.getElementById('blockGround');
     if (selectedFacilityId) bSel.value = selectedFacilityId;
@@ -568,7 +568,7 @@ async function submitBlock() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Blocking…';
 
     try {
-        const res = await fetch('/api/ground-owner/blocked-dates', {
+        const res = await fetch((window.BASE_URL||'')+'/api/ground-owner/blocked-dates', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -609,7 +609,7 @@ function resetBlockForm() {
 async function removeBlockedDate(id) {
     if (!confirm('Remove this blocked date? Bookings on this date will no longer be restricted.')) return;
     try {
-        const res  = await fetch(`/api/ground-owner/blocked-dates/${id}`, { method: 'DELETE' });
+        const res  = await fetch(`${window.BASE_URL||""}/api/ground-owner/blocked-dates/${id}`, { method: 'DELETE' });
         const data = await res.json();
         if (!data.success) throw new Error(data.message || 'Failed');
         showToast('Blocked date removed', 'success');
@@ -619,9 +619,9 @@ async function removeBlockedDate(id) {
     }
 }
 
-/* ════════════════════════════════════════════════════════════
+/* 
    UTILITY HELPERS
-═══════════════════════════════════════════════════════════════ */
+ */
 function isDayBlocked(dateStr, blocked) {
     return blocked.some(b => dateStr >= b.start_date && dateStr <= b.end_date);
 }

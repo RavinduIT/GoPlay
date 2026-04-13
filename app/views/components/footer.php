@@ -1,10 +1,11 @@
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <footer class="footer">
     <div class="footer-container">
         <!-- Footer Top -->
         <div class="footer-top">
             <div class="footer-section">
                 <div class="footer-logo">
-                    <img src="/public/assets/images/logo.jpeg" alt="GoPlay" class="footer-logo-img">
+                    <img src="<?= $_base ?>/public/assets/images/logo.jpeg" alt="GoPlay" class="footer-logo-img">
                     <h3>GoPlay</h3>
                 </div>
                 <p class="footer-description">
@@ -18,10 +19,12 @@
             <div class="footer-section">
                 <h4>Services</h4>
                 <ul class="footer-links">
-                    <li><a href="/book-ground">Ground Booking</a></li>
-                    <li><a href="/book-coach">Coach Hiring</a></li>
-                    <li><a href="/shop">Equipment Shop</a></li>
-                    <li><a href="/news">Sports News</a></li>
+                    <li><a href="<?= $_base ?>/book-ground">Ground Booking</a></li>
+                    <li><a href="<?= $_base ?>/book-coach">Coach Hiring</a></li>
+                    <li><a href="<?= $_base ?>/shop">Equipment Shop</a></li>
+                    <li><a href="<?= $_base ?>/news">Sports News</a></li>
+                    <li><a href="<?= $_base ?>/contact">Contact Us</a></li>
+                    <li><a href="<?= $_base ?>/provider/join">Become a Provider</a></li>
                 </ul>
             </div>
             

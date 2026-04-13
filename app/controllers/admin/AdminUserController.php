@@ -29,7 +29,7 @@ class AdminUserController extends BaseController
     {
         $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
-            header('Location: /login');
+            header('Location: ' . (defined('BASE_URL') ? BASE_URL : '') . '/login');
             exit();
         }
         return $_SESSION;

@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Dashboard - GoPlay Ground Owner';
 $additionalCSS = ['/public/css/pages/ground-owner-dashboard.css'];
 $additionalJS = [
@@ -83,7 +84,7 @@ $additionalJS = [
                 <div class="dashboard-card recent-bookings">
                     <div class="card-header">
                         <h3>Today's Bookings</h3>
-                        <a href="/ground-owner/bookings" class="view-all">View All</a>
+                        <a href="<?= $_base ?>/ground-owner/bookings" class="view-all">View All</a>
                     </div>
                     <div class="booking-list" id="dbTodayBookings">
                         <div class="db-loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
@@ -107,19 +108,19 @@ $additionalJS = [
                         <h3>Quick Actions</h3>
                     </div>
                     <div class="actions-grid">
-                        <a href="/ground-owner/grounds" class="action-btn primary">
+                        <a href="<?= $_base ?>/ground-owner/grounds" class="action-btn primary">
                             <i class="fas fa-map-marker-alt"></i>
                             <span>My Grounds</span>
                         </a>
-                        <a href="/ground-owner/bookings" class="action-btn secondary">
+                        <a href="<?= $_base ?>/ground-owner/bookings" class="action-btn secondary">
                             <i class="fas fa-calendar-check"></i>
                             <span>Bookings</span>
                         </a>
-                        <a href="/ground-owner/schedule" class="action-btn accent">
+                        <a href="<?= $_base ?>/ground-owner/schedule" class="action-btn accent">
                             <i class="fas fa-clock"></i>
                             <span>Schedule</span>
                         </a>
-                        <a href="/ground-owner/maintenance" class="action-btn success">
+                        <a href="<?= $_base ?>/ground-owner/maintenance" class="action-btn success">
                             <i class="fas fa-tools"></i>
                             <span>Maintenance</span>
                         </a>
@@ -130,7 +131,7 @@ $additionalJS = [
                 <div class="dashboard-card recent-reviews">
                     <div class="card-header">
                         <h3>Recent Reviews</h3>
-                        <a href="/ground-owner/reviews" class="view-all">View All</a>
+                        <a href="<?= $_base ?>/ground-owner/reviews" class="view-all">View All</a>
                     </div>
                     <div class="reviews-list" id="dbReviews">
                         <div class="db-loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>

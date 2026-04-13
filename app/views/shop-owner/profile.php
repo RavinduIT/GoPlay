@@ -1,4 +1,5 @@
-<?php 
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Profile - GoPlay';
 
 // Get data passed from controller
@@ -39,7 +40,7 @@ $bankAccountHolder = $profile['bank_account_holder'] ?? '';
 $bankBranch = $profile['bank_branch'] ?? '';
 ?>
 
-<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/shop-owner-dashboard.css">
 
 <div class="shop-owner-dashboard">
   <!-- Sidebar -->
@@ -50,7 +51,7 @@ $bankBranch = $profile['bank_branch'] ?? '';
     
     <div class="profile-header-section">
       <div class="profile-avatar-container">
-        <img src="/public/<?php echo htmlspecialchars($shopLogo); ?>" alt="Shop Logo" id="logo-preview" class="profile-avatar">
+        <img src="<?= $_base ?>/public/<?php echo htmlspecialchars($shopLogo); ?>" alt="Shop Logo" id="logo-preview" class="profile-avatar">
         <form id="logo-form" enctype="multipart/form-data">
           <label class="btn-change-avatar">
             <i class="fas fa-camera"></i>

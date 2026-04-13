@@ -1,7 +1,7 @@
 // Load components
 function loadComponents() {
     // Load navbar
-    fetch('/app/views/components/navbar.php')
+    fetch((window.BASE_URL||'')+'/app/views/components/navbar.php')
         .then(res => res.text())
         .then(data => {
             document.getElementById('navbar-container').innerHTML = data;
@@ -11,7 +11,7 @@ function loadComponents() {
         });
 
     // Load footer
-    fetch('/app/views/components/footer.php')
+    fetch((window.BASE_URL||'')+'/app/views/components/footer.php')
         .then(res => res.text())
         .then(data => {
             document.getElementById('footer-container').innerHTML = data;
@@ -43,7 +43,7 @@ class GroundBookingApp {
     // Load data from database API
     async loadGroundsData() {
         try {
-            const response = await fetch('/api/grounds');
+            const response = await fetch((window.BASE_URL||'')+'/api/grounds');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -237,7 +237,7 @@ class GroundBookingApp {
             `<div class="more-features">+${ground.features.length - 3} more features</div>` : '';
 
         // Get image URL or fallback
-        const imageUrl = ground.imageUrl || '/public/assets/images/ground.jpeg';
+        const imageUrl = ground.imageUrl || (window.BASE_URL||'')+'/public/assets/images/ground.jpeg';
         const sportIcon = this.getSportIconClass(ground.sport);
 
         return `
@@ -326,14 +326,14 @@ class GroundBookingApp {
     // Get sport icon (emoji - kept for backward compatibility)
     getSportIcon(sport) {
         const icons = {
-            'football': '⚽',
-            'tennis': '🎾',
-            'basketball': '🏀',
-            'cricket': '🏏',
-            'badminton': '🏸',
-            'swimming': '🏊'
+            'football': '<i class="fas fa-futbol"></i>',
+            'tennis': '<i class="fas fa-baseball-ball"></i>',
+            'basketball': '<i class="fas fa-basketball-ball"></i>',
+            'cricket': '',
+            'badminton': '',
+            'swimming': ''
         };
-        return icons[sport] || '🏟️';
+        return icons[sport] || '<i class="fas fa-map-marker-alt"></i>';
     }
 
     // Get sport icon class (Font Awesome icons)
@@ -440,7 +440,7 @@ function clearAllFilters() {
 
 function viewDetails(groundId) {
     console.log('View details clicked for ground ID:', groundId);
-    const url = `/ground-details?id=${groundId}`;
+    const url = (window.BASE_URL||'') + `/ground-details?id=${groundId}`;
     console.log('Redirecting to:', url);
     // Redirect to ground details page
     window.location.href = url;
@@ -450,7 +450,7 @@ function bookNow(groundId) {
     console.log('Book now for ground:', groundId);
     // Implement booking functionality
     // Could redirect to booking page or show booking modal
-    window.location.href = `/book/${groundId}`;
+    window.location.href = (window.BASE_URL||'') + `/book/${groundId}`;
 }
 
 function viewOnMap(groundId) {
@@ -591,7 +591,7 @@ async function loadGroundMarkers() {
     
     try {
         // Fetch grounds from API
-        const response = await fetch('/api/grounds');
+        const response = await fetch((window.BASE_URL||'')+'/api/grounds');
         const data = await response.json();
         
         if (!data.success || !data.data) {
@@ -808,7 +808,7 @@ function loadFacilitiesFromDOM() {
         const priceText = card.querySelector('.price-amount')?.textContent || '0';
         const price = parseFloat(priceText.replace(/[^0-9.-]+/g, ''));
         const ratingBadge = card.querySelector('.facility-badge')?.textContent.trim() || '0';
-        const rating = parseFloat(ratingBadge.replace('★', '').trim());
+        const rating = parseFloat(ratingBadge.replace('', '').trim());
         const reviewsText = card.querySelector('.rating-text')?.textContent || '(0 reviews)';
         const reviews = parseInt(reviewsText.match(/\d+/)?.[0] || '0');
 

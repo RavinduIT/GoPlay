@@ -76,7 +76,7 @@ class CoachDashboard {
 
     async loadDashboardData() {
         try {
-            const response = await fetch('/api/coach/dashboard');
+            const response = await fetch((window.BASE_URL||'')+'/api/coach/dashboard');
             const data = await response.json();
             
             this.stats = data.stats;
@@ -228,7 +228,7 @@ class CoachDashboard {
         container.innerHTML = this.recentClients.map(client => `
             <div class="client-item" onclick="coachDashboard.viewClient(${client.id})">
                 <div class="client-avatar">
-                    <img src="${client.avatar || '/public/assets/images/default-avatar.png'}" alt="${client.name}">
+                    <img src="${client.avatar || (window.BASE_URL||'')+'/public/assets/images/default-avatar.png'}" alt="${client.name}">
                 </div>
                 <div class="client-info">
                     <h4>${client.name}</h4>
@@ -258,7 +258,7 @@ class CoachDashboard {
             {
                 id: 1,
                 name: 'Kavinda Ranasighe',
-                avatar: '/public/assets/images/student1.jpg',
+                avatar: (window.BASE_URL||'')+'/public/assets/images/student1.jpg',
                 sessions: 12,
                 progress: 85,
                 improvement: 15
@@ -266,7 +266,7 @@ class CoachDashboard {
             {
                 id: 2,
                 name: 'Sanduni Rajapakse',
-                avatar: '/public/assets/images/student2.jpg',
+                avatar: (window.BASE_URL||'')+'/public/assets/images/student2.jpg',
                 sessions: 8,
                 progress: 72,
                 improvement: 20
@@ -274,7 +274,7 @@ class CoachDashboard {
             {
                 id: 3,
                 name: 'Dilan Wijesinghe',
-                avatar: '/public/assets/images/student3.jpg',
+                avatar: (window.BASE_URL||'')+'/public/assets/images/student3.jpg',
                 sessions: 15,
                 progress: 92,
                 improvement: 8
@@ -452,7 +452,7 @@ class CoachDashboard {
 
     // Quick Actions
     addNewClient() {
-        window.location.href = '/coach/clients?action=add';
+        window.location.href=(window.BASE_URL||'')+'/coach/clients?action=add';
     }
 
     scheduleSession() {
@@ -460,11 +460,11 @@ class CoachDashboard {
     }
 
     createProgram() {
-        window.location.href = '/coach/programs?action=create';
+        window.location.href=(window.BASE_URL||'')+'/coach/programs?action=create';
     }
 
     viewProgress() {
-        window.location.href = '/coach/assessments';
+        window.location.href=(window.BASE_URL||'')+'/coach/assessments';
     }
 
     // Session Actions
@@ -484,7 +484,7 @@ class CoachDashboard {
 
     async updateSessionStatus(sessionId, status) {
         try {
-            const response = await fetch(`/api/coach/sessions/${sessionId}/status`, {
+            const response = await fetch(`${window.BASE_URL||""}/api/coach/sessions/${sessionId}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
@@ -528,7 +528,7 @@ class CoachDashboard {
         }
         
         try {
-            const response = await fetch('/api/coach/sessions', {
+            const response = await fetch((window.BASE_URL||'')+'/api/coach/sessions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(sessionData)
@@ -635,7 +635,7 @@ class CoachDashboard {
 
     async loadClientsForModal() {
         try {
-            const response = await fetch('/api/coach/clients');
+            const response = await fetch((window.BASE_URL||'')+'/api/coach/clients');
             const clients = await response.json();
             
             const select = document.querySelector('select[name="clientId"]');
@@ -655,7 +655,7 @@ class CoachDashboard {
     }
 
     setGoals() {
-        window.location.href = '/coach/settings?tab=goals';
+        window.location.href=(window.BASE_URL||'')+'/coach/settings?tab=goals';
     }
 
     markAllRead() {

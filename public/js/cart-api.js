@@ -23,7 +23,7 @@ class CartAPI {
      */
     async loadCart() {
         try {
-            const response = await fetch('/api/cart', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ class CartAPI {
      */
     async addToCart(productId, quantity = 1) {
         try {
-            const response = await fetch('/api/cart/add', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ class CartAPI {
      */
     async updateCartItem(productId, quantity) {
         try {
-            const response = await fetch('/api/cart/update', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/update', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ class CartAPI {
      */
     async removeFromCart(productId) {
         try {
-            const response = await fetch('/api/cart/remove', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/remove', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ class CartAPI {
      */
     async clearCart() {
         try {
-            const response = await fetch('/api/cart/clear', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/clear', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ class CartAPI {
      */
     async getCartCount() {
         try {
-            const response = await fetch('/api/cart/count', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/count', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -384,7 +384,7 @@ class CartAPI {
         }
 
         // Redirect to checkout page
-        window.location.href = '/checkout/contact-details';
+        window.location.href=(window.BASE_URL||'')+'/checkout/contact-details';
         return true;
     }
 
@@ -393,7 +393,7 @@ class CartAPI {
      */
     async mergeGuestCart(guestSessionId) {
         try {
-            const response = await fetch('/api/cart/merge', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/merge', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

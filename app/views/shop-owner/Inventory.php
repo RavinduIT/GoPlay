@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 // Start session if not started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -20,7 +21,7 @@ $additionalCSS = ['/public/css/pages/shop-owner-dashboard.css'];
 $additionalJS = ['/public/js/pages/shop-owner-inventory.js'];
 ?>
 
-<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/shop-owner-dashboard.css">
 <?php 
 $title = 'Inventory - GoPlay';
 $additionalCSS = ['/public/css/pages/shop-owner-dashboard.css'];
@@ -64,7 +65,7 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
     </div>
     <?php unset($_SESSION['error']); endif; ?>
 
-    <!-- 🔹 Search + Add Product Container -->
+    <!--  Search + Add Product Container -->
     <section class="search-add-container">
       <div class="products-search">
         <input type="text" id="inventorySearch" placeholder="Search inventory by name or SKU...">
@@ -123,7 +124,7 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
           <div class="empty-state">
             <i class="fas fa-box-open" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
             <p style="font-size: 1.1rem; color: #666;">No products found in inventory.</p>
-            <p style="color: #999;">Add products in <a href="/shop-owner/products" style="color: #0fa930;">Product Management</a> first.</p>
+            <p style="color: #999;">Add products in <a href="<?= $_base ?>/shop-owner/products" style="color: #0fa930;">Product Management</a> first.</p>
           </div>
         <?php endif; ?>
 
@@ -138,7 +139,7 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
   <div class="modal-content">
     <span class="modal-close" onclick="closeAddStockModal()">&times;</span>
     <h2><i class="fas fa-plus-circle"></i> Add Stock</h2>
-    <form method="POST" action="/shop-owner/inventory/add-stock">
+    <form method="POST" action="<?= $_base ?>/shop-owner/inventory/add-stock">
       <input type="hidden" name="product_id" id="add_product_id">
       <div class="form-group">
         <label><strong>Product:</strong></label>
@@ -164,7 +165,7 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
   <div class="modal-content">
     <span class="modal-close" onclick="closeRemoveStockModal()">&times;</span>
     <h2><i class="fas fa-minus-circle"></i> Remove Stock</h2>
-    <form method="POST" action="/shop-owner/inventory/remove-stock">
+    <form method="POST" action="<?= $_base ?>/shop-owner/inventory/remove-stock">
       <input type="hidden" name="product_id" id="remove_product_id">
       <div class="form-group">
         <label><strong>Product:</strong></label>
@@ -228,7 +229,7 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
 
 .alert i { font-size: 1.2rem; }
 
-/* 🔹 Search + Add Product container */
+/*  Search + Add Product container */
 .search-add-container {
   background: #fff;
   border: 1px solid #e3e3e3;
@@ -479,4 +480,4 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
 }
 </style>
 
-<script src="/public/js/pages/shop-owner-inventory.js"></script>
+<script src="<?= $_base ?>/public/js/pages/shop-owner-inventory.js"></script>

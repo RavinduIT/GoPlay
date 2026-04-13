@@ -1,4 +1,5 @@
-<?php 
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Reviews - GoPlay';
 
 // Session is already started by the controller
@@ -8,7 +9,7 @@ $errorMessage = $_SESSION['error_message'] ?? null;
 unset($_SESSION['success_message'], $_SESSION['error_message']);
 ?>
 
-<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/shop-owner-dashboard.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <div class="shop-owner-dashboard">
@@ -317,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Load reviews from API
 async function loadReviews() {
   try {
-    const response = await fetch('/api/shop-owner/reviews');
+    const response = await fetch((window.BASE_URL||'')+'/api/shop-owner/reviews');
     const data = await response.json();
     
     document.getElementById('loading-reviews').style.display = 'none';
@@ -392,7 +393,7 @@ function displayReviews(reviews) {
 function generateStars(rating) {
   let stars = '';
   for (let i = 1; i <= 5; i++) {
-    stars += i <= rating ? '★' : '☆';
+    stars += i <= rating ? '' : '';
   }
   return stars;
 }

@@ -6,13 +6,13 @@
     <title><?= $title ?? 'GoPlay Sports Platform' ?></title>
     
     <!-- CSS -->
-     <link rel="stylesheet" href="/public/css/components/navbar.css">
+     <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/components/navbar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> 
-    <link rel="stylesheet" href="/public/css/pages/news-index.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/pages/news-index.css">
     
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
-            <link rel="stylesheet" href="<?= $css ?>">
+            <link rel="stylesheet" href="<?= BASE_URL . $css ?>">
         <?php endforeach; ?>
     <?php endif; ?>
     
@@ -21,7 +21,10 @@
     <meta name="keywords" content="sports, booking, facilities, coaches, equipment">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/public/assets/images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>/public/assets/images/favicon.ico">
+
+    <!-- Global BASE_URL for JavaScript -->
+    <script>window.BASE_URL = '<?= BASE_URL ?>';</script>
 </head>
 <body>
     <!-- Navigation -->
@@ -38,7 +41,7 @@
    
     <?php if (isset($additionalJS)): ?>
         <?php foreach ($additionalJS as $js): ?>
-            <script src="<?= $js ?>"></script>
+            <script src="<?= BASE_URL . $js ?>"></script>
         <?php endforeach; ?>
     <?php endif; ?>
 </body>

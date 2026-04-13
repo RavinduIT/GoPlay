@@ -343,15 +343,16 @@ class AuthController extends BaseController
         session_start();
 
         // Handle both GET and POST requests
+        $base = defined('BASE_URL') ? BASE_URL : '';
         if ($request->getMethod() === 'POST') {
             return $this->json([
                 'success' => true,
                 'message' => 'Logged out successfully',
-                'redirect' => '/login'
+                'redirect' => $base . '/login'
             ]);
         } else {
             // For GET requests, redirect directly
-            header('Location: /login');
+            header('Location: ' . $base . '/login');
             exit();
         }
     }
@@ -380,15 +381,16 @@ class AuthController extends BaseController
      */
     private function getDashboardUrl(string $userType): string
     {
+        $base = defined('BASE_URL') ? BASE_URL : '';
         $dashboardMap = [
-            'admin' => '/admin/dashboard',
-            'ground_owner' => '/ground-owner/dashboard',
-            'coach' => '/coach/dashboard',
-            'shop_owner' => '/shop-owner/dashboard',
-            'user' => '/'
+            'admin' => $base . '/admin/dashboard',
+            'ground_owner' => $base . '/ground-owner/dashboard',
+            'coach' => $base . '/coach/dashboard',
+            'shop_owner' => $base . '/shop-owner/dashboard',
+            'user' => $base . '/'
         ];
 
-        return $dashboardMap[$userType] ?? '/';
+        return $dashboardMap[$userType] ?? $base . '/';
     }
 
     /**

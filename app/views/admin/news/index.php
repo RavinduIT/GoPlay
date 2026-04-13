@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $news = $data['news'] ?? [];
 $stats = $data['stats'] ?? [];
 ?>
@@ -10,8 +11,8 @@ $stats = $data['stats'] ?? [];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage News - Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
-    <link rel="stylesheet" href="/public/css/pages/admin-news.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-dashboard.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-news.css">
 </head>
 <body>
 
@@ -37,7 +38,7 @@ $stats = $data['stats'] ?? [];
                 <h1 class="page-title">Manage News Articles</h1>
             </div>
             <div class="header-right">
-                <a href="/admin/news/create" class="btn-primary">
+                <a href="<?= $_base ?>/admin/news/create" class="btn-primary">
                     <i class="fas fa-plus"></i> Create News Article
                 </a>
             </div>
@@ -129,7 +130,7 @@ $stats = $data['stats'] ?? [];
                             <?php if (empty($news)): ?>
                             <tr>
                                 <td colspan="8" class="text-center">
-                                    <p style="padding: 40px 0;">No news articles found. <a href="/admin/news/create">Create your first article</a></p>
+                                    <p style="padding: 40px 0;">No news articles found. <a href="<?= $_base ?>/admin/news/create">Create your first article</a></p>
                                 </td>
                             </tr>
                             <?php else: ?>
@@ -176,13 +177,13 @@ $stats = $data['stats'] ?? [];
                                     <?php endif; ?>
                                 </td>
                                 <td class="actions-cell">
-                                    <a href="/news/<?= htmlspecialchars($article['slug']) ?>" 
+                                    <a href="<?= $_base ?>/news/<?= htmlspecialchars($article['slug']) ?>" 
                                        class="btn-icon" 
                                        title="View" 
                                        target="_blank">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="/admin/news/edit/<?= $article['id'] ?>" 
+                                    <a href="<?= $_base ?>/admin/news/edit/<?= $article['id'] ?>" 
                                        class="btn-icon btn-edit" 
                                        title="Edit">
                                         <i class="fas fa-edit"></i>
@@ -204,7 +205,7 @@ $stats = $data['stats'] ?? [];
     </main>
 </div>
 
-<script src="/public/js/pages/admin-news.js"></script>
+<script src="<?= $_base ?>/public/js/pages/admin-news.js"></script>
 <script>
 function filterNews() {
     const statusFilter = document.getElementById('statusFilter').value;
@@ -231,7 +232,7 @@ function deleteNews(id) {
         return;
     }
     
-    fetch(`/admin/news/delete/${id}`, {
+    fetch(`${window.BASE_URL||""}/admin/news/delete/${id}`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',

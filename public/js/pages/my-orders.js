@@ -74,12 +74,12 @@ class MyOrdersDashboard {
             if (this.currentFilters.paymentStatus) params.append('payment_status', this.currentFilters.paymentStatus);
             if (this.currentFilters.sort) params.append('sort', this.currentFilters.sort);
 
-            const response = await fetch(`/api/user/orders?${params.toString()}`, {
+            const response = await fetch(`${window.BASE_URL||""}/api/user/orders?${params.toString()}`, {
                 credentials: 'same-origin'
             });
 
             if (response.status === 401) {
-                window.location.href = '/login';
+                window.location.href=(window.BASE_URL||'')+'/login';
                 return;
             }
 
@@ -99,7 +99,7 @@ class MyOrdersDashboard {
 
     async loadStats() {
         try {
-            const response = await fetch('/api/user/orders/stats', {
+            const response = await fetch((window.BASE_URL||'')+'/api/user/orders/stats', {
                 credentials: 'same-origin'
             });
 
@@ -243,7 +243,7 @@ class MyOrdersDashboard {
                 </div>
             `;
 
-            const response = await fetch(`/api/user/orders/${orderId}`, {
+            const response = await fetch(`${window.BASE_URL||""}/api/user/orders/${orderId}`, {
                 credentials: 'same-origin'
             });
 
@@ -465,7 +465,7 @@ class MyOrdersDashboard {
         const reason = document.getElementById('cancelReason').value;
 
         try {
-            const response = await fetch(`/api/user/orders/${orderId}/cancel`, {
+            const response = await fetch(`${window.BASE_URL||""}/api/user/orders/${orderId}/cancel`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

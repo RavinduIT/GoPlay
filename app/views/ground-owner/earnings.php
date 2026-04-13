@@ -13,7 +13,7 @@ include __DIR__ . '/layout-head.php';
 
     <main class="dashboard-main">
 
-        <!-- ── Page Header ─────────────────────────────── -->
+        <!--  Page Header  -->
         <div class="go-page-header">
             <div class="go-header-left">
                 <button class="sidebar-toggle" onclick="toggleSidebar()">
@@ -36,7 +36,7 @@ include __DIR__ . '/layout-head.php';
 
         <div class="go-earnings-content">
 
-            <!-- ── Stat Cards ──────────────────────────── -->
+            <!--  Stat Cards  -->
             <div class="go-stats-grid">
                 <div class="go-stat-card go-stat-gold">
                     <div class="go-stat-icon"><i class="fas fa-coins"></i></div>
@@ -72,7 +72,7 @@ include __DIR__ . '/layout-head.php';
                 </div>
             </div>
 
-            <!-- ── Filters ─────────────────────────────── -->
+            <!--  Filters  -->
             <div class="go-filters-card">
                 <div class="go-filters-row">
                     <div class="go-fgroup">
@@ -120,7 +120,7 @@ include __DIR__ . '/layout-head.php';
                 </div>
             </div>
 
-            <!-- ── Transactions Table ─────────────────── -->
+            <!--  Transactions Table  -->
             <div class="go-table-card">
                 <div class="go-table-header">
                     <h3><i class="fas fa-receipt"></i> Transactions</h3>
@@ -171,7 +171,7 @@ include __DIR__ . '/layout-head.php';
     </main>
 </div>
 
-<!-- ── Transaction Detail Modal ───────────────────────── -->
+<!--  Transaction Detail Modal  -->
 <div id="detailBackdrop" class="go-backdrop"></div>
 <div id="detailModal" class="go-modal">
     <div class="go-modal-box">
@@ -183,7 +183,7 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
-<!-- ── Walk-in Modal ───────────────────────────────────── -->
+<!--  Walk-in Modal  -->
 <div id="walkInBackdrop" class="go-backdrop"></div>
 <div id="walkInModal" class="go-modal">
     <div class="go-modal-box">

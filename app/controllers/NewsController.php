@@ -345,15 +345,25 @@ class NewsController extends BaseController
      */
     private function getNewsCategories(): array
     {
-        return [
-            'all' => 'All Sports',
-            'Cricket' => 'Cricket',
-            'Football' => 'Football', 
-            'Basketball' => 'Basketball',
-            'Tennis' => 'Tennis',
-            'Swimming' => 'Swimming',
-            'General Sports' => 'General Sports'
-        ];
+        $categories = ['all' => 'All Sports'];
+        try {
+            $db = \Core\Database::getInstance();
+            $results = $db->query(
+                "SELECT DISTINCT category FROM news WHERE status = 'published' AND category IS NOT NULL ORDER BY category ASC"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($results as $row) {
+                $categories[$row['category']] = $row['category'];
+            }
+        } catch (\Exception $e) {
+            error_log("Failed to load news categories: " . $e->getMessage());
+            // Fallback to common categories
+            $categories['Cricket'] = 'Cricket';
+            $categories['Football'] = 'Football';
+            $categories['Basketball'] = 'Basketball';
+            $categories['Tennis'] = 'Tennis';
+            $categories['General Sports'] = 'General Sports';
+        }
+        return $categories;
     }
 
     /**

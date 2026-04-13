@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     placeholder.querySelector('p').textContent = `${fileCount} files selected`;
                 }
 
-                placeholder.querySelector('span').textContent = '✓ Uploaded';
+                placeholder.querySelector('span').textContent = '<i class="fas fa-check"></i> Uploaded';
                 placeholder.style.color = 'var(--success-color)';
                 clearError(formGroup);
             }
@@ -246,7 +246,7 @@ forms.forEach(formId => {
 
             try {
                 // Submit form
-                const response = await fetch('/provider/submit-application', {
+                const response = await fetch((window.BASE_URL||'')+'/provider/submit-application', {
                     method: 'POST',
                     body: formData
                 });
@@ -259,7 +259,7 @@ forms.forEach(formId => {
 
                     // Redirect after 3 seconds
                     setTimeout(() => {
-                        window.location.href = '/';
+                        window.location.href=(window.BASE_URL||'')+'/';
                     }, 3000);
                 } else {
                     // Show error message

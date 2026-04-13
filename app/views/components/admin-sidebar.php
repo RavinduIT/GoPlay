@@ -5,61 +5,90 @@
  */
 
 $activePage = $activePage ?? 'dashboard';
+$_base = defined('BASE_URL') ? BASE_URL : '';
 
 $menuItems = [
     [
         'id' => 'dashboard',
-        'url' => '/admin/dashboard',
+        'url' => $_base . '/admin/dashboard',
         'icon' => 'fas fa-home',
         'label' => 'Dashboard',
         'badge' => null
     ],
     [
         'id' => 'users',
-        'url' => '/admin/users',
+        'url' => $_base . '/admin/users',
         'icon' => 'fas fa-users',
         'label' => 'Users',
-        'badge' => $userCount ?? null
+        'badge' => null
     ],
     [
         'id' => 'registrations',
-        'url' => '/admin/registrations',
+        'url' => $_base . '/admin/provider-applications',
         'icon' => 'fas fa-user-plus',
-        'label' => 'Registrations',
-        'badge' => $registrationCount ?? null
+        'label' => 'Provider Applications',
+        'badge' => null
+    ],
+    [
+        'id' => 'categories',
+        'url' => $_base . '/admin/categories',
+        'icon' => 'fas fa-running',
+        'label' => 'Sports Categories',
+        'badge' => null
     ],
     [
         'id' => 'news',
-        'url' => '/admin/news',
+        'url' => $_base . '/admin/news',
         'icon' => 'fas fa-newspaper',
         'label' => 'Manage News',
-        'badge' => $newsCount ?? null
+        'badge' => null
     ],
     [
         'id' => 'payments',
-        'url' => '/admin/payments',
+        'url' => $_base . '/admin/payments',
         'icon' => 'fas fa-money-bill-wave',
         'label' => 'Payments & Earnings',
         'badge' => null
     ],
     [
+        'id' => 'payouts',
+        'url' => $_base . '/admin/payouts',
+        'icon' => 'fas fa-hand-holding-usd',
+        'label' => 'Payouts',
+        'badge' => null
+    ],
+    [
         'id' => 'analytics',
-        'url' => '/admin/analytics',
+        'url' => $_base . '/admin/analytics',
         'icon' => 'fas fa-chart-bar',
         'label' => 'Analytics',
+        'badge' => null
+    ],
+    [
+        'id' => 'promotions',
+        'url' => $_base . '/admin/promotions',
+        'icon' => 'fas fa-bullhorn',
+        'label' => 'Promotions',
+        'badge' => null
+    ],
+    [
+        'id' => 'contacts',
+        'url' => $_base . '/admin/contacts',
+        'icon' => 'fas fa-envelope',
+        'label' => 'Contact Messages',
         'badge' => null
     ],
     'divider',
     [
         'id' => 'settings',
-        'url' => '/admin/settings',
+        'url' => $_base . '/admin/settings',
         'icon' => 'fas fa-cog',
         'label' => 'Settings',
         'badge' => null
     ],
     [
         'id' => 'logout',
-        'url' => '/logout',
+        'url' => $_base . '/logout',
         'icon' => 'fas fa-sign-out-alt',
         'label' => 'Logout',
         'badge' => null,

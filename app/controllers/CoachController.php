@@ -42,6 +42,97 @@ class CoachController extends BaseController
     }
 
     /**
+     * GET /api/coaches - Public endpoint for book-coach page
+     */
+    public function getPublicCoaches(Request $request): Response
+    {
+        try {
+            $coachModel = new Coach();
+            
+            $search = $request->getQuery('search', '');
+            $filters = [
+                'sport' => $request->getQuery('sport', ''),
+                'experience' => $request->getQuery('experience', ''),
+                'age' => $request->getQuery('age', ''),
+                'price' => $request->getQuery('price', ''),
+            ];
+
+            $coaches = $coachModel->search($search, $filters);
+
+            $formatted = array_map(function($c) {
+                $specializations = $c['specializations'] ?? [];
+                if (is_string($specializations)) {
+                    $specializations = json_decode($specializations, true) ?: [];
+                }
+                if (!is_array($specializations)) {
+                    $specializations = [];
+                }
+                return [
+                    'id' => (int)$c['id'],
+                    'name' => trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? '')),
+                    'sport' => $c['sport_name'] ?? 'General',
+                    'location' => $c['location'] ?? '',
+                    'experience' => ($c['experience_years'] ?? 0) . ' years',
+                    'price' => (float)($c['hourly_rate'] ?? 0),
+                    'rating' => round((float)($c['rating'] ?? 0), 1),
+                    'reviews' => (int)($c['total_reviews'] ?? 0),
+                    'bio' => $c['bio'] ?? '',
+                    'specialties' => $specializations,
+                    'profile_picture' => $c['profile_picture'] ?? null,
+                ];
+            }, $coaches);
+
+            // Sort based on request
+            $sort = $request->getQuery('sort', 'rating');
+            usort($formatted, function($a, $b) use ($sort) {
+                switch ($sort) {
+                    case 'experience': return (int)$b['experience'] - (int)$a['experience'];
+                    case 'price-low': return $a['price'] - $b['price'];
+                    case 'price-high': return $b['price'] - $a['price'];
+                    default: return $b['rating'] <=> $a['rating'];
+                }
+            });
+
+            return $this->json([
+                'success' => true,
+                'coaches' => $formatted,
+                'total' => count($formatted)
+            ]);
+        } catch (\Exception $e) {
+            error_log("Public coaches error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'error' => 'Failed to load coaches',
+                'coaches' => [],
+                'total' => 0
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/sports-categories - Public endpoint 
+     */
+    public function getSportsCategories(Request $request): Response
+    {
+        try {
+            $coachModel = new Coach();
+            $categories = $coachModel->getSportsCategories();
+
+            return $this->json([
+                'success' => true,
+                'categories' => $categories
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'categories' => []
+            ], 500);
+        }
+    }
+
+
+
+    /**
      * Coach dashboard
      */
     public function dashboard(Request $request): Response
@@ -1091,29 +1182,7 @@ class CoachController extends BaseController
         }
     }
     
-    /**
-     * Get sports categories for filter dropdown
-     */
-    public function getSportsCategories(Request $request): Response
-    {
-        try {
-            $coachModel = new Coach();
-            $categories = $coachModel->getSportsCategories();
-            
-            return $this->json([
-                'success' => true,
-                'categories' => $categories
-            ]);
-            
-        } catch (Exception $e) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Failed to fetch sports categories',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-    
+
     /**
      * Get single coach details
      */

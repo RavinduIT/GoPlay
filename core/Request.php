@@ -15,7 +15,16 @@ class Request
     public function __construct()
     {
         $this->method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $this->uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        
+        // Parse the URI and strip subdirectory base path (e.g. /GoPlay/) for XAMPP support
+        $rawUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+        $scriptDir = str_replace('\\', '/', dirname($scriptName));
+        if ($scriptDir !== '/' && $scriptDir !== '.' && strpos($rawUri, $scriptDir) === 0) {
+            $rawUri = substr($rawUri, strlen($scriptDir));
+        }
+        $this->uri = '/' . ltrim($rawUri, '/');
+        
         $this->query = $_GET;
         
         // Cache raw input on first read
@@ -98,33 +107,16 @@ class Request
         }
 
         $contentType = $this->getHeader('content-type') ?? '';
-        
-        // Debug logging
-        error_log("Request Content-Type: " . $contentType);
-        error_log("Raw Input Length: " . strlen(self::$rawInput));
-        error_log("Raw Input Sample: " . substr(self::$rawInput, 0, 200));
 
         if (strpos($contentType, 'application/json') !== false) {
             $decoded = json_decode(self::$rawInput, true);
-
-            // Debug logging for JSON parsing
-            if ($decoded === null && !empty(self::$rawInput)) {
-                error_log("JSON Parse Error: " . json_last_error_msg());
-                error_log("Raw Input: " . self::$rawInput);
-            } else if ($decoded !== null) {
-                error_log("JSON Decoded Successfully: " . count($decoded) . " fields");
-            }
-
-            // Return decoded data if valid, otherwise empty array
             return is_array($decoded) ? $decoded : [];
         }
         
         // If no content-type or not JSON, try to detect JSON anyway
         if (!empty(self::$rawInput) && (self::$rawInput[0] === '{' || self::$rawInput[0] === '[')) {
-            error_log("Attempting JSON decode without content-type header");
             $decoded = json_decode(self::$rawInput, true);
             if (is_array($decoded)) {
-                error_log("JSON decoded successfully: " . count($decoded) . " fields");
                 return $decoded;
             }
         }

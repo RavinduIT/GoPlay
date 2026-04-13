@@ -26,7 +26,7 @@ async function initializeAnalytics() {
 // Load Overview Statistics
 async function loadOverviewStats(days = 30) {
     try {
-        const response = await fetch(`/api/admin/analytics/overview?range=${days}`);
+        const response = await fetch(`${window.BASE_URL||""}/api/admin/analytics/overview?range=${days}`);
         const data = await response.json();
 
         if (data.success) {
@@ -81,7 +81,7 @@ async function loadAllCharts() {
 async function loadRevenueChart() {
     try {
         const days = document.getElementById('timeRange').value;
-        const response = await fetch(`/api/admin/analytics/revenue?days=${days}`);
+        const response = await fetch(`${window.BASE_URL||""}/api/admin/analytics/revenue?days=${days}`);
         const data = await response.json();
 
         if (data.success && data.data.revenueOverTime) {
@@ -163,7 +163,7 @@ async function loadRevenueChart() {
 // User Distribution Chart
 async function loadUserDistributionChart() {
     try {
-        const response = await fetch('/api/admin/analytics/users');
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/analytics/users');
         const data = await response.json();
 
         if (data.success && data.data.distribution) {
@@ -226,7 +226,7 @@ async function loadUserDistributionChart() {
 // Booking Chart
 async function loadBookingChart() {
     try {
-        const response = await fetch('/api/admin/analytics/bookings');
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/analytics/bookings');
         const data = await response.json();
 
         if (data.success) {
@@ -337,7 +337,7 @@ async function loadBookingChart() {
 // Load Top Products
 async function loadTopProducts() {
     try {
-        const response = await fetch('/api/admin/analytics/products');
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/analytics/products');
         const data = await response.json();
 
         const tbody = document.querySelector('#topProductsTable tbody');
@@ -366,7 +366,7 @@ async function loadTopProducts() {
 // Load Recent Activity
 async function loadRecentActivity() {
     try {
-        const response = await fetch('/api/admin/analytics/activity?limit=10');
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/analytics/activity?limit=10');
         const data = await response.json();
 
         const activityList = document.getElementById('activityList');
@@ -476,7 +476,7 @@ async function downloadReport(type) {
     try {
         showNotification('Generating report...', 'info');
         
-        const response = await fetch(`/api/admin/analytics/export?type=csv&report=${type}`);
+        const response = await fetch(`${window.BASE_URL||""}/api/admin/analytics/export?type=csv&report=${type}`);
         
         if (!response.ok) throw new Error('Export failed');
         

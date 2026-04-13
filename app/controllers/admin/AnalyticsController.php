@@ -27,7 +27,7 @@ class AnalyticsController extends BaseController
     public function index(Request $request): Response
     {
         // Check if user is authenticated and is admin
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
             return $this->redirect('/login');
         }
@@ -63,10 +63,10 @@ class AnalyticsController extends BaseController
 
             // Revenue Statistics
             $totalRevenue = $this->db->query(
-                "SELECT COALESCE(SUM(total_amount), 0) as total FROM payments WHERE status = 'completed'"
+                "SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = 'completed'"
             )->fetch()['total'];
             $periodRevenue = $this->db->query(
-                "SELECT COALESCE(SUM(total_amount), 0) as total FROM payments 
+                "SELECT COALESCE(SUM(amount), 0) as total FROM payments 
                 WHERE status = 'completed' AND processed_at >= DATE_SUB(NOW(), INTERVAL ? DAY)",
                 [$timeRange]
             )->fetch()['total'];

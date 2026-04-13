@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Cart;
+use App\Models\ShopOwnerBalance;
 
 /**
  * Payment Controller
@@ -235,14 +236,15 @@ class PaymentController extends BaseController
                 'status' => 'pending'
             ]);
 
+            // Credit shop owners for COD orders
+            $this->creditShopOwnersForOrder($order);
+            $this->sendOrderNotifications($order);
+
             // Clear cart
             $this->cartModel->clearCart($cart['id']);
 
             // Clear session data
             unset($_SESSION['checkout_contact']);
-
-            // TODO: Send order confirmation email
-            // $this->sendOrderConfirmationEmail($order, $contactDetails);
 
             return $this->json([
                 'success' => true,
@@ -492,6 +494,10 @@ class PaymentController extends BaseController
                     }
                 }
 
+                // Credit shop owners and send notifications
+                $this->creditShopOwnersForOrder($order);
+                $this->sendOrderNotifications($order);
+
                 error_log('Payment successful for order: ' . $orderId);
             } else {
                 // Payment failed or cancelled
@@ -676,6 +682,10 @@ class PaymentController extends BaseController
                 // Clear session checkout data
                 unset($_SESSION['checkout_contact']);
 
+                // Credit shop owners and send notifications
+                $this->creditShopOwnersForOrder($order);
+                $this->sendOrderNotifications($order);
+
                 // Redirect to success page
                 return $this->redirect('/checkout/order-success?order=' . $orderId);
             }
@@ -806,5 +816,77 @@ class PaymentController extends BaseController
     {
         // Update payment status and notify user
         // Implementation depends on your payment gateway
+    }
+
+    /**
+     * Credit shop owners for a completed order.
+     * Calculates each shop owner's share from their items,
+     * deducts platform fee, and credits their balance.
+     */
+    private function creditShopOwnersForOrder(array $order): void
+    {
+        try {
+            $orderId = $order['id'];
+            $balanceModel = new ShopOwnerBalance();
+            $feePercentage = $balanceModel->getServiceFeePercentage();
+            
+            $shopOwnerShares = $balanceModel->getShopOwnerSharesByOrder($orderId);
+            
+            foreach ($shopOwnerShares as $share) {
+                $shopOwnerId = (int)$share['shop_owner_id'];
+                $grossAmount = (float)$share['owner_total'];
+                $feeAmount = round($grossAmount * ($feePercentage / 100), 2);
+                
+                $balanceModel->creditSale($shopOwnerId, $orderId, $grossAmount, $feeAmount);
+                
+                error_log("Credited shop owner {$shopOwnerId}: gross={$grossAmount}, fee={$feeAmount}, net=" . ($grossAmount - $feeAmount));
+            }
+            
+        } catch (\Exception $e) {
+            error_log('Failed to credit shop owners for order ' . ($order['id'] ?? 'unknown') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send order notifications to customer and shop owner(s).
+     */
+    private function sendOrderNotifications(array $order): void
+    {
+        try {
+            $orderId = $order['id'];
+            $orderNumber = $order['order_number'] ?? 'N/A';
+            $totalAmount = $order['total_amount'] ?? 0;
+            
+            $balanceModel = new ShopOwnerBalance();
+            
+            // 1. Notify customer
+            if (!empty($order['user_id'])) {
+                $balanceModel->insertNotification(
+                    $order['user_id'],
+                    'payment_success',
+                    'Order Confirmed',
+                    'Your order #' . $orderNumber . ' has been confirmed. Total: LKR ' . number_format($totalAmount, 2),
+                    ['order_id' => $orderId, 'order_number' => $orderNumber]
+                );
+            }
+            
+            // 2. Notify each shop owner
+            $owners = $balanceModel->getShopOwnersByOrder($orderId);
+            
+            foreach ($owners as $owner) {
+                $balanceModel->insertNotification(
+                    $owner['shop_owner_id'],
+                    'new_order',
+                    'New Order Received',
+                    'You have a new order #' . $orderNumber . '. Check your orders page for details.',
+                    ['order_id' => $orderId, 'order_number' => $orderNumber]
+                );
+            }
+            
+            error_log("Order notifications sent for order #{$orderNumber}");
+            
+        } catch (\Exception $e) {
+            error_log('Failed to send order notifications: ' . $e->getMessage());
+        }
     }
 }

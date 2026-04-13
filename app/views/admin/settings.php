@@ -1,5 +1,6 @@
-<link rel="stylesheet" href="/public/css/pages/admin-settings.css">
-<link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-settings.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-dashboard.css">
 <div class="admin-dashboard">
     <?php include __DIR__ . '/../components/admin-sidebar.php'; ?>
 
@@ -441,4 +442,4 @@
     </main>
 </div>
 
-<script src="/public/js/pages/admin-settings.js"></script>
+<script src="<?= $_base ?>/public/js/pages/admin-settings.js"></script>

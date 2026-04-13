@@ -1112,13 +1112,15 @@ section { scroll-margin-top: 90px; }
 }
 
 @media (max-width: 768px) {
-  .search-grid { grid-template-columns: 1fr 1fr; }
-  .trust-bar { grid-template-columns: repeat(2, 1fr); }
+  .search-grid { grid-template-columns: 1fr 1fr !important; }
+  .trust-bar { grid-template-columns: repeat(2, 1fr) !important; }
 }
 
 @media (max-width: 480px) {
-  .search-grid { grid-template-columns: 1fr; }
-  .trust-bar { grid-template-columns: 1fr; }
+  .search-grid { grid-template-columns: 1fr !important; }
+  .search-action { grid-column: 1 !important; }
+  .search-btn { width: 100% !important; }
+  .trust-bar { grid-template-columns: 1fr !important; }
 }
 
 /* =============================================
@@ -1812,7 +1814,39 @@ html {
 .cta-actions { margin-top: 1rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
 
 @media (max-width: 640px) {
-	.hero-title { font-size: 2rem !important; }
+	.hero-section { height: auto !important; min-height: 28rem !important; padding: 2rem 0 1rem !important; }
+	.hero-title { font-size: 1.75rem !important; line-height: 1.2 !important; }
+	.hero-description { font-size: 0.95rem !important; margin-bottom: 1rem !important; }
 	.hero-buttons .hero-btn { width: 100% !important; max-width: 320px !important; }
-	.news-item { flex: 0 0 280px !important; }
+	.hero-search { margin-top: 1.5rem !important; }
+	.search-form { padding: 1rem !important; }
+	.search-grid { grid-template-columns: 1fr !important; gap: 0.75rem !important; }
+	.search-action { margin-top: 0.25rem; }
+	.search-btn { width: 100% !important; padding: 0.75rem 1rem !important; font-size: 0.9rem !important; }
+	.news-item { flex: 0 0 260px !important; }
+	.section-title { font-size: 1.5rem !important; }
+	.section-description { font-size: 1rem !important; }
+	.section-header { margin-bottom: 2rem !important; }
+	.features-section, .news-section, .venues-section, .categories-section, .how-section, .testimonials-section, .cta-section { padding: 2rem 0 !important; }
+	.features-grid, .venues-grid { grid-template-columns: 1fr !important; }
+	.categories-grid { grid-template-columns: repeat(2, 1fr) !important; }
+	.category-card img { height: 90px !important; }
+	.how-grid { grid-template-columns: 1fr !important; }
+	.testimonials-grid { grid-template-columns: 1fr !important; }
+	.container { padding: 0 1rem !important; }
+	.trust-bar { grid-template-columns: repeat(2, 1fr) !important; gap: 0.75rem !important; }
+	.trust-item { padding: 0.75rem !important; }
+	.trust-value { font-size: 1.25rem !important; }
+	.venue-image { height: 12rem !important; }
+	.cta-card { padding: 1.5rem !important; }
+	.cta-actions { flex-direction: column !important; align-items: center !important; }
 }
+
+@media (max-width: 375px) {
+	.hero-title { font-size: 1.5rem !important; }
+	.hero-content { padding: 0 0.75rem !important; }
+	.trust-bar { grid-template-columns: repeat(2, 1fr) !important; }
+	.categories-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.5rem !important; }
+	.category-card img { height: 75px !important; }
+	.category-card span { font-size: 0.75rem !important; padding: 0.15rem 0.4rem !important; }
+}

@@ -1,5 +1,6 @@
-<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
-<?php 
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/shop-owner-dashboard.css">
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Shop Owner Dashboard - GoPlay';
 $additionalCSS = ['/public/css/pages/shop-owner-dashboard.css'];
 $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owner-dashboard.js'];
@@ -44,7 +45,7 @@ $recentReviews = $recentReviews ?? [];
                         <span class="profile-name">Rohan Gunaratne</span>
                         <span class="profile-role">Shop Owner</span>
                     </div>
-                    <img src="/public/assets/images/shop-owner-avatar.jpg" alt="Shop Owner" class="profile-avatar">
+                    <img src="<?= $_base ?>/public/assets/images/shop-owner-avatar.jpg" alt="Shop Owner" class="profile-avatar">
                     <button class="profile-dropdown">
                         <i class="fas fa-chevron-down"></i>
                     </button>
@@ -152,7 +153,7 @@ $recentReviews = $recentReviews ?? [];
                 <div class="dashboard-card recent-orders">
                     <div class="card-header">
                         <h3>Recent Orders</h3>
-                        <a href="/shop-owner/orders" class="view-all">View All</a>
+                        <a href="<?= $_base ?>/shop-owner/orders" class="view-all">View All</a>
                     </div>
                     <div class="orders-list">
                         <?php if (!empty($recentOrders)): ?>
@@ -252,7 +253,7 @@ $recentReviews = $recentReviews ?? [];
                                         <h4><?php echo htmlspecialchars($product['name']); ?></h4>
                                         <p><?php echo $stock == 0 ? 'Out of stock' : 'Only ' . $stock . ' left in stock'; ?></p>
                                     </div>
-                                    <a href="/shop-owner/inventory" class="btn-restock">Restock</a>
+                                    <a href="<?= $_base ?>/shop-owner/inventory" class="btn-restock">Restock</a>
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -271,7 +272,7 @@ $recentReviews = $recentReviews ?? [];
                         <p class="card-subtitle">Manage your shop efficiently</p>
                     </div>
                     <div class="actions-grid">
-                        <a href="/shop-owner/products" class="action-card purple">
+                        <a href="<?= $_base ?>/shop-owner/products" class="action-card purple">
                             <div class="action-icon">
                                 <i class="fas fa-plus-circle"></i>
                             </div>
@@ -284,7 +285,7 @@ $recentReviews = $recentReviews ?? [];
                             </div>
                         </a>
                         
-                        <a href="/shop-owner/orders" class="action-card blue">
+                        <a href="<?= $_base ?>/shop-owner/orders" class="action-card blue">
                             <div class="action-icon">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
@@ -297,7 +298,7 @@ $recentReviews = $recentReviews ?? [];
                             </div>
                         </a>
                         
-                        <a href="/shop-owner/reviews" class="action-card orange">
+                        <a href="<?= $_base ?>/shop-owner/reviews" class="action-card orange">
                             <div class="action-icon">
                                 <i class="fas fa-star"></i>
                             </div>
@@ -310,7 +311,7 @@ $recentReviews = $recentReviews ?? [];
                             </div>
                         </a>
                         
-                        <a href="/shop-owner/inventory" class="action-card green">
+                        <a href="<?= $_base ?>/shop-owner/inventory" class="action-card green">
                             <div class="action-icon">
                                 <i class="fas fa-warehouse"></i>
                             </div>
@@ -329,7 +330,7 @@ $recentReviews = $recentReviews ?? [];
                 <div class="dashboard-card recent-reviews">
                     <div class="card-header">
                         <h3>Recent Reviews</h3>
-                        <a href="/shop-owner/reviews" class="view-all">View All</a>
+                        <a href="<?= $_base ?>/shop-owner/reviews" class="view-all">View All</a>
                     </div>
                     <div class="reviews-list">
                         <?php if (!empty($recentReviews)): ?>

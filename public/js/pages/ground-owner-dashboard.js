@@ -29,7 +29,7 @@
     ================================================================ */
     async function loadProfile() {
         try {
-            const r = await fetch('/api/ground-owner/profile');
+            const r = await fetch((window.BASE_URL||'')+'/api/ground-owner/profile');
             const d = await r.json();
             if (!d.success) return;
 
@@ -52,8 +52,8 @@
     ================================================================ */
     async function loadStats() {
         try {
-            const r = await fetch('/api/ground-owner/dashboard-stats');
-            if (r.status === 401) { window.location.href = '/login'; return; }
+            const r = await fetch((window.BASE_URL||'')+'/api/ground-owner/dashboard-stats');
+            if (r.status === 401) { window.location.href=(window.BASE_URL||'')+'/login'; return; }
             const d = await r.json();
             if (!d.success) return;
 
@@ -178,7 +178,7 @@
         const ctx = canvas.getContext('2d');
 
         try {
-            const r = await fetch(`/api/ground-owner/earnings/trends?days=${days}`);
+            const r = await fetch(`${window.BASE_URL||""}/api/ground-owner/earnings/trends?days=${days}`);
             const d = await r.json();
 
             let labels = [];
@@ -277,7 +277,7 @@
     ================================================================ */
     async function loadNotifCount() {
         try {
-            const r = await fetch('/api/ground-owner/notifications/stats');
+            const r = await fetch((window.BASE_URL||'')+'/api/ground-owner/notifications/stats');
             const d = await r.json();
             const count = d.stats?.unread ?? 0;
             const el = $('dbNotifCount');
@@ -298,7 +298,7 @@
         const el = $('dbReviews');
         if (!el) return;
         try {
-            const r = await fetch('/api/ground-owner/reviews?limit=3');
+            const r = await fetch((window.BASE_URL||'')+'/api/ground-owner/reviews?limit=3');
             const d = await r.json();
             const reviews = d.reviews || [];
 

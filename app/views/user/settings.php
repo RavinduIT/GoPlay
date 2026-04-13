@@ -1,3 +1,4 @@
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!-- Settings Page -->
 
 <div class="settings-container">
@@ -661,7 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadUserSettings() {
     try {
-        const response = await fetch('/api/user/profile');
+        const response = await fetch((window.BASE_URL||'')+'/api/user/profile');
         const data = await response.json();
 
         if (data.success && data.user) {
@@ -691,7 +692,7 @@ function capitalizeFirst(str) {
 }
 
 function editPersonalInfo() {
-    window.location.href = '/user/profile';
+    window.location.href=(window.BASE_URL||'')+'/user/profile';
 }
 
 function changePassword() {

@@ -98,6 +98,30 @@ class ProviderController extends BaseController
             // Prepare application data
             $applicationData = $this->prepareApplicationData($providerType, $_POST, $uploadedFiles['files']);
 
+            // Duplicate submission guard
+            $userId = $_SESSION['user_id'] ?? null;
+            $applicantEmail = $_POST['email'] ?? '';
+            if ($userId || $applicantEmail) {
+                $db = $this->getDatabase();
+                $dupSql = "SELECT id FROM provider_applications WHERE status = 'pending' AND provider_type = ?";
+                $dupParams = [$providerType];
+                if ($userId) {
+                    $dupSql .= " AND user_id = ?";
+                    $dupParams[] = $userId;
+                } else {
+                    $dupSql .= " AND email = ?";
+                    $dupParams[] = $applicantEmail;
+                }
+                $dupStmt = $db->prepare($dupSql);
+                $dupStmt->execute($dupParams);
+                if ($dupStmt->fetch()) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => 'You already have a pending application for this provider type. Please wait for it to be reviewed.'
+                    ], 400);
+                }
+            }
+
             // Save to database
             $applicationId = $this->saveApplication($applicationData);
 
@@ -378,9 +402,22 @@ class ProviderController extends BaseController
      */
     private function sendAdminNotification(string $providerType, string $applicantEmail, int $applicationId): void
     {
-        // TODO: Implement email notification to admin
-        // This would typically use a mail service
-        error_log("New {$providerType} application from {$applicantEmail} (ID: {$applicationId})");
+        try {
+            $emailService = new \App\Services\EmailService();
+            $typeName = ucwords(str_replace('_', ' ', $providerType));
+            $subject = "New Provider Application: {$typeName} (#{$applicationId})";
+            $message = "<h2>New Provider Application Received</h2>"
+                     . "<p>A new <strong>{$typeName}</strong> application has been submitted.</p>"
+                     . "<p><strong>Applicant:</strong> {$applicantEmail}</p>"
+                     . "<p><strong>Application ID:</strong> #{$applicationId}</p>"
+                     . "<p>Please review this application in the admin panel.</p>";
+
+            // Send to admin email
+            $adminEmail = $_ENV['ADMIN_EMAIL'] ?? 'admin@goplay.lk';
+            $emailService->sendNotification($adminEmail, 'GoPlay Admin', $subject, $message);
+        } catch (\Exception $e) {
+            error_log("Admin notification email failed: " . $e->getMessage());
+        }
     }
 
     /**
@@ -388,9 +425,20 @@ class ProviderController extends BaseController
      */
     private function sendApplicantConfirmation(string $email, string $providerType): void
     {
-        // TODO: Implement email confirmation to applicant
-        // This would typically use a mail service
-        error_log("Confirmation email sent to {$email} for {$providerType} application");
+        try {
+            $emailService = new \App\Services\EmailService();
+            $typeName = ucwords(str_replace('_', ' ', $providerType));
+            $subject = "GoPlay - Application Received: {$typeName}";
+            $message = "<h2>Application Received</h2>"
+                     . "<p>Thank you for applying to become a <strong>{$typeName}</strong> on GoPlay.</p>"
+                     . "<p>Your application is currently under review. Our team will evaluate your submission and get back to you within 3-5 business days.</p>"
+                     . "<p>You will receive an email notification once your application has been reviewed.</p>"
+                     . "<br><p>Best regards,<br><strong>The GoPlay Team</strong></p>";
+
+            $emailService->sendNotification($email, $email, $subject, $message);
+        } catch (\Exception $e) {
+            error_log("Applicant confirmation email failed: " . $e->getMessage());
+        }
     }
 
     /**

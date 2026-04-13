@@ -1,3 +1,4 @@
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!-- User Dashboard - partial, rendered via main.php layout -->
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -298,7 +299,7 @@
             <img src="<?= htmlspecialchars($user['profile_picture'] ?? '/public/assets/images/default-avatar.svg') ?>"
                  alt="Avatar"
                  class="avatar"
-                 onerror="this.src='/public/assets/images/default-avatar.svg'">
+                 onerror="this.src='<?= $_base ?>/public/assets/images/default-avatar.svg'">
             <div>
                 <h1>Welcome back, <?= htmlspecialchars($user['first_name'] ?? 'there') ?>!</h1>
                 <p>Here's an overview of your activity on GoPlay.</p>
@@ -344,35 +345,35 @@
             </div>
             <div class="section-body">
                 <div class="quick-actions">
-                    <a href="/book-ground" class="action-btn">
+                    <a href="<?= $_base ?>/book-ground" class="action-btn">
                         <i class="fas fa-map-marker-alt"></i>
                         <span>Book Ground</span>
                     </a>
-                    <a href="/book-coach" class="action-btn">
+                    <a href="<?= $_base ?>/book-coach" class="action-btn">
                         <i class="fas fa-user-tie"></i>
                         <span>Book Coach</span>
                     </a>
-                    <a href="/shop" class="action-btn">
+                    <a href="<?= $_base ?>/shop" class="action-btn">
                         <i class="fas fa-shopping-bag"></i>
                         <span>Shop</span>
                     </a>
-                    <a href="/my-bookings" class="action-btn">
+                    <a href="<?= $_base ?>/my-bookings" class="action-btn">
                         <i class="fas fa-calendar-alt"></i>
                         <span>My Bookings</span>
                     </a>
-                    <a href="/my-coach-sessions" class="action-btn">
+                    <a href="<?= $_base ?>/my-coach-sessions" class="action-btn">
                         <i class="fas fa-dumbbell"></i>
                         <span>Coach Sessions</span>
                     </a>
-                    <a href="/my-orders" class="action-btn">
+                    <a href="<?= $_base ?>/my-orders" class="action-btn">
                         <i class="fas fa-receipt"></i>
                         <span>My Orders</span>
                     </a>
-                    <a href="/cart" class="action-btn">
+                    <a href="<?= $_base ?>/cart" class="action-btn">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Cart</span>
                     </a>
-                    <a href="/user/profile" class="action-btn">
+                    <a href="<?= $_base ?>/user/profile" class="action-btn">
                         <i class="fas fa-user-edit"></i>
                         <span>My Profile</span>
                     </a>
@@ -386,7 +387,7 @@
             <div class="section-card">
                 <div class="section-header">
                     <h2><i class="fas fa-calendar-check"></i> Recent Bookings</h2>
-                    <a href="/my-bookings" class="btn btn-outline">View All</a>
+                    <a href="<?= $_base ?>/my-bookings" class="btn btn-outline">View All</a>
                 </div>
                 <div class="section-body">
                     <div id="recent-bookings-loading">
@@ -400,7 +401,7 @@
             <div class="section-card">
                 <div class="section-header">
                     <h2><i class="fas fa-shopping-bag"></i> Recent Orders</h2>
-                    <a href="/my-orders" class="btn btn-outline">View All</a>
+                    <a href="<?= $_base ?>/my-orders" class="btn btn-outline">View All</a>
                 </div>
                 <div class="section-body">
                     <div id="recent-orders-loading">
@@ -428,7 +429,7 @@
         const loading = document.getElementById('recent-bookings-loading');
         const list    = document.getElementById('recent-bookings-list');
         try {
-            const res  = await fetch('/api/user/bookings?limit=5');
+            const res  = await fetch((window.BASE_URL||'')+'/api/user/bookings?limit=5');
             const data = await res.json();
             const bookings = (data.bookings || []).slice(0, 5);
             loading.style.display = 'none';
@@ -455,7 +456,7 @@
         const loading = document.getElementById('recent-orders-loading');
         const list    = document.getElementById('recent-orders-list');
         try {
-            const res  = await fetch('/api/user/orders?limit=5');
+            const res  = await fetch((window.BASE_URL||'')+'/api/user/orders?limit=5');
             const data = await res.json();
             const orders = (data.orders || []).slice(0, 5);
             loading.style.display = 'none';

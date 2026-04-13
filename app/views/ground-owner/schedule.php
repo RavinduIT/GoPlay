@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Schedule – GoPlay';
 $additionalCSS = [
     '/public/css/pages/ground-owner-dashboard.css',
@@ -26,7 +27,7 @@ include __DIR__ . '/layout-head.php';
                     <select id="groundSelector" class="sc-ground-select">
                         <option value="">All Grounds</option>
                     </select>
-                    <button class="sc-btn sc-btn-outline" onclick="window.location='/ground-owner/availability'">
+                    <button class="sc-btn sc-btn-outline" onclick="window.location=(window.BASE_URL||'')+'/ground-owner/availability'">
                         <i class="fas fa-clock"></i> Availability Settings
                     </button>
                     <button class="sc-btn sc-btn-primary" onclick="openBlockModal()">
@@ -174,11 +175,11 @@ include __DIR__ . '/layout-head.php';
                     <label>Reason *</label>
                     <select id="blockReason" required>
                         <option value="">Select reason…</option>
-                        <option value="maintenance">🔧 Maintenance</option>
-                        <option value="personal">👤 Personal Use</option>
-                        <option value="event">🎉 Private Event</option>
-                        <option value="weather">🌧 Weather</option>
-                        <option value="other">📌 Other</option>
+                        <option value="maintenance"><i class="fas fa-wrench"></i> Maintenance</option>
+                        <option value="personal"><i class="fas fa-user"></i> Personal Use</option>
+                        <option value="event"><i class="fas fa-bullhorn"></i> Private Event</option>
+                        <option value="weather"> Weather</option>
+                        <option value="other"><i class="fas fa-thumbtack"></i> Other</option>
                     </select>
                 </div>
                 <div class="sc-field">

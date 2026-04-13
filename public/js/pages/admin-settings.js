@@ -49,7 +49,7 @@ function switchTab(tabName) {
 
 async function initializeSettings() {
     try {
-        const response = await fetch('/api/admin/settings');
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/settings');
         const data = await response.json();
 
         if (data.success) {
@@ -142,7 +142,7 @@ async function saveAllSettings() {
             }
         });
 
-        const response = await fetch('/api/admin/settings/bulk', {
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/settings/bulk', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -168,7 +168,7 @@ async function saveAllSettings() {
 
 async function loadSystemInfo() {
     try {
-        const response = await fetch('/api/admin/settings/system-info');
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/settings/system-info');
         const data = await response.json();
 
         if (data.success) {
@@ -202,7 +202,7 @@ async function testEmailConfig() {
     try {
         showNotification('Sending test email...', 'info');
 
-        const response = await fetch('/api/admin/settings/test-email', {
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/settings/test-email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -229,7 +229,7 @@ async function clearCache() {
     try {
         showNotification('Clearing cache...', 'info');
 
-        const response = await fetch('/api/admin/settings/clear-cache', {
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/settings/clear-cache', {
             method: 'POST'
         });
 
@@ -252,7 +252,7 @@ async function backupDatabase() {
     try {
         showNotification('Creating database backup...', 'info');
 
-        const response = await fetch('/api/admin/settings/backup-database', {
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/settings/backup-database', {
             method: 'POST'
         });
 
@@ -271,7 +271,7 @@ async function backupDatabase() {
 
 async function viewLogs() {
     try {
-        const response = await fetch('/api/admin/settings/activity-logs?limit=50');
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/settings/activity-logs?limit=50');
         const data = await response.json();
 
         if (data.success) {

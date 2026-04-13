@@ -1632,4 +1632,163 @@ class ShopOwnerController extends BaseController
             return $this->redirect('/shop-owner/reviews');
         }
     }
-}
+
+    // =========================================================
+    // EARNINGS & PAYOUT METHODS
+    // =========================================================
+
+    /**
+     * Render earnings & payouts page
+     */
+    public function earningsPage(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+        return $this->view('shop-owner/earnings');
+    }
+
+    /**
+     * API: Get earnings summary, transaction history, and payout status
+     */
+    public function getEarningsData(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $page = max(1, (int)$request->getQuery('page', 1));
+
+            $balanceModel = new ShopOwnerBalance();
+            $payoutModel = new \App\Models\ShopOwnerPayout();
+
+            $summary = $balanceModel->getEarningsSummary($shopOwnerId);
+            $transactions = $balanceModel->getTransactionHistory($shopOwnerId, $page, 15);
+            $payouts = $payoutModel->getPayoutsByOwner($shopOwnerId, 1, 10);
+            $canWithdraw = $balanceModel->canWithdraw($shopOwnerId);
+
+            // Get payout details from profile
+            $profile = $this->getProfileModel()->getByUserId($shopOwnerId);
+
+            return $this->json([
+                'success' => true,
+                'summary' => $summary,
+                'transactions' => $transactions,
+                'payouts' => $payouts,
+                'can_withdraw' => $canWithdraw,
+                'payout_details' => [
+                    'bank_name' => $profile['payout_bank_name'] ?? '',
+                    'account_number' => $profile['payout_account_number'] ?? '',
+                    'account_holder' => $profile['payout_account_holder'] ?? '',
+                    'branch_name' => $profile['payout_branch_name'] ?? ''
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Earnings data error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to load earnings data'
+            ], 500);
+        }
+    }
+
+    /**
+     * API: Submit payout withdrawal request
+     */
+    public function requestPayout(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+            
+            // Get payout details from profile (or from request body)
+            $profile = $this->getProfileModel()->getByUserId($shopOwnerId);
+            
+            $payoutDetails = [
+                'amount' => $data['amount'] ?? 0,
+                'bank_name' => $data['bank_name'] ?? $profile['payout_bank_name'] ?? '',
+                'account_number' => $data['account_number'] ?? $profile['payout_account_number'] ?? '',
+                'account_holder' => $data['account_holder'] ?? $profile['payout_account_holder'] ?? '',
+                'branch_name' => $data['branch_name'] ?? $profile['payout_branch_name'] ?? ''
+            ];
+
+            $payoutModel = new \App\Models\ShopOwnerPayout();
+            $result = $payoutModel->createRequest($shopOwnerId, $payoutDetails);
+
+            return $this->json($result, $result['success'] ? 200 : 400);
+
+        } catch (\Exception $e) {
+            error_log("Payout request error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to submit payout request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * API: Update shop owner's payout bank details
+     */
+    public function updatePayoutDetails(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+
+            // Validate
+            if (empty($data['bank_name']) || empty($data['account_number']) || empty($data['account_holder'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Bank name, account number, and account holder are required'
+                ], 400);
+            }
+
+            // Update profile payout columns
+            $profileModel = $this->getProfileModel();
+            $profile = $profileModel->getByUserId($shopOwnerId);
+            
+            if (!$profile) {
+                return $this->json(['success' => false, 'message' => 'Profile not found'], 404);
+            }
+
+            $sql = "UPDATE shop_owner_profiles 
+                    SET payout_bank_name = ?, 
+                        payout_account_number = ?, 
+                        payout_account_holder = ?, 
+                        payout_branch_name = ?
+                    WHERE user_id = ?";
+            
+            $balanceModel = new ShopOwnerBalance();
+            $balanceModel->runQuery($sql, [
+                $data['bank_name'],
+                $data['account_number'],
+                $data['account_holder'],
+                $data['branch_name'] ?? '',
+                $shopOwnerId
+            ]);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Payout details updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Update payout details error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'message' => 'Failed to update payout details'
+            ], 500);
+        }
+    }
+}

@@ -196,9 +196,9 @@ include __DIR__ . '/layout-head.php';
     </main>
 </div>
 
-<!-- ══════════════════════════════════════
+<!-- 
      EDIT PROFILE MODAL
-════════════════════════════════════════ -->
+ -->
 <div id="gpModal" class="gp-modal-backdrop" style="display:none">
     <div class="gp-modal">
         <div class="gp-modal-header">

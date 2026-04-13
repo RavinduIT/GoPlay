@@ -146,7 +146,7 @@ function handleContactFormSubmit(e) {
     submitBtn.disabled = true;
     
     // Send to server
-    fetch('/api/checkout/save-contact', {
+    fetch((window.BASE_URL||'')+'/api/checkout/save-contact', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ function handleContactFormSubmit(e) {
     .then(data => {
         if (data.success) {
             // Redirect to payment method page
-            window.location.href = '/checkout/payment-method';
+            window.location.href=(window.BASE_URL||'')+'/checkout/payment-method';
         } else {
             showNotification(data.message || 'Failed to save contact details', 'error');
             submitBtn.innerHTML = originalText;
@@ -212,12 +212,12 @@ function handlePlaceOrder(e) {
         processCashOnDelivery(btn, originalText);
     } else if (method === 'card') {
         // Redirect to card payment page
-        window.location.href = '/checkout/payment-processing';
+        window.location.href=(window.BASE_URL||'')+'/checkout/payment-processing';
     }
 }
 
 function processCashOnDelivery(btn, originalText) {
-    fetch('/api/checkout/process-cod', {
+    fetch((window.BASE_URL||'')+'/api/checkout/process-cod', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -227,7 +227,7 @@ function processCashOnDelivery(btn, originalText) {
     .then(data => {
         if (data.success) {
             // Redirect to success page with order number
-            window.location.href = '/checkout/order-success?order=' + data.orderNumber;
+            window.location.href=(window.BASE_URL||'')+'/checkout/order-success?order=' + data.orderNumber;
         } else {
             showNotification(data.message || 'Failed to process order', 'error');
             btn.innerHTML = originalText;
@@ -248,7 +248,7 @@ function loadCartSummary() {
     
     if (!summaryContainer) return;
     
-    fetch('/api/cart')
+    fetch((window.BASE_URL||'')+'/api/cart')
         .then(response => response.json())
         .then(data => {
             if (data.success && data.data) {
@@ -281,7 +281,7 @@ function renderCartSummary(cartData, container) {
     let html = '<div class="cart-items">';
     
     items.forEach(item => {
-        const imageUrl = item.images ? JSON.parse(item.images)[0] : '/public/assets/images/placeholder.png';
+        const imageUrl = item.images ? JSON.parse(item.images)[0] : (window.BASE_URL||'')+'/public/assets/images/placeholder.png';
         html += `
             <div class="cart-item">
                 <img src="${imageUrl}" alt="${item.product_name}" class="item-image">
