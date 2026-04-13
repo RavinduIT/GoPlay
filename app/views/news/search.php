@@ -113,9 +113,9 @@ $categories = $data['categories'] ?? [];
         function filterSearchByCategory(category) {
             const query = '<?= addslashes($query) ?>';
             if (category === 'all') {
-                window.location.href = '/news/search?q=' + encodeURIComponent(query);
+                window.location.href = (window.BASE_URL||'') + '/news/search?q=' + encodeURIComponent(query);
             } else {
-                window.location.href = '/news?category=' + encodeURIComponent(category);
+                window.location.href = (window.BASE_URL||'') + '/news?category=' + encodeURIComponent(category);
             }
         }
     </script>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Settings - Ground Owner Dashboard';
 $additionalCSS = [
@@ -591,7 +591,7 @@ class SettingsManager {
         };
 
         try {
-            const response = await fetch('/api/user/profile', {
+            const response = await fetch((window.BASE_URL||'')+'/api/user/profile', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -630,7 +630,7 @@ class SettingsManager {
         }
 
         try {
-            const response = await fetch('/api/user/change-password', {
+            const response = await fetch((window.BASE_URL||'')+'/api/user/change-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

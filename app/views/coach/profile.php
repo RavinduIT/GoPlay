@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'profile'; ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -838,7 +838,7 @@ class CoachProfile {
         }
 
         try {
-            const r = await fetch('/api/coach/profile', {
+            const r = await fetch((window.BASE_URL||'')+'/api/coach/profile', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
@@ -863,7 +863,7 @@ class CoachProfile {
         const fd = new FormData();
         fd.append('avatar', file);
         try {
-            const r = await fetch('/api/coach/profile/avatar', { method: 'POST', body: fd });
+            const r = await fetch((window.BASE_URL||'')+'/api/coach/profile/avatar', { method: 'POST', body: fd });
             const d = await r.json();
             if (!d.success) throw new Error(d.error || 'Upload failed');
             document.getElementById('heroAvatar').src = d.avatarUrl;
@@ -1201,7 +1201,7 @@ class CoachProfile {
         const isPrimary  = document.getElementById('facility-is-primary').checked;
         if (!facilityId) { this.toast('Please select a facility', 'error'); return; }
         try {
-            const r = await fetch('/api/coach/facilities', {
+            const r = await fetch((window.BASE_URL||'')+'/api/coach/facilities', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ facility_id: facilityId, is_primary: isPrimary }),

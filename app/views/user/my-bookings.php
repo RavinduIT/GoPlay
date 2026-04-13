@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'My Bookings - GoPlay Sports Platform';
 $additionalCSS = [];
@@ -1631,7 +1631,7 @@ $additionalJS = [];
             btn.innerHTML   = '<i class="fas fa-spinner fa-spin"></i> Submitting…';
 
             try {
-                const res  = await fetch('/api/user/coach-reviews', {
+                const res  = await fetch((window.BASE_URL||'')+'/api/user/coach-reviews', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body:    JSON.stringify({
@@ -1680,7 +1680,7 @@ $additionalJS = [];
 
                 console.log('Submitting review:', requestData);
 
-                const response = await fetch('/api/user/reviews', {
+                const response = await fetch((window.BASE_URL||'')+'/api/user/reviews', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

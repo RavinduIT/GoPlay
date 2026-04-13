@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 $title         = 'Coach Profile - GoPlay Sports Platform';
 $additionalCSS = [];
@@ -621,7 +621,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         if (facilityId) payload.facility_id = facilityId;
 
         try {
-            const res  = await fetch('/api/coach-bookings/bundled', {
+            const res  = await fetch((window.BASE_URL||'')+'/api/coach-bookings/bundled', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
