@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 use App\Models\Coach;
 
@@ -985,7 +985,7 @@ try {
 
                 try {
                     // Call API to create booking
-                    const response = await fetch('/api/coach-bookings', {
+                    const response = await fetch((window.BASE_URL||'')+'/api/coach-bookings', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'

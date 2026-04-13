@@ -1,4 +1,4 @@
-<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
+﻿<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!-- Notifications Page -->
 
 <div class="notifications-container">
@@ -590,7 +590,7 @@ async function markAsRead(notificationId) {
 
 async function markAllAsRead() {
     try {
-        const response = await fetch('/api/user/notifications/mark-all-read', {
+        const response = await fetch((window.BASE_URL||'')+'/api/user/notifications/mark-all-read', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -635,7 +635,7 @@ async function clearAllNotifications() {
     if (!confirm('Are you sure you want to clear all notifications? This action cannot be undone.')) return;
 
     try {
-        const response = await fetch('/api/user/notifications/clear-all', {
+        const response = await fetch((window.BASE_URL||'')+'/api/user/notifications/clear-all', {
             method: 'DELETE'
         });
 

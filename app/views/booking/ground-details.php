@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Ground Details - GoPlay Sports Platform';
 $additionalCSS = [];
@@ -1921,7 +1921,7 @@ $groundId = $_GET['id'] ?? 1;
             confirmBtn.disabled = true;
 
             try {
-                const response = await fetch('/api/booking/ground', {
+                const response = await fetch((window.BASE_URL||'')+'/api/booking/ground', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

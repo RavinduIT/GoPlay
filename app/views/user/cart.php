@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Shopping Cart - GoPlay Sports Platform';
 $additionalCSS = [];
@@ -689,7 +689,7 @@ $additionalJS = [];
             cartLoading = true;
             showLoading(true);
 
-            const response = await fetch('/api/cart', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -807,7 +807,7 @@ $additionalJS = [];
         if (newQuantity < 1) return;
 
         try {
-            const response = await fetch('/api/cart/update', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/update', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -840,7 +840,7 @@ $additionalJS = [];
         }
 
         try {
-            const response = await fetch('/api/cart/remove', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/remove', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -872,7 +872,7 @@ $additionalJS = [];
         }
 
         try {
-            const response = await fetch('/api/cart/clear', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/clear', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

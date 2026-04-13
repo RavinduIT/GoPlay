@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'clients'; ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -448,7 +448,7 @@ window.showClientDetail = async function (userId) {
     openModal();
 
     try {
-        const res  = await fetch('/api/coach/clients/' + userId);
+        const res  = await fetch((window.BASE_URL||'')+'/api/coach/clients/' + userId);
         const data = await res.json();
         const hist = data.history || [];
 

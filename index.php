@@ -161,8 +161,8 @@ try {
     $router->post('/api/coach-bookings/bundled', 'CoachController@createBundledBooking');
     $router->get('/api/coaches/{id}/facilities/available', 'CoachController@getAvailableFacilitiesForSlot');
     $router->get('/api/coaches/{id}/facilities', 'CoachController@getCoachPublicFacilities');
-    $router->get('/api/coaches', 'CoachController@getCoachesForBooking');
-    $router->get('/api/coaches/{id}', 'CoachController@getCoachDetails');
+    $router->get('/api/coaches', 'CoachController@getPublicCoaches');
+    $router->get('/api/coaches/{id}', 'CoachController@getCoachDetail');
     $router->get('/api/sports-categories', 'CoachController@getSportsCategories');
 
     // Public: coaches at a facility
@@ -284,9 +284,7 @@ try {
     $router->get('/book/{id}', 'BookingController@redirectToGroundDetails');
     $router->get('/book-coach', 'CoachController@book');
 
-    // Public API endpoints for book-coach page
-    $router->get('/api/coaches', 'CoachController@getPublicCoaches');
-    $router->get('/api/sports-categories', 'CoachController@getSportsCategories');
+    // (Coach API routes are registered above at lines 164-166)
 
     // ── Coach Profile (public) ──────────────────────────────────
     $router->get('/coach-profile/{id}', 'CoachController@coachProfilePage');

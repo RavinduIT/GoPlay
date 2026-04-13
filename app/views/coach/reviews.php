@@ -1,4 +1,4 @@
-<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
+﻿<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -262,7 +262,7 @@ async function loadReviews() {
     if (currentSearch) params.set('search', currentSearch);
 
     try {
-        const res  = await fetch('/api/coach/reviews?' + params);
+        const res  = await fetch((window.BASE_URL||'')+'/api/coach/reviews?' + params);
         const data = await res.json();
         if (!data.success) throw new Error(data.message);
 

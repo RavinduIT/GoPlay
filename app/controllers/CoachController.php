@@ -130,6 +130,83 @@ class CoachController extends BaseController
         }
     }
 
+    /**
+     * GET /api/coaches/{id} - Get single coach details
+     */
+    public function getCoachDetail(Request $request, $id = null): Response
+    {
+        try {
+            $id = (int)$id;
+            if (!$id) {
+                return $this->json(['success' => false, 'error' => 'Invalid coach ID'], 400);
+            }
+
+            $coachModel = new Coach();
+            $coach = $coachModel->getWithDetails($id);
+
+            if (!$coach) {
+                return $this->json(['success' => false, 'error' => 'Coach not found'], 404);
+            }
+
+            // Parse specializations
+            $specializations = $coach['specializations'] ?? [];
+            if (is_string($specializations)) {
+                $specializations = json_decode($specializations, true) ?: [];
+            }
+
+            // Get additional data safely
+            $certificates = [];
+            $achievements = [];
+            $reviews = [];
+            $availability = [];
+            $facilities = [];
+
+            try { $certificates = $coachModel->getCertificates($id); } catch (\Exception $e) {}
+            try { $achievements = $coachModel->getAchievements($id); } catch (\Exception $e) {}
+            try { $reviews = $coachModel->getReviews($id); } catch (\Exception $e) {}
+            try { $availability = $coachModel->getWeeklySchedule($id); } catch (\Exception $e) {}
+            try { $facilities = $coachModel->getFacilities($id); } catch (\Exception $e) {}
+
+            $formatted = [
+                'id' => (int)$coach['id'],
+                'name' => trim(($coach['first_name'] ?? '') . ' ' . ($coach['last_name'] ?? '')),
+                'email' => $coach['email'] ?? '',
+                'phone' => $coach['phone'] ?? '',
+                'sport' => $coach['sport_name'] ?? 'General',
+                'sport_icon' => $coach['sport_icon'] ?? '',
+                'location' => $coach['location'] ?? '',
+                'experience_years' => (int)($coach['experience_years'] ?? 0),
+                'experience' => ($coach['experience_years'] ?? 0) . ' years',
+                'age' => $coach['age'] ?? null,
+                'price' => (float)($coach['hourly_rate'] ?? 0),
+                'hourly_rate' => (float)($coach['hourly_rate'] ?? 0),
+                'rating' => round((float)($coach['rating'] ?? 0), 1),
+                'reviews_count' => (int)($coach['total_reviews'] ?? 0),
+                'total_sessions' => (int)($coach['total_sessions'] ?? 0),
+                'bio' => $coach['bio'] ?? '',
+                'specialties' => $specializations,
+                'profile_picture' => $coach['profile_picture'] ?? null,
+                'status' => $coach['status'] ?? 'active',
+                'certificates' => $certificates,
+                'achievements' => $achievements,
+                'reviews' => $reviews,
+                'availability' => $availability,
+                'facilities' => $facilities,
+            ];
+
+            return $this->json([
+                'success' => true,
+                'coach' => $formatted
+            ]);
+        } catch (\Exception $e) {
+            error_log("Coach detail error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'error' => 'Failed to load coach details'
+            ], 500);
+        }
+    }
+
 
 
     /**
