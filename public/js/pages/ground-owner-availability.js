@@ -8,14 +8,14 @@ let originalSchedule  = [];
 const ALL_DAYS    = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const DAY_SHORT   = { Monday:'MON', Tuesday:'TUE', Wednesday:'WED', Thursday:'THU', Friday:'FRI', Saturday:'SAT', Sunday:'SUN' };
 const REASON_META = {
-    maintenance: { label:'Maintenance',   cls:'maintenance', icon:'🔧' },
-    personal:    { label:'Personal Use',  cls:'personal',    icon:'👤' },
-    event:       { label:'Private Event', cls:'event',       icon:'🎉' },
-    weather:     { label:'Weather',       cls:'weather',     icon:'🌧' },
-    other:       { label:'Other',         cls:'other',       icon:'📌' },
+    maintenance: { label:'Maintenance',   cls:'maintenance', icon:'<i class="fas fa-wrench"></i>' },
+    personal:    { label:'Personal Use',  cls:'personal',    icon:'<i class="fas fa-user"></i>' },
+    event:       { label:'Private Event', cls:'event',       icon:'<i class="fas fa-bullhorn"></i>' },
+    weather:     { label:'Weather',       cls:'weather',     icon:'' },
+    other:       { label:'Other',         cls:'other',       icon:'<i class="fas fa-thumbtack"></i>' },
 };
 
-// ── Init ─────────────────────────────────────────────────────────
+//  Init 
 
 document.addEventListener('DOMContentLoaded', () => {
     loadFacilities();
@@ -37,11 +37,11 @@ async function loadAll() {
     await Promise.all([ loadWeeklySchedule(), loadBlockedDates() ]);
 }
 
-// ── Facilities ───────────────────────────────────────────────────
+//  Facilities 
 
 async function loadFacilities() {
     try {
-        const res  = await fetch('/api/ground-owner/facilities');
+        const res  = await fetch((window.BASE_URL||'')+'/api/ground-owner/facilities');
         const data = await res.json();
         const sel  = document.getElementById('groundSelector');
         const list = data.facilities || data.data || data || [];
@@ -62,7 +62,7 @@ async function loadFacilities() {
     }
 }
 
-// ── Tabs ─────────────────────────────────────────────────────────
+//  Tabs 
 
 function switchTab(tab) {
     document.querySelectorAll('.av-tab-btn').forEach(btn =>
@@ -72,13 +72,13 @@ function switchTab(tab) {
     document.getElementById('tab-blocked').style.display = tab === 'blocked' ? 'block' : 'none';
 }
 
-// ── Weekly Schedule ───────────────────────────────────────────────
+//  Weekly Schedule 
 
 async function loadWeeklySchedule() {
     if (!currentFacilityId) return;
     showSkeletonRows('weeklyScheduleTable', 7);
     try {
-        const res  = await fetch(`/api/ground-owner/availability?facility_id=${currentFacilityId}`);
+        const res  = await fetch(`${window.BASE_URL||""}/api/ground-owner/availability?facility_id=${currentFacilityId}`);
         const data = await res.json();
         if (!data.success) throw new Error(data.message);
         originalSchedule = JSON.parse(JSON.stringify(data.schedule));
@@ -203,7 +203,7 @@ async function saveSchedule() {
     });
 
     try {
-        const res  = await fetch('/api/ground-owner/availability', {
+        const res  = await fetch((window.BASE_URL||'')+'/api/ground-owner/availability', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ facility_id: currentFacilityId, schedule })
@@ -224,13 +224,13 @@ async function saveSchedule() {
     }
 }
 
-// ── Blocked Dates ─────────────────────────────────────────────────
+//  Blocked Dates 
 
 async function loadBlockedDates() {
     if (!currentFacilityId) return;
     showSkeletonRows('blockedDatesList', 3);
     try {
-        const res  = await fetch(`/api/ground-owner/blocked-dates?facility_id=${currentFacilityId}`);
+        const res  = await fetch(`${window.BASE_URL||""}/api/ground-owner/blocked-dates?facility_id=${currentFacilityId}`);
         const data = await res.json();
         if (!data.success) throw new Error(data.message);
         renderBlockedCards(data.blocked_dates || []);
@@ -319,7 +319,7 @@ function buildBlockSection(title, blocks, isPast) {
     return html;
 }
 
-// ── Add Block Modal ───────────────────────────────────────────────
+//  Add Block Modal 
 
 function openBlockModal() {
     const today = new Date().toISOString().split('T')[0];
@@ -359,7 +359,7 @@ async function submitBlock() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
 
     try {
-        const res  = await fetch('/api/ground-owner/blocked-dates', {
+        const res  = await fetch((window.BASE_URL||'')+'/api/ground-owner/blocked-dates', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -391,7 +391,7 @@ async function submitBlock() {
 async function removeBlock(blockId) {
     if (!confirm('Remove this blocked date?')) return;
     try {
-        const res  = await fetch(`/api/ground-owner/blocked-dates/${blockId}`, { method: 'DELETE' });
+        const res  = await fetch(`${window.BASE_URL||""}/api/ground-owner/blocked-dates/${blockId}`, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) {
             showToast('Blocked date removed', 'success');
@@ -404,7 +404,7 @@ async function removeBlock(blockId) {
     }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────
+//  Helpers 
 
 function updateStatCards(schedule, blocks) {
     if (schedule) {

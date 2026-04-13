@@ -13,7 +13,7 @@ let facilitiesMap;
         // Load components
         function loadComponents() {
             // Load navbar
-            fetch('/app/views/components/navbar.php')
+            fetch((window.BASE_URL||'')+'/app/views/components/navbar.php')
                 .then(res => res.text())
                 .then(data => {
                     document.getElementById('navbar-container').innerHTML = data;
@@ -23,7 +23,7 @@ let facilitiesMap;
                 });
 
             // Load footer
-            fetch('/app/views/components/footer.php/footer.html')
+            fetch((window.BASE_URL||'')+'/app/views/components/footer.php/footer.html')
                 .then(res => res.text())
                 .then(data => {
                     document.getElementById('footer-container').innerHTML = data;

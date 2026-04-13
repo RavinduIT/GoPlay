@@ -1,4 +1,5 @@
-<?php $currentPage = 'sessions'; ?>
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'sessions'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Training Sessions - GoPlay</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/coach/sidebar.css">
-    <link rel="stylesheet" href="/public/css/pages/coach-sessions.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/coach/sidebar.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/coach-sessions.css">
 </head>
 <body>
     <div class="coach-dashboard">
@@ -24,7 +25,7 @@
                         <i class="fas fa-download"></i>
                         Export
                     </button>
-                    <a href="/coach/book-session" class="btn btn-primary">
+                    <a href="<?= $_base ?>/coach/book-session" class="btn btn-primary">
                         <i class="fas fa-calendar-plus"></i>
                         Book New Session
                     </a>
@@ -286,9 +287,9 @@
         </div>
     </div>
 
-    <script src="/public/js/pages/coach-sessions.js"></script>
+    <script src="<?= $_base ?>/public/js/pages/coach-sessions.js"></script>
 <script>
-/* ── Real-data loader for coach sessions page ── */
+/*  Real-data loader for coach sessions page  */
 (function () {
     let allSessions = [];
 
@@ -368,7 +369,7 @@
 
     async function loadSessions() {
         try {
-            const res  = await fetch('/api/coach/bookings');
+            const res  = await fetch((window.BASE_URL||'')+'/api/coach/bookings');
             const data = await res.json();
             if (!data.success) throw new Error(data.error || 'Failed');
             allSessions = data.bookings || [];
@@ -388,7 +389,7 @@
 
     window.completeSession = async function (id) {
         if (!confirm('Mark this session as completed?')) return;
-        const res  = await fetch(`/api/coach/bookings/${id}/complete`, { method: 'PUT' });
+        const res  = await fetch(`${window.BASE_URL||""}/api/coach/bookings/${id}/complete`, { method: 'PUT' });
         const data = await res.json();
         if (data.success) loadSessions();
         else alert(data.error || 'Failed');
@@ -396,7 +397,7 @@
 
     window.cancelSession = async function (id) {
         if (!confirm('Cancel this session?')) return;
-        const res  = await fetch(`/api/coach/bookings/${id}/cancel`, { method: 'PUT' });
+        const res  = await fetch(`${window.BASE_URL||""}/api/coach/bookings/${id}/cancel`, { method: 'PUT' });
         const data = await res.json();
         if (data.success) loadSessions();
         else alert(data.error || 'Failed');
@@ -413,7 +414,7 @@ Status: ${s.status}
 Amount: LKR ${parseFloat(s.total_amount || 0).toLocaleString()}`);
     };
 
-    // ── Filter listeners ──────────────────────────────────────
+    //  Filter listeners 
     ['statusFilter','typeFilter','dateFilter'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('change', applyFilters);
@@ -429,7 +430,7 @@ Amount: LKR ${parseFloat(s.total_amount || 0).toLocaleString()}`);
         applyFilters();
     });
 
-    // ── View switcher ─────────────────────────────────────────
+    //  View switcher 
     document.querySelectorAll('.view-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
@@ -442,7 +443,7 @@ Amount: LKR ${parseFloat(s.total_amount || 0).toLocaleString()}`);
         });
     });
 
-    // ── Calendar nav ──────────────────────────────────────────
+    //  Calendar nav 
     let calendarDate = new Date();
     let selectedDayEl = null;
 
@@ -455,7 +456,7 @@ Amount: LKR ${parseFloat(s.total_amount || 0).toLocaleString()}`);
         renderCalendar();
     });
 
-    // ── Calendar renderer ─────────────────────────────────────
+    //  Calendar renderer 
     function renderCalendar() {
         const year  = calendarDate.getFullYear();
         const month = calendarDate.getMonth();
@@ -580,7 +581,7 @@ Amount: LKR ${parseFloat(s.total_amount || 0).toLocaleString()}`);
         panel.style.display = 'block';
     };
 
-    // ── Timeline renderer ─────────────────────────────────────
+    //  Timeline renderer 
     function renderTimeline() {
         const tl = document.getElementById('sessionsTimeline');
 

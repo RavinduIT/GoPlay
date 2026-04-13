@@ -1,4 +1,5 @@
-<?php 
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Ground Details - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
@@ -730,7 +731,7 @@ $groundId = $_GET['id'] ?? 1;
             border: 1px solid #ffeaa7;
         }
 
-        /* ── Slot Grid ── */
+        /*  Slot Grid  */
         .slot-grid-section {
             display: flex;
             flex-direction: column;
@@ -962,9 +963,9 @@ $groundId = $_GET['id'] ?? 1;
     <div class="breadcrumb">
         <div class="container">
             <nav class="breadcrumb-nav">
-                <a href="/">Home</a>
+                <a href="<?= $_base ?>/">Home</a>
                 <i class="fas fa-chevron-right"></i>
-                <a href="/book-ground">Book Ground</a>
+                <a href="<?= $_base ?>/book-ground">Book Ground</a>
                 <i class="fas fa-chevron-right"></i>
                 <span class="current" id="breadcrumb-current">Ground Details</span>
             </nav>
@@ -973,7 +974,7 @@ $groundId = $_GET['id'] ?? 1;
 
     <!-- Back Button -->
     <div class="container">
-        <a href="/book-ground" class="back-button">
+        <a href="<?= $_base ?>/book-ground" class="back-button">
             <i class="fas fa-arrow-left"></i>
             Back to Search
         </a>
@@ -990,7 +991,7 @@ $groundId = $_GET['id'] ?? 1;
         <div class="error-container">
             <h2 class="error-title">Ground Not Found</h2>
             <p class="error-message">The requested ground could not be found.</p>
-            <a href="/book-ground" class="book-button" style="width: auto;">
+            <a href="<?= $_base ?>/book-ground" class="book-button" style="width: auto;">
                 <i class="fas fa-search"></i>
                 Browse All Grounds
             </a>
@@ -1307,7 +1308,7 @@ $groundId = $_GET['id'] ?? 1;
                 console.log('Loading ground with ID:', groundId);
                 
                 // Fetch ground details from database API
-                const response = await fetch(`/api/ground/${groundId}`, {
+                const response = await fetch(`${window.BASE_URL||""}/api/ground/${groundId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1542,7 +1543,7 @@ $groundId = $_GET['id'] ?? 1;
         // Load coaches linked to this facility
         async function loadFacilityCoaches(facilityId) {
             try {
-                const r = await fetch(`/api/facility/${facilityId}/coaches`);
+                const r = await fetch(`${window.BASE_URL||""}/api/facility/${facilityId}/coaches`);
                 const d = await r.json();
                 if (!d.success || !d.coaches || !d.coaches.length) return;
 
@@ -1551,7 +1552,7 @@ $groundId = $_GET['id'] ?? 1;
                 section.style.display = '';
 
                 list.innerHTML = d.coaches.map(c => `
-                    <a href="/coach-profile/${c.coach_id}" style="display:block;text-decoration:none;color:inherit;margin-bottom:12px;">
+                    <a href="<?= $_base ?>/coach-profile/${c.coach_id}" style="display:block;text-decoration:none;color:inherit;margin-bottom:12px;">
                         <div class="coach-mini-card">
                             <img src="${c.profile_picture || '/public/assets/images/default-avatar.png'}"
                                  alt="${c.first_name} ${c.last_name}"
@@ -1630,9 +1631,9 @@ $groundId = $_GET['id'] ?? 1;
             if (availabilityCheckTimeout) clearTimeout(availabilityCheckTimeout);
         }
 
-        /* ═══════════════════════════════
+        /* 
            SLOT GRID
-        ═══════════════════════════════ */
+         */
 
         function fmt12(hhmm) {
             const [h, m] = hhmm.split(':').map(Number);
@@ -1662,7 +1663,7 @@ $groundId = $_GET['id'] ?? 1;
             inner.innerHTML = '<div class="slot-grid-loading"><i class="fas fa-spinner fa-spin"></i> Loading slots…</div>';
 
             try {
-                const r = await fetch(`/api/facility/${facilityId}/slots?date=${date}`);
+                const r = await fetch(`${window.BASE_URL||""}/api/facility/${facilityId}/slots?date=${date}`);
                 const d = await r.json();
                 if (!d.success) throw new Error(d.error || 'Failed');
                 slotData = d.slots || [];
@@ -1864,7 +1865,7 @@ $groundId = $_GET['id'] ?? 1;
             confirmBtn.disabled = true;
 
             try {
-                const response = await fetch(`/api/booking/availability?facility_id=${facilityId}&date=${date}&start_time=${startTime}&end_time=${endTime}`);
+                const response = await fetch(`${window.BASE_URL||""}/api/booking/availability?facility_id=${facilityId}&date=${date}&start_time=${startTime}&end_time=${endTime}`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -1936,7 +1937,7 @@ $groundId = $_GET['id'] ?? 1;
 
                     // Optionally redirect to bookings page
                     if (confirm('Would you like to view your bookings?')) {
-                        window.location.href = '/my-bookings';
+                        window.location.href=(window.BASE_URL||'')+'/my-bookings';
                     }
                 } else {
                     throw new Error(data.message || 'Booking failed');

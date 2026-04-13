@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 // Determine the active page based on current URL
 $currentPath = $_SERVER['REQUEST_URI'] ?? '';
 $activePage = '';
@@ -13,6 +14,8 @@ if (strpos($currentPath, '/shop-owner/dashboard') !== false) {
     $activePage = 'inventory';
 } elseif (strpos($currentPath, '/shop-owner/reviews') !== false) {
     $activePage = 'reviews';
+} elseif (strpos($currentPath, '/shop-owner/earnings') !== false) {
+    $activePage = 'earnings';
 } elseif (strpos($currentPath, '/shop-owner/profile') !== false) {
     $activePage = 'profile';
 }
@@ -31,44 +34,50 @@ if (strpos($currentPath, '/shop-owner/dashboard') !== false) {
     <nav class="sidebar-nav">
         <ul>
             <li class="<?php echo $activePage === 'dashboard' ? 'active' : ''; ?>">
-                <a href="/shop-owner/dashboard">
+                <a href="<?= $_base ?>/shop-owner/dashboard">
                     <i class="fas fa-home"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="<?php echo $activePage === 'products' ? 'active' : ''; ?>">
-                <a href="/shop-owner/products">
+                <a href="<?= $_base ?>/shop-owner/products">
                     <i class="fas fa-box"></i>
                     <span>Products</span>
                 </a>
             </li>
             <li class="<?php echo $activePage === 'orders' ? 'active' : ''; ?>">
-                <a href="/shop-owner/orders">
+                <a href="<?= $_base ?>/shop-owner/orders">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Orders</span>
                 </a>
             </li>
             <li class="<?php echo $activePage === 'inventory' ? 'active' : ''; ?>">
-                <a href="/shop-owner/inventory">
+                <a href="<?= $_base ?>/shop-owner/inventory">
                     <i class="fas fa-warehouse"></i>
                     <span>Inventory</span>
                 </a>
             </li>
             <li class="<?php echo $activePage === 'reviews' ? 'active' : ''; ?>">
-                <a href="/shop-owner/reviews">
+                <a href="<?= $_base ?>/shop-owner/reviews">
                     <i class="fas fa-star"></i>
                     <span>Reviews</span>
                 </a>
             </li>
+            <li class="<?php echo $activePage === 'earnings' ? 'active' : ''; ?>">
+                <a href="<?= $_base ?>/shop-owner/earnings">
+                    <i class="fas fa-wallet"></i>
+                    <span>Earnings & Payouts</span>
+                </a>
+            </li>
             <li class="nav-divider"></li>
             <li class="<?php echo $activePage === 'profile' ? 'active' : ''; ?>">
-                <a href="/shop-owner/profile">
+                <a href="<?= $_base ?>/shop-owner/profile">
                     <i class="fas fa-user"></i>
                     <span>Profile</span>
                 </a>
             </li>
             <li>
-                <a href="/logout" class="logout-link">
+                <a href="<?= $_base ?>/logout" class="logout-link">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
@@ -78,4 +87,4 @@ if (strpos($currentPath, '/shop-owner/dashboard') !== false) {
 </aside>
 
 <!-- Sidebar JavaScript -->
-<script src="/public/js/shop-owner-sidebar.js"></script>
+<script src="<?= $_base ?>/public/js/shop-owner-sidebar.js"></script>

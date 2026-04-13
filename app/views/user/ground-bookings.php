@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'My Bookings - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
@@ -671,7 +672,7 @@ $additionalJS = [];
                     <i class="fas fa-calendar-times"></i>
                     <h3>No ground bookings yet</h3>
                     <p>You haven't booked any sports grounds yet</p>
-                    <a href="/book-ground" class="btn btn-primary">
+                    <a href="<?= $_base ?>/book-ground" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Book Your First Ground
                     </a>
                 </div>
@@ -688,7 +689,7 @@ $additionalJS = [];
                     <i class="fas fa-calendar-times"></i>
                     <h3>No coach sessions yet</h3>
                     <p>You haven't booked any coaching sessions yet</p>
-                    <a href="/book-coach" class="btn btn-primary">
+                    <a href="<?= $_base ?>/book-coach" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Book Your First Session
                     </a>
                 </div>
@@ -766,9 +767,9 @@ $additionalJS = [];
 
         async loadGroundBookings() {
             try {
-                const response = await fetch('/api/user/ground-bookings');
+                const response = await fetch((window.BASE_URL||'')+'/api/user/ground-bookings');
                 if (response.status === 401) {
-                    window.location.href = '/login';
+                    window.location.href=(window.BASE_URL||'')+'/login';
                     return;
                 }
                 const data = await response.json();
@@ -782,9 +783,9 @@ $additionalJS = [];
 
         async loadCoachBookings() {
             try {
-                const response = await fetch('/api/my-coach-bookings');
+                const response = await fetch((window.BASE_URL||'')+'/api/my-coach-bookings');
                 if (response.status === 401) {
-                    window.location.href = '/login';
+                    window.location.href=(window.BASE_URL||'')+'/login';
                     return;
                 }
                 const data = await response.json();
@@ -1050,7 +1051,7 @@ $additionalJS = [];
                 console.log('Sending update request:', requestData);
                 console.log('Request URL:', `/api/user/ground-bookings/${bookingId}`);
 
-                const response = await fetch(`/api/user/ground-bookings/${bookingId}`, {
+                const response = await fetch(`${window.BASE_URL||""}/api/user/ground-bookings/${bookingId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1070,24 +1071,24 @@ $additionalJS = [];
                     console.log('Parsed response data:', data);
                 } catch (parseError) {
                     console.error('JSON parse error:', parseError);
-                    alert('❌ Server returned invalid response. Check console.');
+                    alert('<i class="fas fa-times"></i> Server returned invalid response. Check console.');
                     return;
                 }
 
                 if (data.success) {
-                    alert('✅ Booking updated successfully!');
+                    alert('<i class="fas fa-check"></i> Booking updated successfully!');
                     this.closeEditModal();
                     await this.loadGroundBookings();
                     this.updateStats();
                     this.renderGroundBookings();
                 } else {
-                    alert('❌ Error: ' + data.message);
+                    alert('<i class="fas fa-times"></i> Error: ' + data.message);
                     console.error('Server error:', data);
                 }
             } catch (error) {
                 console.error('Error updating booking:', error);
                 console.error('Error stack:', error.stack);
-                alert('❌ Failed to update booking. Error: ' + error.message);
+                alert('<i class="fas fa-times"></i> Failed to update booking. Error: ' + error.message);
             }
         }
 
@@ -1095,7 +1096,7 @@ $additionalJS = [];
             if (!confirm('Are you sure you want to cancel this booking?')) return;
 
             try {
-                const response = await fetch(`/api/user/ground-bookings/${bookingId}/cancel`, {
+                const response = await fetch(`${window.BASE_URL||""}/api/user/ground-bookings/${bookingId}/cancel`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ reason: 'Cancelled by user' })
@@ -1120,7 +1121,7 @@ $additionalJS = [];
             if (!confirm('Are you sure you want to cancel this coaching session?')) return;
 
             try {
-                const response = await fetch(`/api/coach-bookings/${bookingId}/cancel`, {
+                const response = await fetch(`${window.BASE_URL||""}/api/coach-bookings/${bookingId}/cancel`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -1144,7 +1145,7 @@ $additionalJS = [];
             const booking = this.groundBookings.find(b => b.id === bookingId);
             if (!booking) return;
 
-            alert(`Ground Booking Details\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nFacility: ${booking.facility_name}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nDuration: ${booking.duration_hours} hours\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
+            alert(`Ground Booking Details\n\n\nFacility: ${booking.facility_name}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nDuration: ${booking.duration_hours} hours\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
         }
 
         viewCoachDetails(bookingId) {
@@ -1152,7 +1153,7 @@ $additionalJS = [];
             if (!booking) return;
 
             const coachName = `${booking.coach_first_name} ${booking.coach_last_name}`;
-            alert(`Coach Session Details\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCoach: ${coachName}\nSport: ${booking.sport_name || 'General'}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nType: ${booking.session_type}\nFee: LKR ${parseFloat(booking.total_amount).toLocaleString()}\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
+            alert(`Coach Session Details\n\n\nCoach: ${coachName}\nSport: ${booking.sport_name || 'General'}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nType: ${booking.session_type}\nFee: LKR ${parseFloat(booking.total_amount).toLocaleString()}\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
         }
     }
 

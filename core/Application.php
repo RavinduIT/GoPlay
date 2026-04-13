@@ -61,8 +61,10 @@ class Application
         http_response_code(500);
 
         // Check if this is an API request
-        $isApiRequest = strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/provider-applications') !== false ||
-                       (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        $isApiRequest = (strpos($uri, '/api/') !== false) ||
+                       (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) ||
+                       (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
 
         if ($isApiRequest) {
             header('Content-Type: application/json');

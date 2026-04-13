@@ -139,9 +139,9 @@ include __DIR__ . '/layout-head.php';
     </main>
 </div>
 
-<!-- ══════════════════════════════════════
+<!-- 
      MODAL: Add / Edit Task
-════════════════════════════════════════ -->
+ -->
 <div id="mtTaskModal" class="mt-modal-backdrop" style="display:none">
     <div class="mt-modal mt-modal-lg">
         <div class="mt-modal-header">
@@ -254,9 +254,9 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
-<!-- ══════════════════════════════════════
+<!-- 
      MODAL: Task Details
-════════════════════════════════════════ -->
+ -->
 <div id="mtDetailModal" class="mt-modal-backdrop" style="display:none">
     <div class="mt-modal mt-modal-lg">
         <div class="mt-modal-header">
@@ -314,9 +314,9 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
-<!-- ══════════════════════════════════════
+<!-- 
      MODAL: Schedule Inspection
-════════════════════════════════════════ -->
+ -->
 <div id="mtInspectionModal" class="mt-modal-backdrop" style="display:none">
     <div class="mt-modal">
         <div class="mt-modal-header">

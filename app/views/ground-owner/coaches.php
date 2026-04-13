@@ -1,18 +1,19 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Coaches - GoPlay';
 $additionalCSS = ['/public/css/pages/ground-owner-dashboard.css'];
 $additionalJS  = [];
 include __DIR__ . '/layout-head.php';
 ?>
 <style>
-/* ── Page variables ── */
+/*  Page variables  */
 :root {
     --co-pending:  #f59e0b;
     --co-approved: #10b981;
     --co-rejected: #ef4444;
 }
 
-/* ── Stat cards ── */
+/*  Stat cards  */
 .co-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -36,13 +37,13 @@ include __DIR__ . '/layout-head.php';
 .co-stat-num { font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1; }
 .co-stat-lbl { font-size: .8rem; color: #64748b; margin-top: 4px; font-weight: 500; }
 
-/* ── Panel card ── */
+/*  Panel card  */
 .co-panel-card {
     background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
     box-shadow: 0 1px 3px rgba(0,0,0,.07); overflow: hidden;
 }
 
-/* ── Tab bar ── */
+/*  Tab bar  */
 .co-tabs {
     display: flex; padding: 6px; background: #f8fafc;
     border-bottom: 1px solid #e2e8f0;
@@ -63,11 +64,11 @@ include __DIR__ . '/layout-head.php';
 .co-tab-count.a-c  { background: #d1fae5; color: #065f46; }
 .co-tab-count.r-c  { background: #fee2e2; color: #991b1b; }
 
-/* ── Tab panels ── */
+/*  Tab panels  */
 .co-panel { display: none; }
 .co-panel.active { display: block; }
 
-/* ── Toolbar ── */
+/*  Toolbar  */
 .co-toolbar {
     padding: 14px 20px; border-bottom: 1px solid #f1f5f9;
     display: flex; align-items: center; gap: 12px;
@@ -83,7 +84,7 @@ include __DIR__ . '/layout-head.php';
 .co-search input::placeholder { color: #94a3b8; }
 .co-count-lbl { font-size: .8rem; color: #94a3b8; white-space: nowrap; }
 
-/* ── Coach list ── */
+/*  Coach list  */
 .co-list { padding: 12px 20px 20px; display: flex; flex-direction: column; gap: 10px; }
 
 .co-card {
@@ -137,7 +138,7 @@ include __DIR__ . '/layout-head.php';
 .co-act-reject  { background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
 .co-act-remove  { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
-/* ── Empty ── */
+/*  Empty  */
 .co-empty { padding: 52px 24px; text-align: center; color: #94a3b8; }
 .co-empty-icon {
     width: 64px; height: 64px; border-radius: 50%;
@@ -148,7 +149,7 @@ include __DIR__ . '/layout-head.php';
 .co-empty h4 { font-size: .95rem; color: #475569; font-weight: 600; margin-bottom: 6px; }
 .co-empty p  { font-size: .82rem; }
 
-/* ── Skeleton ── */
+/*  Skeleton  */
 .co-skeleton { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
 .co-skel-card {
     border-radius: 12px; border: 1px solid #f1f5f9; padding: 18px 20px;
@@ -162,9 +163,9 @@ include __DIR__ . '/layout-head.php';
 .skel-circle { border-radius: 50%; width: 52px; height: 52px; }
 @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-/* ════════════════════════════════════════
+/* 
    DETAIL DRAWER (right side-panel)
-   ════════════════════════════════════════ */
+    */
 .co-drawer-overlay {
     position: fixed; inset: 0; background: rgba(15,23,42,.4);
     z-index: 8000; opacity: 0; pointer-events: none; transition: opacity .25s;
@@ -199,7 +200,7 @@ include __DIR__ . '/layout-head.php';
 /* drawer body — scrollable */
 .co-drawer-body { flex: 1; overflow-y: auto; padding: 0 0 24px; }
 
-/* ─ Profile banner ─ */
+/*  Profile banner  */
 .co-profile-banner {
     padding: 28px 24px 20px;
     display: flex; gap: 20px; align-items: flex-start;
@@ -218,7 +219,7 @@ include __DIR__ . '/layout-head.php';
 .co-profile-name { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
 .co-profile-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 
-/* ─ Quick stats ─ */
+/*  Quick stats  */
 .co-quick-stats {
     display: grid; grid-template-columns: repeat(4, 1fr);
     gap: 1px; background: #f1f5f9;
@@ -231,7 +232,7 @@ include __DIR__ . '/layout-head.php';
 .co-qs-lbl { font-size: .72rem; color: #94a3b8; margin-top: 4px; font-weight: 500; }
 .co-qs-stars { color: #f59e0b; font-size: .7rem; margin-top: 2px; }
 
-/* ─ Sections ─ */
+/*  Sections  */
 .co-section { padding: 20px 24px; border-bottom: 1px solid #f8fafc; }
 .co-section:last-child { border-bottom: none; }
 .co-section-title {
@@ -250,7 +251,7 @@ include __DIR__ . '/layout-head.php';
 }
 .co-contact-row i { width: 16px; color: #94a3b8; text-align: center; }
 
-/* ─ Credentials ─ */
+/*  Credentials  */
 .co-cred-item {
     display: flex; gap: 12px; align-items: flex-start; padding: 10px 0;
     border-bottom: 1px solid #f8fafc;
@@ -268,7 +269,7 @@ include __DIR__ . '/layout-head.php';
 .co-cred-date  { font-size: .75rem; color: #94a3b8; margin-top: 3px; }
 .co-no-cred    { font-size: .82rem; color: #94a3b8; padding: 8px 0; }
 
-/* ─ Facility info ─ */
+/*  Facility info  */
 .co-fac-info {
     display: flex; align-items: center; gap: 10px; padding: 10px 14px;
     background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;
@@ -276,7 +277,7 @@ include __DIR__ . '/layout-head.php';
 .co-fac-info i { color: #3b82f6; font-size: .95rem; }
 .co-fac-info span { font-size: .875rem; color: #1e293b; font-weight: 500; }
 
-/* ── drawer footer (action bar) ── */
+/*  drawer footer (action bar)  */
 .co-drawer-footer {
     border-top: 1px solid #e2e8f0; padding: 16px 24px;
     display: flex; gap: 10px; flex-shrink: 0;
@@ -306,7 +307,7 @@ include __DIR__ . '/layout-head.php';
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Confirm modal ── */
+/*  Confirm modal  */
 .co-overlay {
     position: fixed; inset: 0; background: rgba(15,23,42,.5);
     display: flex; align-items: center; justify-content: center;
@@ -345,7 +346,7 @@ include __DIR__ . '/layout-head.php';
 .co-modal-confirm.reject  { background: #ef4444; }
 .co-modal-confirm.remove  { background: #64748b; }
 
-/* ── Toast ── */
+/*  Toast  */
 .co-toast {
     position: fixed; bottom: 28px; right: 28px; z-index: 9999;
     display: flex; align-items: center; gap: 10px;
@@ -359,7 +360,7 @@ include __DIR__ . '/layout-head.php';
 .co-toast.error   { background: #ef4444; }
 .co-toast.info    { background: #3b82f6; }
 
-/* ── Responsive ── */
+/*  Responsive  */
 @media (max-width: 900px) { .co-stats { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 640px) {
     .co-stats { grid-template-columns: 1fr; }
@@ -468,7 +469,7 @@ include __DIR__ . '/layout-head.php';
     </main>
 </div>
 
-<!-- ════════ DETAIL DRAWER ════════ -->
+<!--  DETAIL DRAWER  -->
 <div class="co-drawer-overlay" id="drawerOverlay">
     <div class="co-drawer" id="coDrawer">
 
@@ -490,7 +491,7 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
-<!-- ════════ CONFIRM MODAL ════════ -->
+<!--  CONFIRM MODAL  -->
 <div class="co-overlay" id="coOverlay">
     <div class="co-modal">
         <div class="co-modal-icon" id="modalIcon"></div>
@@ -503,7 +504,7 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
-<!-- ════════ TOAST ════════ -->
+<!--  TOAST  -->
 <div class="co-toast" id="coToast">
     <i id="toastIcon"></i>
     <span id="toastMsg"></span>
@@ -527,11 +528,11 @@ function skeletonCards(int $n): string {
 (function () {
     'use strict';
 
-    /* ─── state ─── */
+    /*  state  */
     const state = { pending: [], approved: [], rejected: [] };
     let currentLinkId = null;
 
-    /* ─── helpers ─── */
+    /*  helpers  */
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -565,7 +566,7 @@ function skeletonCards(int $n): string {
         return s;
     }
 
-    /* ─── toast ─── */
+    /*  toast  */
     let toastTimer;
     function toast(msg, type = 'success') {
         const el = document.getElementById('coToast');
@@ -578,7 +579,7 @@ function skeletonCards(int $n): string {
         toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
     }
 
-    /* ─── confirm modal ─── */
+    /*  confirm modal  */
     let pendingAction = null;
     function openModal({ icon, iconClass, title, body, confirmLabel, confirmClass, onConfirm }) {
         document.getElementById('modalIcon').innerHTML = `<i class="fas ${icon}"></i>`;
@@ -604,10 +605,10 @@ function skeletonCards(int $n): string {
         if (e.target === e.currentTarget) closeModal();
     });
 
-    /* ─── load list ─── */
+    /*  load list  */
     async function load() {
         try {
-            const r = await fetch('/api/ground-owner/coaches');
+            const r = await fetch((window.BASE_URL||'')+'/api/ground-owner/coaches');
             const d = await r.json();
             if (!d.success) throw new Error(d.message);
             state.pending  = d.pending  || [];
@@ -621,7 +622,7 @@ function skeletonCards(int $n): string {
         }
     }
 
-    /* ─── render list ─── */
+    /*  render list  */
     function render() {
         const pc = state.pending.length, ac = state.approved.length, rc = state.rejected.length;
         setText('coPendingCount',  pc);
@@ -704,7 +705,7 @@ function skeletonCards(int $n): string {
         </div>`;
     }
 
-    /* ─── search ─── */
+    /*  search  */
     window.filterList = function(status, query) {
         const q = query.toLowerCase();
         let visible = 0;
@@ -718,9 +719,9 @@ function skeletonCards(int $n): string {
                     status === 'pending' ? 'request' : 'coach');
     };
 
-    /* ════════════════════════════════
+    /* 
        DETAIL DRAWER
-    ════════════════════════════════ */
+     */
     window.openDrawer = async function(linkId, name) {
         currentLinkId = linkId;
         document.getElementById('drawerTitle').textContent = name;
@@ -733,7 +734,7 @@ function skeletonCards(int $n): string {
         document.body.style.overflow = 'hidden';
 
         try {
-            const r = await fetch(`/api/ground-owner/coaches/${linkId}`);
+            const r = await fetch(`${window.BASE_URL||""}/api/ground-owner/coaches/${linkId}`);
             const d = await r.json();
             if (!d.success) throw new Error(d.message);
             renderDrawer(d.coach);
@@ -766,12 +767,12 @@ function skeletonCards(int $n): string {
         }</span>`;
         const sport = c.sport_name ? `<span class="co-chip sport"><i class="fas fa-futbol"></i>${esc(c.sport_name)}</span>` : '';
 
-        /* ── Quick stats ── */
+        /*  Quick stats  */
         const ratingVal  = c.rating ? Number(c.rating).toFixed(1) : '—';
         const starsHtml  = c.rating ? `<div class="co-qs-stars">${stars(c.rating)}</div>` : '';
         const sessions   = c.completed_sessions ?? c.total_sessions ?? 0;
 
-        /* ── Bio ── */
+        /*  Bio  */
         const bio = c.bio
             ? `<div class="co-section">
                    <div class="co-section-title">About</div>
@@ -779,7 +780,7 @@ function skeletonCards(int $n): string {
                </div>`
             : '';
 
-        /* ── Specializations ── */
+        /*  Specializations  */
         let specHtml = '';
         if (c.specializations) {
             const tags = c.specializations.split(',').map(s => s.trim()).filter(Boolean);
@@ -791,7 +792,7 @@ function skeletonCards(int $n): string {
             }
         }
 
-        /* ── Contact ── */
+        /*  Contact  */
         const contactRows = [
             c.email    ? `<div class="co-contact-row"><i class="fas fa-envelope"></i><span>${esc(c.email)}</span></div>` : '',
             c.phone    ? `<div class="co-contact-row"><i class="fas fa-phone"></i><span>${esc(c.phone)}</span></div>` : '',
@@ -801,13 +802,13 @@ function skeletonCards(int $n): string {
             <div class="co-section-title">Contact</div>${contactRows}
         </div>` : '';
 
-        /* ── Facility ── */
+        /*  Facility  */
         const fac = c.facility_name ? `<div class="co-section">
             <div class="co-section-title">Linked Facility</div>
             <div class="co-fac-info"><i class="fas fa-map-marker-alt"></i><span>${esc(c.facility_name)}</span></div>
         </div>` : '';
 
-        /* ── Certificates ── */
+        /*  Certificates  */
         const certs = c.certificates && c.certificates.length
             ? c.certificates.map(cert => `
                 <div class="co-cred-item">
@@ -820,7 +821,7 @@ function skeletonCards(int $n): string {
                 </div>`).join('')
             : '<div class="co-no-cred">No certificates listed.</div>';
 
-        /* ── Achievements ── */
+        /*  Achievements  */
         const achs = c.achievements && c.achievements.length
             ? c.achievements.map(a => `
                 <div class="co-cred-item">
@@ -912,7 +913,7 @@ function skeletonCards(int $n): string {
         return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     }
 
-    /* ─── actions ─── */
+    /*  actions  */
     window.doApprove = function(linkId, name) {
         openModal({
             icon: 'fa-user-check', iconClass: 'approve', title: 'Approve Coach',
@@ -920,7 +921,7 @@ function skeletonCards(int $n): string {
             confirmLabel: 'Approve', confirmClass: 'approve',
             onConfirm: async () => {
                 try {
-                    const d = await (await fetch(`/api/ground-owner/coaches/${linkId}/approve`, { method: 'PUT' })).json();
+                    const d = await (await fetch(`${window.BASE_URL||""}/api/ground-owner/coaches/${linkId}/approve`, { method: 'PUT' })).json();
                     if (!d.success) throw new Error(d.message);
                     toast(`${name} approved!`);
                     closeDrawer();
@@ -937,7 +938,7 @@ function skeletonCards(int $n): string {
             confirmLabel: 'Reject', confirmClass: 'reject',
             onConfirm: async () => {
                 try {
-                    const d = await (await fetch(`/api/ground-owner/coaches/${linkId}/reject`, { method: 'PUT' })).json();
+                    const d = await (await fetch(`${window.BASE_URL||""}/api/ground-owner/coaches/${linkId}/reject`, { method: 'PUT' })).json();
                     if (!d.success) throw new Error(d.message);
                     toast(`${name} rejected.`, 'info');
                     closeDrawer();
@@ -954,7 +955,7 @@ function skeletonCards(int $n): string {
             confirmLabel: 'Remove', confirmClass: 'remove',
             onConfirm: async () => {
                 try {
-                    const d = await (await fetch(`/api/ground-owner/coaches/${linkId}`, { method: 'DELETE' })).json();
+                    const d = await (await fetch(`${window.BASE_URL||""}/api/ground-owner/coaches/${linkId}`, { method: 'DELETE' })).json();
                     if (!d.success) throw new Error(d.message);
                     toast(`${name} removed.`, 'info');
                     closeDrawer();
@@ -969,7 +970,7 @@ function skeletonCards(int $n): string {
     window.rejectCoach  = window.doReject;
     window.removeCoach  = window.doRemove;
 
-    /* ─── tabs ─── */
+    /*  tabs  */
     document.querySelectorAll('.co-tab').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.co-tab').forEach(b => b.classList.remove('active'));

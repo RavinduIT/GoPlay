@@ -51,6 +51,10 @@ abstract class BaseController
     
     protected function redirect(string $url): Response
     {
+        // Prepend BASE_URL for relative paths (not for absolute URLs)
+        if (defined('BASE_URL') && strpos($url, 'http') !== 0 && strpos($url, BASE_URL) !== 0) {
+            $url = BASE_URL . '/' . ltrim($url, '/');
+        }
         $response = new Response('', 302);
         $response->setHeader('Location', $url);
         return $response;

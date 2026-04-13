@@ -1,14 +1,14 @@
-/* ═══════════════════════════════════════════════════════════
+/* 
    Ground Owner – My Grounds JS  (IIFE, gr- prefix)
-═══════════════════════════════════════════════════════════ */
+ */
 (function () {
 'use strict';
 
-/* ── state ───────────────────────────────────────────── */
+/*  state  */
 let allGrounds     = [];
 let deleteTargetId = null;
 
-/* ── toast ───────────────────────────────────────────── */
+/*  toast  */
 function toast(msg, type = 'info') {
     let wrap = document.getElementById('grToastWrap');
     if (!wrap) {
@@ -26,7 +26,7 @@ function toast(msg, type = 'info') {
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 320); }, 3500);
 }
 
-/* ── modal helpers ───────────────────────────────────── */
+/*  modal helpers  */
 function openModal(id, bd) {
     document.getElementById(bd).classList.add('open');
     document.getElementById(id).classList.add('open');
@@ -39,16 +39,17 @@ function closeModal(id, bd) {
     document.body.style.overflow = '';
 }
 
-/* ── sport → photo path ──────────────────────────────── */
+/*  sport → photo path  */
+const _base = window.BASE_URL || '';
 const GROUND_IMAGES = {
-    football:   '/public/assets/images/grounds/football-ground.jpg',
-    soccer:     '/public/assets/images/grounds/football-ground.jpg',
-    cricket:    '/public/assets/images/grounds/cricket-ground.jpg',
-    tennis:     '/public/assets/images/grounds/tennis-court.jpg',
-    basketball: '/public/assets/images/grounds/basketball-court.jpg',
-    swimming:   '/public/assets/images/grounds/swimming-pool.jpg',
-    badminton:  '/public/assets/images/grounds/badminton-court.jpg',
-    volleyball: '/public/assets/images/grounds/volleyball-court.jpg',
+    football:   _base + '/public/assets/images/grounds/football-ground.jpg',
+    soccer:     _base + '/public/assets/images/grounds/football-ground.jpg',
+    cricket:    _base + '/public/assets/images/grounds/cricket-ground.jpg',
+    tennis:     _base + '/public/assets/images/grounds/tennis-court.jpg',
+    basketball: _base + '/public/assets/images/grounds/basketball-court.jpg',
+    swimming:   _base + '/public/assets/images/grounds/swimming-pool.jpg',
+    badminton:  _base + '/public/assets/images/grounds/badminton-court.jpg',
+    volleyball: _base + '/public/assets/images/grounds/volleyball-court.jpg',
 };
 
 function groundImage(cat) {
@@ -59,7 +60,7 @@ function groundImage(cat) {
     return null; // fall back to gradient
 }
 
-/* ── sport → cover class (fallback when no photo) ───── */
+/*  sport → cover class (fallback when no photo)  */
 function coverClass(cat) {
     const n = (cat || '').toLowerCase();
     if (n.includes('football') || n.includes('soccer')) return 'gr-cover-football';
@@ -72,7 +73,7 @@ function coverClass(cat) {
     return 'gr-cover-default';
 }
 
-/* ── amenity lookup ──────────────────────────────────── */
+/*  amenity lookup  */
 const amenityLabels = {
     floodlights:       'Floodlights',
     changing_rooms:    'Changing Rooms',
@@ -96,10 +97,10 @@ function getAmenities(g) {
     return [];
 }
 
-/* ── load sports categories ──────────────────────────── */
+/*  load sports categories  */
 async function loadCategories() {
     try {
-        const res  = await fetch('/api/ground-owner/categories');
+        const res  = await fetch((window.BASE_URL||'')+'/api/ground-owner/categories');
         const data = await res.json();
         const formSel   = document.getElementById('grCategory');
         const filterSel = document.getElementById('filterSport');
@@ -113,14 +114,14 @@ async function loadCategories() {
     } catch (e) { console.error('Category load error:', e); }
 }
 
-/* ── load all grounds ────────────────────────────────── */
+/*  load all grounds  */
 async function loadGrounds() {
     document.getElementById('grLoading').style.display = 'block';
     document.getElementById('grGrid').style.display    = 'none';
     document.getElementById('grEmpty').style.display   = 'none';
 
     try {
-        const res  = await fetch('/api/ground-owner/grounds');
+        const res  = await fetch((window.BASE_URL||'')+'/api/ground-owner/grounds');
         const data = await res.json();
         if (!data.success) throw new Error(data.message || 'Load failed');
         allGrounds = data.grounds || [];
@@ -133,7 +134,7 @@ async function loadGrounds() {
     }
 }
 
-/* ── update stat cards ───────────────────────────────── */
+/*  update stat cards  */
 function updateStats() {
     document.getElementById('statTotal').textContent       = allGrounds.length;
     document.getElementById('statActive').textContent      = allGrounds.filter(g => g.status === 'active').length;
@@ -141,7 +142,7 @@ function updateStats() {
     document.getElementById('statInactive').textContent    = allGrounds.filter(g => g.status === 'inactive').length;
 }
 
-/* ── filter & render ─────────────────────────────────── */
+/*  filter & render  */
 function applyFilters() {
     const search = document.getElementById('filterSearch').value.trim().toLowerCase();
     const sport  = document.getElementById('filterSport').value;
@@ -158,7 +159,7 @@ function applyFilters() {
     renderGrid(list);
 }
 
-/* ── render card grid ────────────────────────────────── */
+/*  render card grid  */
 function renderGrid(list) {
     const loading = document.getElementById('grLoading');
     const empty   = document.getElementById('grEmpty');
@@ -219,7 +220,7 @@ function renderGrid(list) {
                 <button class="gr-act gr-act-edit" onclick="editGround(${g.id})">
                     <i class="fas fa-edit"></i> Edit
                 </button>
-                <button class="gr-act gr-act-view" onclick="window.open('/ground-details?id=${g.id}','_blank')">
+                <button class="gr-act gr-act-view" onclick="window.open((window.BASE_URL||'')+'/ground-details?id=${g.id}','_blank')">
                     <i class="fas fa-eye"></i> View
                 </button>
                 <button class="gr-act gr-act-delete" title="Remove" onclick="openDeleteModal(${g.id},'${safeName}')">
@@ -230,7 +231,7 @@ function renderGrid(list) {
     }).join('');
 }
 
-/* ── open add modal ──────────────────────────────────── */
+/*  open add modal  */
 function openAddModal() {
     document.getElementById('grForm').reset();
     document.getElementById('grId').value = '';
@@ -242,10 +243,10 @@ function openAddModal() {
     openModal('grModal', 'grBackdrop');
 }
 
-/* ── edit ground ─────────────────────────────────────── */
+/*  edit ground  */
 window.editGround = async function (id) {
     try {
-        const res  = await fetch(`/api/ground-owner/grounds/${id}`);
+        const res  = await fetch(`${window.BASE_URL||""}/api/ground-owner/grounds/${id}`);
         const data = await res.json();
         if (!data.success) { toast('Failed to load ground details', 'error'); return; }
 
@@ -276,7 +277,7 @@ window.editGround = async function (id) {
     }
 };
 
-/* ── amenity toggle reset ────────────────────────────── */
+/*  amenity toggle reset  */
 function resetAmenities(checked) {
     document.querySelectorAll('.gr-amenity-item').forEach(el => {
         const val = el.querySelector('input').value;
@@ -284,7 +285,7 @@ function resetAmenities(checked) {
     });
 }
 
-/* ── save form ───────────────────────────────────────── */
+/*  save form  */
 document.getElementById('grSaveBtn').addEventListener('click', async () => {
     const id       = document.getElementById('grId').value;
     const name     = document.getElementById('grName').value.trim();
@@ -324,7 +325,7 @@ document.getElementById('grSaveBtn').addEventListener('click', async () => {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
 
     try {
-        const url    = id ? `/api/ground-owner/grounds/${id}` : '/api/ground-owner/grounds';
+        const url    = id ? `${window.BASE_URL||''}/api/ground-owner/grounds/${id}` : (window.BASE_URL||'')+'/api/ground-owner/grounds';
         const method = id ? 'PUT' : 'POST';
         const res    = await fetch(url, {
             method,
@@ -350,7 +351,7 @@ document.getElementById('grSaveBtn').addEventListener('click', async () => {
     }
 });
 
-/* ── delete flow ─────────────────────────────────────── */
+/*  delete flow  */
 window.openDeleteModal = function (id, name) {
     deleteTargetId = id;
     document.getElementById('grDelName').textContent = name;
@@ -364,7 +365,7 @@ document.getElementById('grDelConfirm').addEventListener('click', async () => {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing…';
 
     try {
-        const res  = await fetch(`/api/ground-owner/grounds/${deleteTargetId}`, { method: 'DELETE' });
+        const res  = await fetch(`${window.BASE_URL||""}/api/ground-owner/grounds/${deleteTargetId}`, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) {
             toast('Ground removed successfully', 'success');
@@ -382,17 +383,17 @@ document.getElementById('grDelConfirm').addEventListener('click', async () => {
     }
 });
 
-/* ── amenity click toggle ────────────────────────────── */
+/*  amenity click toggle  */
 document.querySelectorAll('.gr-amenity-item').forEach(el => {
     el.addEventListener('click', () => el.classList.toggle('checked'));
 });
 
-/* ── sidebar toggle ──────────────────────────────────── */
+/*  sidebar toggle  */
 window.toggleSidebar = function () {
     document.getElementById('dashboardSidebar')?.classList.toggle('collapsed');
 };
 
-/* ── wire up events ──────────────────────────────────── */
+/*  wire up events  */
 document.getElementById('addGroundBtn').addEventListener('click', openAddModal);
 document.getElementById('addGroundBtnEmpty').addEventListener('click', openAddModal);
 
@@ -408,7 +409,7 @@ document.getElementById('filterSearch').addEventListener('input',  applyFilters)
 document.getElementById('filterSport').addEventListener('change',  applyFilters);
 document.getElementById('filterStatus').addEventListener('change', applyFilters);
 
-/* ── init ────────────────────────────────────────────── */
+/*  init  */
 loadCategories();
 loadGrounds();
 

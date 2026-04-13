@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 /**
  * Admin Payments & Earnings Page
  * Displays platform earnings, service fees, and withdrawal management
@@ -11,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payments & Earnings - Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-dashboard.css">
    <style>
         * {
             margin: 0;
@@ -881,7 +882,7 @@
         // Load overview statistics
         async function loadOverviewStats() {
             try {
-                const response = await fetch('/api/admin/payments/overview');
+                const response = await fetch((window.BASE_URL||'')+'/api/admin/payments/overview');
                 const result = await response.json();
 
                 if (result.success) {
@@ -1027,7 +1028,7 @@
             dateFrom.setDate(dateFrom.getDate() - days);
 
             try {
-                const response = await fetch(`/api/admin/payments/breakdown?date_from=${dateFrom.toISOString().split('T')[0]}`);
+                const response = await fetch(`${window.BASE_URL||""}/api/admin/payments/breakdown?date_from=${dateFrom.toISOString().split('T')[0]}`);
                 const result = await response.json();
 
                 if (result.success) {
@@ -1160,7 +1161,7 @@
             if (!confirm('Are you sure you want to cancel this withdrawal request?')) return;
 
             try {
-                const response = await fetch(`/api/admin/payments/withdrawal/${id}/cancel`, {
+                const response = await fetch(`${window.BASE_URL||""}/api/admin/payments/withdrawal/${id}/cancel`, {
                     method: 'PUT'
                 });
 

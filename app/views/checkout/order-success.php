@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Order Successful | GoPlay';
 $additionalCSS = ['/public/css/pages/order-success.css'];
 
@@ -25,7 +26,7 @@ if (empty($orderNumber)) {
 
             <!-- Success Message -->
             <div class="success-message">
-                <h1>🎉 Order Placed Successfully!</h1>
+                <h1><i class="fas fa-bullhorn"></i> Order Placed Successfully!</h1>
                 <p>Thank you for your purchase. Your order has been confirmed.</p>
             </div>
 
@@ -126,10 +127,10 @@ if (empty($orderNumber)) {
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <a href="/orders" class="btn btn-secondary">
+                <a href="<?= $_base ?>/orders" class="btn btn-secondary">
                     <i class="fas fa-list"></i> View My Orders
                 </a>
-                <a href="/shop" class="btn btn-primary">
+                <a href="<?= $_base ?>/shop" class="btn btn-primary">
                     <i class="fas fa-shopping-bag"></i> Continue Shopping
                 </a>
             </div>
@@ -139,7 +140,7 @@ if (empty($orderNumber)) {
                 <p>
                     <i class="fas fa-question-circle"></i>
                     Need help with your order? 
-                    <a href="/contact">Contact our support team</a>
+                    <a href="<?= $_base ?>/contact">Contact our support team</a>
                 </p>
             </div>
         </div>

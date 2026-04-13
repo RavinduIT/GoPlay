@@ -1,3 +1,4 @@
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!-- Profile Page Content - Uses main.php layout -->
 
 <div class="profile-container">
@@ -10,7 +11,7 @@
                         <img src="<?= htmlspecialchars($user['profile_picture'] ?? '/public/assets/images/default-avatar.png') ?>" 
                              alt="Profile Picture" 
                              id="profile-avatar"
-                             onerror="this.src='/public/assets/images/default-avatar.png'">
+                             onerror="this.src='<?= $_base ?>/public/assets/images/default-avatar.png'">
                         <button class="avatar-upload-btn" onclick="document.getElementById('avatar-input').click()" title="Change Profile Picture">
                             <i class="fas fa-camera"></i>
                         </button>
@@ -181,31 +182,31 @@
                 </div>
                 <div class="section-content">
                     <div class="quick-actions">
-                        <a href="/book-ground" class="action-btn" title="Book a sports ground">
+                        <a href="<?= $_base ?>/book-ground" class="action-btn" title="Book a sports ground">
                             <i class="fas fa-map-marker-alt"></i>
                             <span>Book Ground</span>
                         </a>
-                        <a href="/book-coach" class="action-btn" title="Book a sports coach">
+                        <a href="<?= $_base ?>/book-coach" class="action-btn" title="Book a sports coach">
                             <i class="fas fa-user-tie"></i>
                             <span>Book Coach</span>
                         </a>
-                        <a href="/shop" class="action-btn" title="Shop sports equipment">
+                        <a href="<?= $_base ?>/shop" class="action-btn" title="Shop sports equipment">
                             <i class="fas fa-shopping-bag"></i>
                             <span>Shop Equipment</span>
                         </a>
-                        <a href="/my-bookings" class="action-btn" title="View your bookings">
+                        <a href="<?= $_base ?>/my-bookings" class="action-btn" title="View your bookings">
                             <i class="fas fa-calendar-alt"></i>
                             <span>My Bookings</span>
                         </a>
-                        <a href="/my-orders" class="action-btn" title="View your orders">
+                        <a href="<?= $_base ?>/my-orders" class="action-btn" title="View your orders">
                             <i class="fas fa-receipt"></i>
                             <span>My Orders</span>
                         </a>
-                        <a href="/cart" class="action-btn" title="View shopping cart">
+                        <a href="<?= $_base ?>/cart" class="action-btn" title="View shopping cart">
                             <i class="fas fa-shopping-cart"></i>
                             <span>Shopping Cart</span>
                         </a>
-                        <a href="/news" class="action-btn" title="Read sports news">
+                        <a href="<?= $_base ?>/news" class="action-btn" title="Read sports news">
                             <i class="fas fa-newspaper"></i>
                             <span>Sports News</span>
                         </a>
@@ -251,4 +252,4 @@
 </div>
 
 <!-- Profile-specific JavaScript -->
-<script src="/public/js/pages/user-profile.js"></script>
+<script src="<?= $_base ?>/public/js/pages/user-profile.js"></script>

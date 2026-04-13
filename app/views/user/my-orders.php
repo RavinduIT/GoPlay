@@ -1,11 +1,12 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'My Orders - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
 ?>
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<link rel="stylesheet" href="/public/css/pages/my-orders.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/my-orders.css">
 
 <div class="orders-page">
     <div class="page-container">
@@ -101,7 +102,7 @@ $additionalJS = [];
                 <i class="fas fa-shopping-bag"></i>
                 <h3>No orders yet</h3>
                 <p>You haven't placed any orders yet</p>
-                <a href="/shop" class="btn btn-primary">
+                <a href="<?= $_base ?>/shop" class="btn btn-primary">
                     <i class="fas fa-store"></i> Start Shopping
                 </a>
             </div>
@@ -157,4 +158,4 @@ $additionalJS = [];
 <!-- Toast Notification -->
 <div id="toast" class="toast"></div>
 
-<script src="/public/js/pages/my-orders.js"></script>
+<script src="<?= $_base ?>/public/js/pages/my-orders.js"></script>

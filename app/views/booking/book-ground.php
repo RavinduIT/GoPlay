@@ -1,4 +1,5 @@
-<?php 
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Book Ground - GoPlay Sports Platform';
 $additionalCSS = ['/public/css/pages/book-ground.css'];
 $additionalJS = ['/public/js/pages/book-ground.js'];
@@ -792,7 +793,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                             <span class="stat-label">Booking</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">5★</span>
+                            <span class="stat-number">5</span>
                             <span class="stat-label">Rated</span>
                         </div>
                     </div>
@@ -1056,4 +1057,4 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
 
     
 
-<script src="/public/js/pages/book-ground.js"></script>
+<script src="<?= $_base ?>/public/js/pages/book-ground.js"></script>

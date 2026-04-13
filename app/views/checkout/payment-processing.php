@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Processing Payment | GoPlay';
 $additionalCSS = ['/public/css/pages/checkout.css'];
 $additionalJS = [];
@@ -47,7 +48,7 @@ if (!$contactDetails) {
                 </div>
 
                 <div class="form-actions">
-                    <a href="/checkout/payment-method" class="btn btn-secondary">
+                    <a href="<?= $_base ?>/checkout/payment-method" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Back
                     </a>
                     <button type="button" class="btn btn-primary btn-large" id="payNowBtn" onclick="initiatePayment()">
@@ -99,7 +100,7 @@ if (!$contactDetails) {
 // Load cart totals and display order summary
 async function loadOrderSummary() {
     try {
-        const response = await fetch('/api/cart');
+        const response = await fetch((window.BASE_URL||'')+'/api/cart');
         const data = await response.json();
         
         if (data.success && data.data) {

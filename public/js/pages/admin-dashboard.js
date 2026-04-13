@@ -44,7 +44,7 @@ function toggleSidebar() {
  */
 async function loadDashboardStats() {
     try {
-        const response = await fetch('/admin/api/stats');
+        const response = await fetch((window.BASE_URL||'')+'/admin/api/stats');
         const data = await response.json();
         
         if (data.success && data.stats) {
@@ -144,7 +144,7 @@ function animateValue(element, newValue) {
  */
 async function loadRevenueChart(period = '7') {
     try {
-        const response = await fetch(`/admin/api/revenue-chart?period=${period}`);
+        const response = await fetch(`${window.BASE_URL||""}/admin/api/revenue-chart?period=${period}`);
         const result = await response.json();
         
         if (result.success && result.data) {
@@ -292,7 +292,7 @@ function drawRevenueChart(data) {
  */
 async function loadRecentRegistrations() {
     try {
-        const response = await fetch('/admin/api/recent-registrations?limit=5');
+        const response = await fetch((window.BASE_URL||'')+'/admin/api/recent-registrations?limit=5');
         const result = await response.json();
         
         if (result.success && result.data) {
@@ -329,7 +329,7 @@ function displayRecentRegistrations(registrations) {
  */
 async function loadRecentContent() {
     try {
-        const response = await fetch('/admin/api/recent-content?limit=5');
+        const response = await fetch((window.BASE_URL||'')+'/admin/api/recent-content?limit=5');
         const result = await response.json();
         
         if (result.success && result.data) {
@@ -366,7 +366,7 @@ function displayRecentContent(content) {
  */
 async function loadNotifications() {
     try {
-        const response = await fetch('/admin/api/notifications');
+        const response = await fetch((window.BASE_URL||'')+'/admin/api/notifications');
         const result = await response.json();
         
         if (result.success) {
@@ -394,7 +394,7 @@ function updateNotificationBadge(count) {
  */
 async function loadAdminProfile() {
     try {
-        const response = await fetch('/admin/api/profile');
+        const response = await fetch((window.BASE_URL||'')+'/admin/api/profile');
         const result = await response.json();
         
         if (result.success && result.profile) {

@@ -1,10 +1,10 @@
-/* ═══════════════════════════════════════════════════════════
+/* 
    Ground Owner Earnings – JS
-═══════════════════════════════════════════════════════════ */
+ */
 (function () {
 'use strict';
 
-/* ── helpers ─────────────────────────────────────────── */
+/*  helpers  */
 function lkr(n) {
     return 'LKR ' + (parseFloat(n) || 0).toLocaleString('en-LK', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
@@ -19,13 +19,13 @@ function cap(s) {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-/* ── state ───────────────────────────────────────────── */
+/*  state  */
 let allTx     = [];
 let filtered  = [];
 let page      = 1;
 const PER_PAGE = 12;
 
-/* ── toast ───────────────────────────────────────────── */
+/*  toast  */
 function toast(msg, type = 'info') {
     let wrap = document.getElementById('goToastWrap');
     if (!wrap) {
@@ -46,7 +46,7 @@ function toast(msg, type = 'info') {
     }, 3500);
 }
 
-/* ── date filter helper ──────────────────────────────── */
+/*  date filter helper  */
 function inRange(dateStr, range) {
     if (range === 'all' || !dateStr) return true;
     const d   = new Date(dateStr);
@@ -72,10 +72,10 @@ function inRange(dateStr, range) {
     return true;
 }
 
-/* ── load stats ─────────────────────────────────────── */
+/*  load stats  */
 async function loadStats() {
     try {
-        const res = await fetch('/api/ground-owner/earnings');
+        const res = await fetch((window.BASE_URL||'')+'/api/ground-owner/earnings');
         if (!res.ok) return;
         const data = await res.json();
         const ov = data.overview || {};
@@ -95,10 +95,10 @@ async function loadStats() {
     }
 }
 
-/* ── load transactions ───────────────────────────────── */
+/*  load transactions  */
 async function loadTransactions() {
     try {
-        const res = await fetch('/api/ground-owner/earnings/transactions?limit=200');
+        const res = await fetch((window.BASE_URL||'')+'/api/ground-owner/earnings/transactions?limit=200');
         if (!res.ok) return;
         const data = await res.json();
         allTx = data.transactions || [];
@@ -111,7 +111,7 @@ async function loadTransactions() {
     }
 }
 
-/* ── populate ground filter dropdown ─────────────────── */
+/*  populate ground filter dropdown  */
 function populateGroundFilter() {
     const sel  = document.getElementById('filterGround');
     const seen = new Set();
@@ -126,7 +126,7 @@ function populateGroundFilter() {
     });
 }
 
-/* ── apply filters & sort ────────────────────────────── */
+/*  apply filters & sort  */
 function applyFilters() {
     const dateRange = document.getElementById('filterDate').value;
     const ground    = document.getElementById('filterGround').value;
@@ -152,7 +152,7 @@ function applyFilters() {
     renderTable();
 }
 
-/* ── render table ─────────────────────────────────────── */
+/*  render table  */
 function renderTable() {
     const loading   = document.getElementById('tableLoading');
     const container = document.getElementById('tableContainer');
@@ -224,7 +224,7 @@ function renderTable() {
     }
 }
 
-/* ── detail modal ────────────────────────────────────── */
+/*  detail modal  */
 window.viewDetail = function (tx) {
     if (typeof tx === 'string') {
         try { tx = JSON.parse(tx); } catch(e) { return; }
@@ -248,7 +248,7 @@ window.viewDetail = function (tx) {
     openModal('detailModal', 'detailBackdrop');
 };
 
-/* ── walk-in modal ───────────────────────────────────── */
+/*  walk-in modal  */
 async function openWalkInModal() {
     openModal('walkInModal', 'walkInBackdrop');
     document.getElementById('wiDate').value = new Date().toISOString().split('T')[0];
@@ -256,7 +256,7 @@ async function openWalkInModal() {
     const sel = document.getElementById('wiGround');
     if (sel.options.length <= 1) {
         try {
-            const res  = await fetch('/api/ground-owner/grounds');
+            const res  = await fetch((window.BASE_URL||'')+'/api/ground-owner/grounds');
             const data = await res.json();
             (data.grounds || []).forEach(g => {
                 const opt = document.createElement('option');
@@ -283,7 +283,7 @@ document.getElementById('walkInForm').addEventListener('submit', async (e) => {
     };
 
     try {
-        const res  = await fetch('/api/ground-owner/earnings/walk-in', {
+        const res  = await fetch((window.BASE_URL||'')+'/api/ground-owner/earnings/walk-in', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -307,7 +307,7 @@ document.getElementById('walkInForm').addEventListener('submit', async (e) => {
     }
 });
 
-/* ── export CSV ──────────────────────────────────────── */
+/*  export CSV  */
 document.getElementById('exportBtn').addEventListener('click', () => {
     if (!filtered.length) { toast('No transactions to export', 'error'); return; }
 
@@ -339,7 +339,7 @@ document.getElementById('exportBtn').addEventListener('click', () => {
     toast('Export downloaded', 'success');
 });
 
-/* ── modal helpers ───────────────────────────────────── */
+/*  modal helpers  */
 function openModal(modalId, backdropId) {
     document.getElementById(backdropId).classList.add('open');
     document.getElementById(modalId).classList.add('open');
@@ -360,12 +360,12 @@ document.getElementById('closeWalkIn').addEventListener('click',   () => closeMo
 document.getElementById('cancelWalkIn').addEventListener('click',  () => closeModal('walkInModal',  'walkInBackdrop'));
 document.getElementById('walkInBackdrop').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal('walkInModal', 'walkInBackdrop'); });
 
-/* ── sidebar toggle ──────────────────────────────────── */
+/*  sidebar toggle  */
 window.toggleSidebar = function () {
     document.getElementById('dashboardSidebar')?.classList.toggle('collapsed');
 };
 
-/* ── filter events ───────────────────────────────────── */
+/*  filter events  */
 document.getElementById('applyFilters').addEventListener('click', applyFilters);
 document.getElementById('sortBy').addEventListener('change', applyFilters);
 document.getElementById('prevPage').addEventListener('click', () => { if (page > 1) { page--; renderTable(); } });
@@ -374,7 +374,7 @@ document.getElementById('nextPage').addEventListener('click', () => {
     if (page < total) { page++; renderTable(); }
 });
 
-/* ── init ────────────────────────────────────────────── */
+/*  init  */
 loadStats();
 loadTransactions();
 

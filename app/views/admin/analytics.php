@@ -1,5 +1,6 @@
-<link rel="stylesheet" href="/public/css/pages/admin-analytics.css">
-<link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-analytics.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-dashboard.css">
 <div class="admin-dashboard">
     <?php include __DIR__ . '/../components/admin-sidebar.php'; ?>
 
@@ -135,7 +136,7 @@
                 <div class="chart-card">
                     <div class="card-header">
                         <h3><i class="fas fa-trophy"></i> Top Selling Products</h3>
-                        <a href="/admin/products" class="view-all">View All</a>
+                        <a href="<?= $_base ?>/admin/products" class="view-all">View All</a>
                     </div>
                     <div class="table-container">
                         <table class="data-table" id="topProductsTable">
@@ -215,4 +216,4 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="/public/js/pages/admin-analytics.js"></script>
+<script src="<?= $_base ?>/public/js/pages/admin-analytics.js"></script>
