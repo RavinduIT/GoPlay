@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Checkout - Payment Method | GoPlay';
 $additionalCSS = ['/public/css/pages/checkout.css'];
 $additionalJS = ['/public/js/pages/checkout.js'];
@@ -126,13 +127,13 @@ if (!$contactDetails) {
                                     </span>
                                 </div>
                             </div>
-                            <a href="/checkout/contact-details" class="btn-edit">
+                            <a href="<?= $_base ?>/checkout/contact-details" class="btn-edit">
                                 <i class="fas fa-edit"></i> Edit Details
                             </a>
                         </div>
 
                         <div class="form-actions">
-                            <a href="/checkout/contact-details" class="btn btn-secondary">
+                            <a href="<?= $_base ?>/checkout/contact-details" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Back
                             </a>
                             <button id="placeOrderBtn" class="btn btn-primary" disabled>

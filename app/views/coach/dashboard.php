@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Coach Dashboard – GoPlay';
 $additionalCSS = [
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
@@ -8,7 +9,7 @@ $additionalCSS = [
 ];
 ?>
 <style>
-/* ── Coach Dashboard Layout inside main.php ─────────────── */
+/*  Coach Dashboard Layout inside main.php  */
 #main-content { padding: 0 !important; }
 
 .coach-dashboard {
@@ -17,7 +18,7 @@ $additionalCSS = [
     background: #f8fafc;
 }
 
-/* ── Page Header ─────────────────────────────────────────── */
+/*  Page Header  */
 .cd-header {
     background: #fff;
     padding: 18px 32px;
@@ -47,7 +48,7 @@ $additionalCSS = [
 .coach-header-name  { font-size: .92rem; font-weight: 600; color: #1e293b; line-height: 1.2; }
 .coach-header-sport { font-size: .78rem; color: #64748b; }
 
-/* ── Main content wrapper ────────────────────────────────── */
+/*  Main content wrapper  */
 .cd-main {
     flex: 1;
     margin-left: 280px; /* sidebar width */
@@ -56,7 +57,7 @@ $additionalCSS = [
 }
 .dashboard-sidebar.collapsed ~ .cd-main { margin-left: 70px; }
 
-/* ── Stats ───────────────────────────────────────────────── */
+/*  Stats  */
 .stats-section { padding: 24px 28px 0; }
 .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; }
 .stat-card {
@@ -80,7 +81,7 @@ $additionalCSS = [
 .stat-lbl   { font-size: .75rem; font-weight: 600; color: #64748b; margin: 4px 0; text-transform: uppercase; letter-spacing: .4px; }
 .stat-sub   { font-size: .76rem; color: #94a3b8; }
 
-/* ── Dashboard Grid ──────────────────────────────────────── */
+/*  Dashboard Grid  */
 .dash-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -102,7 +103,7 @@ $additionalCSS = [
 .card-body { padding: 0 20px 20px; }
 .span-full  { grid-column: 1 / -1; }
 
-/* ── Today schedule ──────────────────────────────────────── */
+/*  Today schedule  */
 .sched-list { display: flex; flex-direction: column; gap: 10px; }
 .sched-item {
     display: flex; align-items: center; gap: 12px; padding: 12px 14px;
@@ -135,7 +136,7 @@ $additionalCSS = [
 .pill-pending   { background:#fef3c7; color:#92400e; }
 .pill-cancelled { background:#f1f5f9; color:#64748b; }
 
-/* ── Upcoming ────────────────────────────────────────────── */
+/*  Upcoming  */
 .upcoming-list { display:flex; flex-direction:column; }
 .up-item { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #f1f5f9; }
 .up-item:last-child { border-bottom:none; padding-bottom:0; }
@@ -152,7 +153,7 @@ $additionalCSS = [
 .up-right { text-align:right; flex-shrink:0; }
 .up-right .amt { font-size:.87rem; font-weight:700; color:#10b981; display:block; }
 
-/* ── Clients grid ────────────────────────────────────────── */
+/*  Clients grid  */
 .clients-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .client-card {
     display:flex; align-items:center; gap:10px; padding:12px;
@@ -173,7 +174,7 @@ $additionalCSS = [
 .dot-active   { background:#10b981; }
 .dot-inactive { background:#94a3b8; }
 
-/* ── Quick actions ───────────────────────────────────────── */
+/*  Quick actions  */
 .qa-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .qa-btn {
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -187,7 +188,7 @@ $additionalCSS = [
 }
 .qa-btn i { font-size:1.2rem; color:#3b82f6; }
 
-/* ── Reviews ─────────────────────────────────────────────── */
+/*  Reviews  */
 .reviews-list { display:flex; flex-direction:column; gap:12px; }
 .review-card { display:flex; gap:12px; padding:14px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0; }
 .rev-avatar {
@@ -233,7 +234,7 @@ $additionalCSS = [
 
     <div class="cd-main">
 
-        <!-- ── Page Header ─────────────────────────────── -->
+        <!--  Page Header  -->
         <div class="cd-header">
             <div class="cd-header-left">
                 <button class="sidebar-toggle" id="sidebarToggle">
@@ -253,7 +254,7 @@ $additionalCSS = [
             </div>
         </div>
 
-        <!-- ── Stats ──────────────────────────────────── -->
+        <!--  Stats  -->
         <div class="stats-section">
             <div class="stats-row">
                 <div class="stat-card">
@@ -291,14 +292,14 @@ $additionalCSS = [
             </div>
         </div>
 
-        <!-- ── Dashboard Grid ─────────────────────────── -->
+        <!--  Dashboard Grid  -->
         <div class="dash-grid">
 
             <!-- Today's Schedule -->
             <div class="dash-card">
                 <div class="card-hd">
                     <h3><i class="fas fa-clock"></i> Today's Schedule</h3>
-                    <a href="/coach/sessions" class="card-link">View All</a>
+                    <a href="<?= $_base ?>/coach/sessions" class="card-link">View All</a>
                 </div>
                 <div class="card-body">
                     <div id="todayList">
@@ -313,7 +314,7 @@ $additionalCSS = [
             <div class="dash-card">
                 <div class="card-hd">
                     <h3><i class="fas fa-calendar-week"></i> Upcoming Sessions</h3>
-                    <a href="/coach/sessions" class="card-link">View All</a>
+                    <a href="<?= $_base ?>/coach/sessions" class="card-link">View All</a>
                 </div>
                 <div class="card-body">
                     <div id="upcomingList" class="upcoming-list">
@@ -328,7 +329,7 @@ $additionalCSS = [
             <div class="dash-card">
                 <div class="card-hd">
                     <h3><i class="fas fa-users"></i> Recent Clients</h3>
-                    <a href="/coach/clients" class="card-link">View All</a>
+                    <a href="<?= $_base ?>/coach/clients" class="card-link">View All</a>
                 </div>
                 <div class="card-body">
                     <div id="clientsList" class="clients-grid">
@@ -347,10 +348,10 @@ $additionalCSS = [
                 </div>
                 <div class="card-body">
                     <div class="qa-grid">
-                        <a href="/coach/availability" class="qa-btn"><i class="fas fa-clock"></i>Availability</a>
-                        <a href="/coach/sessions"     class="qa-btn"><i class="fas fa-dumbbell"></i>Sessions</a>
-                        <a href="/coach/clients"      class="qa-btn"><i class="fas fa-users"></i>My Clients</a>
-                        <a href="/coach/reviews"      class="qa-btn"><i class="fas fa-star"></i>Reviews</a>
+                        <a href="<?= $_base ?>/coach/availability" class="qa-btn"><i class="fas fa-clock"></i>Availability</a>
+                        <a href="<?= $_base ?>/coach/sessions"     class="qa-btn"><i class="fas fa-dumbbell"></i>Sessions</a>
+                        <a href="<?= $_base ?>/coach/clients"      class="qa-btn"><i class="fas fa-users"></i>My Clients</a>
+                        <a href="<?= $_base ?>/coach/reviews"      class="qa-btn"><i class="fas fa-star"></i>Reviews</a>
                     </div>
                 </div>
             </div>
@@ -359,7 +360,7 @@ $additionalCSS = [
             <div class="dash-card span-full">
                 <div class="card-hd">
                     <h3><i class="fas fa-star"></i> Recent Reviews</h3>
-                    <a href="/coach/reviews" class="card-link">View All</a>
+                    <a href="<?= $_base ?>/coach/reviews" class="card-link">View All</a>
                 </div>
                 <div class="card-body">
                     <div id="reviewsList" class="reviews-list">
@@ -373,9 +374,9 @@ $additionalCSS = [
 </div><!-- /coach-dashboard -->
 
 <script>
-// ══════════════════════════════════════════════════════════════
+// 
 //  Helpers
-// ══════════════════════════════════════════════════════════════
+// 
 function fmtTime(t) {
     if (!t) return '';
     const [h, m] = t.split(':').map(Number);
@@ -404,9 +405,9 @@ function stars(n) {
     ).join('');
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Init
-// ══════════════════════════════════════════════════════════════
+// 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('headerDate').textContent =
         new Date().toLocaleDateString('en-US', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
@@ -420,16 +421,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAll();
 });
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Load all data in parallel
-// ══════════════════════════════════════════════════════════════
+// 
 async function loadAll() {
     try {
         const [schedRes, profileRes, clientsRes, reviewsRes] = await Promise.all([
-            fetch('/api/coach/schedule'),
-            fetch('/api/coach/profile'),
-            fetch('/api/coach/clients'),
-            fetch('/api/coach/reviews?limit=5&sort=newest'),
+            fetch((window.BASE_URL||'')+'/api/coach/schedule'),
+            fetch((window.BASE_URL||'')+'/api/coach/profile'),
+            fetch((window.BASE_URL||'')+'/api/coach/clients'),
+            fetch((window.BASE_URL||'')+'/api/coach/reviews?limit=5&sort=newest'),
         ]);
 
         const sched      = await schedRes.json();
@@ -447,9 +448,9 @@ async function loadAll() {
     }
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Profile header
-// ══════════════════════════════════════════════════════════════
+// 
 function renderProfile(p) {
     const fullName = p.fullName || ((p.first_name || '') + ' ' + (p.last_name || '')).trim();
     document.getElementById('headerName').textContent  = fullName || 'Coach';
@@ -463,13 +464,13 @@ function renderProfile(p) {
     }
 
     const rating = parseFloat(p.stats && p.stats.rating ? p.stats.rating : 0);
-    document.getElementById('statRating').textContent  = rating > 0 ? rating.toFixed(1) + ' ★' : '—';
+    document.getElementById('statRating').textContent  = rating > 0 ? rating.toFixed(1) + ' ' : '—';
     document.getElementById('statReviews').textContent = ((p.stats && p.stats.reviews) || 0) + ' total reviews';
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Stats
-// ══════════════════════════════════════════════════════════════
+// 
 function renderStats(stats, today, upcoming) {
     const s         = stats || {};
     const monthEarn = parseFloat(s.monthly_earnings || 0);
@@ -486,9 +487,9 @@ function renderStats(stats, today, upcoming) {
     renderUpcoming(upcoming || []);
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Today's schedule
-// ══════════════════════════════════════════════════════════════
+// 
 function renderToday(sessions) {
     const el = document.getElementById('todayList');
     if (!sessions.length) {
@@ -516,9 +517,9 @@ function renderToday(sessions) {
     }).join('')}</div>`;
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Upcoming sessions (top 5)
-// ══════════════════════════════════════════════════════════════
+// 
 function renderUpcoming(sessions) {
     const el   = document.getElementById('upcomingList');
     const top5 = sessions.slice(0, 5);
@@ -549,9 +550,9 @@ function renderUpcoming(sessions) {
     }).join('');
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Recent clients (top 4)
-// ══════════════════════════════════════════════════════════════
+// 
 function renderClients(clients) {
     const el   = document.getElementById('clientsList');
     const top4 = clients.slice(0, 4);
@@ -575,9 +576,9 @@ function renderClients(clients) {
     }).join('');
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Recent reviews (top 3)
-// ══════════════════════════════════════════════════════════════
+// 
 function renderReviews(reviews) {
     const el = document.getElementById('reviewsList');
     if (!reviews.length) {
@@ -601,13 +602,13 @@ function renderReviews(reviews) {
     }).join('');
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Mark session complete
-// ══════════════════════════════════════════════════════════════
+// 
 window.markComplete = async function(bookingId) {
     if (!confirm('Mark this session as completed?')) return;
     try {
-        const res  = await fetch(`/api/coach/bookings/${bookingId}/complete`, { method: 'PUT' });
+        const res  = await fetch(`${window.BASE_URL||""}/api/coach/bookings/${bookingId}/complete`, { method: 'PUT' });
         const data = await res.json();
         if (data.success) loadAll();
         else alert(data.error || 'Failed to update session.');

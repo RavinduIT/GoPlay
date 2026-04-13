@@ -147,7 +147,7 @@ function performSearch(query) {
     }
     
     // Make AJAX request to live search endpoint
-    fetch(`/api/news/live-search?q=${encodeURIComponent(query)}&category=${currentCategory}&limit=20`, {
+    fetch(`${window.BASE_URL||""}/api/news/live-search?q=${encodeURIComponent(query)}&category=${currentCategory}&limit=20`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -336,7 +336,7 @@ function loadMoreNews() {
     
     const queryString = new URLSearchParams(requestData).toString();
     
-    fetch(`/news/load-more?${queryString}`, {
+    fetch(`${window.BASE_URL||""}/news/load-more?${queryString}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

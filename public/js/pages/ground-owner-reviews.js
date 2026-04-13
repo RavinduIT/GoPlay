@@ -2,12 +2,12 @@
 (function () {
     'use strict';
 
-    /* ── state ── */
+    /*  state  */
     let allReviews = [];
     let reportTargetId = null;
     let toastTimer = null;
 
-    /* ── DOM refs (resolved after DOMContentLoaded) ── */
+    /*  DOM refs (resolved after DOMContentLoaded)  */
     const $ = id => document.getElementById(id);
 
     /* ================================================================
@@ -24,7 +24,7 @@
     ================================================================ */
     async function loadStats() {
         try {
-            const r = await fetch('/api/ground-owner/reviews/stats');
+            const r = await fetch((window.BASE_URL||'')+'/api/ground-owner/reviews/stats');
             if (!r.ok) return;
             const data = await r.json();
             const stats = data.stats || data; // support both flat and wrapped
@@ -40,7 +40,7 @@
         list.innerHTML = '<div class="rv-loading"><div class="rv-spinner"></div><p>Loading reviews…</p></div>';
 
         try {
-            const r = await fetch('/api/ground-owner/reviews');
+            const r = await fetch((window.BASE_URL||'')+'/api/ground-owner/reviews');
             if (!r.ok) throw new Error('fetch failed');
             const data = await r.json();
             allReviews = Array.isArray(data.reviews) ? data.reviews : [];
@@ -54,7 +54,7 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
         try {
-            const r = await fetch(`/api/ground-owner/reviews/${reviewId}/reply`, {
+            const r = await fetch(`${window.BASE_URL||""}/api/ground-owner/reviews/${reviewId}/reply`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reply_text: text })
@@ -86,7 +86,7 @@
     async function deleteReply(reviewId) {
         if (!confirm('Delete your reply?')) return;
         try {
-            const r = await fetch(`/api/ground-owner/reviews/${reviewId}/reply`, { method: 'DELETE' });
+            const r = await fetch(`${window.BASE_URL||""}/api/ground-owner/reviews/${reviewId}/reply`, { method: 'DELETE' });
             const data = await r.json();
             if (data.success) {
                 const rev = allReviews.find(rv => rv.id == reviewId);
@@ -104,7 +104,7 @@
 
     async function submitReport(reviewId, reason, description) {
         try {
-            const r = await fetch(`/api/ground-owner/reviews/${reviewId}/report`, {
+            const r = await fetch(`${window.BASE_URL||""}/api/ground-owner/reviews/${reviewId}/report`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reason, description })

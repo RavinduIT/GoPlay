@@ -283,7 +283,7 @@ function displayOrderDetails(order) {
                         <span class="badge badge-payment-${order.payment_status}">
                             ${order.payment_status === 'paid' ? '<i class="fas fa-lock"></i> ' : ''}${capitalizeFirst(order.payment_status)}
                         </span>
-                        ${order.payment_status === 'paid' ? '<small style="color: #059669; font-size: 0.75rem; display: block; margin-top: 0.25rem;">✓ Payment verified and locked</small>' : ''}
+                        ${order.payment_status === 'paid' ? '<small style="color: #059669; font-size: 0.75rem; display: block; margin-top: 0.25rem;"><i class="fas fa-check"></i> Payment verified and locked</small>' : ''}
                     </div>
                 </div>
             </div>
@@ -305,7 +305,7 @@ async function editOrderStatus(orderId) {
     try {
         console.log('Editing order status:', orderId);
         // Fetch order details
-        const response = await fetch(`/shop-owner/get-order?id=${orderId}`, {
+        const response = await fetch(`${window.BASE_URL||""}/shop-owner/get-order?id=${orderId}`, {
             credentials: 'same-origin'
         });
         console.log('Edit response status:', response.status);
@@ -406,7 +406,7 @@ async function handleUpdateOrderStatus(e) {
         
         console.log('Updating order with payload:', payload);
         
-        const response = await fetch('/shop-owner/update-order-status', {
+        const response = await fetch((window.BASE_URL||'')+'/shop-owner/update-order-status', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -467,7 +467,7 @@ async function confirmDeleteOrder() {
     console.log('Deleting order:', orderId);
     
     try {
-        const response = await fetch('/shop-owner/delete-order', {
+        const response = await fetch((window.BASE_URL||'')+'/shop-owner/delete-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

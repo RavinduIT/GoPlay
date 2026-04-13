@@ -1,5 +1,7 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Provider Applications - Admin Dashboard';
+$activePage = 'registrations';
 $additionalCSS = [
     '/public/css/pages/admin-dashboard.css',
     '/public/css/pages/admin-applications.css'
@@ -18,14 +20,14 @@ $additionalJS = ['/public/js/admin-applications.js'];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
-            <link rel="stylesheet" href="<?= $css ?>">
+            <link rel="stylesheet" href="<?= $_base . $css ?>">
         <?php endforeach; ?>
     <?php endif; ?>
 </head>
 <body>
     <div class="admin-dashboard">
         <!-- Sidebar -->
-        <?php include __DIR__ . '/sidebar.php'; ?>
+        <?php include __DIR__ . '/../components/admin-sidebar.php'; ?>
 
         <!-- Main Content -->
         <main class="dashboard-main">
@@ -190,9 +192,10 @@ $additionalJS = ['/public/js/admin-applications.js'];
         </div>
     </div>
 
+    <script>window.BASE_URL = '<?= $_base ?>';</script>
     <?php if (isset($additionalJS)): ?>
         <?php foreach ($additionalJS as $js): ?>
-            <script src="<?= $js ?>"></script>
+            <script src="<?= $_base . $js ?>"></script>
         <?php endforeach; ?>
     <?php endif; ?>
 </body>

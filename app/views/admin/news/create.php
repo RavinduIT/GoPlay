@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 // This file serves as both create.php and edit.php
 $news = $data['news'] ?? null;
 $isEdit = !empty($news);
@@ -12,8 +13,8 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?> - Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
-    <link rel="stylesheet" href="/public/css/pages/admin-news-form.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-dashboard.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-news-form.css">
     <style>
         .alert {
             padding: 1rem;
@@ -51,7 +52,7 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
                 <h1 class="page-title"><?= $pageTitle ?></h1>
             </div>
             <div class="header-right">
-                <a href="/admin/news" class="btn-secondary">
+                <a href="<?= $_base ?>/admin/news" class="btn-secondary">
                     <i class="fas fa-arrow-left"></i> Back to News
                 </a>
             </div>
@@ -150,7 +151,7 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" onclick="window.location.href='/admin/news'" class="btn-secondary">
+                        <button type="button" onclick="window.location.href='<?= $_base ?>/admin/news'" class="btn-secondary">
                             Cancel
                         </button>
                         <button type="submit" class="btn-primary" id="submitBtn">
@@ -297,7 +298,7 @@ document.getElementById('newsForm').addEventListener('submit', async function(e)
             if (data.success) {
                 showAlert(data.message, 'success');
                 setTimeout(() => {
-                    window.location.href = '/admin/news';
+                    window.location.href=(window.BASE_URL||'')+'/admin/news';
                 }, 1500);
             } else {
                 showAlert('Error: ' + data.message, 'error');

@@ -1,10 +1,10 @@
-/* ═══════════════════════════════════════════════════════════
+/* 
    Ground Owner – Booking Management JS
-═══════════════════════════════════════════════════════════ */
+ */
 (function () {
 'use strict';
 
-/* ── helpers ─────────────────────────────────────────── */
+/*  helpers  */
 function fmtDate(d) {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -15,7 +15,7 @@ function cap(s) {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-/* ── toast ───────────────────────────────────────────── */
+/*  toast  */
 function toast(msg, type = 'info') {
     let wrap = document.getElementById('bkToastWrap');
     if (!wrap) {
@@ -33,7 +33,7 @@ function toast(msg, type = 'info') {
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 320); }, 3500);
 }
 
-/* ── modal ───────────────────────────────────────────── */
+/*  modal  */
 function openModal(id, backdropId) {
     document.getElementById(backdropId).classList.add('open');
     document.getElementById(id).classList.add('open');
@@ -46,7 +46,7 @@ function closeModal(id, backdropId) {
     document.body.style.overflow = '';
 }
 
-/* ── state ───────────────────────────────────────────── */
+/*  state  */
 let allBookings = [];
 let page        = 1;
 const PER_PAGE  = 15;
@@ -54,10 +54,10 @@ let pendingCancelId = null;
 let pendingStatusId = null;
 let pendingStatusVal = null;
 
-/* ── load stats ─────────────────────────────────────── */
+/*  load stats  */
 async function loadStats() {
     try {
-        const res  = await fetch('/api/ground-owner/dashboard-stats');
+        const res  = await fetch((window.BASE_URL||'')+'/api/ground-owner/dashboard-stats');
         const data = await res.json();
         if (!data.success) return;
         const b = data.stats?.bookings || {};
@@ -68,10 +68,10 @@ async function loadStats() {
     } catch (e) { console.error('Stats error:', e); }
 }
 
-/* ── load facilities for filter ──────────────────────── */
+/*  load facilities for filter  */
 async function loadFacilities() {
     try {
-        const res  = await fetch('/api/ground-owner/grounds');
+        const res  = await fetch((window.BASE_URL||'')+'/api/ground-owner/grounds');
         const data = await res.json();
         const sel  = document.getElementById('filterFacility');
         (data.grounds || []).forEach(f => {
@@ -83,7 +83,7 @@ async function loadFacilities() {
     } catch (e) { console.error('Facilities error:', e); }
 }
 
-/* ── load bookings ───────────────────────────────────── */
+/*  load bookings  */
 async function loadBookings() {
     const params = new URLSearchParams();
     const status   = document.getElementById('filterStatus').value;
@@ -105,7 +105,7 @@ async function loadBookings() {
     document.getElementById('resultsLabel').textContent     = '';
 
     try {
-        const res  = await fetch('/api/ground-owner/bookings?' + params.toString());
+        const res  = await fetch((window.BASE_URL||'')+'/api/ground-owner/bookings?' + params.toString());
         const data = await res.json();
         if (!data.success) throw new Error(data.message || 'Failed');
         allBookings = data.bookings || [];
@@ -118,7 +118,7 @@ async function loadBookings() {
     }
 }
 
-/* ── render table ─────────────────────────────────────── */
+/*  render table  */
 function renderTable() {
     const loading   = document.getElementById('tableLoading');
     const container = document.getElementById('tableContainer');
@@ -215,7 +215,7 @@ function buildActions(b) {
     return html;
 }
 
-/* ── view detail modal ───────────────────────────────── */
+/*  view detail modal  */
 window.viewBooking = function (id) {
     const b = allBookings.find(x => x.id == id);
     if (!b) return;
@@ -256,7 +256,7 @@ window.viewBooking = function (id) {
     openModal('detailModal', 'detailBackdrop');
 };
 
-/* ── status change flow ──────────────────────────────── */
+/*  status change flow  */
 window.triggerStatus = function (id, newStatus) {
     pendingStatusId  = id;
     pendingStatusVal = newStatus;
@@ -282,7 +282,7 @@ document.getElementById('confirmStatusBtn').addEventListener('click', async () =
     closeModal('statusModal', 'statusBackdrop');
 
     try {
-        const res  = await fetch(`/api/ground-owner/bookings/${id}/status`, {
+        const res  = await fetch(`${window.BASE_URL||""}/api/ground-owner/bookings/${id}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: val })
@@ -302,7 +302,7 @@ document.getElementById('confirmStatusBtn').addEventListener('click', async () =
     }
 });
 
-/* ── cancel flow ─────────────────────────────────────── */
+/*  cancel flow  */
 window.triggerCancel = function (id) {
     pendingCancelId = id;
     document.getElementById('cancelBookingId').textContent = `#${id}`;
@@ -324,7 +324,7 @@ document.getElementById('confirmCancelBtn').addEventListener('click', async () =
     closeModal('cancelModal', 'cancelBackdrop');
 
     try {
-        const res  = await fetch(`/api/ground-owner/bookings/${id}/cancel`, {
+        const res  = await fetch(`${window.BASE_URL||""}/api/ground-owner/bookings/${id}/cancel`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ reason })
@@ -344,7 +344,7 @@ document.getElementById('confirmCancelBtn').addEventListener('click', async () =
     }
 });
 
-/* ── export CSV ──────────────────────────────────────── */
+/*  export CSV  */
 document.getElementById('exportBtn').addEventListener('click', () => {
     if (!allBookings.length) { toast('No bookings to export', 'error'); return; }
 
@@ -373,7 +373,7 @@ document.getElementById('exportBtn').addEventListener('click', () => {
     toast('Export downloaded', 'success');
 });
 
-/* ── modal close wiring ──────────────────────────────── */
+/*  modal close wiring  */
 window.closeModal = closeModal;
 
 document.getElementById('closeDetail').addEventListener('click',       () => closeModal('detailModal',  'detailBackdrop'));
@@ -385,7 +385,7 @@ document.getElementById('closeStatusModal').addEventListener('click',  () => clo
 document.getElementById('closeStatusBtn').addEventListener('click',    () => closeModal('statusModal',  'statusBackdrop'));
 document.getElementById('statusBackdrop').addEventListener('click',    () => closeModal('statusModal',  'statusBackdrop'));
 
-/* ── filter / pagination events ──────────────────────── */
+/*  filter / pagination events  */
 document.getElementById('applyFilters').addEventListener('click', loadBookings);
 
 document.getElementById('clearFilters').addEventListener('click', () => {
@@ -408,12 +408,12 @@ document.getElementById('nextPage').addEventListener('click', () => {
     if (page < Math.ceil(allBookings.length / PER_PAGE)) { page++; renderTable(); }
 });
 
-/* ── sidebar ─────────────────────────────────────────── */
+/*  sidebar  */
 window.toggleSidebar = function () {
     document.getElementById('dashboardSidebar')?.classList.toggle('collapsed');
 };
 
-/* ── init ────────────────────────────────────────────── */
+/*  init  */
 loadStats();
 loadFacilities();
 loadBookings();

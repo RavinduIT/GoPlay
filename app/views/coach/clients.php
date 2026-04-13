@@ -1,4 +1,5 @@
-<?php $currentPage = 'clients'; ?>
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'clients'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Clients - GoPlay</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/coach/sidebar.css">
-    <link rel="stylesheet" href="/public/css/pages/coach-clients.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/coach/sidebar.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/coach-clients.css">
 </head>
 <body>
 <div class="coach-dashboard">
@@ -15,7 +16,7 @@
 
     <main class="main-content">
 
-        <!-- ── Page Header ──────────────────────────────────── -->
+        <!--  Page Header  -->
         <div class="page-header">
             <div class="header-content">
                 <h1><i class="fas fa-users"></i> My Clients</h1>
@@ -28,7 +29,7 @@
             </div>
         </div>
 
-        <!-- ── Stat Cards ────────────────────────────────────── -->
+        <!--  Stat Cards  -->
         <div class="client-stats" id="statsRow">
             <div class="stat-card" id="sc-total">
                 <div class="stat-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
@@ -68,7 +69,7 @@
             </div>
         </div>
 
-        <!-- ── Filters ───────────────────────────────────────── -->
+        <!--  Filters  -->
         <div class="clients-filters">
             <div class="filter-group">
                 <select id="statusFilter">
@@ -97,7 +98,7 @@
             </div>
         </div>
 
-        <!-- ── View Toggle + Grid/List ────────────────────────── -->
+        <!--  View Toggle + Grid/List  -->
         <div class="clients-container">
             <div class="view-controls">
                 <button class="view-btn active" data-view="grid">
@@ -161,9 +162,9 @@
     </main>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════
+<!-- 
      Client Detail Modal
-═══════════════════════════════════════════════════════════ -->
+ -->
 <div id="clientModal" class="modal">
     <div class="modal-content large">
         <div class="modal-head">
@@ -203,18 +204,18 @@
 </div>
 <div id="modalBackdrop" class="modal-backdrop"></div>
 
-<!-- ══════════════════════════════════════════════════════════
+<!-- 
      Inline Script
-═══════════════════════════════════════════════════════════ -->
+ -->
 <script>
 (function () {
 'use strict';
 
-/* ── state ─────────────────────────────────────────────────── */
+/*  state  */
 let allClients = [];
 let currentView = 'grid';
 
-/* ── DOM refs ──────────────────────────────────────────────── */
+/*  DOM refs  */
 const gridEl       = document.getElementById('clientsGrid');
 const tableBody    = document.getElementById('clientsTableBody');
 const loadingEl    = document.getElementById('loadingState');
@@ -229,7 +230,7 @@ const sortFilter   = document.getElementById('sortFilter');
 const modal        = document.getElementById('clientModal');
 const backdrop     = document.getElementById('modalBackdrop');
 
-/* ── helpers ────────────────────────────────────────────────── */
+/*  helpers  */
 function initials(first, last) {
     return ((first || '')[0] + (last || '')[0]).toUpperCase();
 }
@@ -263,10 +264,10 @@ function typeIcon(t) {
     return (map[t] || '<i class="fas fa-dumbbell"></i>') + ' ' + (t ? t.charAt(0).toUpperCase() + t.slice(1) : '—');
 }
 
-/* ── fetch clients ──────────────────────────────────────────── */
+/*  fetch clients  */
 async function loadClients() {
     try {
-        const res  = await fetch('/api/coach/clients');
+        const res  = await fetch((window.BASE_URL||'')+'/api/coach/clients');
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed');
 
@@ -288,7 +289,7 @@ async function loadClients() {
     }
 }
 
-/* ── filter + sort ──────────────────────────────────────────── */
+/*  filter + sort  */
 function filteredClients() {
     let list = [...allClients];
     const q  = searchInput.value.toLowerCase().trim();
@@ -311,7 +312,7 @@ function filteredClients() {
     return list;
 }
 
-/* ── render ─────────────────────────────────────────────────── */
+/*  render  */
 function render() {
     const list = filteredClients();
     resultsCount.textContent = list.length + ' client' + (list.length !== 1 ? 's' : '');
@@ -412,7 +413,7 @@ function renderList(list) {
         </tr>`).join('');
 }
 
-/* ── client detail modal ────────────────────────────────────── */
+/*  client detail modal  */
 window.showClientDetail = async function (userId) {
     const c = allClients.find(x => x.user_id == userId);
     if (!c) return;
@@ -491,7 +492,7 @@ function closeModal() { modal.classList.remove('open'); backdrop.classList.remov
 document.getElementById('closeModal').addEventListener('click', closeModal);
 backdrop.addEventListener('click', closeModal);
 
-/* ── view toggle ────────────────────────────────────────────── */
+/*  view toggle  */
 document.querySelectorAll('.view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
@@ -501,14 +502,14 @@ document.querySelectorAll('.view-btn').forEach(btn => {
     });
 });
 
-/* ── filters / search ───────────────────────────────────────── */
+/*  filters / search  */
 let searchTimer;
 searchInput.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(render, 250); });
 statusFilter.addEventListener('change', render);
 typeFilter.addEventListener('change', render);
 sortFilter.addEventListener('change', render);
 
-/* ── export ─────────────────────────────────────────────────── */
+/*  export  */
 document.getElementById('exportBtn').addEventListener('click', () => {
     const list = filteredClients();
     if (!list.length) { alert('No clients to export.'); return; }
@@ -526,7 +527,7 @@ document.getElementById('exportBtn').addEventListener('click', () => {
     URL.revokeObjectURL(url);
 });
 
-/* ── init ───────────────────────────────────────────────────── */
+/*  init  */
 loadClients();
 
 })();

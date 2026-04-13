@@ -341,7 +341,7 @@ function initializeRelatedArticles() {
 document.addEventListener('keydown', function(e) {
     // Press 'B' to go back to news index
     if (e.key === 'b' && !e.ctrlKey && !e.metaKey && e.target.tagName !== 'INPUT') {
-        window.location.href = '/news';
+        window.location.href=(window.BASE_URL||'')+'/news';
     }
     
     // Press 'S' to focus on share buttons

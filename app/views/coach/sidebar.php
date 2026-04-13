@@ -1,4 +1,5 @@
-<link rel="stylesheet" href="/public/css/coach/sidebar.css">
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
+<link rel="stylesheet" href="<?= $_base ?>/public/css/coach/sidebar.css">
 <aside class="dashboard-sidebar" id="dashboardSidebar">
     <div class="sidebar-header">
         <div class="logo">
@@ -13,58 +14,58 @@
     <nav class="sidebar-nav">
         <ul>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/dashboard') !== false ? 'active' : '' ?>">
-                <a href="/coach/dashboard">
+                <a href="<?= $_base ?>/coach/dashboard">
                     <i class="fas fa-home"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/profile') !== false ? 'active' : '' ?>">
-                <a href="/coach/profile">
+                <a href="<?= $_base ?>/coach/profile">
                     <i class="fas fa-user-edit"></i>
                     <span>My Profile</span>
                 </a>
             </li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/sessions') !== false ? 'active' : '' ?>">
-                <a href="/coach/sessions">
+                <a href="<?= $_base ?>/coach/sessions">
                     <i class="fas fa-dumbbell"></i>
                     <span>Training Sessions</span>
                     <span class="badge" id="sessionsCount">0</span>
                 </a>
             </li>
             <!-- <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/book-session') !== false ? 'active' : '' ?>">
-                <a href="/coach/book-session">
+                <a href="<?= $_base ?>/coach/book-session">
                     <i class="fas fa-calendar-plus"></i>
                     <span>Book Session</span>
                 </a>
             </li> -->
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/clients') !== false ? 'active' : '' ?>">
-                <a href="/coach/clients">
+                <a href="<?= $_base ?>/coach/clients">
                     <i class="fas fa-users"></i>
                     <span>My Clients</span>
                     <span class="badge" id="clientsCount">0</span>
                 </a>
             </li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/earnings') !== false ? 'active' : '' ?>">
-                <a href="/coach/earnings">
+                <a href="<?= $_base ?>/coach/earnings">
                     <i class="fas fa-wallet"></i>
                     <span>Earnings</span>
                 </a>
             </li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/availability') !== false ? 'active' : '' ?>">
-                <a href="/coach/availability">
+                <a href="<?= $_base ?>/coach/availability">
                     <i class="fas fa-clock"></i>
                     <span>Availability</span>
                 </a>
             </li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/reviews') !== false ? 'active' : '' ?>">
-                <a href="/coach/reviews">
+                <a href="<?= $_base ?>/coach/reviews">
                     <i class="fas fa-star"></i>
                     <span>Reviews</span>
                     <span class="badge" id="reviewsCount">0</span>
                 </a>
             </li>
             <!-- <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/notifications') !== false ? 'active' : '' ?>">
-                <a href="/coach/notifications">
+                <a href="<?= $_base ?>/coach/notifications">
                     <i class="fas fa-bell"></i>
                     <span>Notifications</span>
                     <span class="badge new" id="notificationCount">0</span>
@@ -72,7 +73,7 @@
             </li> -->
             <li class="nav-divider"></li>
             <li>
-                <a href="/logout" class="logout-link" onclick="return confirm('Are you sure you want to logout?')">
+                <a href="<?= $_base ?>/logout" class="logout-link" onclick="return confirm('Are you sure you want to logout?')">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
@@ -110,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadSidebarStats() {
     try {
-        const response = await fetch('/api/coach/sidebar-stats');
+        const response = await fetch((window.BASE_URL||'')+'/api/coach/sidebar-stats');
         const stats = await response.json();
 
         const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
@@ -126,7 +127,7 @@ async function loadSidebarStats() {
 
 async function updateNotificationBadges() {
     try {
-        const response = await fetch('/api/coach/notifications/count');
+        const response = await fetch((window.BASE_URL||'')+'/api/coach/notifications/count');
         const counts = await response.json();
         
         const notificationBadge = document.getElementById('notificationCount');

@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Coach Application - GoPlay';
 $additionalCSS = ['/public/css/pages/provider-application.css'];
 $additionalJS = [];
@@ -292,7 +293,7 @@ $additionalJS = [];
                 <div class="form-group">
                     <label class="checkbox-label terms-checkbox">
                         <input type="checkbox" id="termsAgree" name="terms_agree" required>
-                        <span>I agree to the <a href="/terms" target="_blank">Terms and Conditions</a> and <a href="/privacy" target="_blank">Privacy Policy</a> *</span>
+                        <span>I agree to the <a href="<?= $_base ?>/terms" target="_blank">Terms and Conditions</a> and <a href="<?= $_base ?>/privacy" target="_blank">Privacy Policy</a> *</span>
                     </label>
                     <span class="error-message"></span>
                 </div>
@@ -312,6 +313,6 @@ $additionalJS = [];
     <!-- Include Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="/public/js/provider-application.js"></script>
+    <script src="<?= $_base ?>/public/js/provider-application.js"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Settings - Ground Owner Dashboard';
 $additionalCSS = [
     '/public/css/pages/ground-owner-dashboard.css'
@@ -545,7 +546,7 @@ class SettingsManager {
 
     async loadUserData() {
         try {
-            const response = await fetch('/api/ground-owner/profile');
+            const response = await fetch((window.BASE_URL||'')+'/api/ground-owner/profile');
             const data = await response.json();
 
             if (data.success) {

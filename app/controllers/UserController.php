@@ -34,11 +34,9 @@ class UserController extends BaseController
      */
     private function requireAuth(): array
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        $this->startSession();
         if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
+            header('Location: ' . (defined('BASE_URL') ? BASE_URL : '') . '/login');
             exit();
         }
         return $_SESSION;

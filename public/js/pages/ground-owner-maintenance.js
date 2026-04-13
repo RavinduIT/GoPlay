@@ -2,7 +2,7 @@
 (function () {
     'use strict';
 
-    /* ── state ── */
+    /*  state  */
     let facilities    = [];
     let currentMonth  = new Date();
     let currentTaskId = null;

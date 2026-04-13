@@ -55,7 +55,7 @@ function setupEventListeners() {
 // Load statistics
 async function loadStatistics() {
     try {
-        const response = await fetch('/api/admin/users/statistics');
+        const response = await fetch((window.BASE_URL||'')+'/api/admin/users/statistics');
         const data = await response.json();
 
         if (data.success) {
@@ -110,7 +110,7 @@ async function loadUsers() {
             sort_order: 'DESC'
         });
 
-        const response = await fetch(`/api/admin/users?${params}`);
+        const response = await fetch(`${window.BASE_URL||""}/api/admin/users?${params}`);
         const data = await response.json();
 
         if (data.success) {
@@ -323,7 +323,7 @@ async function viewUserDetails(userId) {
     `;
 
     try {
-        const response = await fetch(`/api/admin/users/${userId}`);
+        const response = await fetch(`${window.BASE_URL||""}/api/admin/users/${userId}`);
         const data = await response.json();
 
         if (data.success) {
@@ -462,7 +462,7 @@ async function saveUserChanges() {
 
     try {
         // Update role
-        const roleResponse = await fetch(`/api/admin/users/${userId}/role`, {
+        const roleResponse = await fetch(`${window.BASE_URL||""}/api/admin/users/${userId}/role`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_type: userType })
@@ -471,7 +471,7 @@ async function saveUserChanges() {
         const roleData = await roleResponse.json();
 
         // Update status
-        const statusResponse = await fetch(`/api/admin/users/${userId}/status`, {
+        const statusResponse = await fetch(`${window.BASE_URL||""}/api/admin/users/${userId}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: status, reason: reason })
@@ -521,7 +521,7 @@ async function confirmPasswordReset() {
     }
 
     try {
-        const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+        const response = await fetch(`${window.BASE_URL||""}/api/admin/users/${userId}/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ new_password: newPassword })
@@ -559,7 +559,7 @@ async function confirmUserDeletion() {
     const userId = document.getElementById('deleteUserId').value;
 
     try {
-        const response = await fetch(`/api/admin/users/${userId}`, {
+        const response = await fetch(`${window.BASE_URL||""}/api/admin/users/${userId}`, {
             method: 'DELETE'
         });
 

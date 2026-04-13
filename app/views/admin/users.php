@@ -1,5 +1,6 @@
-<link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
-<link rel="stylesheet" href="/public/css/pages/admin-users.css">
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-dashboard.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-users.css">
 
 <div class="admin-dashboard">
     <?php 
@@ -27,7 +28,7 @@
                         <span class="profile-name">Admin User</span>
                         <span class="profile-role">Super Admin</span>
                     </div>
-                    <img src="/public/assets/images/default-avatar.png" alt="Admin" class="profile-avatar">
+                    <img src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="Admin" class="profile-avatar">
                 </div>
             </div>
         </header>
@@ -359,4 +360,4 @@
     </div>
 </div>
 
-<script src="/public/js/pages/admin-users.js"></script>
+<script src="<?= $_base ?>/public/js/pages/admin-users.js"></script>

@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 // Extract data from controller
 $news = $data['news'] ?? null;
 $author = $data['author'] ?? null;
@@ -33,7 +34,7 @@ if (!$news) {
     <meta property="twitter:description" content="<?= htmlspecialchars($news['excerpt'] ?? '') ?>">
     <meta property="twitter:image" content="<?= htmlspecialchars($news['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>">
 
-    <link rel="stylesheet" href="/public/css/pages/news-detail.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/news-detail.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
@@ -65,7 +66,7 @@ if (!$news) {
 </head>
 <body>
     <div class="news-detail-container">
-        <a href="/news" class="back-btn" aria-label="Back to News">← Back to News</a>
+        <a href="<?= $_base ?>/news" class="back-btn" aria-label="Back to News">← Back to News</a>
         
         <!-- Article Header -->
         <header class="article-header">
@@ -92,7 +93,7 @@ if (!$news) {
                         </div>
                     </div>
                     <?php else: ?>
-                    <img src="/public/assets/images/default-avatar.png" 
+                    <img src="<?= $_base ?>/public/assets/images/default-avatar.png" 
                          alt="GoPlay Sports" 
                          class="author-avatar"
                          loading="lazy">
@@ -109,7 +110,7 @@ if (!$news) {
                 
                 <div class="article-stats">
                     <span><i class="fa-solid fa-eye"></i> <?= number_format($news['views'] ?? 0) ?> views</span>
-                    <span id="reading-time">⏱️ <?= $news['reading_time'] ?? '5 min read' ?></span>
+                    <span id="reading-time"><i class="fas fa-stopwatch"></i> <?= $news['reading_time'] ?? '5 min read' ?></span>
                 </div>
             </div>
         </header>
@@ -158,7 +159,7 @@ if (!$news) {
                          loading="lazy">
                     <div class="related-content">
                         <h4>
-                            <a href="/news/<?= htmlspecialchars($related['slug']) ?>">
+                            <a href="<?= $_base ?>/news/<?= htmlspecialchars($related['slug']) ?>">
                                 <?= htmlspecialchars($related['title']) ?>
                             </a>
                         </h4>
@@ -249,7 +250,7 @@ if (!$news) {
         function showCopySuccess() {
             const copyBtn = document.querySelector('.share-copy');
             const originalText = copyBtn.innerHTML;
-            copyBtn.innerHTML = '✅ Copied!';
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
             copyBtn.style.background = 'linear-gradient(135deg, #27ae60 0%, #219a52 100%)';
             
             setTimeout(() => {
@@ -280,7 +281,7 @@ if (!$news) {
             
             const readingTimeElement = document.getElementById('reading-time');
             if (readingTimeElement && !readingTimeElement.textContent.includes('min read')) {
-                readingTimeElement.textContent = `⏱️ ${readingTime} min read`;
+                readingTimeElement.textContent = `<i class="fas fa-stopwatch"></i> ${readingTime} min read`;
             }
         }
 

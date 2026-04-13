@@ -15,7 +15,7 @@ function initializeDashboard() {
 
 async function loadDashboardStats() {
     try {
-        const response = await fetch('/api/shop-owner/dashboard');
+        const response = await fetch((window.BASE_URL||'')+'/api/shop-owner/dashboard');
         const data = await response.json();
         
         if (data.success) {

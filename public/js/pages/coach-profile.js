@@ -74,7 +74,7 @@ class CoachProfile {
 
     async loadProfileData() {
         try {
-            const response = await fetch('/api/coach/profile');
+            const response = await fetch((window.BASE_URL||'')+'/api/coach/profile');
             this.profileData = await response.json();
             this.updateProfileDisplay();
         } catch (error) {
@@ -100,7 +100,7 @@ class CoachProfile {
             languages: 'English, Sinhala, Tamil',
             hourlyRate: '¹800 - ¹1,500',
             bio: 'Former international cricket player with over 15 years of professional experience. Specialized in fast bowling techniques and youth development. I have coached players at various levels, from beginners to professional cricketers.',
-            avatar: '/public/assets/images/coach-avatar.jpg',
+            avatar: (window.BASE_URL||'')+'/public/assets/images/coach-avatar.jpg',
             stats: {
                 rating: 4.9,
                 students: 45,
@@ -300,7 +300,7 @@ class CoachProfile {
             // In a real application, you would upload to the server:
             // const formData = new FormData();
             // formData.append('avatar', file);
-            // const response = await fetch('/api/coach/profile/avatar', {
+            // const response = await fetch((window.BASE_URL||'')+'/api/coach/profile/avatar', {
             //     method: 'POST',
             //     body: formData
             // });
@@ -371,7 +371,7 @@ class CoachProfile {
             this.showToast('Profile updated successfully', 'success');
 
             // In a real application, you would save to the server:
-            // const response = await fetch('/api/coach/profile', {
+            // const response = await fetch((window.BASE_URL||'')+'/api/coach/profile', {
             //     method: 'PUT',
             //     headers: { 'Content-Type': 'application/json' },
             //     body: JSON.stringify(profileData)

@@ -1,4 +1,5 @@
-<?php $currentPage = 'profile'; ?>
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'profile'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/coach/sidebar.css">
-    <link rel="stylesheet" href="/public/css/pages/coach-profile.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/coach/sidebar.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/coach-profile.css">
 </head>
 <body>
 <div class="coach-dashboard">
@@ -26,14 +27,14 @@
         <!-- Main content (hidden until data loads) -->
         <div id="profileContent" style="display:none;">
 
-            <!-- ── Hero Banner ─────────────────────────────── -->
+            <!--  Hero Banner  -->
             <section class="profile-hero">
                 <div class="hero-cover"></div>
 
                 <div class="hero-body">
                     <!-- Avatar -->
                     <div class="hero-avatar-wrap">
-                        <img id="heroAvatar" src="/public/assets/images/default-avatar.png"
+                        <img id="heroAvatar" src="<?= $_base ?>/public/assets/images/default-avatar.png"
                              alt="Coach Avatar" class="hero-avatar">
                         <div class="online-dot" title="Active"></div>
                         <button class="avatar-cam" onclick="coachProfile.changeAvatar()" title="Change photo">
@@ -85,7 +86,7 @@
                         <button class="btn btn-primary" onclick="coachProfile.openEditModal()">
                             <i class="fas fa-pen"></i> Edit Profile
                         </button>
-                        <a href="/coach/availability" class="btn btn-white">
+                        <a href="<?= $_base ?>/coach/availability" class="btn btn-white">
                             <i class="fas fa-calendar-alt"></i> Availability
                         </a>
                     </div>
@@ -104,7 +105,7 @@
                 </div>
             </section>
 
-            <!-- ── Tab Navigation ──────────────────────────── -->
+            <!--  Tab Navigation  -->
             <nav class="profile-tabs">
                 <button class="tab-btn active" data-tab="profile">
                     <i class="fas fa-user"></i> Profile
@@ -123,7 +124,7 @@
                 </button>
             </nav>
 
-            <!-- ── Profile Tab ─────────────────────────────── -->
+            <!--  Profile Tab  -->
             <div class="tab-panel active" id="tab-profile">
                 <div class="profile-body">
                     <div class="profile-2col">
@@ -333,7 +334,7 @@
                                     </h3>
                                 </div>
                                 <div class="pcard-body" style="display:flex;flex-direction:column;gap:10px;">
-                                    <a href="/coach/availability" class="info-row" style="text-decoration:none;">
+                                    <a href="<?= $_base ?>/coach/availability" class="info-row" style="text-decoration:none;">
                                         <div class="info-row-icon blue"><i class="fas fa-clock"></i></div>
                                         <div class="info-row-body">
                                             <div class="info-row-label">Manage</div>
@@ -341,7 +342,7 @@
                                         </div>
                                         <i class="fas fa-chevron-right" style="color:var(--c-muted);font-size:.8rem;"></i>
                                     </a>
-                                    <a href="/coach/sessions" class="info-row" style="text-decoration:none;">
+                                    <a href="<?= $_base ?>/coach/sessions" class="info-row" style="text-decoration:none;">
                                         <div class="info-row-icon purple"><i class="fas fa-dumbbell"></i></div>
                                         <div class="info-row-body">
                                             <div class="info-row-label">View</div>
@@ -349,7 +350,7 @@
                                         </div>
                                         <i class="fas fa-chevron-right" style="color:var(--c-muted);font-size:.8rem;"></i>
                                     </a>
-                                    <a href="/coach/reviews" class="info-row" style="text-decoration:none;">
+                                    <a href="<?= $_base ?>/coach/reviews" class="info-row" style="text-decoration:none;">
                                         <div class="info-row-icon orange"><i class="fas fa-star"></i></div>
                                         <div class="info-row-body">
                                             <div class="info-row-label">Read</div>
@@ -365,7 +366,7 @@
                 </div><!-- /body -->
             </div><!-- /tab-profile -->
 
-            <!-- ── Certificates Tab ────────────────────────── -->
+            <!--  Certificates Tab  -->
             <div class="tab-panel" id="tab-certificates">
                 <div class="profile-body">
                     <div class="cred-section-header">
@@ -390,7 +391,7 @@
                 </div>
             </div>
 
-            <!-- ── Achievements Tab ────────────────────────── -->
+            <!--  Achievements Tab  -->
             <div class="tab-panel" id="tab-achievements">
                 <div class="profile-body">
                     <div class="cred-section-header">
@@ -415,7 +416,7 @@
                 </div>
             </div>
 
-            <!-- ── Facilities Tab ──────────────────────────── -->
+            <!--  Facilities Tab  -->
             <div class="tab-panel" id="tab-facilities">
                 <div class="profile-body">
                     <div class="cred-section-header">
@@ -459,9 +460,9 @@
     </main>
 </div><!-- /coach-dashboard -->
 
-<!-- ════════════════════════════════════════════════════════
+<!-- 
      MODALS
-═════════════════════════════════════════════════════════ -->
+ -->
 
 <!-- Edit Profile -->
 <div id="modalEditProfile" class="modal" style="display:none;">
@@ -597,11 +598,11 @@
                     <div class="form-group">
                         <label>Category</label>
                         <select name="category">
-                            <option value="award">🏆 Award</option>
-                            <option value="competition">🥇 Competition</option>
-                            <option value="certification">📜 Certification</option>
-                            <option value="milestone">🏁 Milestone</option>
-                            <option value="other">⭐ Other</option>
+                            <option value="award"><i class="fas fa-trophy"></i> Award</option>
+                            <option value="competition"> Competition</option>
+                            <option value="certification"><i class="fas fa-scroll"></i> Certification</option>
+                            <option value="milestone"><i class="fas fa-flag-checkered"></i> Milestone</option>
+                            <option value="other"><i class="fas fa-star"></i> Other</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -664,7 +665,7 @@ class CoachProfile {
         ]);
     }
 
-    /* ── Tabs ──────────────────────────────────────────── */
+    /*  Tabs  */
     _bindTabs() {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -692,10 +693,10 @@ class CoachProfile {
         });
     }
 
-    /* ── Profile ───────────────────────────────────────── */
+    /*  Profile  */
     async loadProfile() {
         try {
-            const r = await fetch('/api/coach/profile');
+            const r = await fetch((window.BASE_URL||'')+'/api/coach/profile');
             const d = await r.json();
             if (!d.success) throw new Error(d.error || 'Failed');
             this.p = d.profile;
@@ -850,7 +851,7 @@ class CoachProfile {
         } catch (e) { this.toast('Error: ' + e.message, 'error'); }
     }
 
-    /* ── Avatar ────────────────────────────────────────── */
+    /*  Avatar  */
     changeAvatar() { document.getElementById('avatarInput').click(); }
 
     async handleAvatarChange(e) {
@@ -870,10 +871,10 @@ class CoachProfile {
         } catch (e) { this.toast('Error: ' + e.message, 'error'); }
     }
 
-    /* ── Certificates ──────────────────────────────────── */
+    /*  Certificates  */
     async loadCertificates() {
         try {
-            const r = await fetch('/api/coach/certificates');
+            const r = await fetch((window.BASE_URL||'')+'/api/coach/certificates');
             const d = await r.json();
             this._renderCerts(d.success ? d.certificates : []);
         } catch { this._renderCerts([]); }
@@ -950,7 +951,7 @@ class CoachProfile {
     }
 
     async editCert(id) {
-        const r = await fetch('/api/coach/certificates');
+        const r = await fetch((window.BASE_URL||'')+'/api/coach/certificates');
         const d = await r.json();
         const c = (d.certificates || []).find(x => x.id == id);
         if (c) this.openCertModal(c);
@@ -984,10 +985,10 @@ class CoachProfile {
         } catch (e) { this.toast('Error: ' + e.message, 'error'); }
     }
 
-    /* ── Achievements ──────────────────────────────────── */
+    /*  Achievements  */
     async loadAchievements() {
         try {
-            const r = await fetch('/api/coach/achievements');
+            const r = await fetch((window.BASE_URL||'')+'/api/coach/achievements');
             const d = await r.json();
             this._renderAchs(d.success ? d.achievements : []);
         } catch { this._renderAchs([]); }
@@ -1058,7 +1059,7 @@ class CoachProfile {
     }
 
     async editAch(id) {
-        const r = await fetch('/api/coach/achievements');
+        const r = await fetch((window.BASE_URL||'')+'/api/coach/achievements');
         const d = await r.json();
         const a = (d.achievements || []).find(x => x.id == id);
         if (a) this.openAchModal(a);
@@ -1091,7 +1092,7 @@ class CoachProfile {
         } catch (e) { this.toast('Error: ' + e.message, 'error'); }
     }
 
-    /* ── Delete ────────────────────────────────────────── */
+    /*  Delete  */
     confirmDelete(type, id) {
         const label = type === 'cert' ? 'certificate' : 'achievement';
         document.getElementById('deleteMsg').textContent =
@@ -1113,10 +1114,10 @@ class CoachProfile {
         } catch (e) { this.toast('Error: ' + e.message, 'error'); }
     }
 
-    /* ── Facilities ────────────────────────────────────── */
+    /*  Facilities  */
     async loadFacilities() {
         try {
-            const r = await fetch('/api/coach/facilities');
+            const r = await fetch((window.BASE_URL||'')+'/api/coach/facilities');
             const d = await r.json();
             if (!d.success) throw new Error(d.error || 'Failed');
             this._renderFacilities(d.linked || []);
@@ -1175,7 +1176,7 @@ class CoachProfile {
 
     async setPrimary(facilityId) {
         try {
-            const r = await fetch(`/api/coach/facilities/${facilityId}/primary`, { method: 'PUT' });
+            const r = await fetch(`${window.BASE_URL||""}/api/coach/facilities/${facilityId}/primary`, { method: 'PUT' });
             const d = await r.json();
             if (!d.success) throw new Error(d.error || 'Failed');
             this.toast('Primary facility updated', 'success');
@@ -1186,7 +1187,7 @@ class CoachProfile {
     async unlinkFacility(facilityId) {
         if (!confirm('Remove this facility from your profile?')) return;
         try {
-            const r = await fetch(`/api/coach/facilities/${facilityId}`, { method: 'DELETE' });
+            const r = await fetch(`${window.BASE_URL||""}/api/coach/facilities/${facilityId}`, { method: 'DELETE' });
             const d = await r.json();
             if (!d.success) throw new Error(d.error || 'Failed');
             this.toast('Facility removed', 'success');
@@ -1213,7 +1214,7 @@ class CoachProfile {
         } catch (e) { this.toast('Error: ' + e.message, 'error'); }
     }
 
-    /* ── Modals ────────────────────────────────────────── */
+    /*  Modals  */
     openModal(id) {
         const m = document.getElementById(id);
         if (!m) return;
@@ -1228,7 +1229,7 @@ class CoachProfile {
         document.body.style.overflow = '';
     }
 
-    /* ── Utils ─────────────────────────────────────────── */
+    /*  Utils  */
     _set(id, val) {
         const el = document.getElementById(id);
         if (el) el.textContent = val;

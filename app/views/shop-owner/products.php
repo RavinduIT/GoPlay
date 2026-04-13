@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 // Start session if not started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -46,8 +47,8 @@ $title = 'Products Management - Shop Owner Dashboard';
 $additionalCSS = ['/public/css/pages/shop-owner-dashboard.css', '/public/css/pages/shop-owner-products.css'];
 $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owner-products.js'];
 ?>
-<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
-<link rel="stylesheet" href="/public/css/pages/shop-owner-products.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/shop-owner-dashboard.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/shop-owner-products.css">
 
 <div class="shop-owner-dashboard">
     <!-- Sidebar -->
@@ -254,7 +255,7 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
                                         <img src="<?= htmlspecialchars($firstImage) ?>" 
                                              alt="<?= htmlspecialchars($product['name']) ?>" 
                                              class="product-image"
-                                             onerror="this.src='/public/assets/images/placeholder-product.svg';">
+                                             onerror="this.src='<?= $_base ?>/public/assets/images/placeholder-product.svg';">
                                         <div class="product-details">
                                             <h4><?= htmlspecialchars($product['name']) ?></h4>
                                             <span class="brand-tag"><?= htmlspecialchars($product['brand'] ?? 'No Brand') ?></span>
@@ -346,7 +347,7 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <form id="addProductForm" class="product-form" method="POST" action="/shop-owner/products/create" enctype="multipart/form-data">
+        <form id="addProductForm" class="product-form" method="POST" action="<?= $_base ?>/shop-owner/products/create" enctype="multipart/form-data">
             <div class="form-row">
                 <div class="form-group">
                     <label for="productName">Product Name <span class="required">*</span></label>
@@ -444,7 +445,7 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <form id="editProductForm" class="product-form" method="POST" action="/shop-owner/products/update" enctype="multipart/form-data">
+        <form id="editProductForm" class="product-form" method="POST" action="<?= $_base ?>/shop-owner/products/update" enctype="multipart/form-data">
             <input type="hidden" id="editProductId" name="product_id">
 
             <div class="form-row">
@@ -548,7 +549,7 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
                 <p class="warning-text">This action cannot be undone.</p>
             </div>
         </div>
-        <form id="deleteProductForm" method="POST" action="/shop-owner/products/delete">
+        <form id="deleteProductForm" method="POST" action="<?= $_base ?>/shop-owner/products/delete">
             <input type="hidden" id="deleteProductId" name="product_id">
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeDeleteProductModal()">
@@ -577,4 +578,4 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
 </div>
 <?php endif; ?>
 
-<script src="/public/js/pages/shop-owner-products.js"></script>
+<script src="<?= $_base ?>/public/js/pages/shop-owner-products.js"></script>

@@ -13,7 +13,7 @@ include __DIR__ . '/layout-head.php';
 
     <main class="dashboard-main">
 
-        <!-- ── Page Header ─────────────────────────────── -->
+        <!--  Page Header  -->
         <div class="bk-page-header">
             <div class="bk-header-left">
                 <button class="sidebar-toggle" onclick="toggleSidebar()">
@@ -33,7 +33,7 @@ include __DIR__ . '/layout-head.php';
 
         <div class="bk-content">
 
-            <!-- ── Stat Cards ──────────────────────────── -->
+            <!--  Stat Cards  -->
             <div class="bk-stats-grid">
                 <div class="bk-stat-card bk-stat-blue">
                     <div class="bk-stat-icon"><i class="fas fa-calendar-alt"></i></div>
@@ -69,7 +69,7 @@ include __DIR__ . '/layout-head.php';
                 </div>
             </div>
 
-            <!-- ── Filters Card ────────────────────────── -->
+            <!--  Filters Card  -->
             <div class="bk-filters-card">
                 <div class="bk-filters-row">
                     <div class="bk-fgroup bk-fgroup-search">
@@ -118,7 +118,7 @@ include __DIR__ . '/layout-head.php';
                 </div>
             </div>
 
-            <!-- ── Bookings Table ──────────────────────── -->
+            <!--  Bookings Table  -->
             <div class="bk-table-card">
                 <div class="bk-table-header">
                     <h3><i class="fas fa-list-alt"></i> Bookings</h3>
@@ -166,7 +166,7 @@ include __DIR__ . '/layout-head.php';
     </main>
 </div>
 
-<!-- ── Booking Detail Modal ────────────────────────────── -->
+<!--  Booking Detail Modal  -->
 <div id="detailBackdrop" class="bk-backdrop"></div>
 <div id="detailModal" class="bk-modal">
     <div class="bk-modal-box">
@@ -179,7 +179,7 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
-<!-- ── Cancel Booking Modal ────────────────────────────── -->
+<!--  Cancel Booking Modal  -->
 <div id="cancelBackdrop" class="bk-backdrop"></div>
 <div id="cancelModal" class="bk-modal">
     <div class="bk-modal-box bk-modal-sm">
@@ -203,7 +203,7 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
-<!-- ── Confirm Status Modal ────────────────────────────── -->
+<!--  Confirm Status Modal  -->
 <div id="statusBackdrop" class="bk-backdrop"></div>
 <div id="statusModal" class="bk-modal">
     <div class="bk-modal-box bk-modal-sm">

@@ -1,3 +1,4 @@
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!-- Notifications Page -->
 
 <div class="notifications-container">
@@ -445,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadNotifications() {
     try {
-        const response = await fetch('/api/user/notifications');
+        const response = await fetch((window.BASE_URL||'')+'/api/user/notifications');
         const data = await response.json();
 
         console.log('Notifications API response:', data);
@@ -567,7 +568,7 @@ function formatTimeAgo(dateString) {
 
 async function markAsRead(notificationId) {
     try {
-        const response = await fetch(`/api/user/notifications/${notificationId}/read`, {
+        const response = await fetch(`${window.BASE_URL||""}/api/user/notifications/${notificationId}/read`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -616,7 +617,7 @@ async function deleteNotification(event, notificationId) {
     if (!confirm('Delete this notification?')) return;
 
     try {
-        const response = await fetch(`/api/user/notifications/${notificationId}`, {
+        const response = await fetch(`${window.BASE_URL||""}/api/user/notifications/${notificationId}`, {
             method: 'DELETE'
         });
 
