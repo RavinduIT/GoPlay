@@ -216,7 +216,11 @@ class BookingController extends BaseController
 
             try {
                 $notificationModel = new Notification();
+                $formattedDate = date('Y-m-d', strtotime($bookingDate));
+                $formattedTime = "{$startTime} to {$endTime}";
                 $notificationId = $notificationModel->createBookingNotification($userId, [
+                    'title' => 'Booking Submitted',
+                    'message' => "Your booking request for {$facilityName} on {$formattedDate} at {$formattedTime} has been submitted and is awaiting approval from the ground owner.",
                     'booking_id' => $bookingId,
                     'facility_id' => $facilityId,
                     'facility_name' => $facilityName,
@@ -251,7 +255,7 @@ class BookingController extends BaseController
 
             return $this->json([
                 'success' => true,
-                'message' => 'Ground booked successfully! No payment required.',
+                'message' => 'Booking submitted! Awaiting ground owner approval.',
                 'booking' => $booking,
                 'booking_id' => $bookingId,
                 'notifications' => [

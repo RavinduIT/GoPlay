@@ -16,9 +16,10 @@ $additionalJS = [];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
-            <link rel="stylesheet" href="<?= $css ?>">
+            <link rel="stylesheet" href="<?= $_base ?><?= $css ?>">
         <?php endforeach; ?>
     <?php endif; ?>
+    <script>window.BASE_URL = '<?= $_base ?>';</script>
 </head>
 <body>
     <!-- Include Navbar -->
@@ -249,9 +250,9 @@ $additionalJS = [];
                 </div>
 
                 <div class="form-group">
-                    <label for="businessRegistration">Business Registration Certificate *</label>
+                    <label for="businessRegistration">Business Registration Certificate</label>
                     <div class="file-upload-area">
-                        <input type="file" id="businessRegistration" name="business_registration" accept="image/*,.pdf" >
+                        <input type="file" id="businessRegistration" name="business_registration" accept="image/*,.pdf">
                         <div class="file-upload-placeholder">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Click to upload or drag and drop</p>
@@ -262,9 +263,9 @@ $additionalJS = [];
                 </div>
 
                 <div class="form-group">
-                    <label for="ownershipProof">Proof of Ownership/Lease Agreement *</label>
+                    <label for="ownershipProof">Proof of Ownership/Lease Agreement</label>
                     <div class="file-upload-area">
-                        <input type="file" id="ownershipProof" name="ownership_proof" accept="image/*,.pdf" >
+                        <input type="file" id="ownershipProof" name="ownership_proof" accept="image/*,.pdf">
                         <div class="file-upload-placeholder">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Click to upload or drag and drop</p>
