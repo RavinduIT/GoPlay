@@ -2354,4 +2354,4 @@ class CoachController extends BaseController
             return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
-}
+} 

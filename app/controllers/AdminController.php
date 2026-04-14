@@ -269,6 +269,26 @@ class AdminController extends BaseController
                 error_log("Approval email failed: " . $emailErr->getMessage());
             }
 
+            // Create in-app notification for the user
+            try {
+                if ($application['user_id']) {
+                    $notificationModel = new \App\Models\Notification();
+                    $providerLabel = str_replace('_', ' ', ucfirst($application['provider_type']));
+                    $notificationModel->createNotification(
+                        (int)$application['user_id'],
+                        'provider_approved',
+                        'Application Approved! 🎉',
+                        "Congratulations! Your {$providerLabel} application has been approved. You can now access your provider dashboard and start managing your services.",
+                        [
+                            'application_id' => $id,
+                            'provider_type' => $application['provider_type']
+                        ]
+                    );
+                }
+            } catch (\Exception $notifErr) {
+                error_log("Provider approval notification failed: " . $notifErr->getMessage());
+            }
+
             return $this->json([
                 'success' => true,
                 'message' => 'Application approved successfully'
@@ -408,6 +428,15 @@ class AdminController extends BaseController
                 }
             }
 
+            // Avoid double JSON encoding - specialties may already be a JSON string
+            $specialties = $application['specialties'] ?? '[]';
+            if (is_string($specialties)) {
+                $decoded = json_decode($specialties, true);
+                $specialties = $decoded !== null ? json_encode($decoded) : $specialties;
+            } else {
+                $specialties = json_encode($specialties);
+            }
+
             $stmt = $db->prepare(
                 "INSERT INTO coaches (user_id, sport_category_id, experience_years, hourly_rate, bio, specializations, certifications, location, status)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')"
@@ -418,7 +447,7 @@ class AdminController extends BaseController
                 (int)($application['experience_years'] ?? 0),
                 (float)($application['session_rate'] ?? 0),
                 $application['bio'] ?? '',
-                json_encode($application['specialties'] ?? []),
+                $specialties,
                 $application['qualifications'] ?? '',
                 ($application['city'] ?? '') . ', Sri Lanka'
             ]);
@@ -467,7 +496,7 @@ class AdminController extends BaseController
 
             // Send rejection email to applicant
             try {
-                $application = $db->prepare("SELECT email, first_name, last_name FROM provider_applications WHERE id = ?");
+                $application = $db->prepare("SELECT * FROM provider_applications WHERE id = ?");
                 $application->execute([$id]);
                 $app = $application->fetch(\PDO::FETCH_ASSOC);
                 if ($app) {
@@ -482,6 +511,23 @@ class AdminController extends BaseController
                         . '<p>You are welcome to submit a new application after addressing the above feedback.</p>'
                         . '<br><p>Best regards,<br><strong>The GoPlay Team</strong></p>'
                     );
+
+                    // Create in-app notification for the user
+                    if (!empty($app['user_id'])) {
+                        $notificationModel = new \App\Models\Notification();
+                        $providerLabel = str_replace('_', ' ', ucfirst($app['provider_type']));
+                        $notificationModel->createNotification(
+                            (int)$app['user_id'],
+                            'provider_rejected',
+                            'Application Not Approved',
+                            "Your {$providerLabel} application was not approved. Reason: {$reason}. You can resubmit after addressing the feedback.",
+                            [
+                                'application_id' => $id,
+                                'provider_type' => $app['provider_type'],
+                                'reason' => $reason
+                            ]
+                        );
+                    }
                 }
             } catch (\Exception $emailErr) {
                 error_log("Rejection email failed: " . $emailErr->getMessage());

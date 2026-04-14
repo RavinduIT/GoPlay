@@ -136,9 +136,21 @@ CREATE TABLE IF NOT EXISTS ground_owner_profiles (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL UNIQUE,
     business_name VARCHAR(255),
+    business_registration_number VARCHAR(100),
+    business_address TEXT,
     business_phone VARCHAR(20),
     business_email VARCHAR(100),
-    business_address TEXT,
+    bio TEXT,
+    years_in_business INT DEFAULT NULL,
+    total_facilities INT DEFAULT 0,
+    website VARCHAR(255),
+    facebook VARCHAR(255),
+    instagram VARCHAR(255),
+    twitter VARCHAR(255),
+    bank_name VARCHAR(100),
+    bank_account_number VARCHAR(50),
+    bank_account_holder VARCHAR(100),
+    payment_methods TEXT,
     profile_completion_percentage INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -641,7 +653,7 @@ CREATE TABLE IF NOT EXISTS provider_applications (
     user_id INT DEFAULT NULL,
     provider_type ENUM('ground_owner', 'coach', 'shop_owner') NOT NULL,
     status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
-    
+
     -- Common fields
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
@@ -650,12 +662,23 @@ CREATE TABLE IF NOT EXISTS provider_applications (
     nic VARCHAR(20),
     address TEXT,
     city VARCHAR(100),
-    
+    postal_code VARCHAR(20),
+    nic_document VARCHAR(500),
+
     -- Ground Owner specific fields
     facility_name VARCHAR(255),
     facility_address TEXT,
+    facility_city VARCHAR(100),
+    facility_postal VARCHAR(20),
     facility_type VARCHAR(100),
-    
+    sport_types JSON,
+    number_of_courts INT,
+    proposed_hourly_rate DECIMAL(10,2),
+    amenities JSON,
+    facility_description TEXT,
+    ownership_proof VARCHAR(500),
+    facility_images JSON,
+
     -- Coach specific fields
     sport_specialization VARCHAR(100),
     experience_years INT,
@@ -663,7 +686,12 @@ CREATE TABLE IF NOT EXISTS provider_applications (
     session_rate DECIMAL(10,2),
     bio TEXT,
     specialties JSON,
-    
+    previous_experience TEXT,
+    availability JSON,
+    date_of_birth DATE,
+    certifications JSON,
+    profile_photo VARCHAR(500),
+
     -- Shop Owner specific fields
     shop_name VARCHAR(255),
     shop_address TEXT,
@@ -678,25 +706,44 @@ CREATE TABLE IF NOT EXISTS provider_applications (
     brand_names TEXT,
     website_url VARCHAR(255),
     social_media TEXT,
-    
-    -- Documents
-    business_registration VARCHAR(255),
-    tax_document VARCHAR(255),
-    identification_document VARCHAR(255),
-    
+    delivery_options JSON,
+    shop_images JSON,
+
+    -- Document uploads
+    business_registration VARCHAR(500),
+    tax_document VARCHAR(500),
+    identification_document VARCHAR(500),
+    additional_documents JSON,
+
     -- Review fields
     reviewed_by INT DEFAULT NULL,
     reviewed_at TIMESTAMP NULL DEFAULT NULL,
     rejection_reason TEXT,
     admin_notes TEXT,
-    
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_pa_status (status),
     INDEX idx_pa_type (provider_type),
-    INDEX idx_pa_email (email)
+    INDEX idx_pa_email (email),
+    INDEX idx_pa_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- SECTION 9B: USER LOGINS (login tracking)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS user_logins (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    ip_address VARCHAR(45) DEFAULT NULL,
+    user_agent TEXT DEFAULT NULL,
+    login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_ul_user (user_id),
+    INDEX idx_ul_date (login_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================
@@ -915,7 +962,7 @@ INSERT IGNORE INTO notifications (user_id, type, title, message, is_read) VALUES
 (1, 'system', 'New Contact Message', 'New contact message from John Doe regarding "Booking Question".', FALSE),
 (1, 'system', 'Welcome!', 'Welcome to GoPlay Admin Dashboard. Get started by reviewing pending applications.', TRUE);
 
-SET FOREIGN_KEY_CHECKS = 1;
+-- (FOREIGN_KEY_CHECKS re-enabled at end of file)
 
 -- ============================================================
 -- SECTION 14: PAYOUT SYSTEM TABLES
@@ -1052,3 +1099,7 @@ INSERT IGNORE INTO settings (key_name, value, description, type) VALUES
 -- Ground Owner: groundowner1@goplay.lk / password123
 -- Shop Owner:   shopowner1@goplay.lk / password123
 -- ============================================================
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+SELECT 'GoPlay database setup complete!' AS status;

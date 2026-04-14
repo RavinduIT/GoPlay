@@ -16,9 +16,10 @@ $additionalJS = [];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
-            <link rel="stylesheet" href="<?= $css ?>">
+            <link rel="stylesheet" href="<?= $_base ?><?= $css ?>">
         <?php endforeach; ?>
     <?php endif; ?>
+    <script>window.BASE_URL = '<?= $_base ?>';</script>
 </head>
 <body>
     <!-- Include Navbar -->
@@ -194,7 +195,7 @@ $additionalJS = [];
                 <div class="form-row">
                     <div class="form-group">
                         <label for="yearEstablished">Year Established *</label>
-                        <input type="number" id="yearEstablished" name="year_established" min="1900" max="2024" required>
+                        <input type="number" id="yearEstablished" name="year_established" min="1900" max="2026" required>
                         <span class="error-message"></span>
                     </div>
                     <div class="form-group">
@@ -280,9 +281,9 @@ $additionalJS = [];
                 </div>
 
                 <div class="form-group">
-                    <label for="businessRegistration">Business Registration Certificate *</label>
+                    <label for="businessRegistration">Business Registration Certificate</label>
                     <div class="file-upload-area">
-                        <input type="file" id="businessRegistration" name="business_registration" accept="image/*,.pdf" >
+                        <input type="file" id="businessRegistration" name="business_registration" accept="image/*,.pdf">
                         <div class="file-upload-placeholder">
                             <i class="fas fa-file-contract"></i>
                             <p>Click to upload or drag and drop</p>
@@ -293,9 +294,9 @@ $additionalJS = [];
                 </div>
 
                 <div class="form-group">
-                    <label for="taxDocument">Tax Registration/VAT Number *</label>
+                    <label for="taxDocument">Tax Registration/VAT Number</label>
                     <div class="file-upload-area">
-                        <input type="file" id="taxDocument" name="tax_document" accept="image/*,.pdf" >
+                        <input type="file" id="taxDocument" name="tax_document" accept="image/*,.pdf">
                         <div class="file-upload-placeholder">
                             <i class="fas fa-file-invoice"></i>
                             <p>Click to upload or drag and drop</p>
@@ -306,9 +307,9 @@ $additionalJS = [];
                 </div>
 
                 <div class="form-group">
-                    <label for="shopImages">Shop/Product Images (Upload up to 5 images) *</label>
+                    <label for="shopImages">Shop/Product Images (Upload up to 5 images)</label>
                     <div class="file-upload-area">
-                        <input type="file" id="shopImages" name="shop_images[]" accept="image/*" multiple required>
+                        <input type="file" id="shopImages" name="shop_images[]" accept="image/*" multiple>
                         <div class="file-upload-placeholder">
                             <i class="fas fa-images"></i>
                             <p>Click to upload or drag and drop</p>
