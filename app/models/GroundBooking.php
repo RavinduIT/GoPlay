@@ -43,6 +43,18 @@ class GroundBooking extends BaseModel
         $endTime = strtotime($bookingData['end_time']);
         $duration = ($endTime - $startTime) / 3600; // Convert to hours
 
+        // Calculate total amount from facility hourly rate
+        $totalAmount = 0.00;
+        try {
+            $facilityModel = new SportsFacility();
+            $facility = $facilityModel->find((int)$bookingData['facility_id']);
+            if ($facility && isset($facility['hourly_rate'])) {
+                $totalAmount = (float)$facility['hourly_rate'] * $duration;
+            }
+        } catch (\Exception $e) {
+            error_log("Could not calculate booking amount: " . $e->getMessage());
+        }
+
         // Prepare booking data
         $data = [
             'user_id' => $bookingData['user_id'],
@@ -51,10 +63,10 @@ class GroundBooking extends BaseModel
             'start_time' => $bookingData['start_time'],
             'end_time' => $bookingData['end_time'],
             'duration_hours' => $duration,
-            'total_amount' => 0.00, // No payment required for ground bookings
+            'total_amount' => $totalAmount,
             'special_requests' => $bookingData['special_requests'] ?? '',
-            'status' => 'confirmed', // Auto-confirm since no payment needed
-            'payment_status' => 'paid' // Mark as paid since no payment required
+            'status' => 'pending', // Requires ground owner approval
+            'payment_status' => 'pending'
         ];
 
         return $this->create($data);

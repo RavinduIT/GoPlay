@@ -1130,20 +1130,34 @@ body {
 
 <script>
 // Product data will be loaded from PHP
-const productData = <?php echo json_encode($product ?? null); ?>;
-const relatedProducts = <?php echo json_encode($relatedProducts ?? []); ?>;
-const reviews = <?php echo json_encode($reviews ?? []); ?>;
+let productData = null;
+let relatedProducts = [];
+let reviews = [];
+try {
+    productData = <?php echo json_encode($product ?? null, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>;
+    relatedProducts = <?php echo json_encode($relatedProducts ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>;
+    reviews = <?php echo json_encode($reviews ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>;
+} catch(e) {
+    console.error('Failed to parse product data:', e);
+}
 
 let currentQuantity = 1;
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Product data:', productData ? 'loaded (id=' + productData.id + ')' : 'NULL');
     if (productData) {
-        displayProductDetails(productData);
-        displayRelatedProducts(relatedProducts);
-        displayReviews(reviews);
-        hideLoading();
+        try {
+            displayProductDetails(productData);
+            displayRelatedProducts(relatedProducts);
+            displayReviews(reviews);
+            hideLoading();
+        } catch(e) {
+            console.error('Error displaying product:', e);
+            hideLoading();
+        }
     } else {
+        console.error('Product data is null/undefined');
         showError();
     }
 });

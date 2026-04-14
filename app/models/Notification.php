@@ -90,7 +90,7 @@ class Notification extends BaseModel
         $title = 'Booking Cancelled';
         $message = "Your booking for {$facilityName} on {$formattedDate} has been cancelled.";
 
-        return $this->createNotification($userId, 'booking_confirmation', $title, $message, [
+        return $this->createNotification($userId, 'booking_cancelled', $title, $message, [
             'booking_id' => $bookingDetails['booking_id'] ?? null,
             'status' => 'cancelled'
         ]);

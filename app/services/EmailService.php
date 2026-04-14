@@ -42,6 +42,11 @@ class EmailService
             $this->mailer->SMTPSecure = $_ENV['MAIL_ENCRYPTION'] === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
             $this->mailer->Port = (int)($_ENV['MAIL_PORT'] ?? 587);
 
+            // CRITICAL: Set short timeouts to prevent 120s PHP fatal errors
+            $this->mailer->Timeout = 5;        // 5 second connection timeout
+            $this->mailer->SMTPKeepAlive = false;
+            $this->mailer->SMTPDebug = 0;       // No debug output (prevents JSON corruption)
+
             // Sender info
             $this->mailer->setFrom($this->fromAddress, $this->fromName);
 
@@ -53,7 +58,7 @@ class EmailService
 
         } catch (Exception $e) {
             error_log("Email configuration error: " . $e->getMessage());
-            throw new \Exception("Failed to configure email service");
+            // Don't throw — allow the app to continue without email
         }
     }
 

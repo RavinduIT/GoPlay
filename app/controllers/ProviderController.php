@@ -36,6 +36,9 @@ class ProviderController extends BaseController
     public function applyGroundOwner(Request $request): Response
     {
         $this->startSession();
+        if (empty($_SESSION['user_id'])) {
+            return $this->redirect('/login?redirect=/provider/apply/ground-owner');
+        }
         return $this->viewWithoutLayout('provider/ground-owner-form');
     }
 
@@ -45,6 +48,9 @@ class ProviderController extends BaseController
     public function applyCoach(Request $request): Response
     {
         $this->startSession();
+        if (empty($_SESSION['user_id'])) {
+            return $this->redirect('/login?redirect=/provider/apply/coach');
+        }
         return $this->viewWithoutLayout('provider/coach-form');
     }
 
@@ -54,6 +60,9 @@ class ProviderController extends BaseController
     public function applyShopOwner(Request $request): Response
     {
         $this->startSession();
+        if (empty($_SESSION['user_id'])) {
+            return $this->redirect('/login?redirect=/provider/apply/shop-owner');
+        }
         return $this->viewWithoutLayout('provider/shop-owner-form');
     }
 
@@ -63,6 +72,14 @@ class ProviderController extends BaseController
     public function submitApplication(Request $request): Response
     {
         $this->startSession();
+
+        // Require login to submit applications
+        if (empty($_SESSION['user_id'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'You must be logged in to submit a provider application.'
+            ], 401);
+        }
 
         try {
             // Get form data

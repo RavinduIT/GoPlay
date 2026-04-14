@@ -460,13 +460,30 @@ function formatDate(dateString) {
 }
 
 function showSuccess(message) {
-    // You can implement a toast notification here
-    alert(message);
+    showAdminToast('success', message);
 }
 
 function showError(message) {
-    // You can implement a toast notification here
-    alert(message);
+    showAdminToast('error', message);
+}
+
+function showAdminToast(type, message) {
+    document.querySelectorAll('.admin-toast').forEach(t => t.remove());
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+    const toast = document.createElement('div');
+    toast.className = `admin-toast ${type}`;
+    toast.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <span>${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.style.animation = 'toastOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 4000);
 }
 
 // Close modal when clicking outside
