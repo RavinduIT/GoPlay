@@ -127,6 +127,17 @@ $additionalJS = [
                     </div>
                 </div>
 
+                <!-- Pending Approvals -->
+                <div class="dashboard-card pending-approvals" id="pendingApprovalsCard">
+                    <div class="card-header">
+                        <h3><i class="fas fa-clock" style="color:#f59e0b;margin-right:6px;"></i> Pending Approvals <span id="pendingBadge" class="pending-badge" style="display:none;"></span></h3>
+                        <a href="<?= $_base ?>/ground-owner/bookings" class="view-all">View All</a>
+                    </div>
+                    <div id="pendingApprovalsList">
+                        <div class="db-loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
+                    </div>
+                </div>
+
                 <!-- Recent Reviews -->
                 <div class="dashboard-card recent-reviews">
                     <div class="card-header">

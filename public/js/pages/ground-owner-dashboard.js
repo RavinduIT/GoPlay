@@ -18,7 +18,8 @@
             loadProfile(),
             loadStats(),
             loadNotifCount(),
-            loadReviews()
+            loadReviews(),
+            loadPendingApprovals()
         ]);
         loadChart(30);
         bindChartPeriod();
@@ -337,6 +338,100 @@
                 <i class="fas fa-star"></i>
                 <p>Could not load reviews</p>
             </div>`;
+        }
+    }
+
+    /* ================================================================
+       PENDING APPROVALS
+    ================================================================ */
+    async function loadPendingApprovals() {
+        const list  = document.getElementById('pendingApprovalsList');
+        const badge = document.getElementById('pendingBadge');
+        if (!list) return;
+        try {
+            const r = await fetch((window.BASE_URL || '') + '/api/ground-owner/bookings?status=pending&limit=5');
+            const d = await r.json();
+            const bookings = d.bookings || [];
+
+            if (badge) {
+                if (bookings.length > 0) {
+                    badge.textContent = bookings.length;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
+            if (bookings.length === 0) {
+                list.innerHTML = '<p style="color:#64748b;padding:1rem 0;font-size:0.9rem;">No pending bookings — you are all caught up.</p>';
+                return;
+            }
+
+            list.innerHTML = bookings.map(b => {
+                const name  = esc(((b.first_name || '') + ' ' + (b.last_name || '')).trim() || 'Unknown');
+                const ground = esc(b.facility_name || 'Ground');
+                const date  = fmtDate(b.booking_date);
+                const time  = (b.start_time || '').slice(0, 5) + ' - ' + (b.end_time || '').slice(0, 5);
+                return `
+                <div class="pending-item" id="pending-row-${b.id}">
+                    <div class="pending-info">
+                        <div class="pending-name">${name}</div>
+                        <div class="pending-detail">${ground} &middot; ${date} &middot; ${time}</div>
+                        <div class="pending-ago">${timeAgo(b.created_at)}</div>
+                    </div>
+                    <div class="pending-actions">
+                        <button class="pa-btn pa-approve" onclick="approveBooking(${b.id})">Approve</button>
+                        <button class="pa-btn pa-reject"  onclick="rejectBooking(${b.id})">Decline</button>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            if (list) list.innerHTML = '<p style="color:#ef4444;padding:1rem 0;font-size:0.9rem;">Could not load pending bookings.</p>';
+        }
+    }
+
+    window.approveBooking = async function (id) {
+        if (!confirm('Approve this booking?')) return;
+        await updatePendingStatus(id, 'confirmed');
+    };
+
+    window.rejectBooking = async function (id) {
+        if (!confirm('Decline this booking?')) return;
+        await updatePendingStatus(id, 'cancelled');
+    };
+
+    async function updatePendingStatus(id, status) {
+        try {
+            const r = await fetch(`${window.BASE_URL || ''}/api/ground-owner/bookings/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            const d = await r.json();
+            if (d.success) {
+                const row = document.getElementById(`pending-row-${id}`);
+                if (row) row.remove();
+                // Update badge count
+                const badge = document.getElementById('pendingBadge');
+                if (badge) {
+                    const current = parseInt(badge.textContent, 10) - 1;
+                    if (current <= 0) {
+                        badge.style.display = 'none';
+                        const list = document.getElementById('pendingApprovalsList');
+                        if (list && !list.querySelector('.pending-item')) {
+                            list.innerHTML = '<p style="color:#64748b;padding:1rem 0;font-size:0.9rem;">No pending bookings — you are all caught up.</p>';
+                        }
+                    } else {
+                        badge.textContent = current;
+                    }
+                }
+                // Reload stats since counts changed
+                loadStats();
+            } else {
+                alert(d.message || 'Failed to update booking.');
+            }
+        } catch (e) {
+            alert('Error updating booking status.');
         }
     }
 

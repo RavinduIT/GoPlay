@@ -559,4 +559,69 @@ HTML;
             return false;
         }
     }
+
+    /**
+     * Send provider application rejection email
+     */
+    public function sendProviderRejectionEmail(string $recipientEmail, string $recipientName, string $providerType, string $reason): bool
+    {
+        try {
+            $this->mailer->clearAddresses();
+            $this->mailer->addAddress($recipientEmail, $recipientName);
+            $providerTypeName = $this->getProviderTypeName($providerType);
+            $this->mailer->Subject = "Update on Your GoPlay {$providerTypeName} Application";
+            $body = $this->getProviderRejectionTemplate($recipientName, $providerTypeName, $reason);
+            $this->mailer->Body    = $body;
+            $this->mailer->AltBody = strip_tags($body);
+            return $this->mailer->send();
+        } catch (Exception $e) {
+            error_log("Failed to send provider rejection email: " . $this->mailer->ErrorInfo);
+            return false;
+        }
+    }
+
+    private function getProviderRejectionTemplate(string $userName, string $providerTypeName, string $reason): string
+    {
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background:#f4f4f4; color:#333; margin:0; padding:0; }
+  .container { max-width:600px; margin:20px auto; background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 4px 6px rgba(0,0,0,.1); }
+  .header { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; text-align:center; padding:40px 20px; }
+  .header h1 { margin:0; font-size:26px; }
+  .content { padding:40px 30px; }
+  .reason-box { background:#fef2f2; border-left:4px solid #ef4444; padding:16px; border-radius:4px; margin:20px 0; }
+  .next-steps { background:#f0fdf4; border-left:4px solid #22c55e; padding:15px; border-radius:4px; margin:20px 0; }
+  .footer { background:#f8f9fa; padding:20px; text-align:center; color:#666; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>Application Update</h1></div>
+  <div class="content">
+    <p style="font-size:18px;font-weight:600;color:#ef4444;">Dear {$userName},</p>
+    <p>Thank you for your interest in joining GoPlay as a <strong>{$providerTypeName}</strong>. After careful review, we are unable to approve your application at this time.</p>
+    <div class="reason-box">
+      <strong>Reason:</strong><br>{$reason}
+    </div>
+    <div class="next-steps">
+      <strong>What you can do:</strong>
+      <ul style="margin:8px 0 0;padding-left:20px;">
+        <li>Review the reason above and address any concerns</li>
+        <li>Reapply once you have resolved the issue</li>
+        <li>Contact our support team if you have questions</li>
+      </ul>
+    </div>
+    <p>We appreciate your interest in GoPlay and hope to work with you in the future.</p>
+    <p>Best regards,<br><strong>The GoPlay Team</strong></p>
+  </div>
+  <div class="footer"><p>&copy; 2024 GoPlay Sports Platform. All rights reserved.</p></div>
+</div>
+</body>
+</html>
+HTML;
+    }
 }
