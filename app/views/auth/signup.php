@@ -1,3 +1,4 @@
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - GoPlay Sports Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/pages/signup.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/signup.css">
 </head>
 <body>
 <div class="auth-container">
@@ -13,7 +14,7 @@
         <!-- Left Side - Branding -->
         <div class="auth-brand">
             <div class="brand-content">
-                <img src="/public/assets/images/logo.jpeg" alt="GoPlay" class="brand-logo">
+                <img src="<?= $_base ?>/public/assets/images/logo.jpeg" alt="GoPlay" class="brand-logo">
                 <h1 class="brand-title">Join GoPlay</h1>
                 <p class="brand-subtitle">Start your sports journey with us today</p>
                 <div class="brand-features">
@@ -153,7 +154,7 @@
                 <div class="auth-footer">
                     <p class="auth-footer-text">
                         Already have an account? 
-                        <a href="/login" class="auth-link">Sign In</a>
+                        <a href="<?= $_base ?>/login" class="auth-link">Sign In</a>
                     </p>
                 </div>
                 
@@ -277,7 +278,7 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
 
     // Send registration request
-    fetch('/auth/register', {
+    fetch((window.BASE_URL||'')+'/auth/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -296,7 +297,7 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
         if (data.success) {
             showToast('Account created successfully! Redirecting...', 'success');
             setTimeout(() => {
-                window.location.href = data.redirect || '/';
+                window.location.href = data.redirect || (window.BASE_URL||'')+'/';
             }, 1500);
         } else {
             showToast(data.error || 'Registration failed', 'error');

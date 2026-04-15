@@ -257,7 +257,37 @@ class AdminController extends BaseController
                 $this->createProviderProfile($application);
             }
 
-            // TODO: Send approval email to applicant
+            // Send approval email to applicant
+            try {
+                $emailService = new \App\Services\EmailService();
+                $emailService->sendProviderApprovalEmail(
+                    $application['email'],
+                    $application['first_name'] . ' ' . $application['last_name'],
+                    $application['provider_type']
+                );
+            } catch (\Exception $emailErr) {
+                error_log("Approval email failed: " . $emailErr->getMessage());
+            }
+
+            // Create in-app notification for the user
+            try {
+                if ($application['user_id']) {
+                    $notificationModel = new \App\Models\Notification();
+                    $providerLabel = str_replace('_', ' ', ucfirst($application['provider_type']));
+                    $notificationModel->createNotification(
+                        (int)$application['user_id'],
+                        'provider_approved',
+                        'Application Approved',
+                        "Congratulations! Your {$providerLabel} application has been approved. You can now access your provider dashboard and start managing your services.",
+                        [
+                            'application_id' => $id,
+                            'provider_type' => $application['provider_type']
+                        ]
+                    );
+                }
+            } catch (\Exception $notifErr) {
+                error_log("Provider approval notification failed: " . $notifErr->getMessage());
+            }
 
             return $this->json([
                 'success' => true,
@@ -291,7 +321,7 @@ class AdminController extends BaseController
                     break;
                     
                 case 'coach':
-                    // Coach profile creation can be added here if needed
+                    $this->createCoachProfile($userId, $application);
                     break;
             }
         } catch (\Exception $e) {
@@ -372,6 +402,61 @@ class AdminController extends BaseController
     }
 
     /**
+     * Create coach profile from application data
+     */
+    private function createCoachProfile(int $userId, array $application): void
+    {
+        try {
+            $db = $this->getDatabase();
+            
+            // Check if coach profile already exists
+            $check = $db->prepare("SELECT id FROM coaches WHERE user_id = ?");
+            $check->execute([$userId]);
+            if ($check->fetch()) {
+                return; // Already exists
+            }
+
+            // Find sport_category_id from specialization name
+            $sportCategoryId = 1; // Default fallback
+            $sportName = $application['sport_specialization'] ?? '';
+            if (!empty($sportName)) {
+                $catStmt = $db->prepare("SELECT id FROM sports_categories WHERE name LIKE ? AND is_active = 1 LIMIT 1");
+                $catStmt->execute(['%' . $sportName . '%']);
+                $cat = $catStmt->fetch(\PDO::FETCH_ASSOC);
+                if ($cat) {
+                    $sportCategoryId = (int)$cat['id'];
+                }
+            }
+
+            // Avoid double JSON encoding - specialties may already be a JSON string
+            $specialties = $application['specialties'] ?? '[]';
+            if (is_string($specialties)) {
+                $decoded = json_decode($specialties, true);
+                $specialties = $decoded !== null ? json_encode($decoded) : $specialties;
+            } else {
+                $specialties = json_encode($specialties);
+            }
+
+            $stmt = $db->prepare(
+                "INSERT INTO coaches (user_id, sport_category_id, experience_years, hourly_rate, bio, specializations, certifications, location, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')"
+            );
+            $stmt->execute([
+                $userId,
+                $sportCategoryId,
+                (int)($application['experience_years'] ?? 0),
+                (float)($application['session_rate'] ?? 0),
+                $application['bio'] ?? '',
+                $specialties,
+                $application['qualifications'] ?? '',
+                ($application['city'] ?? '') . ', Sri Lanka'
+            ]);
+        } catch (\Exception $e) {
+            error_log("Error creating coach profile: " . $e->getMessage());
+        }
+    }
+
+    /**
      * Reject application
      */
     public function rejectApplication(Request $request, int $id): Response
@@ -409,7 +494,44 @@ class AdminController extends BaseController
             $stmt = $db->prepare($sql);
             $stmt->execute([$_SESSION['user_id'], $reason, $id]);
 
-            // TODO: Send rejection email to applicant
+            // Send rejection email to applicant
+            try {
+                $application = $db->prepare("SELECT * FROM provider_applications WHERE id = ?");
+                $application->execute([$id]);
+                $app = $application->fetch(\PDO::FETCH_ASSOC);
+                if ($app) {
+                    $emailService = new \App\Services\EmailService();
+                    $emailService->sendNotification(
+                        $app['email'],
+                        $app['first_name'] . ' ' . $app['last_name'],
+                        'GoPlay - Application Update',
+                        '<h2>Application Update</h2>'
+                        . '<p>We have reviewed your provider application and unfortunately we are unable to approve it at this time.</p>'
+                        . '<p><strong>Reason:</strong> ' . htmlspecialchars($reason) . '</p>'
+                        . '<p>You are welcome to submit a new application after addressing the above feedback.</p>'
+                        . '<br><p>Best regards,<br><strong>The GoPlay Team</strong></p>'
+                    );
+
+                    // Create in-app notification for the user
+                    if (!empty($app['user_id'])) {
+                        $notificationModel = new \App\Models\Notification();
+                        $providerLabel = str_replace('_', ' ', ucfirst($app['provider_type']));
+                        $notificationModel->createNotification(
+                            (int)$app['user_id'],
+                            'provider_rejected',
+                            'Application Not Approved',
+                            "Your {$providerLabel} application was not approved. Reason: {$reason}. You can resubmit after addressing the feedback.",
+                            [
+                                'application_id' => $id,
+                                'provider_type' => $app['provider_type'],
+                                'reason' => $reason
+                            ]
+                        );
+                    }
+                }
+            } catch (\Exception $emailErr) {
+                error_log("Rejection email failed: " . $emailErr->getMessage());
+            }
 
             return $this->json([
                 'success' => true,
@@ -421,6 +543,338 @@ class AdminController extends BaseController
                 'success' => false,
                 'message' => 'Failed to reject application'
             ], 500);
+        }
+    }
+
+    /**
+     * Dashboard API: Get overview statistics
+     */
+    public function getStats(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $db = $this->getDatabase();
+
+            // Users
+            $totalUsers = $db->query("SELECT COUNT(*) as c FROM users")->fetch(\PDO::FETCH_ASSOC)['c'];
+            $newUsersThisMonth = $db->query("SELECT COUNT(*) as c FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetch(\PDO::FETCH_ASSOC)['c'];
+            $usersGrowth = $totalUsers > 0 ? round(($newUsersThisMonth / $totalUsers) * 100, 1) : 0;
+
+            // Revenue
+            $totalRevenue = $db->query("SELECT COALESCE(SUM(amount), 0) as t FROM payments WHERE status = 'completed'")->fetch(\PDO::FETCH_ASSOC)['t'];
+            $monthRevenue = $db->query("SELECT COALESCE(SUM(amount), 0) as t FROM payments WHERE status = 'completed' AND processed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetch(\PDO::FETCH_ASSOC)['t'];
+            $prevMonthRevenue = $db->query("SELECT COALESCE(SUM(amount), 0) as t FROM payments WHERE status = 'completed' AND processed_at >= DATE_SUB(NOW(), INTERVAL 60 DAY) AND processed_at < DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetch(\PDO::FETCH_ASSOC)['t'];
+            $revenueGrowth = $prevMonthRevenue > 0 ? round((($monthRevenue - $prevMonthRevenue) / $prevMonthRevenue) * 100, 1) : 0;
+
+            // Grounds
+            $totalGrounds = $db->query("SELECT COUNT(*) as c FROM sports_facilities WHERE status = 'active'")->fetch(\PDO::FETCH_ASSOC)['c'];
+
+            // Coaches
+            $totalCoaches = $db->query("SELECT COUNT(*) as c FROM coaches WHERE status = 'active'")->fetch(\PDO::FETCH_ASSOC)['c'];
+
+            return $this->json([
+                'success' => true,
+                'stats' => [
+                    'users' => [
+                        'total' => (int)$totalUsers,
+                        'label' => "+{$newUsersThisMonth} this month",
+                        'growth' => $usersGrowth
+                    ],
+                    'revenue' => [
+                        'total' => (float)$totalRevenue,
+                        'label' => "Rs." . number_format($monthRevenue) . " this month",
+                        'growth' => $revenueGrowth
+                    ],
+                    'grounds' => [
+                        'total' => (int)$totalGrounds,
+                        'label' => 'Active facilities'
+                    ],
+                    'products' => [
+                        'total' => (int)$totalCoaches,
+                        'label' => 'Active coaches'
+                    ]
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Dashboard stats error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to load statistics'], 500);
+        }
+    }
+
+    /**
+     * Dashboard API: Get revenue chart data
+     */
+    public function getRevenueChart(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $db = $this->getDatabase();
+            $period = (int)($_GET['period'] ?? 7);
+            if ($period < 1 || $period > 365) $period = 7;
+
+            $stmt = $db->prepare(
+                "SELECT DATE(processed_at) as date, COALESCE(SUM(amount), 0) as revenue
+                 FROM payments
+                 WHERE status = 'completed' AND processed_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+                 GROUP BY DATE(processed_at)
+                 ORDER BY date ASC"
+            );
+            $stmt->execute([$period]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            $data = [];
+            foreach ($rows as $row) {
+                $data[] = [
+                    'label' => date('M j', strtotime($row['date'])),
+                    'revenue' => (float)$row['revenue']
+                ];
+            }
+
+            // If no data, return zeros for period
+            if (empty($data)) {
+                for ($i = $period - 1; $i >= 0; $i--) {
+                    $data[] = [
+                        'label' => date('M j', strtotime("-{$i} days")),
+                        'revenue' => 0
+                    ];
+                }
+            }
+
+            return $this->json(['success' => true, 'data' => $data]);
+        } catch (\Exception $e) {
+            error_log("Revenue chart error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to load revenue data'], 500);
+        }
+    }
+
+    /**
+     * Dashboard API: Get recent user registrations
+     */
+    public function getRecentRegistrations(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $db = $this->getDatabase();
+            $limit = min(20, max(1, (int)($_GET['limit'] ?? 5)));
+
+            $stmt = $db->prepare(
+                "SELECT id, first_name, last_name, email, user_type, created_at
+                 FROM users ORDER BY created_at DESC LIMIT ?"
+            );
+            $stmt->execute([$limit]);
+            $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            $typeClasses = [
+                'user' => 'user',
+                'admin' => 'admin',
+                'ground_owner' => 'ground-owner',
+                'coach' => 'coach',
+                'shop_owner' => 'shop-owner'
+            ];
+
+            $data = [];
+            foreach ($users as $u) {
+                $diff = time() - strtotime($u['created_at']);
+                if ($diff < 3600) {
+                    $timeAgo = max(1, floor($diff / 60)) . ' min ago';
+                } elseif ($diff < 86400) {
+                    $timeAgo = floor($diff / 3600) . ' hours ago';
+                } else {
+                    $timeAgo = floor($diff / 86400) . ' days ago';
+                }
+
+                $data[] = [
+                    'name' => $u['first_name'] . ' ' . $u['last_name'],
+                    'email' => $u['email'],
+                    'type' => ucwords(str_replace('_', ' ', $u['user_type'])),
+                    'typeClass' => $typeClasses[$u['user_type']] ?? 'user',
+                    'timeAgo' => $timeAgo
+                ];
+            }
+
+            return $this->json(['success' => true, 'data' => $data]);
+        } catch (\Exception $e) {
+            error_log("Recent registrations error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to load registrations'], 500);
+        }
+    }
+
+    /**
+     * Dashboard API: Get recent content additions
+     */
+    public function getRecentContent(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $db = $this->getDatabase();
+            $limit = min(20, max(1, (int)($_GET['limit'] ?? 5)));
+
+            $content = [];
+
+            // Recent grounds
+            $stmt = $db->prepare(
+                "SELECT sf.name, sf.created_at, 'Ground' as type
+                 FROM sports_facilities sf
+                 ORDER BY sf.created_at DESC LIMIT ?"
+            );
+            $stmt->execute([$limit]);
+            foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $content[] = array_merge($row, ['icon' => 'fa-map-marker-alt', 'typeClass' => 'ground']);
+            }
+
+            // Recent news
+            $stmt = $db->prepare(
+                "SELECT title as name, created_at, 'News' as type
+                 FROM news ORDER BY created_at DESC LIMIT ?"
+            );
+            $stmt->execute([$limit]);
+            foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $content[] = array_merge($row, ['icon' => 'fa-newspaper', 'typeClass' => 'product']);
+            }
+
+            // Recent products
+            $stmt = $db->prepare(
+                "SELECT name, created_at, 'Product' as type
+                 FROM products ORDER BY created_at DESC LIMIT ?"
+            );
+            $stmt->execute([$limit]);
+            foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $content[] = array_merge($row, ['icon' => 'fa-box', 'typeClass' => 'product']);
+            }
+
+            // Sort combined by date, take top N
+            usort($content, function($a, $b) {
+                return strtotime($b['created_at']) - strtotime($a['created_at']);
+            });
+            $content = array_slice($content, 0, $limit);
+
+            // Add timeAgo
+            foreach ($content as &$item) {
+                $diff = time() - strtotime($item['created_at']);
+                if ($diff < 3600) {
+                    $item['timeAgo'] = max(1, floor($diff / 60)) . ' min ago';
+                } elseif ($diff < 86400) {
+                    $item['timeAgo'] = floor($diff / 3600) . ' hours ago';
+                } else {
+                    $item['timeAgo'] = floor($diff / 86400) . ' days ago';
+                }
+            }
+
+            return $this->json(['success' => true, 'data' => $content]);
+        } catch (\Exception $e) {
+            error_log("Recent content error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to load content'], 500);
+        }
+    }
+
+    /**
+     * Dashboard API: Get user breakdown by type
+     */
+    public function getUserBreakdown(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $db = $this->getDatabase();
+            $rows = $db->query(
+                "SELECT user_type, COUNT(*) as count FROM users GROUP BY user_type"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            return $this->json(['success' => true, 'data' => $rows]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Failed to load breakdown'], 500);
+        }
+    }
+
+    /**
+     * Dashboard API: Get admin notifications
+     */
+    public function getNotifications(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $db = $this->getDatabase();
+
+            // Count pending provider applications
+            $pending = $db->query(
+                "SELECT COUNT(*) as c FROM provider_applications WHERE status = 'pending'"
+            )->fetch(\PDO::FETCH_ASSOC)['c'];
+
+            // Count new users in last 24h
+            $newUsers = $db->query(
+                "SELECT COUNT(*) as c FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)"
+            )->fetch(\PDO::FETCH_ASSOC)['c'];
+
+            $totalCount = (int)$pending + (int)$newUsers;
+
+            return $this->json([
+                'success' => true,
+                'count' => $totalCount,
+                'details' => [
+                    'pending_applications' => (int)$pending,
+                    'new_users_24h' => (int)$newUsers
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => true, 'count' => 0], 200);
+        }
+    }
+
+    /**
+     * Dashboard API: Get admin profile info
+     */
+    public function getProfile(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $db = $this->getDatabase();
+            $stmt = $db->prepare(
+                "SELECT first_name, last_name, profile_picture, user_type FROM users WHERE id = ?"
+            );
+            $stmt->execute([$_SESSION['user_id']]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                return $this->json(['success' => false, 'message' => 'User not found'], 404);
+            }
+
+            return $this->json([
+                'success' => true,
+                'profile' => [
+                    'name' => $user['first_name'] . ' ' . $user['last_name'],
+                    'role' => 'Super Admin',
+                    'avatar' => $user['profile_picture'] ?? '/public/assets/images/default-avatar.png'
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Failed to load profile'], 500);
         }
     }
 
@@ -438,8 +892,120 @@ class AdminController extends BaseController
     private function requireAdmin(): void
     {
         if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
-            header('Location: /');
+            header('Location: ' . (defined('BASE_URL') ? BASE_URL : '') . '/');
             exit;
+        }
+    }
+
+    // =========================================================
+    // PAYOUT MANAGEMENT METHODS
+    // =========================================================
+
+    /**
+     * Render admin payouts page
+     */
+    public function payoutsPage(Request $request): Response
+    {
+        $this->startSession();
+        $this->requireAdmin();
+        return $this->view('admin/payouts');
+    }
+
+    /**
+     * API: Get payout requests list
+     */
+    public function getPayouts(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $page = max(1, (int)($request->query('page') ?? 1));
+            $status = $request->query('status') ?? 'all';
+
+            $payoutModel = new \App\Models\ShopOwnerPayout();
+            $payouts = $payoutModel->getPendingRequests($page, 20, $status);
+            $stats = $payoutModel->getPayoutStats();
+
+            return $this->json([
+                'success' => true,
+                'payouts' => $payouts,
+                'stats' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Admin getPayouts error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to load payouts'], 500);
+        }
+    }
+
+    /**
+     * API: Approve a payout request
+     */
+    public function approvePayout(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $data = $request->getJsonBody();
+            $payoutId = (int)($data['payout_id'] ?? 0);
+            $transactionRef = $data['transaction_reference'] ?? '';
+
+            if (!$payoutId) {
+                return $this->json(['success' => false, 'message' => 'Payout ID is required'], 400);
+            }
+
+            if (empty($transactionRef)) {
+                return $this->json(['success' => false, 'message' => 'Transaction reference is required'], 400);
+            }
+
+            $payoutModel = new \App\Models\ShopOwnerPayout();
+            $result = $payoutModel->approveRequest($payoutId, $_SESSION['user_id'], $transactionRef);
+
+            return $this->json($result, $result['success'] ? 200 : 400);
+
+        } catch (\Exception $e) {
+            error_log("Admin approvePayout error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to approve payout'], 500);
+        }
+    }
+
+    /**
+     * API: Reject a payout request
+     */
+    public function rejectPayout(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $data = $request->getJsonBody();
+            $payoutId = (int)($data['payout_id'] ?? 0);
+            $reason = $data['reason'] ?? '';
+
+            if (!$payoutId) {
+                return $this->json(['success' => false, 'message' => 'Payout ID is required'], 400);
+            }
+
+            if (empty($reason)) {
+                return $this->json(['success' => false, 'message' => 'Rejection reason is required'], 400);
+            }
+
+            $payoutModel = new \App\Models\ShopOwnerPayout();
+            $result = $payoutModel->rejectRequest($payoutId, $_SESSION['user_id'], $reason);
+
+            return $this->json($result, $result['success'] ? 200 : 400);
+
+        } catch (\Exception $e) {
+            error_log("Admin rejectPayout error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to reject payout'], 500);
         }
     }
 }

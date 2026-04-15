@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 // Start session if not started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -51,8 +52,8 @@ $title = 'Order Management - Shop Owner Dashboard';
 $additionalCSS = ['/public/css/pages/shop-owner-dashboard.css', '/public/css/pages/shop-owner-orders.css'];
 $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owner-orders.js'];
 ?>
-<link rel="stylesheet" href="/public/css/pages/shop-owner-dashboard.css">
-<link rel="stylesheet" href="/public/css/pages/shop-owner-orders.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/shop-owner-dashboard.css">
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/shop-owner-orders.css">
 
 <div class="shop-owner-dashboard">
     <!-- Sidebar -->
@@ -419,4 +420,4 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
 <!-- Toast Notification -->
 <div id="toast" class="toast"></div>
 
-<script src="/public/js/pages/shop-owner-orders.js"></script>
+<script src="<?= $_base ?>/public/js/pages/shop-owner-orders.js"></script>

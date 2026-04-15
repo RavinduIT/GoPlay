@@ -1,4 +1,5 @@
-<?php $currentPage = 'earnings'; ?>
+﻿<?php
+$_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'earnings'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Earnings - Coach Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/coach/sidebar.css">
-    <link rel="stylesheet" href="/public/css/pages/coach-earnings.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/coach/sidebar.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/coach-earnings.css">
 
 </head>
 <body>
@@ -16,7 +17,7 @@
 
     <main class="main-content">
 
-        <!-- ── Page Header ─────────────────────────────────── -->
+        <!--  Page Header  -->
         <div class="page-header">
             <div class="header-left">
                 <button class="sidebar-toggle" onclick="toggleSidebar()">
@@ -36,7 +37,7 @@
 
         <div class="earnings-content">
 
-            <!-- ── Stat Cards ──────────────────────────────── -->
+            <!--  Stat Cards  -->
             <div class="stats-grid">
                 <div class="stat-card total-earnings">
                     <div class="stat-icon"><i class="fas fa-coins"></i></div>
@@ -72,7 +73,7 @@
                 </div>
             </div>
 
-            <!-- ── Filters ──────────────────────────────────── -->
+            <!--  Filters  -->
             <div class="filters-card">
                 <div class="filters-row">
                     <div class="fgroup">
@@ -123,7 +124,7 @@
                 </div>
             </div>
 
-            <!-- ── Earnings Table ────────────────────────────── -->
+            <!--  Earnings Table  -->
             <div class="table-card">
                 <div class="table-card-header">
                     <h3><i class="fas fa-list"></i> Session Earnings</h3>
@@ -176,7 +177,7 @@
     </main>
 </div>
 
-<!-- ── Session Detail Modal ─────────────────────────────── -->
+<!--  Session Detail Modal  -->
 <div id="detailModal" class="e-modal">
     <div class="e-modal-box">
         <div class="e-modal-head">
@@ -188,18 +189,18 @@
 </div>
 <div id="detailBackdrop" class="e-backdrop"></div>
 
-<!-- ══════════════════════════════════════════════════════
+<!-- 
      JavaScript
-══════════════════════════════════════════════════════ -->
+ -->
 <script>
 (function () {
 'use strict';
 
-/* ── state ─────────────────────────────────────────────── */
+/*  state  */
 let page       = 1;
 let totalPages = 1;
 
-/* ── currency helper ─────────────────────────────────── */
+/*  currency helper  */
 function lkr(n) {
     const val = parseFloat(n || 0);
     return 'Rs. ' + val.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -218,7 +219,7 @@ function changeHtml(val) {
     return `<span class="${cls}"><i class="fas ${icon}"></i> ${Math.abs(val)}% from last period</span>`;
 }
 
-/* ── filters ──────────────────────────────────────────── */
+/*  filters  */
 function getFilters() {
     return {
         dateRange:     document.getElementById('dateRange').value,
@@ -234,7 +235,7 @@ function filtersToQuery(f, extra = {}) {
     return new URLSearchParams({ ...f, ...extra }).toString();
 }
 
-/* ── load earnings list ───────────────────────────────── */
+/*  load earnings list  */
 async function loadEarnings(pg = 1) {
     page = pg;
     document.getElementById('tableLoading').style.display       = 'block';
@@ -245,7 +246,7 @@ async function loadEarnings(pg = 1) {
     try {
         const f   = getFilters();
         const qs  = filtersToQuery(f, { page: pg, limit: 10 });
-        const res = await fetch('/api/coach/earnings?' + qs);
+        const res = await fetch((window.BASE_URL||'')+'/api/coach/earnings?' + qs);
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Failed');
 
@@ -260,7 +261,7 @@ async function loadEarnings(pg = 1) {
     }
 }
 
-/* ── render stats ─────────────────────────────────────── */
+/*  render stats  */
 function renderStats(s) {
     document.getElementById('totalEarnings').textContent    = lkr(s.total_earnings);
     document.getElementById('earningsChange').innerHTML     = changeHtml(s.earnings_change);
@@ -271,7 +272,7 @@ function renderStats(s) {
     document.getElementById('avgRate').textContent          = lkr(s.avg_rate) + '/hr';
 }
 
-/* ── render table ─────────────────────────────────────── */
+/*  render table  */
 function renderTable(rows) {
     document.getElementById('tableLoading').style.display = 'none';
     if (!rows.length) {
@@ -313,7 +314,7 @@ function renderTable(rows) {
         </tr>`).join('');
 }
 
-/* ── pagination ───────────────────────────────────────── */
+/*  pagination  */
 function updatePagination(pg, total, count) {
     const pag  = document.getElementById('pagination');
     const info = document.getElementById('pageInfo');
@@ -332,14 +333,14 @@ function updatePagination(pg, total, count) {
 document.getElementById('prevPage').addEventListener('click', () => page > 1 && loadEarnings(page - 1));
 document.getElementById('nextPage').addEventListener('click', () => page < totalPages && loadEarnings(page + 1));
 
-/* ── session detail modal ─────────────────────────────── */
+/*  session detail modal  */
 window.viewDetail = async function (id) {
     document.getElementById('detailContent').innerHTML =
         '<div class="d-loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>';
     openDetail();
 
     try {
-        const res  = await fetch('/api/coach/earnings/' + id);
+        const res  = await fetch((window.BASE_URL||'')+'/api/coach/earnings/' + id);
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Not found');
 
@@ -374,14 +375,14 @@ function closeDetail() { document.getElementById('detailModal').classList.remove
 document.getElementById('closeDetail').addEventListener('click', closeDetail);
 document.getElementById('detailBackdrop').addEventListener('click', closeDetail);
 
-/* ── export ───────────────────────────────────────────── */
+/*  export  */
 document.getElementById('exportBtn').addEventListener('click', () => {
     const f  = getFilters();
     const qs = filtersToQuery(f);
-    window.location.href = '/api/coach/earnings/export?' + qs;
+    window.location.href=(window.BASE_URL||'')+'/api/coach/earnings/export?' + qs;
 });
 
-/* ── event wiring ─────────────────────────────────────── */
+/*  event wiring  */
 document.getElementById('dateRange').addEventListener('change', e => {
     const isCustom = e.target.value === 'custom';
     document.getElementById('customStart').style.display = isCustom ? 'flex' : 'none';
@@ -391,7 +392,7 @@ document.getElementById('dateRange').addEventListener('change', e => {
 document.getElementById('applyFilters').addEventListener('click', () => loadEarnings(1));
 document.getElementById('sortBy').addEventListener('change', () => loadEarnings(1));
 
-/* ── init ─────────────────────────────────────────────── */
+/*  init  */
 loadEarnings(1);
 
 })();

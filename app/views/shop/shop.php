@@ -1,4 +1,5 @@
-<?php 
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Shop - GoPlay Sports Platform';
 $additionalCSS = ['/public/css/components/cart.css'];
 $currentPath = $_SERVER['REQUEST_URI'] ?? '';
@@ -1068,7 +1069,7 @@ $additionalJS = ['/public/js/cart-api.js'];
                             <span class="stat-label">Delivery</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">5</span>
+                            <span class="stat-number">5 <i class="fas fa-star" style="color:#fbbf24;font-size:0.8em"></i></span>
                             <span class="stat-label">Rating</span>
                         </div>
                     </div>
@@ -1395,7 +1396,7 @@ $additionalJS = ['/public/js/cart-api.js'];
             const categoryItems = categoriesWithProducts.map(category => {
                 return `
                     <a href="#" class="category-item" data-category="${category.slug}" onclick="filterByCategory('${category.slug}')">
-                        <div class="category-icon">${category.icon || '🏟️'}</div>
+                        <div class="category-icon">${category.icon || '<i class="fas fa-map-marker-alt"></i>'}</div>
                         <div class="category-name">${category.name}</div>
                         <div class="category-count">${category.product_count} items</div>
                     </a>
@@ -1420,15 +1421,15 @@ $additionalJS = ['/public/js/cart-api.js'];
         // Get category icon
         function getCategoryIcon(category) {
             const icons = {
-                'football': '�',
-                'tennis': '<�',
-                'basketball': '<�',
-                'cricket': '<�',
-                'badminton': '<�',
-                'swimming': '<�',
-                'fitness': '=�'
+                'football': '<i class="fas fa-futbol"></i>',
+                'tennis': '<i class="fas fa-baseball-ball"></i>',
+                'basketball': '<i class="fas fa-basketball-ball"></i>',
+                'cricket': '<i class="fas fa-baseball-ball"></i>',
+                'badminton': '<i class="fas fa-baseball-ball"></i>',
+                'swimming': '<i class="fas fa-swimmer"></i>',
+                'fitness': '<i class="fas fa-dumbbell"></i>'
             };
-            return icons[category] || '<�';
+            return icons[category] || '<i class="fas fa-running"></i>';
         }
 
         // Add to cart - now handled by cart-api.js
@@ -1437,7 +1438,7 @@ $additionalJS = ['/public/js/cart-api.js'];
         // View product details
         function viewProduct(productId) {
             // Redirect to product details page
-            window.location.href = `/product/${productId}`;
+            window.location.href = `${window.BASE_URL||''}/product/${productId}`;
         }
 
 
@@ -1466,7 +1467,7 @@ $additionalJS = ['/public/js/cart-api.js'];
                 return;
             }
             // Redirect to checkout page
-            window.location.href = '/checkout/contact-details';
+            window.location.href=(window.BASE_URL||'')+'/checkout/contact-details';
         }*/
 
 

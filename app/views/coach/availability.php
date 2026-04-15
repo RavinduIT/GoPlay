@@ -1,3 +1,4 @@
+﻿<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,8 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/public/css/coach/sidebar.css">
-    <link rel="stylesheet" href="/public/css/pages/coach-availability.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/coach/sidebar.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/coach-availability.css">
 </head>
 <body>
 
@@ -17,7 +18,7 @@
 
     <div class="main-content">
 
-        <!-- ── Page Header ───────────────────────────────────── -->
+        <!--  Page Header  -->
         <div class="page-header">
             <div class="header-left">
                 <button class="sidebar-toggle" id="sidebarToggle">
@@ -37,7 +38,7 @@
 
         <div class="availability-content">
 
-            <!-- ── Stats Grid ─────────────────────────────────── -->
+            <!--  Stats Grid  -->
             <div class="stats-grid">
                 <div class="stat-card stat-avail-hours">
                     <div class="stat-icon"><i class="fas fa-clock"></i></div>
@@ -73,7 +74,7 @@
                 </div>
             </div>
 
-            <!-- ── Main Layout ────────────────────────────────── -->
+            <!--  Main Layout  -->
             <div class="avail-layout">
 
                 <!-- Left column: schedule + calendar -->
@@ -149,9 +150,9 @@
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════════
+// 
 //  State
-// ══════════════════════════════════════════════════════════════
+// 
 let schedule   = [];
 let upcoming   = [];
 let calYear    = new Date().getFullYear();
@@ -166,9 +167,9 @@ const MONTHS = [
 // Map JS getDay() (0=Sun) to day_of_week string
 const DOW_MAP = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Init
-// ══════════════════════════════════════════════════════════════
+// 
 document.addEventListener('DOMContentLoaded', () => {
     loadSchedule();
 
@@ -189,12 +190,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Load schedule from API
-// ══════════════════════════════════════════════════════════════
+// 
 async function loadSchedule() {
     try {
-        const res  = await fetch('/api/coach/availability');
+        const res  = await fetch((window.BASE_URL||'')+'/api/coach/availability');
         const data = await res.json();
         if (!data.success) throw new Error(data.message || 'Failed to load');
 
@@ -210,9 +211,9 @@ async function loadSchedule() {
     }
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Render stats
-// ══════════════════════════════════════════════════════════════
+// 
 function renderStats(stats) {
     const hrs = stats.available_hours;
     document.getElementById('statHours').textContent    = hrs + ' hrs';
@@ -238,9 +239,9 @@ function renderStats(stats) {
     }
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Render weekly schedule
-// ══════════════════════════════════════════════════════════════
+// 
 function renderSchedule() {
     const body = document.getElementById('scheduleBody');
     body.innerHTML = schedule.map((s, i) => buildScheduleRow(s, i)).join('');
@@ -339,9 +340,9 @@ function updateHours(i) {
     }
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Save schedule
-// ══════════════════════════════════════════════════════════════
+// 
 async function saveSchedule() {
     const btn = document.getElementById('saveBtn');
     btn.disabled = true;
@@ -363,7 +364,7 @@ async function saveSchedule() {
     });
 
     try {
-        const res  = await fetch('/api/coach/availability', {
+        const res  = await fetch((window.BASE_URL||'')+'/api/coach/availability', {
             method:  'PUT',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ schedule: payload }),
@@ -384,9 +385,9 @@ async function saveSchedule() {
     }
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Calendar
-// ══════════════════════════════════════════════════════════════
+// 
 function stepMonth(delta) {
     calMonth += delta;
     if (calMonth < 1)  { calMonth = 12; calYear--; }
@@ -396,7 +397,7 @@ function stepMonth(delta) {
 async function loadCalendar() {
     document.getElementById('calMonthLabel').textContent = MONTHS[calMonth - 1] + ' ' + calYear;
     try {
-        const res  = await fetch(`/api/coach/availability/calendar?year=${calYear}&month=${calMonth}`);
+        const res  = await fetch(`${window.BASE_URL||""}/api/coach/availability/calendar?year=${calYear}&month=${calMonth}`);
         const data = await res.json();
         if (data.success) {
             calBookings = data.bookings;
@@ -462,9 +463,9 @@ function renderCalendar() {
     }).join('');
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Upcoming sessions
-// ══════════════════════════════════════════════════════════════
+// 
 function renderUpcoming() {
     const list    = document.getElementById('upcomingList');
     const countEl = document.getElementById('upcomingCount');
@@ -507,9 +508,9 @@ function renderUpcoming() {
     }).join('');
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Helpers
-// ══════════════════════════════════════════════════════════════
+// 
 function fmtTime(t) {
     if (!t) return '';
     const [h, m] = t.split(':').map(Number);
@@ -526,9 +527,9 @@ function daysBetween(a, b) {
     return Math.max(0, Math.round(ms / 86400000));
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Toast
-// ══════════════════════════════════════════════════════════════
+// 
 function toast(msg, type = 'success') {
     const wrap = document.getElementById('toastWrap');
     const el   = document.createElement('div');

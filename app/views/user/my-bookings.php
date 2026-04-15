@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'My Bookings - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
@@ -741,7 +742,7 @@ $additionalJS = [];
                     <i class="fas fa-calendar-times"></i>
                     <h3>No ground bookings yet</h3>
                     <p>You haven't booked any sports grounds yet</p>
-                    <a href="/book-ground" class="btn btn-primary">
+                    <a href="<?= $_base ?>/book-ground" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Book Your First Ground
                     </a>
                 </div>
@@ -758,7 +759,7 @@ $additionalJS = [];
                     <i class="fas fa-calendar-times"></i>
                     <h3>No coach sessions yet</h3>
                     <p>You haven't booked any coaching sessions yet</p>
-                    <a href="/book-coach" class="btn btn-primary">
+                    <a href="<?= $_base ?>/book-coach" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Book Your First Session
                     </a>
                 </div>
@@ -977,9 +978,9 @@ $additionalJS = [];
 
         async loadGroundBookings() {
             try {
-                const response = await fetch('/api/user/ground-bookings');
+                const response = await fetch((window.BASE_URL||'')+'/api/user/ground-bookings');
                 if (response.status === 401) {
-                    window.location.href = '/login';
+                    window.location.href=(window.BASE_URL||'')+'/login';
                     return;
                 }
                 const data = await response.json();
@@ -993,9 +994,9 @@ $additionalJS = [];
 
         async loadCoachBookings() {
             try {
-                const response = await fetch('/api/user/coach-bookings');
+                const response = await fetch((window.BASE_URL||'')+'/api/user/coach-bookings');
                 if (response.status === 401) {
-                    window.location.href = '/login';
+                    window.location.href=(window.BASE_URL||'')+'/login';
                     return;
                 }
                 const data = await response.json();
@@ -1203,7 +1204,7 @@ $additionalJS = [];
                         ${booking.status === 'completed' ? (
                             booking.has_review
                                 ? `<button class="btn btn-view" style="background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.3);cursor:default" disabled>
-                                       <i class="fas fa-star"></i> Reviewed (${booking.review_rating}★)
+                                       <i class="fas fa-star"></i> Reviewed (${booking.review_rating})
                                    </button>`
                                 : `<button class="btn btn-primary" onclick="dashboard.openCoachReviewModal(${booking.id}, ${booking.coach_id}, '${booking.coach_first_name} ${booking.coach_last_name}')">
                                        <i class="fas fa-star"></i> Write Review
@@ -1278,7 +1279,7 @@ $additionalJS = [];
                 console.log('Sending update request:', requestData);
                 console.log('Request URL:', `/api/user/ground-bookings/${bookingId}`);
 
-                const response = await fetch(`/api/user/ground-bookings/${bookingId}`, {
+                const response = await fetch(`${window.BASE_URL||""}/api/user/ground-bookings/${bookingId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1298,24 +1299,24 @@ $additionalJS = [];
                     console.log('Parsed response data:', data);
                 } catch (parseError) {
                     console.error('JSON parse error:', parseError);
-                    alert('❌ Server returned invalid response. Check console.');
+                    alert('<i class="fas fa-times"></i> Server returned invalid response. Check console.');
                     return;
                 }
 
                 if (data.success) {
-                    alert('✅ Booking updated successfully!');
+                    alert('<i class="fas fa-check"></i> Booking updated successfully!');
                     this.closeEditModal();
                     await this.loadGroundBookings();
                     this.updateStats();
                     this.renderGroundBookings();
                 } else {
-                    alert('❌ Error: ' + data.message);
+                    alert('<i class="fas fa-times"></i> Error: ' + data.message);
                     console.error('Server error:', data);
                 }
             } catch (error) {
                 console.error('Error updating booking:', error);
                 console.error('Error stack:', error.stack);
-                alert('❌ Failed to update booking. Error: ' + error.message);
+                alert('<i class="fas fa-times"></i> Failed to update booking. Error: ' + error.message);
             }
         }
 
@@ -1323,7 +1324,7 @@ $additionalJS = [];
             if (!confirm('Are you sure you want to cancel this booking?')) return;
 
             try {
-                const response = await fetch(`/api/user/ground-bookings/${bookingId}/cancel`, {
+                const response = await fetch(`${window.BASE_URL||""}/api/user/ground-bookings/${bookingId}/cancel`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ reason: 'Cancelled by user' })
@@ -1348,7 +1349,7 @@ $additionalJS = [];
             if (!confirm('Are you sure you want to cancel this coaching session?')) return;
 
             try {
-                const response = await fetch(`/api/user/coach-bookings/${bookingId}/cancel`, {
+                const response = await fetch(`${window.BASE_URL||""}/api/user/coach-bookings/${bookingId}/cancel`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -1372,7 +1373,7 @@ $additionalJS = [];
             const booking = this.groundBookings.find(b => b.id === bookingId);
             if (!booking) return;
 
-            alert(`Ground Booking Details\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nFacility: ${booking.facility_name}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nDuration: ${booking.duration_hours} hours\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
+            alert(`Ground Booking Details\n\n\nFacility: ${booking.facility_name}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nDuration: ${booking.duration_hours} hours\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
         }
 
         viewCoachDetails(bookingId) {
@@ -1380,7 +1381,7 @@ $additionalJS = [];
             if (!booking) return;
 
             const coachName = `${booking.coach_first_name} ${booking.coach_last_name}`;
-            alert(`Coach Session Details\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCoach: ${coachName}\nSport: ${booking.sport_name || 'General'}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nType: ${booking.session_type}\nFee: LKR ${parseFloat(booking.total_amount).toLocaleString()}\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
+            alert(`Coach Session Details\n\n\nCoach: ${coachName}\nSport: ${booking.sport_name || 'General'}\nDate: ${new Date(booking.booking_date).toLocaleDateString()}\nTime: ${booking.start_time} - ${booking.end_time}\nType: ${booking.session_type}\nFee: LKR ${parseFloat(booking.total_amount).toLocaleString()}\nStatus: ${booking.status}\n\nBooking ID: #${booking.id}`);
         }
 
         editCoachSession(bookingId) {
@@ -1415,7 +1416,7 @@ $additionalJS = [];
             document.getElementById('saveCoachBtn').disabled = true;
 
             try {
-                const response = await fetch(`/api/coaches/${coachId}/availability?date=${date}`);
+                const response = await fetch(`${window.BASE_URL||""}/api/coaches/${coachId}/availability?date=${date}`);
                 const data = await response.json();
 
                 if (!data.success || !data.slots || data.slots.length === 0) {
@@ -1478,7 +1479,7 @@ $additionalJS = [];
             if (!confirm('Are you sure you want to reschedule this session?')) return;
 
             try {
-                const response = await fetch(`/api/user/coach-bookings/${bookingId}`, {
+                const response = await fetch(`${window.BASE_URL||""}/api/user/coach-bookings/${bookingId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ booking_date: bookingDate, start_time: startTime, end_time: endTime })
@@ -1486,16 +1487,16 @@ $additionalJS = [];
 
                 const data = await response.json();
                 if (data.success) {
-                    alert('✅ Session rescheduled successfully!');
+                    alert('<i class="fas fa-check"></i> Session rescheduled successfully!');
                     this.closeCoachEditModal();
                     await this.loadCoachBookings();
                     this.updateStats();
                     this.renderCoachBookings();
                 } else {
-                    alert('❌ Error: ' + (data.error || data.message));
+                    alert('<i class="fas fa-times"></i> Error: ' + (data.error || data.message));
                 }
             } catch (error) {
-                alert('❌ Failed to reschedule session. Please try again.');
+                alert('<i class="fas fa-times"></i> Failed to reschedule session. Please try again.');
             }
         }
 
@@ -1576,7 +1577,7 @@ $additionalJS = [];
             this.selectedRating = 0;
         }
 
-        // ── Coach Review ──────────────────────────────────────────
+        //  Coach Review 
         openCoachReviewModal(bookingId, coachId, coachName) {
             this.crSelectedRating = 0;
             document.getElementById('crBookingId').value         = bookingId;
@@ -1630,7 +1631,7 @@ $additionalJS = [];
             btn.innerHTML   = '<i class="fas fa-spinner fa-spin"></i> Submitting…';
 
             try {
-                const res  = await fetch('/api/user/coach-reviews', {
+                const res  = await fetch((window.BASE_URL||'')+'/api/user/coach-reviews', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body:    JSON.stringify({
@@ -1679,7 +1680,7 @@ $additionalJS = [];
 
                 console.log('Submitting review:', requestData);
 
-                const response = await fetch('/api/user/reviews', {
+                const response = await fetch((window.BASE_URL||'')+'/api/user/reviews', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1690,19 +1691,19 @@ $additionalJS = [];
                 const data = await response.json();
 
                 if (data.success) {
-                    alert('✅ Review submitted successfully! Thank you for your feedback.');
+                    alert('<i class="fas fa-check"></i> Review submitted successfully! Thank you for your feedback.');
                     this.closeReviewModal();
 
                     // Reload bookings to update UI
                     await this.loadGroundBookings();
                     this.renderGroundBookings();
                 } else {
-                    alert('❌ Error: ' + data.message);
+                    alert('<i class="fas fa-times"></i> Error: ' + data.message);
                     console.error('Server error:', data);
                 }
             } catch (error) {
                 console.error('Error submitting review:', error);
-                alert('❌ Failed to submit review. Please try again.');
+                alert('<i class="fas fa-times"></i> Failed to submit review. Please try again.');
             }
         }
     }

@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 use App\Models\Coach;
 
 $title = 'Book Training Session - GoPlay Sports Platform';
@@ -634,7 +635,7 @@ try {
 </style>
 
 <div class="container">
-        <a href="/book-coach" class="back-link">
+        <a href="<?= $_base ?>/book-coach" class="back-link">
             <i class="fas fa-arrow-left"></i>
             Back to Coach Selection
         </a>
@@ -984,7 +985,7 @@ try {
 
                 try {
                     // Call API to create booking
-                    const response = await fetch('/api/coach-bookings', {
+                    const response = await fetch((window.BASE_URL||'')+'/api/coach-bookings', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -997,7 +998,7 @@ try {
                     if (result.success) {
                         alert('Booking created successfully! Booking ID: ' + result.booking_id);
                         // Redirect to payment or bookings page
-                        window.location.href = '/my-bookings';
+                        window.location.href=(window.BASE_URL||'')+'/my-bookings';
                     } else {
                         alert('Error: ' + result.error);
                         console.error('Booking error:', result);

@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title         = 'Coach Profile - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS  = [];
@@ -25,17 +26,17 @@ $additionalJS  = [];
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--txt);background:var(--bg)}
 
-/* ── Breadcrumb ───────────────────────────── */
+/*  Breadcrumb  */
 .breadcrumb{background:#1e3a8a;color:#fff;padding:.9rem 2rem}
 .breadcrumb a{color:rgba(255,255,255,.75);text-decoration:none;font-size:.9rem}
 .breadcrumb a:hover{color:#fff}
 .breadcrumb span{color:#fff;font-size:.9rem}
 
-/* ── Page Layout ──────────────────────────── */
+/*  Page Layout  */
 .profile-page{max-width:1200px;margin:2rem auto;padding:0 1.5rem;display:grid;grid-template-columns:1fr 380px;gap:2rem}
 @media(max-width:900px){.profile-page{grid-template-columns:1fr}}
 
-/* ── Coach Info Card ──────────────────────── */
+/*  Coach Info Card  */
 .coach-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
 .coach-hero{background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:2.5rem 2rem;text-align:center;color:#fff}
 .coach-avatar-wrap{position:relative;display:inline-block;margin-bottom:1rem}
@@ -63,7 +64,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .info-item{display:flex;align-items:center;gap:.5rem;font-size:.9rem;color:var(--txt-2)}
 .info-item i{width:16px;color:var(--primary)}
 
-/* ── Reviews ──────────────────────────────── */
+/*  Reviews  */
 .reviews-section{margin-top:1.8rem;border-top:1px solid var(--border);padding-top:1.5rem}
 .review-item{padding:1rem 0;border-bottom:1px solid var(--border)}
 .review-item:last-child{border-bottom:none}
@@ -73,7 +74,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .reviewer-date{font-size:.78rem;color:var(--txt-2)}
 .review-text{font-size:.88rem;color:var(--txt-2);line-height:1.6}
 
-/* ── Booking Panel ────────────────────────── */
+/*  Booking Panel  */
 .booking-panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.8rem;position:sticky;top:1.5rem}
 .panel-title{font-size:1.2rem;font-weight:700;margin-bottom:1.5rem;display:flex;align-items:center;gap:.5rem;color:var(--txt)}
 .price-display{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:10px;padding:1rem;text-align:center;margin-bottom:1.5rem}
@@ -85,7 +86,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .form-control{width:100%;padding:.75rem 1rem;border:2px solid var(--border);border-radius:10px;font-size:.9rem;color:var(--txt);transition:var(--transition);background:#fff}
 .form-control:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
 
-/* ── Time Slots ──────────────────────────── */
+/*  Time Slots  */
 .slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.5rem}
 .slot-btn{padding:.5rem .2rem;border:2px solid var(--border);border-radius:8px;background:#fff;font-size:.78rem;cursor:pointer;transition:var(--transition);text-align:center;color:var(--txt)}
 .slot-btn:hover:not(.booked){border-color:var(--primary);background:#eff6ff;color:var(--primary)}
@@ -104,18 +105,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .btn-book:hover{background:var(--primary-dk);transform:translateY(-1px)}
 .btn-book:disabled{background:#94a3b8;cursor:not-allowed;transform:none}
 
-/* ── Toast ────────────────────────────────── */
+/*  Toast  */
 .toast{position:fixed;bottom:2rem;right:2rem;background:#1e293b;color:#fff;padding:1rem 1.5rem;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:9999;transform:translateY(100px);opacity:0;transition:var(--transition);max-width:320px}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.success{background:#10b981}
 .toast.error{background:#ef4444}
 
-/* ── Loading ──────────────────────────────── */
+/*  Loading  */
 .page-loading{display:flex;align-items:center;justify-content:center;padding:6rem;flex-direction:column;gap:1rem;color:var(--txt-2)}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── Available-At facilities (Phase 1) ────── */
+/*  Available-At facilities (Phase 1)  */
 .facilities-section{margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.2rem}
 .facility-link-card{display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;border-radius:8px;background:var(--bg);margin-bottom:.5rem;text-decoration:none;color:inherit;transition:var(--transition)}
 .facility-link-card:hover{background:#dbeafe}
@@ -123,7 +124,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .facility-link-card .fac-city{font-size:.8rem;color:var(--txt-2)}
 .primary-badge{background:#dbeafe;color:#1d4ed8;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:auto;white-space:nowrap}
 
-/* ── Facility upsell (Phase 2) ────────────── */
+/*  Facility upsell (Phase 2)  */
 .upsell-panel{background:#eff6ff;border:2px solid #bfdbfe;border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.2rem}
 .upsell-title{font-size:.9rem;font-weight:700;color:#1d4ed8;margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem}
 .upsell-options{display:flex;flex-direction:column;gap:.5rem}
@@ -139,7 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 
 <!-- Breadcrumb -->
 <div class="breadcrumb">
-    <a href="/book-coach">Coaches</a>
+    <a href="<?= $_base ?>/book-coach">Coaches</a>
     <span> &rsaquo; </span>
     <span id="crumb-name">Coach Profile</span>
 </div>
@@ -153,7 +154,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 <!-- Main content (hidden until loaded) -->
 <div class="profile-page" id="profile-page" style="display:none">
 
-    <!-- ── Left Column: Coach Info ── -->
+    <!--  Left Column: Coach Info  -->
     <div>
         <div class="coach-card">
             <div class="coach-hero">
@@ -224,7 +225,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         </div>
     </div>
 
-    <!-- ── Right Column: Booking Panel ── -->
+    <!--  Right Column: Booking Panel  -->
     <div>
         <div class="booking-panel">
             <div class="panel-title"><i class="fas fa-calendar-check" style="color:var(--primary)"></i> Book a Session</div>
@@ -307,7 +308,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 
 <script>
 (function () {
-    // ── Helpers ────────────────────────────────────────────────
+    //  Helpers 
     function getCoachIdFromUrl() {
         const parts = window.location.pathname.split('/');
         return parts[parts.length - 1];
@@ -330,19 +331,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         return s;
     }
 
-    // ── Load Coach ─────────────────────────────────────────────
+    //  Load Coach 
     let coachData = null;
 
     async function loadCoach(id) {
         try {
-            const res  = await fetch(`/api/coaches/${id}`);
+            const res  = await fetch(`${window.BASE_URL||""}/api/coaches/${id}`);
             const data = await res.json();
             if (!data.success) throw new Error(data.error || 'Not found');
             coachData = data.coach;
             renderCoach(data.coach);
         } catch (e) {
             document.getElementById('page-loading').innerHTML =
-                '<p style="color:#ef4444">Failed to load coach. <a href="/book-coach">Back</a></p>';
+                '<p style="color:#ef4444">Failed to load coach. <a href="<?= $_base ?>/book-coach">Back</a></p>';
         }
     }
 
@@ -394,7 +395,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         if (c.facilities && c.facilities.length) {
             document.getElementById('facilities-section').style.display = '';
             document.getElementById('facilities-list').innerHTML = c.facilities.map(f => `
-                <a href="/ground-details?id=${f.facility_id}" class="facility-link-card">
+                <a href="<?= $_base ?>/ground-details?id=${f.facility_id}" class="facility-link-card">
                     <i class="fas fa-map-marker-alt" style="color:var(--primary);flex-shrink:0"></i>
                     <div>
                         <div class="fac-name">${esc(f.name)}</div>
@@ -422,12 +423,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         }
     }
 
-    // ── Helpers ─────────────────────────────────────────────────
+    //  Helpers 
     function esc(s) {
         return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // ── Availability slots ─────────────────────────────────────
+    //  Availability slots 
     let selectedStart = '', selectedEnd = '';
 
     async function loadSlots(date) {
@@ -439,7 +440,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         updateSummary();
 
         try {
-            const res  = await fetch(`/api/coaches/${coachId}/availability?date=${date}`);
+            const res  = await fetch(`${window.BASE_URL||""}/api/coaches/${coachId}/availability?date=${date}`);
             const data = await res.json();
 
             if (!data.success || !data.slots.length) {
@@ -484,7 +485,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         loadFacilityUpsell();
     }
 
-    // ── Phase 2: Facility upsell ───────────────────────────────
+    //  Phase 2: Facility upsell 
     async function loadFacilityUpsell() {
         const coachId = document.getElementById('coach-id').value;
         const date    = document.getElementById('booking-date').value;
@@ -588,7 +589,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         return ((h % 12) || 12) + ':' + String(m).padStart(2,'0') + ' ' + ampm;
     }
 
-    // ── Submit Booking (bundled) ────────────────────────────────
+    //  Submit Booking (bundled) 
     window.submitBooking = async function () {
         const coachId    = document.getElementById('coach-id').value;
         const date       = document.getElementById('booking-date').value;
@@ -620,7 +621,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         if (facilityId) payload.facility_id = facilityId;
 
         try {
-            const res  = await fetch('/api/coach-bookings/bundled', {
+            const res  = await fetch((window.BASE_URL||'')+'/api/coach-bookings/bundled', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -632,10 +633,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
                     ? 'Session + facility booked successfully!'
                     : 'Session booked successfully!';
                 showToast(msg, 'success');
-                setTimeout(() => (window.location.href = '/my-coach-sessions'), 1500);
+                setTimeout(() => (window.location.href=(window.BASE_URL||'')+'/my-coach-sessions'), 1500);
             } else if (data.error === 'login_required') {
                 showToast('Please log in to book a session.', 'error');
-                setTimeout(() => (window.location.href = '/login?redirect=' + encodeURIComponent(window.location.href)), 1500);
+                setTimeout(() => (window.location.href=(window.BASE_URL||'')+'/login?redirect=' + encodeURIComponent(window.location.href)), 1500);
             } else {
                 showToast(data.error || 'Booking failed. Please try again.', 'error');
                 btn.disabled  = false;
@@ -648,11 +649,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         }
     };
 
-    // ── Init ────────────────────────────────────────────────────
+    //  Init 
     document.addEventListener('DOMContentLoaded', () => {
         const id = getCoachIdFromUrl();
         if (!id || isNaN(id)) {
-            window.location.href = '/book-coach';
+            window.location.href=(window.BASE_URL||'')+'/book-coach';
             return;
         }
         loadCoach(id);

@@ -94,7 +94,7 @@ include __DIR__ . '/layout-head.php';
                     </button>
                 </div>
 
-                <!-- ─── Weekly Schedule Tab ─── -->
+                <!--  Weekly Schedule Tab  -->
                 <div id="tab-weekly" class="av-panel">
                     <div class="av-panel-header">
                         <div class="av-panel-header-text">
@@ -132,7 +132,7 @@ include __DIR__ . '/layout-head.php';
                     </div>
                 </div>
 
-                <!-- ─── Blocked Dates Tab ─── -->
+                <!--  Blocked Dates Tab  -->
                 <div id="tab-blocked" class="av-panel" style="display:none;">
                     <div class="av-panel-header">
                         <div class="av-panel-header-text">
@@ -157,7 +157,7 @@ include __DIR__ . '/layout-head.php';
     </main>
 </div>
 
-<!-- ─── Add Block Modal ─── -->
+<!--  Add Block Modal  -->
 <div id="blockModal" class="av-modal-backdrop" style="display:none;" onclick="handleModalBackdrop(event)">
     <div class="av-modal">
         <div class="av-modal-header">
@@ -188,11 +188,11 @@ include __DIR__ . '/layout-head.php';
                 <label>Reason *</label>
                 <select id="newBlockReason" required>
                     <option value="">Select reason…</option>
-                    <option value="maintenance">🔧 Maintenance</option>
-                    <option value="personal">👤 Personal Use</option>
-                    <option value="event">🎉 Private Event</option>
-                    <option value="weather">🌧 Weather Concerns</option>
-                    <option value="other">📌 Other</option>
+                    <option value="maintenance"><i class="fas fa-wrench"></i> Maintenance</option>
+                    <option value="personal"><i class="fas fa-user"></i> Personal Use</option>
+                    <option value="event"><i class="fas fa-bullhorn"></i> Private Event</option>
+                    <option value="weather"> Weather Concerns</option>
+                    <option value="other"><i class="fas fa-thumbtack"></i> Other</option>
                 </select>
             </div>
             <div class="av-mfield">

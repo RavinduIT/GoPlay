@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 // Extract data from controller
 $news = $data['news'] ?? [];
 $featured = $data['featured'] ?? null;
@@ -16,7 +17,7 @@ $total = $data['total'] ?? 0;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sports News - GoPlay Platform</title>
     <meta name="description" content="Stay updated with the latest sports news and updates from GoPlay Platform">
-    <link rel="stylesheet" href="/public/css/pages/news-index.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/news-index.css">
     <style>
         /* Make cards clearly clickable */
         .clickable-card {
@@ -47,7 +48,7 @@ $total = $data['total'] ?? 0;
 
         <!-- Search Form -->
         <div class="search-container">
-            <form class="search-form" method="GET" action="/news/search">
+            <form class="search-form" method="GET" action="<?= $_base ?>/news/search">
                 <input type="text" name="q" class="search-input" placeholder="Search news..." value="<?= htmlspecialchars($search) ?>" autocomplete="off">
                 <button type="submit" class="search-btn">Search</button>
             </form>
@@ -68,14 +69,14 @@ $total = $data['total'] ?? 0;
         <!-- Featured News -->
         <?php if ($featured): ?>
         <div class="featured-section">
-            <div class="featured-card clickable-card" data-href="/news/<?= htmlspecialchars($featured['slug']) ?>">
+            <div class="featured-card clickable-card" data-href="<?= $_base ?>/news/<?= htmlspecialchars($featured['slug']) ?>">
                 <img src="<?= htmlspecialchars($featured['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>" 
                      alt="<?= htmlspecialchars($featured['title']) ?>" 
                      class="featured-image"
                      loading="lazy">
                 <div class="featured-content">
                     <h2>
-                        <a href="/news/<?= htmlspecialchars($featured['slug']) ?>" class="news-title">
+                        <a href="<?= $_base ?>/news/<?= htmlspecialchars($featured['slug']) ?>" class="news-title">
                             <?= htmlspecialchars($featured['title']) ?>
                         </a>
                     </h2>
@@ -97,7 +98,7 @@ $total = $data['total'] ?? 0;
             <?php if (!empty($news)): ?>
             <div class="news-grid" id="news-grid">
                 <?php foreach ($news as $article): ?>
-                <article class="news-card clickable-card" data-href="/news/<?= htmlspecialchars($article['slug']) ?>">
+                <article class="news-card clickable-card" data-href="<?= $_base ?>/news/<?= htmlspecialchars($article['slug']) ?>">
                     <img src="<?= htmlspecialchars($article['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>" 
                          alt="<?= htmlspecialchars($article['title']) ?>" 
                          class="news-image"
@@ -105,7 +106,7 @@ $total = $data['total'] ?? 0;
                     <div class="news-content">
                         <span class="news-category"><?= htmlspecialchars($article['category']) ?></span>
                         <h3>
-                            <a href="/news/<?= htmlspecialchars($article['slug']) ?>" class="news-title">
+                            <a href="<?= $_base ?>/news/<?= htmlspecialchars($article['slug']) ?>" class="news-title">
                                 <?= htmlspecialchars($article['title']) ?>
                             </a>
                         </h3>
@@ -177,7 +178,7 @@ $total = $data['total'] ?? 0;
         <?php endif; ?>
     </div>
 
-    <script src="/public/js/pages/news-index.js"></script>
+    <script src="<?= $_base ?>/public/js/pages/news-index.js"></script>
     <script>
         // Make cards clickable
         document.addEventListener('DOMContentLoaded', function() {

@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
         
         try {
-            const response = await fetch('/auth/login', {
+            const response = await fetch((window.BASE_URL||'')+'/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

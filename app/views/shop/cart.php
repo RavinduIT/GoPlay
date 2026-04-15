@@ -1,3 +1,4 @@
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold text-gray-800 mb-8">Shopping Cart</h1>
     
@@ -9,7 +10,7 @@
                 
                 <!-- Cart Item -->
                 <div class="flex items-center border-b pb-4 mb-4">
-                    <img src="/public/assets/images/products/cricket-bat.jpg" alt="Product" class="w-20 h-20 object-cover rounded-lg">
+                    <img src="<?= $_base ?>/public/assets/images/products/cricket-bat.jpg" alt="Product" class="w-20 h-20 object-cover rounded-lg">
                     <div class="flex-grow ml-4">
                         <h3 class="text-lg font-semibold text-gray-800">Professional Cricket Bat</h3>
                         <p class="text-gray-600">High-quality willow cricket bat</p>

@@ -1,4 +1,5 @@
-<?php 
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Book Coach - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
@@ -539,7 +540,7 @@ $additionalJS = [];
                             <span class="stat-label">Sports</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">4.9★</span>
+                            <span class="stat-number">4.9</span>
                             <span class="stat-label">Rating</span>
                         </div>
                     </div>
@@ -635,7 +636,7 @@ $additionalJS = [];
         // Load sports categories for filter dropdown
         async function loadSportsCategories() {
             try {
-                const response = await fetch('/api/sports-categories');
+                const response = await fetch((window.BASE_URL||'')+'/api/sports-categories');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -672,7 +673,7 @@ $additionalJS = [];
                 if (params.price) queryParams.set('price', params.price);
                 if (params.sort) queryParams.set('sort', params.sort);
 
-                const apiUrl = `/api/coaches?${queryParams.toString()}`;
+                const apiUrl = `${window.BASE_URL||''}/api/coaches?${queryParams.toString()}`;
                 console.log('Fetching coaches from:', apiUrl);
 
                 const response = await fetch(apiUrl);
@@ -899,11 +900,11 @@ $additionalJS = [];
 
         // Coach action functions
         function viewProfile(coachId) {
-            window.location.href = `/coach-profile/${coachId}`;
+            window.location.href = `${window.BASE_URL||''}/coach-profile/${coachId}`;
         }
 
         function bookSession(coachId) {
-            window.location.href = `/coach-profile/${coachId}`;
+            window.location.href = `${window.BASE_URL||''}/coach-profile/${coachId}`;
         }
         
     

@@ -1,3 +1,4 @@
+﻿<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,8 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/public/css/coach/sidebar.css">
-    <link rel="stylesheet" href="/public/css/pages/coach-reviews.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/coach/sidebar.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/coach-reviews.css">
 </head>
 <body>
 
@@ -17,7 +18,7 @@
 
     <div class="main-content">
 
-        <!-- ── Page Header ───────────────────────────────────── -->
+        <!--  Page Header  -->
         <div class="page-header">
             <div class="header-left">
                 <button class="sidebar-toggle" id="sidebarToggle">
@@ -37,7 +38,7 @@
 
         <div class="reviews-content">
 
-            <!-- ── Stats Row ──────────────────────────────────── -->
+            <!--  Stats Row  -->
             <div class="review-stats-row" id="statsRow">
                 <!-- Filled by JS -->
                 <div class="overall-card">
@@ -48,15 +49,15 @@
                 </div>
             </div>
 
-            <!-- ── Controls ───────────────────────────────────── -->
+            <!--  Controls  -->
             <div class="controls-row">
                 <div class="filter-tabs" id="filterTabs">
                     <button class="ftab active" data-filter="all">All <span class="tab-count" id="cnt-all">—</span></button>
-                    <button class="ftab" data-filter="5">★ 5 <span class="tab-count" id="cnt-5">—</span></button>
-                    <button class="ftab" data-filter="4">★ 4 <span class="tab-count" id="cnt-4">—</span></button>
-                    <button class="ftab" data-filter="3">★ 3 <span class="tab-count" id="cnt-3">—</span></button>
-                    <button class="ftab" data-filter="2">★ 2 <span class="tab-count" id="cnt-2">—</span></button>
-                    <button class="ftab" data-filter="1">★ 1 <span class="tab-count" id="cnt-1">—</span></button>
+                    <button class="ftab" data-filter="5"> 5 <span class="tab-count" id="cnt-5">—</span></button>
+                    <button class="ftab" data-filter="4"> 4 <span class="tab-count" id="cnt-4">—</span></button>
+                    <button class="ftab" data-filter="3"> 3 <span class="tab-count" id="cnt-3">—</span></button>
+                    <button class="ftab" data-filter="2"> 2 <span class="tab-count" id="cnt-2">—</span></button>
+                    <button class="ftab" data-filter="1"> 1 <span class="tab-count" id="cnt-1">—</span></button>
                     <button class="ftab" data-filter="no_reply">No Reply</button>
                 </div>
                 <div class="ctrl-spacer"></div>
@@ -72,7 +73,7 @@
                 </select>
             </div>
 
-            <!-- ── Reviews List ───────────────────────────────── -->
+            <!--  Reviews List  -->
             <div id="reviewsList">
                 <div class="reviews-list">
                     <?php for ($i = 0; $i < 4; $i++): ?>
@@ -81,7 +82,7 @@
                 </div>
             </div>
 
-            <!-- ── Pagination ─────────────────────────────────── -->
+            <!--  Pagination  -->
             <div class="pagination" id="pagination" style="display:none">
                 <button class="pg-btn" id="pgPrev" disabled><i class="fas fa-chevron-left"></i></button>
                 <span class="pg-info" id="pgInfo">Page 1 of 1</span>
@@ -92,7 +93,7 @@
     </div>
 </div>
 
-<!-- ── Reply Modal ────────────────────────────────────────── -->
+<!--  Reply Modal  -->
 <div class="modal-backdrop" id="replyBackdrop"></div>
 <div class="modal" id="replyModal">
     <div class="modal-head">
@@ -120,9 +121,9 @@
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════════
+// 
 //  State
-// ══════════════════════════════════════════════════════════════
+// 
 let reviewStats   = {};
 let currentFilter = 'all';
 let currentSort   = 'newest';
@@ -131,9 +132,9 @@ let currentPage   = 1;
 let totalPages    = 1;
 let replyTarget   = null;   // { reviewId, hasReply }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Init
-// ══════════════════════════════════════════════════════════════
+// 
 document.addEventListener('DOMContentLoaded', () => {
     loadStats();
     loadReviews();
@@ -185,12 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('replyBackdrop').addEventListener('click', closeReplyModal);
 });
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Load stats
-// ══════════════════════════════════════════════════════════════
+// 
 async function loadStats() {
     try {
-        const res  = await fetch('/api/coach/reviews/stats');
+        const res  = await fetch((window.BASE_URL||'')+'/api/coach/reviews/stats');
         const data = await res.json();
         if (!data.success) return;
         reviewStats = data.stats;
@@ -239,9 +240,9 @@ function renderStats(s) {
     </div>`;
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Load & render reviews
-// ══════════════════════════════════════════════════════════════
+// 
 async function loadReviews() {
     document.getElementById('reviewsList').innerHTML =
         `<div class="reviews-list">${'<div class="skel-card"></div>'.repeat(3)}</div>`;
@@ -261,7 +262,7 @@ async function loadReviews() {
     if (currentSearch) params.set('search', currentSearch);
 
     try {
-        const res  = await fetch('/api/coach/reviews?' + params);
+        const res  = await fetch((window.BASE_URL||'')+'/api/coach/reviews?' + params);
         const data = await res.json();
         if (!data.success) throw new Error(data.message);
 
@@ -355,9 +356,9 @@ function buildCard(r) {
     </div>`;
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Pagination
-// ══════════════════════════════════════════════════════════════
+// 
 function updatePagination(page, total) {
     const pg = document.getElementById('pagination');
     if (total <= 1) { pg.style.display = 'none'; return; }
@@ -367,9 +368,9 @@ function updatePagination(page, total) {
     document.getElementById('pgNext').disabled = page >= total;
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Reply modal
-// ══════════════════════════════════════════════════════════════
+// 
 function openReplyModal(reviewId, isEdit, reviewText, existingReply) {
     replyTarget = { reviewId, hasReply: isEdit };
 
@@ -399,7 +400,7 @@ async function submitReply() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
 
     try {
-        const res  = await fetch(`/api/coach/reviews/${replyTarget.reviewId}/reply`, {
+        const res  = await fetch(`${window.BASE_URL||""}/api/coach/reviews/${replyTarget.reviewId}/reply`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ reply_text: text }),
@@ -423,7 +424,7 @@ async function submitReply() {
 async function confirmDeleteReply(reviewId) {
     if (!confirm('Delete your reply to this review?')) return;
     try {
-        const res  = await fetch(`/api/coach/reviews/${reviewId}/reply`, { method: 'DELETE' });
+        const res  = await fetch(`${window.BASE_URL||""}/api/coach/reviews/${reviewId}/reply`, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) {
             toast('Reply deleted.', 'success');
@@ -436,16 +437,16 @@ async function confirmDeleteReply(reviewId) {
     }
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Export
-// ══════════════════════════════════════════════════════════════
+// 
 function doExport() {
-    window.location.href = '/api/coach/reviews/export';
+    window.location.href=(window.BASE_URL||'')+'/api/coach/reviews/export';
 }
 
-// ══════════════════════════════════════════════════════════════
+// 
 //  Helpers
-// ══════════════════════════════════════════════════════════════
+// 
 function starsHtml(rating, size) {
     const full  = Math.floor(rating);
     const half  = rating - full >= 0.5;

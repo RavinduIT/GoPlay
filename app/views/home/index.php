@@ -3,11 +3,48 @@ $title = 'GoPlay - Premier Sports Booking Platform';
 $description = 'Book sports facilities, hire professional coaches, and shop for equipment at GoPlay';
 $additionalCSS = ['/public/css/pages/index.css'];
 $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/index.js'];
+$_base = defined('BASE_URL') ? BASE_URL : '';
 ?>
 
 
     <!-- Home Content (scoped) -->
     <div class="main-content home">
+
+        <!-- Promotions Banner -->
+        <?php if (!empty($promotions ?? [])): ?>
+        <div class="promo-banner" id="promoBanner">
+            <?php foreach ($promotions as $i => $promo): ?>
+            <div class="promo-slide <?= $i === 0 ? 'active' : '' ?>" style="background: <?= htmlspecialchars($promo['bg_color'] ?? '#3b82f6') ?>; color: <?= htmlspecialchars($promo['text_color'] ?? '#fff') ?>;">
+                <div class="promo-content">
+                    <strong><?= htmlspecialchars($promo['title']) ?></strong>
+                    <?php if (!empty($promo['subtitle'])): ?>
+                        <span> - <?= htmlspecialchars($promo['subtitle']) ?></span>
+                    <?php endif; ?>
+                    <?php if (!empty($promo['link_url'])): ?>
+                        <a href="<?= htmlspecialchars($promo['link_url']) ?>" style="color: inherit; margin-left: 12px; text-decoration: underline; font-weight: 600;"><?= htmlspecialchars($promo['link_text'] ?? 'Learn More') ?></a>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <style>
+            .promo-banner { position: relative; text-align: center; font-size: 14px; overflow: hidden; height: 44px; }
+            .promo-slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 8px 20px; opacity: 0; transition: opacity 0.5s; }
+            .promo-slide.active { opacity: 1; }
+        </style>
+        <script>
+            (function() {
+                const slides = document.querySelectorAll('.promo-slide');
+                if (slides.length <= 1) return;
+                let idx = 0;
+                setInterval(() => {
+                    slides[idx].classList.remove('active');
+                    idx = (idx + 1) % slides.length;
+                    slides[idx].classList.add('active');
+                }, 4000);
+            })();
+        </script>
+        <?php endif; ?>
         <!-- Hero Section -->
         <section class="hero-section">
             <div class="hero-content">
@@ -18,29 +55,35 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                     Book grounds, hire coaches, buy equipment, and stay updated with the latest sports news
                 </p>
                 <div class="hero-buttons">
-                    <a href="/book-ground" class="hero-btn primary">
+                    <a href="<?= $_base ?>/book-ground" class="hero-btn primary">
                         <i class="fas fa-calendar"></i>
                         Book Now
                     </a>
-                    <a href="/shop" class="hero-btn secondary">
+                    <a href="<?= $_base ?>/shop" class="hero-btn secondary">
                         <i class="fas fa-shopping-cart"></i>
                         Shop Equipment
                     </a>
                 </div>
                 <!-- Hero Search Panel -->
                 <div class="hero-search mt-4">
-                    <form class="search-form" action="/book-ground" method="get">
+                    <form class="search-form" action="<?= $_base ?>/book-ground" method="get">
                         <div class="search-grid">
                             <div class="search-field">
                                 <label for="sport">Sport</label>
                                 <select id="sport" name="sport">
                                     <option value="">Any</option>
-                                    <option value="football">Football</option>
-                                    <option value="tennis">Tennis</option>
-                                    <option value="basketball">Basketball</option>
-                                    <option value="cricket">Cricket</option>
-                                    <option value="badminton">Badminton</option>
-                                    <option value="swimming">Swimming</option>
+                                    <?php if (!empty($sportsCategories ?? [])): ?>
+                                        <?php foreach ($sportsCategories as $cat): ?>
+                                        <option value="<?= htmlspecialchars(strtolower($cat['name'])) ?>"><?= htmlspecialchars($cat['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <option value="football">Football</option>
+                                        <option value="tennis">Tennis</option>
+                                        <option value="basketball">Basketball</option>
+                                        <option value="cricket">Cricket</option>
+                                        <option value="badminton">Badminton</option>
+                                        <option value="swimming">Swimming</option>
+                                    <?php endif; ?>
                                 </select>
                             </div>
                             <div class="search-field">
@@ -112,7 +155,7 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                 <div class="features-grid">
                     <div class="feature-card" data-feature="booking">
                         <div class="feature-image">
-                            <img src="/public/assets/images/football.jpg" alt="Book Sports Grounds" />
+                            <img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Book Sports Grounds" />
                             <div class="feature-overlay"></div>
                             <div class="feature-stats">500+ Venues</div>
                         </div>
@@ -126,7 +169,7 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                             <p class="feature-description">
                                 Reserve courts, fields, and complexes for your games
                             </p>
-                            <a href="/book-ground" class="feature-btn">
+                            <a href="<?= $_base ?>/book-ground" class="feature-btn">
                                 Get Started
                             </a>
                         </div>
@@ -134,7 +177,7 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
 
                     <div class="feature-card" data-feature="coaching">
                         <div class="feature-image">
-                            <img src="/public/assets/images/football.jpg" alt="Hire Professional Coaches" />
+                            <img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Hire Professional Coaches" />
                             <div class="feature-overlay"></div>
                             <div class="feature-stats">200+ Coaches</div>
                         </div>
@@ -148,7 +191,7 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                             <p class="feature-description">
                                 Train with certified coaches for all sports
                             </p>
-                            <a href="/coaches" class="feature-btn">
+                            <a href="<?= $_base ?>/coaches" class="feature-btn">
                                 Get Started
                             </a>
                         </div>
@@ -156,7 +199,7 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
 
                     <div class="feature-card" data-feature="equipment">
                         <div class="feature-image">
-                            <img src="/public/assets/images/football.jpg" alt="Sports Equipment Shop" />
+                            <img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Sports Equipment Shop" />
                             <div class="feature-overlay"></div>
                             <div class="feature-stats">1000+ Products</div>
                         </div>
@@ -170,7 +213,7 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                             <p class="feature-description">
                                 Buy quality gear from trusted brands
                             </p>
-                            <a href="/shop" class="feature-btn">
+                            <a href="<?= $_base ?>/shop" class="feature-btn">
                                 Get Started
                             </a>
                         </div>
@@ -187,30 +230,21 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                     <p class="section-description">Quickly jump into what you love playing</p>
                 </div>
                 <div class="categories-grid">
-                    <a class="category-card" href="/book-ground?sport=football">
-                        <img src="/public/assets/images/football.jpg" alt="Football" />
-                        <span>Football</span>
-                    </a>
-                    <a class="category-card" href="/book-ground?sport=tennis">
-                        <img src="/public/assets/images/football.jpg" alt="Tennis" />
-                        <span>Tennis</span>
-                    </a>
-                    <a class="category-card" href="/book-ground?sport=basketball">
-                        <img src="/public/assets/images/football.jpg" alt="Basketball" />
-                        <span>Basketball</span>
-                    </a>
-                    <a class="category-card" href="/book-ground?sport=cricket">
-                        <img src="/public/assets/images/football.jpg" alt="Cricket" />
-                        <span>Cricket</span>
-                    </a>
-                    <a class="category-card" href="/book-ground?sport=badminton">
-                        <img src="/public/assets/images/football.jpg" alt="Badminton" />
-                        <span>Badminton</span>
-                    </a>
-                    <a class="category-card" href="/book-ground?sport=swimming">
-                        <img src="/public/assets/images/football.jpg" alt="Swimming" />
-                        <span>Swimming</span>
-                    </a>
+                    <?php if (!empty($sportsCategories ?? [])): ?>
+                        <?php foreach ($sportsCategories as $cat): ?>
+                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=<?= htmlspecialchars(strtolower($cat['name'])) ?>">
+                            <img src="<?= $_base ?>/public/assets/images/football.jpg" alt="<?= htmlspecialchars($cat['name']) ?>" />
+                            <span><?= htmlspecialchars($cat['name']) ?></span>
+                        </a>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=football"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Football" /><span>Football</span></a>
+                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=tennis"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Tennis" /><span>Tennis</span></a>
+                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=basketball"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Basketball" /><span>Basketball</span></a>
+                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=cricket"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Cricket" /><span>Cricket</span></a>
+                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=badminton"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Badminton" /><span>Badminton</span></a>
+                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=swimming"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Swimming" /><span>Swimming</span></a>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>
@@ -260,8 +294,8 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                             <?php foreach (($featuredNews ?? []) as $news): ?>
                                 <div class="news-item" data-id="<?= (int)($news['id'] ?? 0) ?>">
                                     <div class="news-image">
-                                        <img src="<?= htmlspecialchars($news['featured_image'] ?? '/public/assets/images/football.jpg') ?>" alt="<?= htmlspecialchars($news['title'] ?? 'News') ?>" loading="lazy"
-                                             onerror="this.src='/public/assets/images/football.jpg'">
+                                        <img src="<?= htmlspecialchars($news['featured_image'] ?? $_base . '/public/assets/images/football.jpg') ?>" alt="<?= htmlspecialchars($news['title'] ?? 'News') ?>" loading="lazy"
+                                             onerror="this.src='<?= $_base ?>/public/assets/images/football.jpg'">
                                         <?php if (!empty($news['category'])): ?>
                                             <div class="news-badge"><?= htmlspecialchars($news['category']) ?></div>
                                         <?php endif; ?>
@@ -272,14 +306,14 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                                         </div>
                                         <h3 class="news-title"><?= htmlspecialchars($news['title'] ?? '') ?></h3>
                                         <p class="news-excerpt"><?= htmlspecialchars($news['excerpt'] ?? '') ?></p>
-                                        <a href="/news/<?= (int)($news['id'] ?? 0) ?>" class="news-link">Read More</a>
+                                        <a href="<?= $_base ?>/news/<?= (int)($news['id'] ?? 0) ?>" class="news-link">Read More</a>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <div class="news-item">
                                 <div class="news-image">
-                                    <img src="/public/assets/images/football.jpg" alt="News" />
+                                    <img src="<?= $_base ?>/public/assets/images/football.jpg" alt="News" />
                                 </div>
                                 <div class="news-content">
                                     <div class="news-date">No news</div>
@@ -310,9 +344,9 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                 </div>
                 <div class="testimonials-grid">
                     <div class="testimonial-card">
-                        <div class="testimonial-quote">“Seamless booking and top-notch venues. We organize all our weekend games here.”</div>
+                        <div class="testimonial-quote">"Seamless booking and top-notch venues. We organize all our weekend games here."</div>
                         <div class="testimonial-user">
-                            <img src="/public/assets/images/default-avatar.png" alt="User" />
+                            <img src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="User" />
                             <div>
                                 <div class="user-name">Naveen</div>
                                 <div class="user-role">Amateur Footballer</div>
@@ -320,9 +354,9 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                         </div>
                     </div>
                     <div class="testimonial-card">
-                        <div class="testimonial-quote">“Found a great tennis coach within minutes. My game has improved dramatically.”</div>
+                        <div class="testimonial-quote">"Found a great tennis coach within minutes. My game has improved dramatically."</div>
                         <div class="testimonial-user">
-                            <img src="/public/assets/images/default-avatar.png" alt="User" />
+                            <img src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="User" />
                             <div>
                                 <div class="user-name">Ishara</div>
                                 <div class="user-role">Tennis Enthusiast</div>
@@ -330,9 +364,9 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                         </div>
                     </div>
                     <div class="testimonial-card">
-                        <div class="testimonial-quote">“Clean UI, fast checkout, and reliable schedules. Highly recommend for teams.”</div>
+                        <div class="testimonial-quote">"Clean UI, fast checkout, and reliable schedules. Highly recommend for teams."</div>
                         <div class="testimonial-user">
-                            <img src="/public/assets/images/default-avatar.png" alt="User" />
+                            <img src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="User" />
                             <div>
                                 <div class="user-name">Dinuka</div>
                                 <div class="user-role">Cricket Captain</div>
@@ -368,8 +402,8 @@ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/ind
                     <h2>Ready to play?</h2>
                     <p>Join thousands of players and book your next session today.</p>
                     <div class="cta-actions">
-                        <a class="hero-btn primary" href="/book-ground"><i class="fas fa-calendar"></i> Book a Ground</a>
-                        <a class="hero-btn primary" href="/book-coach"><i class="fas fa-calendar"></i> Hire a Coach</a>
+                        <a class="hero-btn primary" href="<?= $_base ?>/book-ground"><i class="fas fa-calendar"></i> Book a Ground</a>
+                        <a class="hero-btn primary" href="<?= $_base ?>/book-coach"><i class="fas fa-calendar"></i> Hire a Coach</a>
                     </div>
                 </div>
             </div>

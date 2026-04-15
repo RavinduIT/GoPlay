@@ -511,6 +511,93 @@ body {
     grid-area: reviews;
 }
 
+/* Pending Approvals card */
+.pending-approvals {
+    grid-column: 1 / -1;
+}
+
+.pending-badge {
+    display: inline-block;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    padding: 2px 8px;
+    margin-left: 6px;
+    vertical-align: middle;
+    line-height: 1.4;
+}
+
+.pending-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.875rem 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    gap: 1rem;
+}
+
+.pending-item:first-child {
+    border-top: none;
+}
+
+.pending-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.pending-name {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pending-detail {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.pending-ago {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.pending-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.pa-btn {
+    padding: 0.375rem 0.875rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.pa-btn:hover {
+    opacity: 0.85;
+}
+
+.pa-approve {
+    background: #22c55e;
+    color: #fff;
+}
+
+.pa-reject {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
 .card-header {
     padding: 1.5rem;
     border-bottom: 1px solid #e2e8f0;

@@ -7,18 +7,19 @@ if (session_status() === PHP_SESSION_NONE) {
 // Function to get profile URL based on user role
 if (!function_exists('getProfileUrl')) {
     function getProfileUrl($userType) {
+        $base = defined('BASE_URL') ? BASE_URL : '';
         switch($userType) {
             case 'admin':
-                return '/admin/dashboard';
+                return $base . '/admin/dashboard';
             case 'coach':
-                return '/coach/profile';
+                return $base . '/coach/profile';
             case 'ground_owner':
-                return '/ground-owner/profile';
+                return $base . '/ground-owner/profile';
             case 'shop_owner':
-                return '/shop-owner/profile';
+                return $base . '/shop-owner/profile';
             case 'user':
             default:
-                return '/user/profile';
+                return $base . '/user/profile';
         }
     }
 }
@@ -26,18 +27,19 @@ if (!function_exists('getProfileUrl')) {
 // Function to get dashboard URL based on user role
 if (!function_exists('getDashboardUrl')) {
     function getDashboardUrl($userType) {
+        $base = defined('BASE_URL') ? BASE_URL : '';
         switch($userType) {
             case 'admin':
-                return '/admin/dashboard';
+                return $base . '/admin/dashboard';
             case 'coach':
-                return '/coach/dashboard';
+                return $base . '/coach/dashboard';
             case 'ground_owner':
-                return '/ground-owner/dashboard';
+                return $base . '/ground-owner/dashboard';
             case 'shop_owner':
-                return '/shop-owner/dashboard';
+                return $base . '/shop-owner/dashboard';
             case 'user':
             default:
-                return '/dashboard';
+                return $base . '/dashboard';
         }
     }
 }
@@ -59,14 +61,15 @@ if (!function_exists('getUserInitials')) {
 // Check if user has a profile picture
 $hasProfilePicture = isset($_SESSION['user']['avatar']) && !empty($_SESSION['user']['avatar']);
 $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_name']) : 'U';
+$_base = defined('BASE_URL') ? BASE_URL : '';
 ?>
 
 <nav class="navbar">
     <div class="nav-container">
         <!-- Logo -->
         <div class="nav-logo">
-            <a href="/">
-                <img src="/public/assets/images/logo.jpeg" alt="GoPlay" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <a href="<?= $_base ?>/">
+                <img src="<?= $_base ?>/public/assets/images/logo.jpeg" alt="GoPlay" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                 <span class="logo-fallback" style="display: none;">GP</span>
                 <span class="logo-text">GOPLAY</span>
             </a>
@@ -75,24 +78,24 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
         <!-- Navigation Menu -->
         <ul class="nav-menu">
             <li class="nav-item">
-                <a href="/" class="nav-link">Home</a>
+                <a href="<?= $_base ?>/" class="nav-link">Home</a>
             </li>
             <li class="nav-item">
-                <a href="/book-ground" class="nav-link">Book Ground</a>
+                <a href="<?= $_base ?>/book-ground" class="nav-link">Book Ground</a>
             </li>
             <li class="nav-item">
-                <a href="/book-coach" class="nav-link">Book Coach</a>
+                <a href="<?= $_base ?>/book-coach" class="nav-link">Book Coach</a>
             </li>
             <li class="nav-item">
-                <a href="/shop" class="nav-link">Shop</a>
+                <a href="<?= $_base ?>/shop" class="nav-link">Shop</a>
             </li>
             <li class="nav-item">
-                <a href="/news" class="nav-link">News</a>
+                <a href="<?= $_base ?>/news" class="nav-link">News</a>
             </li>
             <?php if (!isset($_SESSION['user_id']) || ($_SESSION['user_type'] ?? 'user') === 'user'): ?>
     <li class="nav-item">
         <a 
-            href="<?= isset($_SESSION['user_id']) ? '/provider/join' : '/signup' ?>" 
+            href="<?= isset($_SESSION['user_id']) ? $_base . '/provider/join' : $_base . '/signup' ?>" 
             class="nav-link join-provider"
             onclick="<?php if (!isset($_SESSION['user_id'])) echo 'alert(\'Please sign up or log in before joining as a provider.\');'; ?>"
         >
@@ -128,18 +131,18 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
                             <i class="fas fa-tachometer-alt"></i> Dashboard
                         </a>
                         
-                        <a href="/my-bookings"><i class="fas fa-calendar-alt"></i> My Bookings</a>
-                        <a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a>
-                        <a href="/my-orders"><i class="fas fa-receipt"></i> My Orders</a>
+                        <a href="<?= $_base ?>/my-bookings"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+                        <a href="<?= $_base ?>/cart"><i class="fas fa-shopping-cart"></i> Cart</a>
+                        <a href="<?= $_base ?>/my-orders"><i class="fas fa-receipt"></i> My Orders</a>
                         
                         <?php if (($_SESSION['user_type'] ?? '') === 'admin'): ?>
                             <hr>
-                            <a href="/admin/dashboard"><i class="fas fa-cog"></i> Admin Panel</a>
+                            <a href="<?= $_base ?>/admin/dashboard"><i class="fas fa-cog"></i> Admin Panel</a>
                         <?php endif; ?>
                         
                         <hr>
-                        <a href="/notifications"><i class="fas fa-bell"></i> Notifications</a>
-                        <a href="/settings"><i class="fas fa-cog"></i> Settings</a>
+                        <a href="<?= $_base ?>/notifications"><i class="fas fa-bell"></i> Notifications</a>
+                        <a href="<?= $_base ?>/settings"><i class="fas fa-cog"></i> Settings</a>
                         <hr>
                         <a href="#" onclick="logout(); return false;" class="logout-btn">
                             <i class="fas fa-sign-out-alt"></i> Logout
@@ -148,10 +151,10 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
                 </div>
             <?php else: ?>
                 <div class="auth-buttons">
-                    <a href="/login" class="btn btn-outline">
+                    <a href="<?= $_base ?>/login" class="btn btn-outline">
                         <i class="fas fa-sign-in-alt"></i> <span>Login</span>
                     </a>
-                    <a href="/signup" class="btn btn-primary">
+                    <a href="<?= $_base ?>/signup" class="btn btn-primary">
                         <i class="fas fa-user-plus"></i> <span>Sign Up</span>
                     </a>
                 </div>
@@ -170,30 +173,28 @@ $userInitials = isset($_SESSION['user_name']) ? getUserInitials($_SESSION['user_
 <!-- Mobile Menu -->
 <div class="mobile-menu">
     <ul class="mobile-nav-menu">
-        <li><a href="/">Home</a></li>
-        <li><a href="/book-ground">Book Ground</a></li>
-        <li><a href="/book-coach">Book Coach</a></li>
-        <li><a href="/shop">Shop</a></li>
-        <li><a href="/news">News</a></li>
+        <li><a href="<?= $_base ?>/">Home</a></li>
+        <li><a href="<?= $_base ?>/book-ground">Book Ground</a></li>
+        <li><a href="<?= $_base ?>/book-coach">Book Coach</a></li>
+        <li><a href="<?= $_base ?>/shop">Shop</a></li>
+        <li><a href="<?= $_base ?>/news">News</a></li>
         <?php if (!isset($_SESSION['user_id']) || ($_SESSION['user_type'] ?? 'user') === 'user'): ?>
-            <li><a href="/provider/join">Join as Provider</a></li>
+            <li><a href="<?= $_base ?>/provider/join">Join as Provider</a></li>
         <?php endif; ?>
         <?php if (isset($_SESSION['user_id'])): ?>
             <li><a href="<?= getProfileUrl($_SESSION['user_type'] ?? 'user') ?>">Profile</a></li>
             <li><a href="<?= getDashboardUrl($_SESSION['user_type'] ?? 'user') ?>">Dashboard</a></li>
-            <li><a href="/my-bookings">My Bookings</a></li>
-            <li><a href="/cart">Cart</a></li>
+            <li><a href="<?= $_base ?>/my-bookings">My Bookings</a></li>
+            <li><a href="<?= $_base ?>/cart">Cart</a></li>
             <li><a href="#" onclick="logout(); return false;">Logout</a></li>
         <?php else: ?>
-            <li><a href="/login">Login</a></li>
-            <li><a href="/signup">Sign Up</a></li>
+            <li><a href="<?= $_base ?>/login">Login</a></li>
+            <li><a href="<?= $_base ?>/signup">Sign Up</a></li>
         <?php endif; ?>
     </ul>
 </div>
 
 <script>
-//console.log('Navbar script loaded');
-
 // Mobile menu toggle
 const navToggle = document.querySelector('.nav-toggle');
 const mobileMenu = document.querySelector('.mobile-menu');
@@ -208,13 +209,11 @@ if (navToggle && mobileMenu) {
 // User dropdown toggle
 const userBtn = document.querySelector('.user-btn');
 if (userBtn) {
-    console.log('User button found');
     userBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         e.preventDefault();
         const dropdown = this.nextElementSibling;
         dropdown.classList.toggle('show');
-        console.log('Dropdown toggled');
     });
     
     // Close dropdown when clicking outside
@@ -226,33 +225,18 @@ if (userBtn) {
     });
 }
 
-// Logout function - Fixed to use correct endpoint
+// Logout function - uses BASE_URL for correct paths
 function logout() {
-    console.log('Logout function called');
-    
     if (confirm('Are you sure you want to logout?')) {
-        // Try multiple possible logout endpoints
-        const logoutEndpoints = ['/auth/logout', '/logout'];
+        const base = window.BASE_URL || '';
         
-        // Use form submission as fallback for logout
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '/auth/logout';
+        form.action = base + '/auth/logout';
         form.style.display = 'none';
         document.body.appendChild(form);
         
-        // Add CSRF token if available
-        const metaToken = document.querySelector('meta[name="csrf-token"]');
-        if (metaToken) {
-            const tokenInput = document.createElement('input');
-            tokenInput.type = 'hidden';
-            tokenInput.name = '_token';
-            tokenInput.value = metaToken.content;
-            form.appendChild(tokenInput);
-        }
-        
-        // Try fetch first
-        fetch('/auth/logout', {
+        fetch(base + '/auth/logout', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -261,34 +245,25 @@ function logout() {
             credentials: 'same-origin'
         })
         .then(response => {
-            console.log('Logout response:', response);
             if (response.ok) {
                 return response.json();
             }
             throw new Error('Network response was not ok');
         })
         .then(data => {
-            console.log('Logout success:', data);
             if (data.success) {
-                window.location.href = '/';
+                window.location.href = base + '/';
             } else {
                 throw new Error(data.message || 'Logout failed');
             }
         })
         .catch(error => {
-            console.log('Fetch failed, trying form submission:', error);
-            // Fallback to form submission
             form.submit();
         });
     }
     
     return false;
 }
-
-// Debug session info
-console.log('Session check - User ID:', <?= json_encode($_SESSION['user_id'] ?? null) ?>);
-console.log('Session check - User Type:', <?= json_encode($_SESSION['user_type'] ?? null) ?>);
-console.log('Session check - User Name:', <?= json_encode($_SESSION['user_name'] ?? null) ?>);
 </script>
 
 <style>

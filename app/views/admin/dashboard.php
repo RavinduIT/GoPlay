@@ -1,4 +1,5 @@
-<link rel="stylesheet" href="/public/css/pages/admin-dashboard.css">
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
+<link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-dashboard.css">
 <div class="admin-dashboard">
     <?php 
     // Set active page for sidebar
@@ -27,7 +28,7 @@
                         <span class="profile-name">Loading...</span>
                         <span class="profile-role">Super Admin</span>
                     </div>
-                    <img src="/public/assets/images/default-avatar.png" alt="Admin" class="profile-avatar">
+                    <img src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="Admin" class="profile-avatar">
                     <button class="profile-dropdown">
                         <i class="fas fa-chevron-down"></i>
                     </button>
@@ -119,7 +120,7 @@
                 <div class="dashboard-card">
                     <div class="card-header">
                         <h3>Recent Registrations</h3>
-                        <a href="/admin/users" class="view-all">View All</a>
+                        <a href="<?= $_base ?>/admin/users" class="view-all">View All</a>
                     </div>
                     <div class="booking-list">
                         <div class="loading-state">
@@ -135,19 +136,19 @@
                         <h3>Quick Actions</h3>
                     </div>
                     <div class="quick-actions">
-                        <a href="/admin/grounds/create" class="action-btn blue">
+                        <a href="<?= $_base ?>/admin/grounds/create" class="action-btn blue">
                             <i class="fas fa-plus-circle"></i>
                             <span>Add Ground</span>
                         </a>
-                        <a href="/admin/coaches/create" class="action-btn green">
+                        <a href="<?= $_base ?>/admin/coaches/create" class="action-btn green">
                             <i class="fas fa-user-plus"></i>
                             <span>Add Coach</span>
                         </a>
-                        <a href="/admin/products/create" class="action-btn purple">
+                        <a href="<?= $_base ?>/admin/products/create" class="action-btn purple">
                             <i class="fas fa-box"></i>
                             <span>Add Product</span>
                         </a>
-                        <a href="/admin/news/create" class="action-btn orange">
+                        <a href="<?= $_base ?>/admin/news/create" class="action-btn orange">
                             <i class="fas fa-newspaper"></i>
                             <span>Add News</span>
                         </a>
@@ -158,7 +159,7 @@
                 <div class="dashboard-card">
                     <div class="card-header">
                         <h3>Recent Content</h3>
-                        <a href="/admin/content" class="view-all">View All</a>
+                        <a href="<?= $_base ?>/admin/content" class="view-all">View All</a>
                     </div>
                     <div class="order-list">
                         <div class="loading-state">
@@ -252,12 +253,12 @@
 }
 </style>
 
-<script src="/public/js/pages/admin-dashboard.js"></script>
+<script src="<?= $_base ?>/public/js/pages/admin-dashboard.js"></script>
 <script>
 // Load pending applications count
 async function loadPendingApplicationsCount() {
     try {
-        const response = await fetch('/admin/provider-applications/statistics');
+        const response = await fetch((window.BASE_URL||'')+'/admin/provider-applications/statistics');
         const data = await response.json();
 
         if (data.success && data.stats) {

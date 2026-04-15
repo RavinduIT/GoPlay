@@ -1,3 +1,4 @@
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <div class="min-h-screen bg-gray-100 flex items-center justify-center">
     <div class="max-w-md mx-auto text-center">
         <div class="mb-8">
@@ -10,7 +11,7 @@
         </div>
         
         <div class="space-y-4">
-            <a href="/" class="block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+            <a href="<?= $_base ?>/" class="block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
                 Go Home
             </a>
             <button onclick="location.reload()" class="block w-full bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors">
@@ -19,7 +20,7 @@
         </div>
         
         <div class="mt-8 text-sm text-gray-500">
-            <p>If this problem persists, <a href="/contact" class="text-blue-600 hover:text-blue-800">contact our support team</a></p>
+            <p>If this problem persists, <a href="<?= $_base ?>/contact" class="text-blue-600 hover:text-blue-800">contact our support team</a></p>
         </div>
     </div>
 </div>

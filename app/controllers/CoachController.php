@@ -42,6 +42,174 @@ class CoachController extends BaseController
     }
 
     /**
+     * GET /api/coaches - Public endpoint for book-coach page
+     */
+    public function getPublicCoaches(Request $request): Response
+    {
+        try {
+            $coachModel = new Coach();
+            
+            $search = $request->getQuery('search', '');
+            $filters = [
+                'sport' => $request->getQuery('sport', ''),
+                'experience' => $request->getQuery('experience', ''),
+                'age' => $request->getQuery('age', ''),
+                'price' => $request->getQuery('price', ''),
+            ];
+
+            $coaches = $coachModel->search($search, $filters);
+
+            $formatted = array_map(function($c) {
+                $specializations = $c['specializations'] ?? [];
+                if (is_string($specializations)) {
+                    $specializations = json_decode($specializations, true) ?: [];
+                }
+                if (!is_array($specializations)) {
+                    $specializations = [];
+                }
+                return [
+                    'id' => (int)$c['id'],
+                    'name' => trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? '')),
+                    'sport' => $c['sport_name'] ?? 'General',
+                    'location' => $c['location'] ?? '',
+                    'experience' => ($c['experience_years'] ?? 0) . ' years',
+                    'price' => (float)($c['hourly_rate'] ?? 0),
+                    'rating' => round((float)($c['rating'] ?? 0), 1),
+                    'reviews' => (int)($c['total_reviews'] ?? 0),
+                    'bio' => $c['bio'] ?? '',
+                    'specialties' => $specializations,
+                    'profile_picture' => $c['profile_picture'] ?? null,
+                ];
+            }, $coaches);
+
+            // Sort based on request
+            $sort = $request->getQuery('sort', 'rating');
+            usort($formatted, function($a, $b) use ($sort) {
+                switch ($sort) {
+                    case 'experience': return (int)$b['experience'] - (int)$a['experience'];
+                    case 'price-low': return $a['price'] - $b['price'];
+                    case 'price-high': return $b['price'] - $a['price'];
+                    default: return $b['rating'] <=> $a['rating'];
+                }
+            });
+
+            return $this->json([
+                'success' => true,
+                'coaches' => $formatted,
+                'total' => count($formatted)
+            ]);
+        } catch (\Exception $e) {
+            error_log("Public coaches error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'error' => 'Failed to load coaches',
+                'coaches' => [],
+                'total' => 0
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/sports-categories - Public endpoint 
+     */
+    public function getSportsCategories(Request $request): Response
+    {
+        try {
+            $coachModel = new Coach();
+            $categories = $coachModel->getSportsCategories();
+
+            return $this->json([
+                'success' => true,
+                'categories' => $categories
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'categories' => []
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/coaches/{id} - Get single coach details
+     */
+    public function getCoachDetail(Request $request, $id = null): Response
+    {
+        try {
+            $id = (int)$id;
+            if (!$id) {
+                return $this->json(['success' => false, 'error' => 'Invalid coach ID'], 400);
+            }
+
+            $coachModel = new Coach();
+            $coach = $coachModel->getWithDetails($id);
+
+            if (!$coach) {
+                return $this->json(['success' => false, 'error' => 'Coach not found'], 404);
+            }
+
+            // Parse specializations
+            $specializations = $coach['specializations'] ?? [];
+            if (is_string($specializations)) {
+                $specializations = json_decode($specializations, true) ?: [];
+            }
+
+            // Get additional data safely
+            $certificates = [];
+            $achievements = [];
+            $reviews = [];
+            $availability = [];
+            $facilities = [];
+
+            try { $certificates = $coachModel->getCertificates($id); } catch (\Exception $e) {}
+            try { $achievements = $coachModel->getAchievements($id); } catch (\Exception $e) {}
+            try { $reviews = $coachModel->getReviews($id); } catch (\Exception $e) {}
+            try { $availability = $coachModel->getWeeklySchedule($id); } catch (\Exception $e) {}
+            try { $facilities = $coachModel->getFacilities($id); } catch (\Exception $e) {}
+
+            $formatted = [
+                'id' => (int)$coach['id'],
+                'name' => trim(($coach['first_name'] ?? '') . ' ' . ($coach['last_name'] ?? '')),
+                'email' => $coach['email'] ?? '',
+                'phone' => $coach['phone'] ?? '',
+                'sport' => $coach['sport_name'] ?? 'General',
+                'sport_icon' => $coach['sport_icon'] ?? '',
+                'location' => $coach['location'] ?? '',
+                'experience_years' => (int)($coach['experience_years'] ?? 0),
+                'experience' => ($coach['experience_years'] ?? 0) . ' years',
+                'age' => $coach['age'] ?? null,
+                'price' => (float)($coach['hourly_rate'] ?? 0),
+                'hourly_rate' => (float)($coach['hourly_rate'] ?? 0),
+                'rating' => round((float)($coach['rating'] ?? 0), 1),
+                'reviews_count' => (int)($coach['total_reviews'] ?? 0),
+                'total_sessions' => (int)($coach['total_sessions'] ?? 0),
+                'bio' => $coach['bio'] ?? '',
+                'specialties' => $specializations,
+                'profile_picture' => $coach['profile_picture'] ?? null,
+                'status' => $coach['status'] ?? 'active',
+                'certificates' => $certificates,
+                'achievements' => $achievements,
+                'reviews' => $reviews,
+                'availability' => $availability,
+                'facilities' => $facilities,
+            ];
+
+            return $this->json([
+                'success' => true,
+                'coach' => $formatted
+            ]);
+        } catch (\Exception $e) {
+            error_log("Coach detail error: " . $e->getMessage());
+            return $this->json([
+                'success' => false,
+                'error' => 'Failed to load coach details'
+            ], 500);
+        }
+    }
+
+
+
+    /**
      * Coach dashboard
      */
     public function dashboard(Request $request): Response
@@ -1091,29 +1259,7 @@ class CoachController extends BaseController
         }
     }
     
-    /**
-     * Get sports categories for filter dropdown
-     */
-    public function getSportsCategories(Request $request): Response
-    {
-        try {
-            $coachModel = new Coach();
-            $categories = $coachModel->getSportsCategories();
-            
-            return $this->json([
-                'success' => true,
-                'categories' => $categories
-            ]);
-            
-        } catch (Exception $e) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Failed to fetch sports categories',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-    
+
     /**
      * Get single coach details
      */
@@ -2208,4 +2354,4 @@ class CoachController extends BaseController
             return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
-}
+} 

@@ -19,7 +19,7 @@
     ================================================================ */
     async function loadProfile() {
         try {
-            const r    = await fetch('/api/ground-owner/profile');
+            const r    = await fetch((window.BASE_URL||'')+'/api/ground-owner/profile');
             const data = await r.json();
             if (!data.success) { toast('Could not load profile.', 'error'); return; }
 
@@ -45,8 +45,8 @@
 
         // Always show an image — use profile picture or default avatar
         const av = $('gpAvatarDisplay');
-        const src = u.profile_picture || '/public/assets/images/default-avatar.svg';
-        av.innerHTML = `<img src="${esc(src)}" alt="${esc(name)}" onerror="this.src='/public/assets/images/default-avatar.svg'">`;
+        const src = u.profile_picture || (window.BASE_URL||'')+'/public/assets/images/default-avatar.svg';
+        av.innerHTML = `<img src="${esc(src)}" alt="${esc(name)}" onerror="this.src=(window.BASE_URL||'')+'/public/assets/images/default-avatar.svg'">`;
 
         // Stats
         $('gpStatGrounds').textContent  = s.total_facilities ?? '0';
@@ -210,7 +210,7 @@
         };
 
         try {
-            const r    = await fetch('/api/ground-owner/profile', {
+            const r    = await fetch((window.BASE_URL||'')+'/api/ground-owner/profile', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -245,7 +245,7 @@
             fd.append('avatar', file);
 
             try {
-                const r    = await fetch('/api/ground-owner/upload-avatar', { method: 'POST', body: fd });
+                const r    = await fetch((window.BASE_URL||'')+'/api/ground-owner/upload-avatar', { method: 'POST', body: fd });
                 const data = await r.json();
                 if (data.success) {
                     toast('Photo updated!', 'success');

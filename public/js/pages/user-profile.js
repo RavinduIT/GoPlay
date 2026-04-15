@@ -150,7 +150,7 @@ class UserProfile {
             this.showLoading(section);
 
             // Make API request
-            const response = await fetch('/api/user/profile', {
+            const response = await fetch((window.BASE_URL||'')+'/api/user/profile', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -260,7 +260,7 @@ class UserProfile {
             formData.append('avatar', file);
 
             // Upload avatar
-            const response = await fetch('/api/user/avatar', {
+            const response = await fetch((window.BASE_URL||'')+'/api/user/avatar', {
                 method: 'POST',
                 body: formData
             });
@@ -315,7 +315,7 @@ class UserProfile {
             submitBtn.disabled = true;
 
             // Make API request
-            const response = await fetch('/api/user/change-password', {
+            const response = await fetch((window.BASE_URL||'')+'/api/user/change-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

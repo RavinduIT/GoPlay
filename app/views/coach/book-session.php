@@ -1,4 +1,5 @@
-<?php $currentPage = 'sessions'; ?>
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'sessions'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Training Session - GoPlay</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/coach/sidebar.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/coach/sidebar.css">
     <style>
         :root {
             --primary-color: #2563eb;
@@ -819,7 +820,7 @@
 
                     // Reset form after delay
                     setTimeout(() => {
-                        window.location.href = '/coach/sessions';
+                        window.location.href=(window.BASE_URL||'')+'/coach/sessions';
                     }, 3000);
 
                 } catch (error) {

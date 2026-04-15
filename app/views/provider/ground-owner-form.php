@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Ground Owner Application - GoPlay';
 $additionalCSS = ['/public/css/pages/provider-application.css'];
 $additionalJS = [];
@@ -15,9 +16,10 @@ $additionalJS = [];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
-            <link rel="stylesheet" href="<?= $css ?>">
+            <link rel="stylesheet" href="<?= $_base ?><?= $css ?>">
         <?php endforeach; ?>
     <?php endif; ?>
+    <script>window.BASE_URL = '<?= $_base ?>';</script>
 </head>
 <body>
     <!-- Include Navbar -->
@@ -248,9 +250,9 @@ $additionalJS = [];
                 </div>
 
                 <div class="form-group">
-                    <label for="businessRegistration">Business Registration Certificate *</label>
+                    <label for="businessRegistration">Business Registration Certificate</label>
                     <div class="file-upload-area">
-                        <input type="file" id="businessRegistration" name="business_registration" accept="image/*,.pdf" >
+                        <input type="file" id="businessRegistration" name="business_registration" accept="image/*,.pdf">
                         <div class="file-upload-placeholder">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Click to upload or drag and drop</p>
@@ -261,9 +263,9 @@ $additionalJS = [];
                 </div>
 
                 <div class="form-group">
-                    <label for="ownershipProof">Proof of Ownership/Lease Agreement *</label>
+                    <label for="ownershipProof">Proof of Ownership/Lease Agreement</label>
                     <div class="file-upload-area">
-                        <input type="file" id="ownershipProof" name="ownership_proof" accept="image/*,.pdf" >
+                        <input type="file" id="ownershipProof" name="ownership_proof" accept="image/*,.pdf">
                         <div class="file-upload-placeholder">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Click to upload or drag and drop</p>
@@ -289,7 +291,7 @@ $additionalJS = [];
                 <div class="form-group">
                     <label class="checkbox-label terms-checkbox">
                         <input type="checkbox" id="termsAgree" name="terms_agree" required>
-                        <span>I agree to the <a href="/terms" target="_blank">Terms and Conditions</a> and <a href="/privacy" target="_blank">Privacy Policy</a> *</span>
+                        <span>I agree to the <a href="<?= $_base ?>/terms" target="_blank">Terms and Conditions</a> and <a href="<?= $_base ?>/privacy" target="_blank">Privacy Policy</a> *</span>
                     </label>
                     <span class="error-message"></span>
                 </div>
@@ -309,6 +311,6 @@ $additionalJS = [];
     <!-- Include Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="/public/js/provider-application.js"></script>
+    <script src="<?= $_base ?>/public/js/provider-application.js"></script>
 </body>
 </html>

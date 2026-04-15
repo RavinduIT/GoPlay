@@ -13,7 +13,7 @@ include __DIR__ . '/layout-head.php';
 
     <main class="dashboard-main">
 
-        <!-- ── Page Header ───────────────────────────────── -->
+        <!--  Page Header  -->
         <div class="gr-page-header">
             <div class="gr-header-left">
                 <button class="sidebar-toggle" onclick="toggleSidebar()">
@@ -33,7 +33,7 @@ include __DIR__ . '/layout-head.php';
 
         <div class="gr-content">
 
-            <!-- ── Stats Grid ─────────────────────────── -->
+            <!--  Stats Grid  -->
             <div class="gr-stats-grid">
                 <div class="gr-stat-card gr-stat-blue">
                     <div class="gr-stat-icon"><i class="fas fa-map-marker-alt"></i></div>
@@ -65,7 +65,7 @@ include __DIR__ . '/layout-head.php';
                 </div>
             </div>
 
-            <!-- ── Filters ────────────────────────────── -->
+            <!--  Filters  -->
             <div class="gr-filters-bar">
                 <div class="gr-search-wrap">
                     <i class="fas fa-search"></i>
@@ -82,12 +82,12 @@ include __DIR__ . '/layout-head.php';
                 </select>
             </div>
 
-            <!-- ── Loading ────────────────────────────── -->
+            <!--  Loading  -->
             <div id="grLoading" class="gr-loading">
                 <i class="fas fa-spinner fa-spin"></i> Loading your grounds…
             </div>
 
-            <!-- ── Empty State ────────────────────────── -->
+            <!--  Empty State  -->
             <div id="grEmpty" class="gr-empty" style="display:none">
                 <i class="fas fa-map-marker-alt"></i>
                 <h3>No grounds found</h3>
@@ -97,14 +97,14 @@ include __DIR__ . '/layout-head.php';
                 </button>
             </div>
 
-            <!-- ── Grounds Grid ───────────────────────── -->
+            <!--  Grounds Grid  -->
             <div id="grGrid" class="gr-grid" style="display:none"></div>
 
         </div><!-- .gr-content -->
     </main>
 </div>
 
-<!-- ── Add / Edit Ground Modal ──────────────────────────────── -->
+<!--  Add / Edit Ground Modal  -->
 <div id="grBackdrop" class="gr-backdrop"></div>
 <div id="grModal" class="gr-modal">
     <div class="gr-modal-box">
@@ -275,7 +275,7 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
-<!-- ── Delete Confirm Modal ──────────────────────────────────── -->
+<!--  Delete Confirm Modal  -->
 <div id="grDelBackdrop" class="gr-backdrop"></div>
 <div id="grDelModal" class="gr-modal">
     <div class="gr-modal-box gr-modal-sm">

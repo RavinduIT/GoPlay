@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Join as Provider - GoPlay';
 $additionalCSS = ['/public/css/pages/provider-role-selection.css'];
 $additionalJS = [];
@@ -15,9 +16,10 @@ $additionalJS = [];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
-            <link rel="stylesheet" href="<?= $css ?>">
+            <link rel="stylesheet" href="<?= $_base ?><?= $css ?>">
         <?php endforeach; ?>
     <?php endif; ?>
+    <script>window.BASE_URL = '<?= $_base ?>';</script>
 </head>
 <body>
     <!-- Include Navbar -->
@@ -49,7 +51,7 @@ $additionalJS = [];
                     <li><i class="fas fa-check"></i> Analytics dashboard</li>
                     <li><i class="fas fa-check"></i> Direct payments</li>
                 </ul>
-                <a href="/provider/apply/ground-owner" class="btn-select-role">
+                <a href="<?= $_base ?>/provider/apply/ground-owner" class="btn-select-role">
                     Get Started <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
@@ -70,7 +72,7 @@ $additionalJS = [];
                     <li><i class="fas fa-check"></i> Performance analytics</li>
                     <li><i class="fas fa-check"></i> Secure payments</li>
                 </ul>
-                <a href="/provider/apply/coach" class="btn-select-role">
+                <a href="<?= $_base ?>/provider/apply/coach" class="btn-select-role">
                     Get Started <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
@@ -91,7 +93,7 @@ $additionalJS = [];
                     <li><i class="fas fa-check"></i> Sales analytics</li>
                     <li><i class="fas fa-check"></i> Customer reviews</li>
                 </ul>
-                <a href="/provider/apply/shop-owner" class="btn-select-role">
+                <a href="<?= $_base ?>/provider/apply/shop-owner" class="btn-select-role">
                     Get Started <i class="fas fa-arrow-right"></i>
                 </a>
             </div>

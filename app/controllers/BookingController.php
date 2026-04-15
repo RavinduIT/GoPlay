@@ -205,53 +205,41 @@ class BookingController extends BaseController
             $facilityName = $facility['name'] ?? 'Ground';
             $ownerId = $facility['owner_id'] ?? null;
 
-            // Create notification for user
-            error_log("=== CREATING BOOKING NOTIFICATION ===");
-            error_log("User ID: {$userId}, Facility ID: {$facilityId}, Facility: {$facilityName}, Date: {$bookingDate}");
-            error_log("Facility data: " . json_encode($facility));
-            error_log("Owner ID from facility: " . ($ownerId ?? 'NULL'));
-
+            // Create notifications for user and ground owner
             $notificationId = null;
             $ownerNotificationId = null;
 
             try {
                 $notificationModel = new Notification();
-                $notificationId = $notificationModel->createBookingNotification($userId, [
-                    'booking_id' => $bookingId,
-                    'facility_id' => $facilityId,
+                $notificationId = $notificationModel->createBookingPendingNotification($userId, [
+                    'booking_id'    => $bookingId,
+                    'facility_id'   => $facilityId,
                     'facility_name' => $facilityName,
-                    'booking_date' => $bookingDate,
-                    'start_time' => $startTime,
-                    'end_time' => $endTime
+                    'booking_date'  => $bookingDate,
+                    'start_time'    => $startTime,
+                    'end_time'      => $endTime
                 ]);
-                error_log("User notification result: " . ($notificationId ? "Created ID {$notificationId}" : "FAILED"));
 
-                // Create notification for ground owner
-                if ($ownerId) {
-                    error_log("Creating notification for owner ID: {$ownerId}");
+                // Notify ground owner — skip if the owner is the one who made the booking
+                if ($ownerId && (int)$ownerId !== (int)$userId) {
                     $userModel = new User();
                     $user = $userModel->find($userId);
                     $ownerNotificationModel = new GroundOwnerNotification();
                     $ownerNotificationId = $ownerNotificationModel->createBookingNotification($ownerId, [
-                        'booking_id' => $bookingId,
+                        'booking_id'    => $bookingId,
                         'facility_name' => $facilityName,
-                        'first_name' => $user['first_name'] ?? '',
-                        'last_name' => $user['last_name'] ?? '',
-                        'booking_date' => $bookingDate
+                        'first_name'    => $user['first_name'] ?? '',
+                        'last_name'     => $user['last_name'] ?? '',
+                        'booking_date'  => $bookingDate
                     ]);
-                    error_log("Owner notification result: " . ($ownerNotificationId ? "Created ID {$ownerNotificationId}" : "FAILED"));
-                } else {
-                    error_log("WARNING: No owner_id found for facility {$facilityId} - skipping owner notification");
                 }
             } catch (\Exception $e) {
-                // Log notification error but don't fail the booking
                 error_log("Notification creation error: " . $e->getMessage());
-                error_log("Stack trace: " . $e->getTraceAsString());
             }
 
             return $this->json([
                 'success' => true,
-                'message' => 'Ground booked successfully! No payment required.',
+                'message' => 'Booking submitted! Awaiting ground owner approval.',
                 'booking' => $booking,
                 'booking_id' => $bookingId,
                 'notifications' => [

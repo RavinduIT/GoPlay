@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title         = 'My Coach Sessions - GoPlay';
 $additionalCSS = [];
 $additionalJS  = [];
@@ -84,7 +85,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .spinner{display:inline-block;width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── Edit Modal ─────────────────────────── */
+/*  Edit Modal  */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-overlay.open{display:flex}
 .modal{background:#fff;border-radius:var(--radius);padding:2rem;max-width:500px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
@@ -126,7 +127,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
             <h1><i class="fas fa-dumbbell" style="color:var(--primary)"></i> My Coach Sessions</h1>
             <p>Track and manage your personal coaching sessions</p>
         </div>
-        <a href="/book-coach" class="btn btn-primary">
+        <a href="<?= $_base ?>/book-coach" class="btn btn-primary">
             <i class="fas fa-plus"></i> Book New Session
         </a>
     </div>
@@ -168,7 +169,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
     </div>
 </div>
 
-<!-- ── Edit Modal ── -->
+<!--  Edit Modal  -->
 <div class="modal-overlay" id="edit-modal">
     <div class="modal">
         <div class="modal-hdr">
@@ -196,7 +197,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
     </div>
 </div>
 
-<!-- ── Cancel Confirm ── -->
+<!--  Cancel Confirm  -->
 <div class="confirm-overlay" id="cancel-confirm">
     <div class="confirm-box">
         <div class="confirm-icon"><i class="fas fa-exclamation-triangle"></i></div>
@@ -219,7 +220,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
     let cancelBookingId = null;
     let editSelectedStart = '', editSelectedEnd = '';
 
-    // ── Toast ─────────────────────────────────────────────────
+    //  Toast 
     function showToast(msg, type = 'info') {
         const t   = document.getElementById('toast');
         t.textContent = msg;
@@ -227,10 +228,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         setTimeout(() => (t.className = 'toast'), 3500);
     }
 
-    // ── Load bookings ─────────────────────────────────────────
+    //  Load bookings 
     async function loadBookings() {
         try {
-            const res  = await fetch('/api/user/coach-bookings');
+            const res  = await fetch((window.BASE_URL||'')+'/api/user/coach-bookings');
             const data = await res.json();
 
             if (!data.success) throw new Error(data.error || 'Failed');
@@ -270,7 +271,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
             el.innerHTML = `<div class="empty-state">
                 <i class="fas fa-calendar-times"></i>
                 <p>No ${filter === 'all' ? '' : filter} sessions found.</p>
-                <a href="/book-coach" class="btn btn-primary" style="margin-top:1rem;display:inline-flex">
+                <a href="<?= $_base ?>/book-coach" class="btn btn-primary" style="margin-top:1rem;display:inline-flex">
                     <i class="fas fa-plus"></i> Book a Session
                 </a>
             </div>`;
@@ -341,7 +342,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
     }
     function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-    // ── Filter buttons ────────────────────────────────────────
+    //  Filter buttons 
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -351,7 +352,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         });
     });
 
-    // ── Edit Modal ─────────────────────────────────────────────
+    //  Edit Modal 
     window.openEditModal = function (bookingId, coachId, currentDate) {
         document.getElementById('edit-booking-id').value = bookingId;
         document.getElementById('edit-coach-id').value   = coachId;
@@ -380,7 +381,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         document.getElementById('btn-save-edit').disabled = true;
 
         try {
-            const res  = await fetch(`/api/coaches/${coachId}/availability?date=${date}`);
+            const res  = await fetch(`${window.BASE_URL||""}/api/coaches/${coachId}/availability?date=${date}`);
             const data = await res.json();
             if (!data.success || !data.slots.length) {
                 cont.innerHTML = '<div style="color:var(--txt-2);font-size:.9rem">No slots available for this date.</div>';
@@ -429,7 +430,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         try {
-            const res  = await fetch(`/api/user/coach-bookings/${bookingId}`, {
+            const res  = await fetch(`${window.BASE_URL||""}/api/user/coach-bookings/${bookingId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ booking_date: date, start_time: start, end_time: end }),
@@ -448,7 +449,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
     };
 
-    // ── Cancel ────────────────────────────────────────────────
+    //  Cancel 
     window.openCancelConfirm = function (id) {
         cancelBookingId = id;
         document.getElementById('cancel-confirm').classList.add('open');
@@ -463,7 +464,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         btn.disabled  = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         try {
-            const res  = await fetch(`/api/user/coach-bookings/${cancelBookingId}/cancel`, { method: 'PUT' });
+            const res  = await fetch(`${window.BASE_URL||""}/api/user/coach-bookings/${cancelBookingId}/cancel`, { method: 'PUT' });
             const data = await res.json();
             if (data.success) {
                 showToast('Booking cancelled.', 'success');
@@ -477,7 +478,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         btn.innerHTML = 'Yes, Cancel';
     };
 
-    // ── Init ──────────────────────────────────────────────────
+    //  Init 
     loadBookings();
 })();
 </script>

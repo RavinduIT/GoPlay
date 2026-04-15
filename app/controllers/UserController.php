@@ -34,11 +34,9 @@ class UserController extends BaseController
      */
     private function requireAuth(): array
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        $this->startSession();
         if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
+            header('Location: ' . (defined('BASE_URL') ? BASE_URL : '') . '/login');
             exit();
         }
         return $_SESSION;
@@ -1202,27 +1200,53 @@ class UserController extends BaseController
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        $userId = $_SESSION['user_id'];
+        $userId   = $_SESSION['user_id'];
+        $userType = $_SESSION['user_type'] ?? 'user';
 
         try {
-            $type = $request->getQuery('type');
+            $type       = $request->getQuery('type');
             $unreadOnly = $request->getQuery('unread') === 'true';
 
-            $notifications = $this->notificationModel->getByUser($userId, $type, $unreadOnly);
-            $stats = $this->notificationModel->getStats($userId);
+            if ($userType === 'ground_owner') {
+                $model           = new \App\Models\GroundOwnerNotification();
+                $ownerNotifs     = $model->getByOwner($userId, $type, $unreadOnly, 50);
+                // Normalise field name so the view works the same way
+                foreach ($ownerNotifs as &$n) {
+                    $n['type'] = $n['notification_type'] ?? 'system';
+                }
+                unset($n);
+
+                // Ground owners also receive regular user notifications
+                // (e.g., booking confirmations when a ground owner books a facility)
+                $regularNotifs = $this->notificationModel->getByUser($userId, $type, $unreadOnly);
+
+                // Merge and sort by created_at descending
+                $notifications = array_merge($ownerNotifs, $regularNotifs);
+                usort($notifications, function ($a, $b) {
+                    return strtotime($b['created_at']) - strtotime($a['created_at']);
+                });
+
+                $stats = $model->getStats($userId);
+                // Add regular unread count to stats
+                $regularStats = $this->notificationModel->getStats($userId);
+                $stats['unread'] = ($stats['unread'] ?? 0) + ($regularStats['unread'] ?? 0);
+                $stats['total']  = ($stats['total']  ?? 0) + ($regularStats['total']  ?? 0);
+            } else {
+                $notifications = $this->notificationModel->getByUser($userId, $type, $unreadOnly);
+                $stats         = $this->notificationModel->getStats($userId);
+            }
 
             return $this->json([
-                'success' => true,
+                'success'       => true,
                 'notifications' => $notifications,
-                'stats' => $stats
+                'stats'         => $stats,
             ]);
 
         } catch (\Exception $e) {
-            error_log("Error getting notifications: " . $e->getMessage());
             return $this->json([
                 'success' => false,
                 'message' => 'Error loading notifications',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage()
             ], 500);
         }
     }
@@ -1240,10 +1264,13 @@ class UserController extends BaseController
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        $userId = $_SESSION['user_id'];
+        $userId   = $_SESSION['user_id'];
+        $userType = $_SESSION['user_type'] ?? 'user';
 
         try {
-            $success = $this->notificationModel->markAsRead($id, $userId);
+            $success = $userType === 'ground_owner'
+                ? (new \App\Models\GroundOwnerNotification())->markAsRead($id, $userId)
+                : $this->notificationModel->markAsRead($id, $userId);
 
             return $this->json([
                 'success' => $success,
@@ -1272,10 +1299,13 @@ class UserController extends BaseController
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        $userId = $_SESSION['user_id'];
+        $userId   = $_SESSION['user_id'];
+        $userType = $_SESSION['user_type'] ?? 'user';
 
         try {
-            $this->notificationModel->markAllAsRead($userId);
+            $userType === 'ground_owner'
+                ? (new \App\Models\GroundOwnerNotification())->markAllAsRead($userId)
+                : $this->notificationModel->markAllAsRead($userId);
 
             return $this->json([
                 'success' => true,
@@ -1304,10 +1334,13 @@ class UserController extends BaseController
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        $userId = $_SESSION['user_id'];
+        $userId   = $_SESSION['user_id'];
+        $userType = $_SESSION['user_type'] ?? 'user';
 
         try {
-            $success = $this->notificationModel->deleteNotification($id, $userId);
+            $success = $userType === 'ground_owner'
+                ? (new \App\Models\GroundOwnerNotification())->deleteNotification($id, $userId)
+                : $this->notificationModel->deleteNotification($id, $userId);
 
             return $this->json([
                 'success' => $success,
@@ -1336,10 +1369,13 @@ class UserController extends BaseController
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        $userId = $_SESSION['user_id'];
+        $userId   = $_SESSION['user_id'];
+        $userType = $_SESSION['user_type'] ?? 'user';
 
         try {
-            $this->notificationModel->clearAll($userId);
+            $userType === 'ground_owner'
+                ? (new \App\Models\GroundOwnerNotification())->clearAll($userId)
+                : $this->notificationModel->clearAll($userId);
 
             return $this->json([
                 'success' => true,
@@ -1476,6 +1512,38 @@ class UserController extends BaseController
             $reason = $data['reason'] ?? '';
 
             $success = $model->cancelBooking($bookingId, 'user', $reason);
+
+            if ($success) {
+                try {
+                    $coachModel  = new \App\Models\Coach();
+                    $coachRows   = $coachModel->where(['id' => (int)$booking['coach_id']]);
+                    $coachUserId = $coachRows[0]['user_id'] ?? null;
+
+                    $userModel   = new \App\Models\User();
+                    $coachUser   = $coachUserId ? $userModel->find($coachUserId) : null;
+                    $coachName   = trim(($coachUser['first_name'] ?? '') . ' ' . ($coachUser['last_name'] ?? '')) ?: 'Coach';
+
+                    $bookingUser = $userModel->find((int)$_SESSION['user_id']);
+                    $userName    = trim(($bookingUser['first_name'] ?? '') . ' ' . ($bookingUser['last_name'] ?? '')) ?: 'A client';
+
+                    $notif = new \App\Models\Notification();
+                    $notif->createCoachCancellationNotification((int)$_SESSION['user_id'], [
+                        'booking_id'   => $bookingId,
+                        'coach_name'   => $coachName,
+                        'booking_date' => $booking['booking_date'],
+                    ]);
+                    if ($coachUserId) {
+                        $notif->createCoachClientCancelledNotification($coachUserId, [
+                            'booking_id'   => $bookingId,
+                            'user_name'    => $userName,
+                            'booking_date' => $booking['booking_date'],
+                        ]);
+                    }
+                } catch (\Exception $ne) {
+                    error_log("Notification error (cancelCoachBooking): " . $ne->getMessage());
+                }
+            }
+
             return $this->json([
                 'success' => $success,
                 'message' => $success ? 'Booking cancelled successfully' : 'Cancellation failed',

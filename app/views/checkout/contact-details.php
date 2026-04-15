@@ -1,4 +1,5 @@
 <?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Checkout - Contact Details | GoPlay';
 $additionalCSS = ['/public/css/pages/checkout.css'];
 $additionalJS = ['/public/js/pages/checkout.js'];
@@ -175,7 +176,7 @@ $additionalJS = ['/public/js/pages/checkout.js'];
                             </div>
 
                             <div class="form-actions">
-                                <a href="/shop" class="btn btn-secondary">
+                                <a href="<?= $_base ?>/shop" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Continue Shopping
                                 </a>
                                 <button type="submit" class="btn btn-primary">

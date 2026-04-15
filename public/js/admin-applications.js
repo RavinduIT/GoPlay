@@ -25,7 +25,7 @@
 // Load statistics
 async function loadStatistics() {
     try {
-        const response = await fetch('/admin/provider-applications/statistics');
+        const response = await fetch((window.BASE_URL||'')+'/admin/provider-applications/statistics');
         const data = await response.json();
 
         if (data.success) {
@@ -56,7 +56,7 @@ async function loadApplications(page = 1) {
     });
 
     try {
-        const response = await fetch(`/admin/provider-applications/list?${params}`);
+        const response = await fetch(`${window.BASE_URL||""}/admin/provider-applications/list?${params}`);
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -177,7 +177,7 @@ async function viewApplication(id) {
     currentApplicationId = id;
 
     try {
-        const response = await fetch(`/admin/provider-applications/details/${id}`);
+        const response = await fetch(`${window.BASE_URL||""}/admin/provider-applications/details/${id}`);
         const data = await response.json();
 
         if (data.success) {
@@ -242,7 +242,7 @@ function renderApplicationDetails(app) {
                     <div class="detail-item">
                         <div class="detail-label">NIC Document</div>
                         <div class="detail-value">
-                            <a href="/public/uploads/provider-applications/${app.nic_document}" target="_blank">
+                            <a href="${window.BASE_URL||''}/public/uploads/provider-applications/${app.nic_document}" target="_blank">
                                 <i class="fas fa-file-download"></i> View Document
                             </a>
                         </div>
@@ -369,7 +369,7 @@ async function approveApplication() {
     if (!currentApplicationId) return;
 
     try {
-        const response = await fetch(`/admin/provider-applications/approve/${currentApplicationId}`, {
+        const response = await fetch(`${window.BASE_URL||""}/admin/provider-applications/approve/${currentApplicationId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -404,7 +404,7 @@ async function rejectApplication() {
     }
 
     try {
-        const response = await fetch(`/admin/provider-applications/reject/${currentApplicationId}`, {
+        const response = await fetch(`${window.BASE_URL||""}/admin/provider-applications/reject/${currentApplicationId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -460,13 +460,30 @@ function formatDate(dateString) {
 }
 
 function showSuccess(message) {
-    // You can implement a toast notification here
-    alert(message);
+    showAdminToast('success', message);
 }
 
 function showError(message) {
-    // You can implement a toast notification here
-    alert(message);
+    showAdminToast('error', message);
+}
+
+function showAdminToast(type, message) {
+    document.querySelectorAll('.admin-toast').forEach(t => t.remove());
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+    const toast = document.createElement('div');
+    toast.className = `admin-toast ${type}`;
+    toast.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <span>${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.style.animation = 'toastOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 4000);
 }
 
 // Close modal when clicking outside

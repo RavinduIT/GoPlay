@@ -1,3 +1,4 @@
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - GoPlay Sports Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/pages/login.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/login.css">
 </head>
 <body>
 <div class="auth-container">
@@ -13,7 +14,7 @@
         <!-- Left Side - Branding -->
         <div class="auth-brand">
             <div class="brand-content">
-                <img src="/public/assets/images/logo.jpeg" alt="GoPlay" class="brand-logo">
+                <img src="<?= $_base ?>/public/assets/images/logo.jpeg" alt="GoPlay" class="brand-logo">
                 <h1 class="brand-title">GoPlay</h1>
                 <p class="brand-subtitle">Your Premier Sports Booking Platform</p>
                 <div class="brand-features">
@@ -85,7 +86,7 @@
                 <div class="auth-footer">
                     <p class="auth-footer-text">
                         Don't have an account? 
-                        <a href="/signup" class="auth-link">Create Account</a>
+                        <a href="<?= $_base ?>/signup" class="auth-link">Create Account</a>
                     </p>
                 </div>
                 
@@ -97,6 +98,6 @@
 
 <!-- Toast Container -->
 <div id="toastContainer" class="toast-container"></div>
-<script src="/public/js/pages/login.js"></script>
+<script src="<?= $_base ?>/public/js/pages/login.js"></script>
 </body>
 </html>

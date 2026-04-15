@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Shopping Cart - GoPlay Sports Platform';
 $additionalCSS = [];
 $additionalJS = [];
@@ -572,9 +573,9 @@ $additionalJS = [];
     <div class="container">
         <!-- Breadcrumb -->
         <nav class="breadcrumb">
-            <a href="/">Home</a>
+            <a href="<?= $_base ?>/">Home</a>
             <i class="fas fa-chevron-right"></i>
-            <a href="/shop">Shop</a>
+            <a href="<?= $_base ?>/shop">Shop</a>
             <i class="fas fa-chevron-right"></i>
             <span>Shopping Cart</span>
         </nav>
@@ -605,7 +606,7 @@ $additionalJS = [];
                 </div>
 
                 <div class="cart-actions">
-                    <a href="/shop" class="continue-shopping">
+                    <a href="<?= $_base ?>/shop" class="continue-shopping">
                         <i class="fas fa-arrow-left"></i>
                         Continue Shopping
                     </a>
@@ -664,7 +665,7 @@ $additionalJS = [];
             </div>
             <h2 class="empty-cart-title">Your cart is empty</h2>
             <p class="empty-cart-message">Looks like you haven't added any items to your cart yet. Start shopping to fill it up!</p>
-            <a href="/shop" class="shop-now-btn">
+            <a href="<?= $_base ?>/shop" class="shop-now-btn">
                 <i class="fas fa-shopping-bag"></i>
                 Start Shopping
             </a>
@@ -688,7 +689,7 @@ $additionalJS = [];
             cartLoading = true;
             showLoading(true);
 
-            const response = await fetch('/api/cart', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -755,7 +756,7 @@ $additionalJS = [];
 
         return `
             <div class="cart-item" data-item-id="${item.product_id}">
-                <img src="${imageUrl}" alt="${productName}" class="item-image" onerror="this.src='/public/assets/images/products/default.jpg'">
+                <img src="${imageUrl}" alt="${productName}" class="item-image" onerror="this.src='<?= $_base ?>/public/assets/images/products/default.jpg'">
                 <div class="item-details">
                     <h3 class="item-name">${productName}${brandInfo}</h3>
                     <p class="item-description">${item.category_name || 'Sports Equipment'} • SKU: ${item.sku || 'N/A'}</p>
@@ -806,7 +807,7 @@ $additionalJS = [];
         if (newQuantity < 1) return;
 
         try {
-            const response = await fetch('/api/cart/update', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/update', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -839,7 +840,7 @@ $additionalJS = [];
         }
 
         try {
-            const response = await fetch('/api/cart/remove', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/remove', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -871,7 +872,7 @@ $additionalJS = [];
         }
 
         try {
-            const response = await fetch('/api/cart/clear', {
+            const response = await fetch((window.BASE_URL||'')+'/api/cart/clear', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -919,7 +920,7 @@ $additionalJS = [];
         }
 
         // Redirect to checkout page
-        window.location.href = '/checkout/contact-details';
+        window.location.href=(window.BASE_URL||'')+'/checkout/contact-details';
     }
 
     // Show/hide loading state

@@ -1,5 +1,6 @@
 
-<?php 
+<?php
+$_base = defined('BASE_URL') ? BASE_URL : '';
 $title = ($product['name'] ?? 'Product') . ' - GoPlay Sports Shop';
 $additionalCSS = ['/public/css/components/cart.css'];
 $additionalJS = ['/public/js/cart-api.js'];
@@ -753,9 +754,9 @@ body {
 <div class="breadcrumb">
     <div class="container">
         <nav class="breadcrumb-nav">
-            <a href="/">Home</a>
+            <a href="<?= $_base ?>/">Home</a>
             <i class="fas fa-chevron-right"></i>
-            <a href="/shop">Shop</a>
+            <a href="<?= $_base ?>/shop">Shop</a>
             <i class="fas fa-chevron-right"></i>
             <span id="breadcrumb-category">Category</span>
             <i class="fas fa-chevron-right"></i>
@@ -775,7 +776,7 @@ body {
     <div class="error-container">
         <h2 class="error-title">Product Not Found</h2>
         <p class="error-message">The requested product could not be found.</p>
-        <a href="/shop" class="btn btn-primary">
+        <a href="<?= $_base ?>/shop" class="btn btn-primary">
             <i class="fas fa-shopping-bag"></i>
             Browse All Products
         </a>
@@ -841,7 +842,7 @@ body {
                     <i class="fas fa-cart-plus"></i>
                     Add to Cart
                 </button>
-                <a href="/shop" class="btn btn-secondary">
+                <a href="<?= $_base ?>/shop" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i>
                     Back to Shop
                 </a>
@@ -913,7 +914,7 @@ body {
                         <i class="fas fa-lock" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
                         <h4 style="margin-bottom: 0.5rem;">Want to leave a review?</h4>
                         <p style="color: var(--text-secondary); margin-bottom: 1rem;">Please log in to write a review for this product</p>
-                        <a href="/login" class="btn btn-primary">
+                        <a href="<?= $_base ?>/login" class="btn btn-primary">
                             <i class="fas fa-sign-in-alt"></i> Login to Review
                         </a>
                     </div>
@@ -946,7 +947,7 @@ body {
                         </div>
                         
                         <!-- Edit form (hidden by default) -->
-                        <form id="edit-review-form" action="/product/review/update" method="POST" style="display: none;">
+                        <form id="edit-review-form" action="<?= $_base ?>/product/review/update" method="POST" style="display: none;">
                             <input type="hidden" name="review_id" value="<?php echo $userReview['id']; ?>">
                             <input type="hidden" name="product_id" value="<?php echo $product['id'] ?? 0; ?>">
                             
@@ -990,7 +991,7 @@ body {
                     <!-- Logged-in user hasn't reviewed yet - show review form -->
                     <div class="write-review-card" style="margin: 2rem 0; padding: 2rem; background: var(--background-light); border-radius: var(--border-radius);">
                         <h4 style="margin-bottom: 1.5rem;"><i class="fas fa-pencil-alt"></i> Write a Review</h4>
-                        <form id="review-form" action="/product/<?php echo $product['id'] ?? 0; ?>/review" method="POST">
+                        <form id="review-form" action="<?= $_base ?>/product/<?php echo $product['id'] ?? 0; ?>/review" method="POST">
                             <div style="margin-bottom: 1.5rem;">
                                 <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Rating *</label>
                                 <div class="star-rating-input" id="star-rating">
@@ -1129,20 +1130,34 @@ body {
 
 <script>
 // Product data will be loaded from PHP
-const productData = <?php echo json_encode($product ?? null); ?>;
-const relatedProducts = <?php echo json_encode($relatedProducts ?? []); ?>;
-const reviews = <?php echo json_encode($reviews ?? []); ?>;
+let productData = null;
+let relatedProducts = [];
+let reviews = [];
+try {
+    productData = <?php echo json_encode($product ?? null, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>;
+    relatedProducts = <?php echo json_encode($relatedProducts ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>;
+    reviews = <?php echo json_encode($reviews ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>;
+} catch(e) {
+    console.error('Failed to parse product data:', e);
+}
 
 let currentQuantity = 1;
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Product data:', productData ? 'loaded (id=' + productData.id + ')' : 'NULL');
     if (productData) {
-        displayProductDetails(productData);
-        displayRelatedProducts(relatedProducts);
-        displayReviews(reviews);
-        hideLoading();
+        try {
+            displayProductDetails(productData);
+            displayRelatedProducts(relatedProducts);
+            displayReviews(reviews);
+            hideLoading();
+        } catch(e) {
+            console.error('Error displaying product:', e);
+            hideLoading();
+        }
     } else {
+        console.error('Product data is null/undefined');
         showError();
     }
 });

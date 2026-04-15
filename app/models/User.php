@@ -175,15 +175,8 @@ class User extends BaseModel
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'DESC';
 
-        $sql = "SELECT u.*, 
-                       ul.last_login_at,
-                       ul.last_login_ip,
-                       (SELECT COUNT(*) FROM coach_bookings WHERE user_id = u.id) as booking_count,
-                       (SELECT COUNT(*) FROM orders WHERE user_id = u.id) as order_count
+        $sql = "SELECT u.* 
                 FROM users u
-                LEFT JOIN user_logins ul ON u.id = ul.user_id AND ul.id = (
-                    SELECT id FROM user_logins WHERE user_id = u.id ORDER BY last_login_at DESC LIMIT 1
-                )
                 {$whereClause}
                 ORDER BY {$sortBy} {$sortOrder}
                 LIMIT {$limit} OFFSET {$offset}";
@@ -247,13 +240,17 @@ class User extends BaseModel
         $stmt = $this->query($sql);
         $stats = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        // Get active users in last 24 hours
-        $activeSql = "SELECT COUNT(DISTINCT user_id) as active_24h 
-                      FROM user_logins 
-                      WHERE last_login_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)";
-        $activeStmt = $this->query($activeSql);
-        $activeResult = $activeStmt->fetch(\PDO::FETCH_ASSOC);
-        $stats['active_24h'] = $activeResult['active_24h'] ?? 0;
+        // Get active users in last 24 hours (may fail if user_logins doesn't exist)
+        try {
+            $activeSql = "SELECT COUNT(DISTINCT user_id) as active_24h 
+                          FROM user_logins 
+                          WHERE last_login_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)";
+            $activeStmt = $this->query($activeSql);
+            $activeResult = $activeStmt->fetch(\PDO::FETCH_ASSOC);
+            $stats['active_24h'] = $activeResult['active_24h'] ?? 0;
+        } catch (\Exception $e) {
+            $stats['active_24h'] = 0;
+        }
 
         return $stats;
     }

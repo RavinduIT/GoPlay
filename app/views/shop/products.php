@@ -1,3 +1,4 @@
+<?php $_base = defined('BASE_URL') ? BASE_URL : ''; ?>
 <div class="container mx-auto px-4 py-8">
     <div class="text-center mb-12">
         <h1 class="text-4xl font-bold text-gray-800 mb-4">Sports Equipment Shop</h1>
@@ -33,7 +34,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <!-- Sample Product Card -->
         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-            <img src="/public/assets/images/products/cricket-bat.jpg" alt="Cricket Bat" class="w-full h-48 object-cover">
+            <img src="<?= $_base ?>/public/assets/images/products/cricket-bat.jpg" alt="Cricket Bat" class="w-full h-48 object-cover">
             <div class="p-4">
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">Professional Cricket Bat</h3>
                 <p class="text-gray-600 text-sm mb-3">High-quality willow cricket bat for professional players</p>

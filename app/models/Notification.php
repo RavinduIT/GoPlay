@@ -52,7 +52,35 @@ class Notification extends BaseModel
     }
 
     /**
-     * Create booking confirmation notification
+     * Notify user their booking is pending ground owner approval
+     */
+    public function createBookingPendingNotification(int $userId, array $bookingDetails): ?int
+    {
+        $facilityName  = $bookingDetails['facility_name'] ?? 'Ground';
+        $bookingDate   = $bookingDetails['booking_date'] ?? '';
+        $startTime     = $bookingDetails['start_time'] ?? '';
+        $endTime       = $bookingDetails['end_time'] ?? '';
+
+        $formattedDate = date('F j, Y', strtotime($bookingDate));
+        $formattedTime = date('g:i A', strtotime($startTime)) . ' – ' . date('g:i A', strtotime($endTime));
+
+        return $this->createNotification($userId, 'booking_confirmation',
+            'Booking Submitted',
+            "Your booking request for {$facilityName} on {$formattedDate} at {$formattedTime} has been submitted and is awaiting approval from the ground owner.",
+            [
+                'booking_id'    => $bookingDetails['booking_id'] ?? null,
+                'facility_id'   => $bookingDetails['facility_id'] ?? null,
+                'facility_name' => $facilityName,
+                'booking_date'  => $bookingDate,
+                'start_time'    => $startTime,
+                'end_time'      => $endTime,
+                'status'        => 'pending',
+            ]
+        );
+    }
+
+    /**
+     * Create booking confirmation notification (used when ground owner approves)
      */
     public function createBookingNotification(int $userId, array $bookingDetails): ?int
     {
@@ -90,7 +118,7 @@ class Notification extends BaseModel
         $title = 'Booking Cancelled';
         $message = "Your booking for {$facilityName} on {$formattedDate} has been cancelled.";
 
-        return $this->createNotification($userId, 'booking_confirmation', $title, $message, [
+        return $this->createNotification($userId, 'booking_cancelled', $title, $message, [
             'booking_id' => $bookingDetails['booking_id'] ?? null,
             'status' => 'cancelled'
         ]);
@@ -255,5 +283,98 @@ class Notification extends BaseModel
         $sql = "SELECT COUNT(*) as count FROM {$this->table} WHERE user_id = ? AND is_read = 0";
         $result = $this->queryFirst($sql, [$userId]);
         return $result['count'] ?? 0;
+    }
+
+    /**
+     * Notify the user who booked that their coach session is confirmed
+     */
+    public function createCoachBookingNotification(int $userId, array $bookingDetails): ?int
+    {
+        $coachName   = $bookingDetails['coach_name'] ?? 'your coach';
+        $bookingDate = $bookingDetails['booking_date'] ?? '';
+        $startTime   = $bookingDetails['start_time'] ?? '';
+        $sessionType = $bookingDetails['session_type'] ?? 'session';
+
+        $formattedDate = date('F j, Y', strtotime($bookingDate));
+        $formattedTime = date('g:i A', strtotime($startTime));
+
+        return $this->createNotification($userId, 'coach_booking',
+            'Coach Session Confirmed',
+            "Your {$sessionType} session with {$coachName} is confirmed for {$formattedDate} at {$formattedTime}.",
+            [
+                'booking_id'   => $bookingDetails['booking_id'] ?? null,
+                'coach_id'     => $bookingDetails['coach_id'] ?? null,
+                'coach_name'   => $coachName,
+                'booking_date' => $bookingDate,
+                'start_time'   => $startTime,
+                'end_time'     => $bookingDetails['end_time'] ?? null,
+                'session_type' => $sessionType,
+            ]
+        );
+    }
+
+    /**
+     * Notify the coach that a new client booked a session
+     */
+    public function createCoachNewClientNotification(int $coachUserId, array $bookingDetails): ?int
+    {
+        $userName    = $bookingDetails['user_name'] ?? 'A client';
+        $bookingDate = $bookingDetails['booking_date'] ?? '';
+        $startTime   = $bookingDetails['start_time'] ?? '';
+        $sessionType = $bookingDetails['session_type'] ?? 'session';
+
+        $formattedDate = date('F j, Y', strtotime($bookingDate));
+        $formattedTime = date('g:i A', strtotime($startTime));
+
+        return $this->createNotification($coachUserId, 'coach_booking',
+            'New Session Booked',
+            "{$userName} has booked a {$sessionType} session with you on {$formattedDate} at {$formattedTime}.",
+            [
+                'booking_id'   => $bookingDetails['booking_id'] ?? null,
+                'user_name'    => $userName,
+                'booking_date' => $bookingDate,
+                'start_time'   => $startTime,
+                'end_time'     => $bookingDetails['end_time'] ?? null,
+                'session_type' => $sessionType,
+            ]
+        );
+    }
+
+    /**
+     * Notify the user that their coach session was cancelled
+     */
+    public function createCoachCancellationNotification(int $userId, array $bookingDetails): ?int
+    {
+        $coachName     = $bookingDetails['coach_name'] ?? 'your coach';
+        $bookingDate   = $bookingDetails['booking_date'] ?? '';
+        $formattedDate = date('F j, Y', strtotime($bookingDate));
+
+        return $this->createNotification($userId, 'coach_booking',
+            'Coach Session Cancelled',
+            "Your session with {$coachName} on {$formattedDate} has been cancelled.",
+            [
+                'booking_id' => $bookingDetails['booking_id'] ?? null,
+                'status'     => 'cancelled',
+            ]
+        );
+    }
+
+    /**
+     * Notify the coach that a client cancelled their session
+     */
+    public function createCoachClientCancelledNotification(int $coachUserId, array $bookingDetails): ?int
+    {
+        $userName      = $bookingDetails['user_name'] ?? 'A client';
+        $bookingDate   = $bookingDetails['booking_date'] ?? '';
+        $formattedDate = date('F j, Y', strtotime($bookingDate));
+
+        return $this->createNotification($coachUserId, 'coach_booking',
+            'Session Cancelled by Client',
+            "{$userName} has cancelled their session on {$formattedDate}.",
+            [
+                'booking_id' => $bookingDetails['booking_id'] ?? null,
+                'status'     => 'cancelled',
+            ]
+        );
     }
 }

@@ -3,10 +3,18 @@
 /**
  * GoPlay Sports Platform
  * Main Entry Point
- * 
+ *
  * This file serves as the front controller for all HTTP requests.
  * It handles routing, middleware, and response generation.
  */
+
+// Serve static files directly when using PHP built-in server (php -S localhost:8000)
+if (php_sapi_name() === 'cli-server') {
+    $staticFile = $_SERVER['DOCUMENT_ROOT'] . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if (is_file($staticFile)) {
+        return false;
+    }
+}
 
 // Define application constants
 define('APP_START', microtime(true));
@@ -16,11 +24,39 @@ define('PUBLIC_PATH', ROOT_PATH . '/public');
 define('STORAGE_PATH', ROOT_PATH . '/storage');
 define('CONFIG_PATH', ROOT_PATH . '/config');
 
+// Auto-detect base URL path (handles XAMPP subdirectory deployment)
+$_scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
+define('BASE_URL', ($_scriptDir !== '/' && $_scriptDir !== '.') ? rtrim($_scriptDir, '/') : '');
+
+// Helper functions for views
+if (!function_exists('url')) {
+    /**
+     * Generate a URL with the correct base path prefix.
+     * @param string $path The path (e.g., '/book-ground')
+     * @return string The full URL path (e.g., '/GoPlay/book-ground')
+     */
+    function url(string $path = '/'): string {
+        return BASE_URL . '/' . ltrim($path, '/');
+    }
+}
+
+if (!function_exists('asset')) {
+    /**
+     * Generate an asset URL with the correct base path prefix.
+     * @param string $path The asset path (e.g., '/public/css/main.css')
+     * @return string The full asset URL path
+     */
+    function asset(string $path): string {
+        return BASE_URL . '/' . ltrim($path, '/');
+    }
+}
+
 // Load environment variables (simple implementation)
 if (file_exists(ROOT_PATH . '/.env')) {
     $env = file(ROOT_PATH . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($env as $line) {
-        if (strpos($line, '#') === 0) continue;
+        if (strpos($line, '#') === 0)
+            continue;
         if (strpos($line, '=') !== false) {
             [$key, $value] = explode('=', $line, 2);
             $_ENV[trim($key)] = trim($value);
@@ -46,10 +82,10 @@ require_once ROOT_PATH . '/bootstrap.php';
 try {
     // Initialize the application
     $app = new Core\Application();
-    
+
     // Set up basic routes
     $router = $app->getRouter();
-    
+
     // Define routes
     $router->get('/', 'HomeController@index');
     $router->get('/login', 'AuthController@login');
@@ -58,13 +94,13 @@ try {
     $router->post('/auth/register', 'AuthController@handleRegister');
     $router->post('/auth/logout', 'AuthController@logout');
     $router->get('/auth/check', 'AuthController@checkAuth');
-    
+
     // Dashboard routes
     $router->get('/admin/dashboard', 'AdminController@dashboard');
     $router->get('/ground-owner/dashboard', 'GroundOwnerController@dashboard');
     $router->get('/coach/dashboard', 'CoachController@dashboard');
     $router->get('/shop-owner/dashboard', 'ShopOwnerController@dashboard');
-    
+
     // Coach page routes
     $router->get('/coach/profile', 'CoachController@profilePage');
     $router->get('/coach/sessions', 'CoachController@sessionsPage');
@@ -78,7 +114,7 @@ try {
     $router->get('/coach/notifications', 'CoachController@notificationsPage');
     $router->get('/coach/settings', 'CoachController@settingsPage');
     $router->get('/coach/help', 'CoachController@helpPage');
-    
+
     // Coach API routes
     $router->get('/api/coach/dashboard', 'CoachController@getDashboardData');
     $router->get('/api/coach/profile', 'CoachController@getProfile');
@@ -92,23 +128,23 @@ try {
     $router->get('/api/coach/notifications/count', 'CoachController@getNotificationsCount');
 
     // Coach Reviews API  (stats/export before {id} wildcard)
-    $router->get('/api/coach/reviews/stats',       'CoachController@getReviewStats');
-    $router->get('/api/coach/reviews/export',      'CoachController@exportReviews');
-    $router->get('/api/coach/reviews',             'CoachController@getReviews');
+    $router->get('/api/coach/reviews/stats', 'CoachController@getReviewStats');
+    $router->get('/api/coach/reviews/export', 'CoachController@exportReviews');
+    $router->get('/api/coach/reviews', 'CoachController@getReviews');
     $router->post('/api/coach/reviews/{id}/reply', 'CoachController@addReviewReply');
-    $router->delete('/api/coach/reviews/{id}/reply','CoachController@deleteReviewReply');
+    $router->delete('/api/coach/reviews/{id}/reply', 'CoachController@deleteReviewReply');
 
     // Coach Availability API  (calendar must come before generic route)
     $router->get('/api/coach/availability/calendar', 'CoachController@getAvailabilityCalendar');
-    $router->get('/api/coach/availability',          'CoachController@getAvailabilitySchedule');
-    $router->put('/api/coach/availability',          'CoachController@updateAvailabilitySchedule');
+    $router->get('/api/coach/availability', 'CoachController@getAvailabilitySchedule');
+    $router->put('/api/coach/availability', 'CoachController@updateAvailabilitySchedule');
 
     // Coach Earnings API  (export must come before {id} to avoid route collision)
-    $router->get('/api/coach/earnings/export',   'CoachController@exportEarnings');
-    $router->get('/api/coach/earnings',           'CoachController@getEarnings');
-    $router->get('/api/coach/earnings/{id}',      'CoachController@getEarningDetail');
-    $router->get('/api/coach/earnings-trend',     'CoachController@getEarningsTrend');
-    $router->get('/api/coach/session-breakdown',  'CoachController@getSessionBreakdown');
+    $router->get('/api/coach/earnings/export', 'CoachController@exportEarnings');
+    $router->get('/api/coach/earnings', 'CoachController@getEarnings');
+    $router->get('/api/coach/earnings/{id}', 'CoachController@getEarningDetail');
+    $router->get('/api/coach/earnings-trend', 'CoachController@getEarningsTrend');
+    $router->get('/api/coach/session-breakdown', 'CoachController@getSessionBreakdown');
 
     // Coach Certificates API
     $router->get('/api/coach/certificates', 'CoachController@getCertificates');
@@ -123,29 +159,29 @@ try {
     $router->delete('/api/coach/achievements/{id}', 'CoachController@deleteAchievement');
 
     // Coach Facility Management API (authenticated, specific before wildcard)
-    $router->get('/api/coach/facilities',                       'CoachController@getCoachFacilities');
-    $router->post('/api/coach/facilities',                      'CoachController@linkCoachFacility');
-    $router->delete('/api/coach/facilities/{facilityId}',       'CoachController@unlinkCoachFacility');
-    $router->put('/api/coach/facilities/{facilityId}/primary',  'CoachController@setPrimaryCoachFacility');
+    $router->get('/api/coach/facilities', 'CoachController@getCoachFacilities');
+    $router->post('/api/coach/facilities', 'CoachController@linkCoachFacility');
+    $router->delete('/api/coach/facilities/{facilityId}', 'CoachController@unlinkCoachFacility');
+    $router->put('/api/coach/facilities/{facilityId}/primary', 'CoachController@setPrimaryCoachFacility');
 
     // Public Coach API routes (for booking)
     // Specific sub-paths before {id} wildcard
-    $router->post('/api/coach-bookings/bundled',                'CoachController@createBundledBooking');
-    $router->get('/api/coaches/{id}/facilities/available',      'CoachController@getAvailableFacilitiesForSlot');
-    $router->get('/api/coaches/{id}/facilities',                'CoachController@getCoachPublicFacilities');
-    $router->get('/api/coaches', 'CoachController@getCoachesForBooking');
-    $router->get('/api/coaches/{id}', 'CoachController@getCoachDetails');
+    $router->post('/api/coach-bookings/bundled', 'CoachController@createBundledBooking');
+    $router->get('/api/coaches/{id}/facilities/available', 'CoachController@getAvailableFacilitiesForSlot');
+    $router->get('/api/coaches/{id}/facilities', 'CoachController@getCoachPublicFacilities');
+    $router->get('/api/coaches', 'CoachController@getPublicCoaches');
+    $router->get('/api/coaches/{id}', 'CoachController@getCoachDetail');
     $router->get('/api/sports-categories', 'CoachController@getSportsCategories');
 
     // Public: coaches at a facility
-    $router->get('/api/facility/{id}/slots',   'BookingController@getFacilitySlots');
+    $router->get('/api/facility/{id}/slots', 'BookingController@getFacilitySlots');
     $router->get('/api/facility/{id}/coaches', 'BookingController@getFacilityCoaches');
-    
+
     // Public Grounds API routes (for booking)
     $router->get('/api/grounds', 'BookingController@getGrounds');
     //$router->get('/api/grounds/{id}', 'BookingController@getGroundDetails');
 
-    
+
     // Cart API routes (CRUD operations)
     $router->get('/api/cart', 'CartController@getCart');
     $router->get('/api/cart/count', 'CartController@getCartCount');
@@ -157,7 +193,7 @@ try {
 
     $router->get('/api/ground/{id}', 'BookingController@getGroundById');
 
-    
+
     // Ground Owner page routes
     $router->get('/ground-owner/grounds', 'GroundOwnerController@groundsPage');
     $router->get('/ground-owner/bookings', 'GroundOwnerController@bookingsPage');
@@ -169,7 +205,7 @@ try {
     $router->get('/ground-owner/coaches', 'GroundOwnerController@coachesPage');
     $router->get('/ground-owner/profile', 'GroundOwnerController@profilePage');
     $router->get('/ground-owner/settings', 'GroundOwnerController@settingsPage');
-    
+
     // Ground Owner API routes
     $router->get('/api/ground-owner/grounds', 'GroundOwnerController@getGrounds');
     $router->post('/api/ground-owner/grounds', 'GroundOwnerController@createGround');
@@ -256,6 +292,8 @@ try {
     $router->get('/book/{id}', 'BookingController@redirectToGroundDetails');
     $router->get('/book-coach', 'CoachController@book');
 
+    // (Coach API routes are registered above at lines 164-166)
+
     // ── Coach Profile (public) ──────────────────────────────────
     $router->get('/coach-profile/{id}', 'CoachController@coachProfilePage');
 
@@ -269,10 +307,10 @@ try {
     $router->get('/my-coach-sessions', 'UserController@groundBookingsDashboard');
 
     // ── User Coach Booking API ──────────────────────────────────
-    $router->get('/api/user/coach-bookings',             'UserController@getCoachBookings');
-    $router->put('/api/user/coach-bookings/{id}',        'UserController@updateCoachBooking');
+    $router->get('/api/user/coach-bookings', 'UserController@getCoachBookings');
+    $router->put('/api/user/coach-bookings/{id}', 'UserController@updateCoachBooking');
     $router->put('/api/user/coach-bookings/{id}/cancel', 'UserController@cancelCoachBooking');
-    $router->post('/api/user/coach-reviews',             'UserController@submitCoachReview');
+    $router->post('/api/user/coach-reviews', 'UserController@submitCoachReview');
 
     // ── Coach Dashboard Booking API ─────────────────────────────
     $router->get('/api/coach/bookings', 'CoachController@getCoachOwnBookings');
@@ -292,44 +330,44 @@ try {
     $router->get('/api/categories', 'ProductController@getCategories');
     $router->get('/api/products/search', 'ProductController@search');
     $router->get('/product/{id}', 'ProductController@show');
-    
+
     // Product Review Routes (Form Submissions)
     $router->post('/product/{id}/review', 'ProductController@submitReview');
     $router->post('/product/review/update', 'ProductController@updateReview');
     $router->post('/product/review/delete', 'ProductController@deleteReview');
-    
+
     $router->get('/news', 'NewsController@index');
-    
+
     // ===== CHECKOUT & PAYMENT ROUTES =====
     // Checkout pages
     $router->get('/checkout/contact-details', 'PaymentController@contactDetails');
     $router->get('/checkout/payment-method', 'PaymentController@paymentMethod');
     $router->get('/checkout/payment-processing', 'PaymentController@paymentProcessing');
     $router->get('/checkout/order-success', 'PaymentController@orderSuccess');
-    
+
     // API endpoints for checkout
     $router->post('/api/checkout/save-contact', 'PaymentController@saveContactDetails');
     $router->post('/api/checkout/process-cod', 'PaymentController@processCashOnDelivery');
     $router->post('/api/checkout/process-card', 'PaymentController@processCardPayment');
     $router->post('/api/checkout/payment-webhook', 'PaymentController@paymentWebhook');
 
-    
+
     // PayHere payment gateway routes
     $router->post('/api/checkout/initialize-payhere', 'PaymentController@initializePayHerePayment');
     $router->post('/api/payment/payhere/notify', 'PaymentController@payHereNotify');
     $router->get('/api/payment/payhere/return', 'PaymentController@payHereReturn');
-    
+
     // Cart checkout redirect
     $router->get('/cart/checkout', 'CartController@checkout');
-    
-    
+
+
     // Shop Owner page routes
     $router->get('/shop-owner/products', 'ShopOwnerController@productsPage');
     $router->get('/shop-owner/inventory', 'ShopOwnerController@inventoryPage');
     $router->get('/shop-owner/orders', 'ShopOwnerController@ordersPage');
     $router->get('/shop-owner/reviews', 'ShopOwnerController@reviewsPage');
     $router->get('/shop-owner/profile', 'ShopOwnerController@profilePage');
-    
+
     // Shop Owner product CRUD form submission routes
     $router->post('/shop-owner/products/create', 'ShopOwnerController@handleCreateProduct');
     $router->post('/shop-owner/products/update', 'ShopOwnerController@handleUpdateProduct');
@@ -347,7 +385,7 @@ try {
     $router->get('/shop-owner/reviews.php', 'ShopOwnerController@reviewsPage');
     $router->get('/shop-owner/profile.php', 'ShopOwnerController@profilePage');
     $router->get('/shop-owner/dashboard.php', 'ShopOwnerController@dashboard');
-    
+
     // Shop Owner API endpoints
     $router->get('/api/shop-owner/dashboard', 'ShopOwnerController@getDashboardStats');
     $router->get('/api/shop-owner/products', 'ShopOwnerController@getProducts');
@@ -366,7 +404,7 @@ try {
     $router->put('/api/shop-owner/inventory/{id}', 'ShopOwnerController@updateStock');
     $router->get('/api/shop-owner/analytics', 'ShopOwnerController@getAnalytics');
     $router->get('/api/shop-owner/categories', 'ShopOwnerController@getCategories');
-    
+
     // Shop Owner Profile API routes
     $router->get('/api/shop-owner/profile', 'ShopOwnerController@getProfileData');
     $router->post('/api/shop-owner/profile/update', 'ShopOwnerController@updateProfile');
@@ -380,20 +418,36 @@ try {
     $router->post('/shop-owner/inventory/update-min-stock', 'ShopOwnerController@handleUpdateMinStock');
     $router->post('/shop-owner/inventory/remove-stock', 'ShopOwnerController@handleRemoveStock');
 
+    // Shop Owner Earnings & Payouts
+    $router->get('/shop-owner/earnings', 'ShopOwnerController@earningsPage');
+    $router->get('/shop-owner/earnings.php', 'ShopOwnerController@earningsPage');
+    $router->get('/api/shop-owner/earnings', 'ShopOwnerController@getEarningsData');
+    $router->post('/api/shop-owner/request-payout', 'ShopOwnerController@requestPayout');
+    $router->post('/api/shop-owner/payout-details', 'ShopOwnerController@updatePayoutDetails');
+
+    // Admin Payout Management
+    $router->get('/admin/payouts', 'AdminController@payoutsPage');
+    $router->get('/api/admin/payouts', 'AdminController@getPayouts');
+    $router->post('/api/admin/payouts/approve', 'AdminController@approvePayout');
+    $router->post('/api/admin/payouts/reject', 'AdminController@rejectPayout');
+
     // News Routes - Updated
-$router->get('/news', 'NewsController@index');
-$router->get('/news/search', 'NewsController@search');
-$router->get('/news/load-more', 'NewsController@loadMore');
-$router->get('/api/news/live-search', 'NewsController@liveSearch'); // NEW!
-$router->get('/news/{slug}', 'NewsController@show');
+    $router->get('/news', 'NewsController@index');
+    $router->get('/news/search', 'NewsController@search');
+    $router->get('/news/load-more', 'NewsController@loadMore');
+    $router->get('/api/news/live-search', 'NewsController@liveSearch'); // NEW!
+    $router->get('/news/{slug}', 'NewsController@show');
+
+    // Contact Page Route
+    $router->get('/contact', 'HomeController@contact');
 
     // USER PROFILE ROUTES - Add these to your existing routes in index.php
-    
+
     // User profile routes (ESSENTIAL - ADD THESE)
     $router->get('/user/profile', 'UserController@profile');
     $router->get('/profile', 'UserController@profile'); // Alternative route
     $router->get('/dashboard', 'UserController@dashboard'); // User dashboard
-    
+
     // User API routes
     $router->get('/api/user/profile', 'UserController@getProfile');
     $router->put('/api/user/profile', 'UserController@updateProfile');
@@ -432,7 +486,7 @@ $router->get('/news/{slug}', 'NewsController@show');
     $router->get('/cart', 'UserController@cart');
     $router->get('/notifications', 'UserController@notifications');
     $router->get('/settings', 'UserController@settings');
-    
+
     // LOGOUT ROUTE FIX - Make sure this exists (should already be there)
     $router->post('/auth/logout', 'AuthController@logout');
     $router->get('/logout', 'AuthController@logout'); // Add GET version as fallback
@@ -444,6 +498,9 @@ $router->get('/news/{slug}', 'NewsController@show');
     $router->get('/provider/apply/shop-owner', 'ProviderController@applyShopOwner');
     $router->post('/provider/submit-application', 'ProviderController@submitApplication');
 
+    // Admin Dashboard Route
+    $router->get('/admin/dashboard', 'AdminController@dashboard');
+
     // Admin Provider Applications Routes
     $router->get('/admin/provider-applications', 'AdminController@providerApplications');
     $router->get('/admin/provider-applications/list', 'AdminController@getApplicationsList');
@@ -453,77 +510,103 @@ $router->get('/news/{slug}', 'NewsController@show');
     $router->post('/admin/provider-applications/reject/{id}', 'AdminController@rejectApplication');
 
     // Admin News Management Routes
-$router->get('/admin/news', 'Admin\AdminNewsController@index');
-$router->get('/admin/news/create', 'Admin\AdminNewsController@create');
-$router->post('/admin/news/store', 'Admin\AdminNewsController@store');
-$router->get('/admin/news/edit/{id}', 'Admin\AdminNewsController@edit');
-$router->post('/admin/news/update/{id}', 'Admin\AdminNewsController@update');
-$router->delete('/admin/news/delete/{id}', 'Admin\AdminNewsController@delete');
-
-    
-// Admin User Management Page
-$router->get('/admin/users', 'Admin\AdminUserController@index');
-
-// Admin User Management API Routes
-$router->get('/api/admin/users', 'Admin\AdminUserController@getUsers');
-$router->get('/api/admin/users/statistics', 'Admin\AdminUserController@getStatistics');
-$router->get('/api/admin/users/{id}', 'Admin\AdminUserController@getUser');
-$router->put('/api/admin/users/{id}/role', 'Admin\AdminUserController@updateRole');
-$router->put('/api/admin/users/{id}/status', 'Admin\AdminUserController@updateStatus');
-$router->post('/api/admin/users/{id}/reset-password', 'Admin\AdminUserController@resetPassword');
-$router->delete('/api/admin/users/{id}', 'Admin\AdminUserController@deleteUser');
-    
-// Admin Dashboard API Routes
-$router->get('/admin/api/stats', 'AdminController@getStats');
-$router->get('/admin/api/revenue-chart', 'AdminController@getRevenueChart');
-$router->get('/admin/api/recent-registrations', 'AdminController@getRecentRegistrations');
-$router->get('/admin/api/recent-content', 'AdminController@getRecentContent');
-$router->get('/admin/api/user-breakdown', 'AdminController@getUserBreakdown');
-$router->get('/admin/api/notifications', 'AdminController@getNotifications');
-$router->get('/admin/api/profile', 'AdminController@getProfile');
+    $router->get('/admin/news', 'Admin\AdminNewsController@index');
+    $router->get('/admin/news/create', 'Admin\AdminNewsController@create');
+    $router->post('/admin/news/store', 'Admin\AdminNewsController@store');
+    $router->get('/admin/news/edit/{id}', 'Admin\AdminNewsController@edit');
+    $router->post('/admin/news/update/{id}', 'Admin\AdminNewsController@update');
+    $router->delete('/admin/news/delete/{id}', 'Admin\AdminNewsController@delete');
 
 
-// Admin Analytics Routes
-$router->get('/admin/analytics', 'Admin\AnalyticsController@index');
-$router->get('/api/admin/analytics/overview', 'Admin\AnalyticsController@getOverviewStats');
-$router->get('/api/admin/analytics/users', 'Admin\AnalyticsController@getUserAnalytics');
-$router->get('/api/admin/analytics/revenue', 'Admin\AnalyticsController@getRevenueAnalytics');
-$router->get('/api/admin/analytics/bookings', 'Admin\AnalyticsController@getBookingAnalytics');
-$router->get('/api/admin/analytics/products', 'Admin\AnalyticsController@getProductAnalytics');
-$router->get('/api/admin/analytics/export', 'Admin\AnalyticsController@exportData');
-$router->get('/api/admin/analytics/activity', 'Admin\AnalyticsController@getActivityLogs');
+    // Admin User Management Page
+    $router->get('/admin/users', 'Admin\AdminUserController@index');
 
-// Admin Settings Routes
-$router->get('/admin/settings', 'Admin\AdminSettingsController@index');
-$router->get('/api/admin/settings', 'Admin\AdminSettingsController@getSettings');
-$router->post('/api/admin/settings/update', 'Admin\AdminSettingsController@updateSetting');
-$router->post('/api/admin/settings/bulk', 'Admin\AdminSettingsController@updateBulk');
-$router->get('/api/admin/settings/system-info', 'Admin\AdminSettingsController@getSystemInfo');
-$router->post('/api/admin/settings/clear-cache', 'Admin\AdminSettingsController@clearCache');
-$router->post('/api/admin/settings/test-email', 'Admin\AdminSettingsController@testEmail');
-$router->post('/api/admin/settings/backup-database', 'Admin\AdminSettingsController@backupDatabase');
-$router->get('/api/admin/settings/activity-logs', 'Admin\AdminSettingsController@getActivityLogs');
+    // Admin User Management API Routes
+    $router->get('/api/admin/users', 'Admin\AdminUserController@getUsers');
+    $router->get('/api/admin/users/statistics', 'Admin\AdminUserController@getStatistics');
+    $router->get('/api/admin/users/{id}', 'Admin\AdminUserController@getUser');
+    $router->put('/api/admin/users/{id}/role', 'Admin\AdminUserController@updateRole');
+    $router->put('/api/admin/users/{id}/status', 'Admin\AdminUserController@updateStatus');
+    $router->post('/api/admin/users/{id}/reset-password', 'Admin\AdminUserController@resetPassword');
+    $router->delete('/api/admin/users/{id}', 'Admin\AdminUserController@deleteUser');
+
+    // Admin Dashboard API Routes
+    $router->get('/admin/api/stats', 'AdminController@getStats');
+    $router->get('/admin/api/revenue-chart', 'AdminController@getRevenueChart');
+    $router->get('/admin/api/recent-registrations', 'AdminController@getRecentRegistrations');
+    $router->get('/admin/api/recent-content', 'AdminController@getRecentContent');
+    $router->get('/admin/api/user-breakdown', 'AdminController@getUserBreakdown');
+    $router->get('/admin/api/notifications', 'AdminController@getNotifications');
+    $router->get('/admin/api/profile', 'AdminController@getProfile');
+
+    // Admin Sports Categories Routes
+    $router->get('/admin/categories', 'Admin\AdminCategoryController@index');
+    $router->get('/api/admin/categories', 'Admin\AdminCategoryController@getCategories');
+    $router->post('/api/admin/categories', 'Admin\AdminCategoryController@createCategory');
+    $router->put('/api/admin/categories/{id}', 'Admin\AdminCategoryController@updateCategory');
+    $router->delete('/api/admin/categories/{id}', 'Admin\AdminCategoryController@deleteCategory');
 
 
-// Admin Payments & Earnings Routes
-$router->get('/admin/payments', 'Admin\AdminPaymentController@index');
+    // Admin Analytics Routes
+    $router->get('/admin/analytics', 'Admin\AnalyticsController@index');
 
-// Admin Payment API Routes
-$router->get('/api/admin/payments/overview', 'Admin\AdminPaymentController@getOverviewStats');
-$router->get('/api/admin/payments/earnings', 'Admin\AdminPaymentController@getEarningsHistory');
-$router->get('/api/admin/payments/breakdown', 'Admin\AdminPaymentController@getEarningsBreakdown');
-$router->get('/api/admin/payments/daily', 'Admin\AdminPaymentController@getDailyEarnings');
-$router->post('/api/admin/payments/service-fee', 'Admin\AdminPaymentController@updateServiceFee');
+    // Admin Promotions/Banners Routes
+    $router->get('/admin/promotions', 'Admin\AdminPromotionController@index');
+    $router->get('/api/admin/promotions', 'Admin\AdminPromotionController@getPromotions');
+    $router->get('/api/admin/promotions/{id}', 'Admin\AdminPromotionController@getPromotion');
+    $router->post('/api/admin/promotions', 'Admin\AdminPromotionController@createPromotion');
+    $router->put('/api/admin/promotions/{id}', 'Admin\AdminPromotionController@updatePromotion');
+    $router->delete('/api/admin/promotions/{id}', 'Admin\AdminPromotionController@deletePromotion');
 
-// Withdrawal Management Routes
-$router->get('/api/admin/payments/withdrawals', 'Admin\AdminPaymentController@getWithdrawalRequests');
-$router->post('/api/admin/payments/withdrawal', 'Admin\AdminPaymentController@createWithdrawal');
-$router->put('/api/admin/payments/withdrawal/{id}/process', 'Admin\AdminPaymentController@processWithdrawal');
-$router->put('/api/admin/payments/withdrawal/{id}/reject', 'Admin\AdminPaymentController@rejectWithdrawal');
-$router->put('/api/admin/payments/withdrawal/{id}/cancel', 'Admin\AdminPaymentController@cancelWithdrawal');
+    // Admin Contact Messages Routes
+    $router->get('/admin/contacts', 'Admin\AdminContactController@index');
+    $router->get('/api/admin/contacts', 'Admin\AdminContactController@getMessages');
+    $router->get('/api/admin/contacts/{id}', 'Admin\AdminContactController@getMessage');
+    $router->post('/api/admin/contacts/{id}/reply', 'Admin\AdminContactController@replyMessage');
+    $router->put('/api/admin/contacts/{id}/status', 'Admin\AdminContactController@updateStatus');
+    $router->delete('/api/admin/contacts/{id}', 'Admin\AdminContactController@deleteMessage');
 
-// Export Routes
-$router->get('/api/admin/payments/export', 'Admin\AdminPaymentController@exportEarnings');
+    // Public Contact Form Submission
+    $router->post('/api/contact', 'Admin\AdminContactController@submitContact');
+    $router->get('/api/admin/analytics/overview', 'Admin\AnalyticsController@getOverviewStats');
+    $router->get('/api/admin/analytics/users', 'Admin\AnalyticsController@getUserAnalytics');
+    $router->get('/api/admin/analytics/revenue', 'Admin\AnalyticsController@getRevenueAnalytics');
+    $router->get('/api/admin/analytics/bookings', 'Admin\AnalyticsController@getBookingAnalytics');
+    $router->get('/api/admin/analytics/products', 'Admin\AnalyticsController@getProductAnalytics');
+    $router->get('/api/admin/analytics/export', 'Admin\AnalyticsController@exportData');
+    $router->get('/api/admin/analytics/activity', 'Admin\AnalyticsController@getActivityLogs');
+
+    // Admin Settings Routes
+    $router->get('/admin/settings', 'Admin\AdminSettingsController@index');
+    $router->get('/api/admin/settings', 'Admin\AdminSettingsController@getSettings');
+    $router->post('/api/admin/settings/update', 'Admin\AdminSettingsController@updateSetting');
+    $router->post('/api/admin/settings/bulk', 'Admin\AdminSettingsController@updateBulk');
+    $router->get('/api/admin/settings/system-info', 'Admin\AdminSettingsController@getSystemInfo');
+    $router->post('/api/admin/settings/clear-cache', 'Admin\AdminSettingsController@clearCache');
+    $router->post('/api/admin/settings/test-email', 'Admin\AdminSettingsController@testEmail');
+    $router->post('/api/admin/settings/backup-database', 'Admin\AdminSettingsController@backupDatabase');
+    $router->get('/api/admin/settings/activity-logs', 'Admin\AdminSettingsController@getActivityLogs');
+
+
+    // Admin Payments & Earnings Routes
+    $router->get('/admin/payments', 'Admin\AdminPaymentController@index');
+
+    // Admin Payment API Routes
+    $router->get('/api/admin/payments/overview', 'Admin\AdminPaymentController@getOverviewStats');
+    $router->get('/api/admin/payments/earnings', 'Admin\AdminPaymentController@getEarningsHistory');
+    $router->get('/api/admin/payments/breakdown', 'Admin\AdminPaymentController@getEarningsBreakdown');
+    $router->get('/api/admin/payments/daily', 'Admin\AdminPaymentController@getDailyEarnings');
+    $router->post('/api/admin/payments/service-fee', 'Admin\AdminPaymentController@updateServiceFee');
+
+    // Withdrawal Management Routes
+    $router->get('/api/admin/payments/withdrawals', 'Admin\AdminPaymentController@getWithdrawalRequests');
+    $router->post('/api/admin/payments/withdrawal', 'Admin\AdminPaymentController@createWithdrawal');
+    $router->put('/api/admin/payments/withdrawal/{id}/process', 'Admin\AdminPaymentController@processWithdrawal');
+    $router->put('/api/admin/payments/withdrawal/{id}/reject', 'Admin\AdminPaymentController@rejectWithdrawal');
+    $router->put('/api/admin/payments/withdrawal/{id}/cancel', 'Admin\AdminPaymentController@cancelWithdrawal');
+
+    // Export Routes
+    $router->get('/api/admin/payments/export', 'Admin\AdminPaymentController@exportEarnings');
 
     /* Debug routes
     $router->get('/debug', function() {
@@ -534,10 +617,10 @@ $router->get('/api/admin/payments/export', 'Admin\AdminPaymentController@exportE
         require_once 'debug_shop.php';
         return new Core\Response('');
     });*/
-    
+
     // Run the application
     $app->run();
-    
+
 } catch (Exception $e) {
     // Handle uncaught exceptions
     if ($_ENV['APP_DEBUG'] ?? false) {
@@ -551,11 +634,11 @@ $router->get('/api/admin/payments/export', 'Admin\AdminPaymentController@exportE
     } else {
         // Show generic error in production
         http_response_code(500);
-        
+
         // Check if this is an API request
-        $isApiRequest = strpos($_SERVER['REQUEST_URI'] ?? '', '/api/') === 0 || 
-                       (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
-        
+        $isApiRequest = strpos($_SERVER['REQUEST_URI'] ?? '', '/api/') === 0 ||
+            (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
         if ($isApiRequest) {
             header('Content-Type: application/json');
             echo json_encode([
@@ -568,7 +651,7 @@ $router->get('/api/admin/payments/export', 'Admin\AdminPaymentController@exportE
             echo "<p>Something went wrong. Please try again later.</p>";
         }
     }
-    
+
     // Log the error
     if (function_exists('error_log')) {
         error_log("Application Error: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine());
