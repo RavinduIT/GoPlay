@@ -277,7 +277,7 @@ class AdminController extends BaseController
                     $notificationModel->createNotification(
                         (int)$application['user_id'],
                         'provider_approved',
-                        'Application Approved! 🎉',
+                        'Application Approved',
                         "Congratulations! Your {$providerLabel} application has been approved. You can now access your provider dashboard and start managing your services.",
                         [
                             'application_id' => $id,

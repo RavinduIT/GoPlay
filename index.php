@@ -3,10 +3,18 @@
 /**
  * GoPlay Sports Platform
  * Main Entry Point
- * 
+ *
  * This file serves as the front controller for all HTTP requests.
  * It handles routing, middleware, and response generation.
  */
+
+// Serve static files directly when using PHP built-in server (php -S localhost:8000)
+if (php_sapi_name() === 'cli-server') {
+    $staticFile = $_SERVER['DOCUMENT_ROOT'] . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if (is_file($staticFile)) {
+        return false;
+    }
+}
 
 // Define application constants
 define('APP_START', microtime(true));

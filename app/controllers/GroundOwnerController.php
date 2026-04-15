@@ -853,7 +853,7 @@ class GroundOwnerController extends BaseController
                 $notificationModel->createNotification(
                     (int)$booking['user_id'],
                     'booking_cancelled',
-                    'Booking Cancelled ❌',
+                    'Booking Cancelled',
                     "Your booking for {$facilityName} on {$bookingDate} has been cancelled by the ground owner. Reason: {$reason}",
                     [
                         'booking_id' => $bookingId,
@@ -1060,14 +1060,10 @@ class GroundOwnerController extends BaseController
                 ], 403);
             }
 
-            $success = $this->getBookingModel()->update($bookingId, ['status' => $newStatus]);
-
-            if (!$success) {
-                return $this->json([
-                    'success' => false,
-                    'message' => 'Failed to update booking status'
-                ], 500);
-            }
+            // Note: update() uses rowCount() which returns 0 when the value is already
+            // the same (e.g. double-confirming). Treat that as success so the notification
+            // still fires — a true DB error throws an exception caught below.
+            $this->getBookingModel()->update($bookingId, ['status' => $newStatus]);
 
             // Send notification to the user who made the booking
             try {
@@ -1079,46 +1075,46 @@ class GroundOwnerController extends BaseController
 
                 $statusConfig = [
                     'confirmed' => [
-                        'type' => 'booking_approved',
-                        'title' => 'Booking Approved! ✅',
-                        'message' => "Great news! Your booking for {$facilityName} on {$bookingDate} has been approved by the ground owner. See you there!"
+                        'type'    => 'booking_confirmation',
+                        'title'   => 'Booking Approved',
+                        'message' => "Your booking for {$facilityName} on {$bookingDate} has been approved by the ground owner. See you there!"
                     ],
                     'cancelled' => [
-                        'type' => 'booking_rejected',
-                        'title' => 'Booking Declined ❌',
-                        'message' => "Unfortunately, your booking for {$facilityName} on {$bookingDate} has been declined by the ground owner. Please try another time slot or facility."
+                        'type'    => 'booking_cancelled',
+                        'title'   => 'Booking Declined',
+                        'message' => "Your booking for {$facilityName} on {$bookingDate} has been declined by the ground owner. Please try another time slot or facility."
                     ],
                     'completed' => [
-                        'type' => 'booking_confirmation',
-                        'title' => 'Booking Completed',
+                        'type'    => 'booking_confirmation',
+                        'title'   => 'Booking Completed',
                         'message' => "Your booking for {$facilityName} on {$bookingDate} has been marked as completed. We hope you had a great time! Please leave a review."
                     ],
                     'no_show' => [
-                        'type' => 'booking_cancelled',
-                        'title' => 'Marked as No-Show',
+                        'type'    => 'booking_cancelled',
+                        'title'   => 'Marked as No-Show',
                         'message' => "Your booking for {$facilityName} on {$bookingDate} was marked as no-show by the ground owner."
                     ]
                 ];
 
                 if (isset($statusConfig[$newStatus])) {
                     $config = $statusConfig[$newStatus];
-                    $notificationModel->createNotification(
+                    $result = $notificationModel->createNotification(
                         (int)$booking['user_id'],
                         $config['type'],
                         $config['title'],
                         $config['message'],
                         [
-                            'booking_id' => $bookingId,
+                            'booking_id'  => $bookingId,
                             'facility_id' => $booking['facility_id'],
                             'facility_name' => $facilityName,
-                            'new_status' => $newStatus,
+                            'new_status'  => $newStatus,
                             'booking_date' => $booking['booking_date'] ?? null
                         ]
                     );
+                    error_log("updateBookingStatus: notification for user {$booking['user_id']} status={$newStatus} result=" . ($result ?? 'null'));
                 }
             } catch (\Exception $notifErr) {
                 error_log("Booking status notification error: " . $notifErr->getMessage());
-                // Don't fail the status update if notification fails
             }
 
             return $this->json([
