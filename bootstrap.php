@@ -57,7 +57,3 @@ spl_autoload_register(function ($class) {
     }
 });
 
-// Run auto-migrations to ensure database schema is up-to-date
-if (file_exists(__DIR__ . '/database/auto-migration.php')) {
-    require_once __DIR__ . '/database/auto-migration.php';
-}

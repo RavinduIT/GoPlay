@@ -33,8 +33,7 @@ class PaymentController extends BaseController
      */
     public function contactDetails(Request $request): Response
     {
-<<<<<<< HEAD
-=======
+
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -49,7 +48,6 @@ class PaymentController extends BaseController
             return $this->redirect('/login');
         }
 
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
         // Ensure user has items in cart
         $session = $this->getCartSession();
         $cart = $this->cartModel->getOrCreateCart($session['user_id'], $session['session_id']);
@@ -60,13 +58,7 @@ class PaymentController extends BaseController
         }
 
         // Load previously saved contact details from session if available
-<<<<<<< HEAD
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
-=======
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
         $savedContact = $_SESSION['checkout_contact'] ?? [];
 
         return $this->view('checkout/contact-details', ['savedContact' => $savedContact]);
@@ -133,16 +125,13 @@ class PaymentController extends BaseController
      */
     public function paymentMethod(Request $request): Response
     {
-<<<<<<< HEAD
-        // Ensure contact details are saved
-=======
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
+
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
-<<<<<<< HEAD
-=======
+
         // Check if user is logged in
         if (!isset($_SESSION['user_id'])) {
             // Redirect to cart checkout so user can review items and redo contact details if needed
@@ -151,7 +140,7 @@ class PaymentController extends BaseController
         }
 
         // Ensure contact details are saved
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
         if (!isset($_SESSION['checkout_contact'])) {
             return $this->redirect('/checkout/contact-details');
         }
@@ -173,17 +162,14 @@ class PaymentController extends BaseController
      */
     public function paymentProcessing(Request $request): Response
     {
-<<<<<<< HEAD
-        // Ensure contact details are saved
-=======
+
         // Ensure user is logged in
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
-<<<<<<< HEAD
-=======
+
         if (!isset($_SESSION['user_id'])) {
             // Redirect to cart checkout so user can review items if needed
             $_SESSION['return_after_login'] = '/cart/checkout';
@@ -191,7 +177,7 @@ class PaymentController extends BaseController
         }
 
         // Ensure contact details are saved
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
         if (!isset($_SESSION['checkout_contact'])) {
             return $this->redirect('/checkout/contact-details');
         }
@@ -284,13 +270,10 @@ class PaymentController extends BaseController
                 'status' => 'pending'
             ]);
 
-<<<<<<< HEAD
-            // Credit shop owners for COD orders
-            $this->creditShopOwnersForOrder($order);
-=======
+
             // Hold COD earnings in pending until delivery is confirmed
             $this->holdCODEarningsForOrder($order);
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
             $this->sendOrderNotifications($order);
 
             // Clear cart
@@ -872,14 +855,10 @@ class PaymentController extends BaseController
     }
 
     /**
-<<<<<<< HEAD
-     * Credit shop owners for a completed order.
-     * Calculates each shop owner's share from their items,
-     * deducts platform fee, and credits their balance.
-=======
+
      * Credit shop owners for a CONFIRMED (online-paid) order.
      * Releases directly to available_balance — payment already received.
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
      */
     private function creditShopOwnersForOrder(array $order): void
     {
@@ -887,21 +866,7 @@ class PaymentController extends BaseController
             $orderId = $order['id'];
             $balanceModel = new ShopOwnerBalance();
             $feePercentage = $balanceModel->getServiceFeePercentage();
-<<<<<<< HEAD
-            
-            $shopOwnerShares = $balanceModel->getShopOwnerSharesByOrder($orderId);
-            
-            foreach ($shopOwnerShares as $share) {
-                $shopOwnerId = (int)$share['shop_owner_id'];
-                $grossAmount = (float)$share['owner_total'];
-                $feeAmount = round($grossAmount * ($feePercentage / 100), 2);
-                
-                $balanceModel->creditSale($shopOwnerId, $orderId, $grossAmount, $feeAmount);
-                
-                error_log("Credited shop owner {$shopOwnerId}: gross={$grossAmount}, fee={$feeAmount}, net=" . ($grossAmount - $feeAmount));
-            }
-            
-=======
+
 
             $shopOwnerShares = $balanceModel->getShopOwnerSharesByOrder($orderId);
 
@@ -915,15 +880,14 @@ class PaymentController extends BaseController
                 error_log("Online credit — shop owner {$shopOwnerId}: gross={$grossAmount}, fee={$feeAmount}, net=" . ($grossAmount - $feeAmount));
             }
 
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
         } catch (\Exception $e) {
             error_log('Failed to credit shop owners for order ' . ($order['id'] ?? 'unknown') . ': ' . $e->getMessage());
         }
     }
 
     /**
-<<<<<<< HEAD
-=======
+
      * Hold COD earnings in pending_balance until delivery is confirmed.
      * Cash has NOT been collected — do not release to available_balance yet.
      */
@@ -952,7 +916,7 @@ class PaymentController extends BaseController
     }
 
     /**
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
      * Send order notifications to customer and shop owner(s).
      */
     private function sendOrderNotifications(array $order): void

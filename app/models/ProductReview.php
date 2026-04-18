@@ -159,11 +159,9 @@ class ProductReview extends BaseModel
     /**
      * Get all reviews for products owned by a shop owner
      */
-<<<<<<< HEAD
-    public function getShopOwnerReviews(int $shopOwnerId, int $limit = null): array
-=======
+
     public function getShopOwnerReviews(int $shopOwnerId, ?int $limit = null): array
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
     {
         $sql = "SELECT pr.*, p.name as product_name, p.id as product_id,
                        CONCAT(u.first_name, ' ', u.last_name) as customer_name, u.email as user_email

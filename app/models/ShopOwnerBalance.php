@@ -159,8 +159,7 @@ class ShopOwnerBalance extends BaseModel
     }
 
     /**
-<<<<<<< HEAD
-=======
+
      * Credit a shop owner's PENDING balance for a COD order.
      * Cash has not been collected yet — holds in pending_balance until delivery confirmed.
      *
@@ -382,7 +381,7 @@ class ShopOwnerBalance extends BaseModel
     }
 
     /**
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
      * Debit a shop owner's balance for a payout withdrawal.
      * 
      * @param int $shopOwnerId The shop owner's user ID
@@ -579,10 +578,9 @@ class ShopOwnerBalance extends BaseModel
         
         return [
             'available_balance' => (float)$balance['available_balance'],
-<<<<<<< HEAD
-=======
+
             'pending_balance'   => (float)$balance['pending_balance'],
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+
             'total_earned' => (float)$balance['total_earned'],
             'total_withdrawn' => (float)$balance['total_withdrawn'],
             'pending_payouts' => (float)($pendingResult['total'] ?? 0),
