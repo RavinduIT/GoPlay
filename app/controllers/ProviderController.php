@@ -15,12 +15,24 @@ class ProviderController extends BaseController
         $this->userModel = new User();
     }
 
+    // Allowed file extensions and MIME types for uploads
+    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
+    private const ALLOWED_MIME_TYPES = [
+        'image/jpeg', 'image/png', 'image/gif', 'application/pdf'
+    ];
+    private const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
     /**
      * Show role selection page
      */
     public function join(Request $request): Response
     {
         $this->startSession();
+
+        // Require login
+        if (empty($_SESSION['user_id'])) {
+            return $this->redirect('/login?redirect=/provider/join');
+        }
 
         // Check if user is already a provider
         if (isset($_SESSION['user_type']) && $_SESSION['user_type'] !== 'user') {
@@ -82,6 +94,24 @@ class ProviderController extends BaseController
         }
 
         try {
+            // Rate limiting: max 3 application submissions per hour per user
+            $userId = $_SESSION['user_id'];
+            $rateLimitKey = 'provider_app_attempts_' . $userId;
+            if (!isset($_SESSION[$rateLimitKey])) {
+                $_SESSION[$rateLimitKey] = ['count' => 0, 'window_start' => time()];
+            }
+            $rl = &$_SESSION[$rateLimitKey];
+            if (time() - $rl['window_start'] > 3600) {
+                $rl = ['count' => 0, 'window_start' => time()];
+            }
+            if ($rl['count'] >= 3) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Too many submissions. Please wait before trying again.'
+                ], 429);
+            }
+            $rl['count']++;
+
             // Get form data
             $providerType = $_POST['provider_type'] ?? '';
 
@@ -255,25 +285,55 @@ class ProviderController extends BaseController
                 if (is_array($file['name'])) {
                     $uploadedFiles[$fieldName] = [];
 
-                    foreach ($file['name'] as $index => $fileName) {
-                        if (!empty($fileName) && $file['error'][$index] === UPLOAD_ERR_OK) {
-                            $newFileName = $this->sanitizeFileName($fileName);
-                            $destination = $applicationPath . $newFileName;
+                    // Cap multi-file uploads at 5 files max
+                    $fileCount = count(array_filter($file['name']));
+                    if ($fileCount > 5) {
+                        return ['success' => false, 'message' => "Maximum 5 files allowed for '{$fieldName}'. You uploaded {$fileCount}."];
+                    }
 
-                            if (move_uploaded_file($file['tmp_name'][$index], $destination)) {
-                                $uploadedFiles[$fieldName][] = $applicationFolder . '/' . $newFileName;
-                            }
+                    foreach ($file['name'] as $index => $fileName) {
+                        if (empty($fileName)) continue;
+
+                        // Check upload error code
+                        if ($file['error'][$index] !== UPLOAD_ERR_OK) {
+                            return ['success' => false, 'message' => $this->uploadErrorMessage($file['error'][$index], $fileName)];
+                        }
+
+                        // Validate file type, MIME, and size
+                        $validationError = $this->validateUploadedFile($file['tmp_name'][$index], $fileName, $file['size'][$index]);
+                        if ($validationError) {
+                            return ['success' => false, 'message' => $validationError];
+                        }
+
+                        $newFileName = $this->sanitizeFileName($fileName);
+                        $destination = $applicationPath . $newFileName;
+
+                        if (move_uploaded_file($file['tmp_name'][$index], $destination)) {
+                            $uploadedFiles[$fieldName][] = $applicationFolder . '/' . $newFileName;
+                        } else {
+                            return ['success' => false, 'message' => "Failed to save file '{$fileName}'. Please try again."];
                         }
                     }
                 } else {
                     // Handle single file
-                    if (!empty($file['name']) && $file['error'] === UPLOAD_ERR_OK) {
-                        $newFileName = $this->sanitizeFileName($file['name']);
-                        $destination = $applicationPath . $newFileName;
+                    if (empty($file['name'])) continue;
 
-                        if (move_uploaded_file($file['tmp_name'], $destination)) {
-                            $uploadedFiles[$fieldName] = $applicationFolder . '/' . $newFileName;
-                        }
+                    if ($file['error'] !== UPLOAD_ERR_OK) {
+                        return ['success' => false, 'message' => $this->uploadErrorMessage($file['error'], $file['name'])];
+                    }
+
+                    $validationError = $this->validateUploadedFile($file['tmp_name'], $file['name'], $file['size']);
+                    if ($validationError) {
+                        return ['success' => false, 'message' => $validationError];
+                    }
+
+                    $newFileName = $this->sanitizeFileName($file['name']);
+                    $destination = $applicationPath . $newFileName;
+
+                    if (move_uploaded_file($file['tmp_name'], $destination)) {
+                        $uploadedFiles[$fieldName] = $applicationFolder . '/' . $newFileName;
+                    } else {
+                        return ['success' => false, 'message' => "Failed to save file '{$file['name']}'. Please try again."];
                     }
                 }
             }
@@ -293,11 +353,37 @@ class ProviderController extends BaseController
     }
 
     /**
-     * Sanitize file name
+     * Validate a single uploaded file (extension, MIME, size)
+     */
+    private function validateUploadedFile(string $tmpName, string $originalName, int $size): ?string
+    {
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+            return "File '{$originalName}' has a disallowed type. Allowed: " . implode(', ', self::ALLOWED_EXTENSIONS);
+        }
+
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($tmpName);
+        if (!in_array($mime, self::ALLOWED_MIME_TYPES, true)) {
+            return "File '{$originalName}' has an invalid content type ({$mime}).";
+        }
+
+        if ($size > self::MAX_FILE_SIZE) {
+            return "File '{$originalName}' exceeds the maximum size of 10 MB.";
+        }
+
+        return null; // valid
+    }
+
+    /**
+     * Sanitize file name — only allows whitelisted extensions
      */
     private function sanitizeFileName(string $fileName): string
     {
-        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+            $extension = 'bin'; // fallback — should never reach here after validation
+        }
         $baseName = pathinfo($fileName, PATHINFO_FILENAME);
         $baseName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $baseName);
         return $baseName . '_' . uniqid() . '.' . $extension;
@@ -464,5 +550,23 @@ class ProviderController extends BaseController
     private function getDatabase(): \PDO
     {
         return \Core\Database::getInstance()->getConnection();
+    }
+
+    /**
+     * Human-readable message for PHP upload error codes
+     */
+    private function uploadErrorMessage(int $code, string $fileName): string
+    {
+        $messages = [
+            UPLOAD_ERR_INI_SIZE   => "File '{$fileName}' exceeds the server upload size limit.",
+            UPLOAD_ERR_FORM_SIZE  => "File '{$fileName}' exceeds the form upload size limit.",
+            UPLOAD_ERR_PARTIAL    => "File '{$fileName}' was only partially uploaded.",
+            UPLOAD_ERR_NO_FILE    => "No file was uploaded for '{$fileName}'.",
+            UPLOAD_ERR_NO_TMP_DIR => "Server error: missing temporary folder.",
+            UPLOAD_ERR_CANT_WRITE => "Server error: failed to write '{$fileName}' to disk.",
+            UPLOAD_ERR_EXTENSION  => "A server extension stopped the upload of '{$fileName}'.",
+        ];
+
+        return $messages[$code] ?? "Unknown upload error for '{$fileName}'.";
     }
 }

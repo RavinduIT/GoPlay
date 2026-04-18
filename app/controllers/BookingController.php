@@ -353,11 +353,18 @@ class BookingController extends BaseController
                 'city' => $request->getQuery('city'),
                 'min_rate' => $request->getQuery('min_rate'),
                 'max_rate' => $request->getQuery('max_rate'),
-                'search' => $request->getQuery('search')
+                'search' => $request->getQuery('search'),
+                'sort' => $request->getQuery('sort'),
+                'limit' => $request->getQuery('limit'),
             ];
             
             // Remove empty filters
             $filters = array_filter($filters, fn($value) => $value !== null && $value !== '');
+            
+            // Sanitize limit to a safe integer (max 50)
+            if (isset($filters['limit'])) {
+                $filters['limit'] = min((int)$filters['limit'], 50);
+            }
             
             // Get available sports facilities
             $facilities = $this->getFacilityModel()->getAvailableFacilities($filters);

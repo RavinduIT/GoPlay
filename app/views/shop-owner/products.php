@@ -246,7 +246,9 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
                                 data-product-price="<?= $product['price'] ?>"
                                 data-product-stock="<?= $product['stock_quantity'] ?>"
                                 data-product-status="<?= $product['status'] ?>"
-                                data-product-description="<?= htmlspecialchars($product['description'] ?? '', ENT_QUOTES) ?>">
+                                data-product-description="<?= htmlspecialchars($product['description'] ?? '', ENT_QUOTES) ?>"
+                                data-product-sizes="<?= htmlspecialchars($product['available_sizes'] ?? '', ENT_QUOTES) ?>"
+                                data-product-colors="<?= htmlspecialchars($product['available_colors'] ?? '', ENT_QUOTES) ?>">
                                 <td>
                                     <input type="checkbox" class="product-checkbox" value="<?= $product['id'] ?>">
                                 </td>
@@ -399,6 +401,19 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
                 </div>
             </div>
 
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="productSizes">Available Sizes <span class="text-muted">(optional)</span></label>
+                    <input type="text" id="productSizes" name="available_sizes" placeholder="e.g., XS,S,M,L,XL,XXL (comma-separated)">
+                    <small class="form-hint">Leave empty if not applicable. Use comma-separated values.</small>
+                </div>
+                <div class="form-group">
+                    <label for="productColors">Available Colors <span class="text-muted">(optional)</span></label>
+                    <input type="text" id="productColors" name="available_colors" placeholder="e.g., Red,Blue,Green,Black (comma-separated)">
+                    <small class="form-hint">Leave empty if not applicable. Use comma-separated values.</small>
+                </div>
+            </div>
+
             <div class="form-group full-width">
                 <label for="description">Product Description</label>
                 <textarea id="description" name="description" rows="4" placeholder="Enter product description..."></textarea>
@@ -485,6 +500,19 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
                 <div class="form-group">
                     <label for="editStock">Stock Quantity <span class="required">*</span></label>
                     <input type="number" id="editStock" name="stock_quantity" required min="0" placeholder="0">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editProductSizes">Available Sizes <span class="text-muted">(optional)</span></label>
+                    <input type="text" id="editProductSizes" name="available_sizes" placeholder="e.g., XS,S,M,L,XL,XXL (comma-separated)">
+                    <small class="form-hint">Leave empty if not applicable. Use comma-separated values.</small>
+                </div>
+                <div class="form-group">
+                    <label for="editProductColors">Available Colors <span class="text-muted">(optional)</span></label>
+                    <input type="text" id="editProductColors" name="available_colors" placeholder="e.g., Red,Blue,Green,Black (comma-separated)">
+                    <small class="form-hint">Leave empty if not applicable. Use comma-separated values.</small>
                 </div>
             </div>
 

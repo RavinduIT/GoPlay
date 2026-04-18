@@ -84,8 +84,10 @@ class AdminContactController extends BaseController
                     LEFT JOIN users u ON cm.replied_by = u.id
                     {$whereSql}
                     ORDER BY cm.created_at DESC
-                    LIMIT {$limit} OFFSET {$offset}";
+                    LIMIT ? OFFSET ?";
 
+            $params[] = $limit;
+            $params[] = $offset;
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
             $messages = $stmt->fetchAll(\PDO::FETCH_ASSOC);

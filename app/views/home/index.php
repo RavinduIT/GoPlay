@@ -21,7 +21,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                         <span> - <?= htmlspecialchars($promo['subtitle']) ?></span>
                     <?php endif; ?>
                     <?php if (!empty($promo['link_url'])): ?>
-                        <a href="<?= htmlspecialchars($promo['link_url']) ?>" style="color: inherit; margin-left: 12px; text-decoration: underline; font-weight: 600;"><?= htmlspecialchars($promo['link_text'] ?? 'Learn More') ?></a>
+                        <a href="<?= $_base . htmlspecialchars($promo['link_url']) ?>" style="color: inherit; margin-left: 12px; text-decoration: underline; font-weight: 600;"><?= htmlspecialchars($promo['link_text'] ?? 'Learn More') ?></a>
                     <?php endif; ?>
                 </div>
             </div>
@@ -76,13 +76,6 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                                         <?php foreach ($sportsCategories as $cat): ?>
                                         <option value="<?= htmlspecialchars(strtolower($cat['name'])) ?>"><?= htmlspecialchars($cat['name']) ?></option>
                                         <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <option value="football">Football</option>
-                                        <option value="tennis">Tennis</option>
-                                        <option value="basketball">Basketball</option>
-                                        <option value="cricket">Cricket</option>
-                                        <option value="badminton">Badminton</option>
-                                        <option value="swimming">Swimming</option>
                                     <?php endif; ?>
                                 </select>
                             </div>
@@ -90,12 +83,11 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                                 <label for="location">Location</label>
                                 <select id="location" name="location">
                                     <option value="">Anywhere</option>
-                                    <option value="Colombo 03">Colombo 03</option>
-                                    <option value="Colombo 05">Colombo 05</option>
-                                    <option value="Colombo 07">Colombo 07</option>
-                                    <option value="Kandy">Kandy</option>
-                                    <option value="Galle">Galle</option>
-                                    <option value="Negombo">Negombo</option>
+                                    <?php if (!empty($locations ?? [])): ?>
+                                        <?php foreach ($locations as $loc): ?>
+                                        <option value="<?= htmlspecialchars($loc) ?>"><?= htmlspecialchars($loc) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </select>
                             </div>
                             <div class="search-field">
@@ -116,28 +108,39 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
         </section>
 
         <!-- Trust/Stats Bar -->
+        <?php
+            $ts = $trustStats ?? ['venues' => 0, 'coaches' => 0, 'bookings' => 0, 'avg_rating' => '0.0'];
+            // Format large numbers nicely
+            $fmtVenues  = $ts['venues'] >= 1000 ? round($ts['venues'] / 1000, 1) . 'k+' : ($ts['venues'] > 0 ? $ts['venues'] . '+' : '0');
+            $fmtCoaches = $ts['coaches'] >= 1000 ? round($ts['coaches'] / 1000, 1) . 'k+' : ($ts['coaches'] > 0 ? $ts['coaches'] . '+' : '0');
+            $fmtBookings = $ts['bookings'] >= 1000 ? round($ts['bookings'] / 1000, 1) . 'k+' : ($ts['bookings'] > 0 ? $ts['bookings'] . '+' : '0');
+            $fmtRating  = $ts['avg_rating'] > 0 ? number_format((float)$ts['avg_rating'], 1) : 'N/A';
+            $hasAnyStats = ($ts['venues'] > 0 || $ts['coaches'] > 0 || $ts['bookings'] > 0 || $ts['avg_rating'] > 0);
+        ?>
+        <?php if ($hasAnyStats): ?>
         <section class="trust-bar-section">
             <div class="container">
                 <div class="trust-bar">
                     <div class="trust-item">
-                        <div class="trust-value">500+</div>
+                        <div class="trust-value"><?= $fmtVenues ?></div>
                         <div class="trust-label">Venues</div>
                     </div>
                     <div class="trust-item">
-                        <div class="trust-value">200+</div>
+                        <div class="trust-value"><?= $fmtCoaches ?></div>
                         <div class="trust-label">Certified Coaches</div>
                     </div>
                     <div class="trust-item">
-                        <div class="trust-value">60k+</div>
+                        <div class="trust-value"><?= $fmtBookings ?></div>
                         <div class="trust-label">Bookings</div>
                     </div>
                     <div class="trust-item">
-                        <div class="trust-value">4.9</div>
+                        <div class="trust-value"><?= $fmtRating ?></div>
                         <div class="trust-label">Average Rating</div>
                     </div>
                 </div>
             </div>
         </section>
+        <?php endif; ?>
 
         <!-- Features Section -->
         <section class="features-section">
@@ -155,9 +158,9 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                 <div class="features-grid">
                     <div class="feature-card" data-feature="booking">
                         <div class="feature-image">
-                            <img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Book Sports Grounds" />
+                            <img src="<?= $_base ?>/public/assets/images/ground.jpeg" alt="Book Sports Grounds" />
                             <div class="feature-overlay"></div>
-                            <div class="feature-stats">500+ Venues</div>
+                            <div class="feature-stats"><?= $fmtVenues ?> Venues</div>
                         </div>
                         <div class="feature-header">
                             <div class="feature-icon">
@@ -177,9 +180,9 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
 
                     <div class="feature-card" data-feature="coaching">
                         <div class="feature-image">
-                            <img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Hire Professional Coaches" />
+                            <img src="<?= $_base ?>/public/assets/images/ground.jpeg" alt="Hire Professional Coaches" />
                             <div class="feature-overlay"></div>
-                            <div class="feature-stats">200+ Coaches</div>
+                            <div class="feature-stats"><?= $fmtCoaches ?> Coaches</div>
                         </div>
                         <div class="feature-header">
                             <div class="feature-icon accent">
@@ -201,7 +204,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                         <div class="feature-image">
                             <img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Sports Equipment Shop" />
                             <div class="feature-overlay"></div>
-                            <div class="feature-stats">1000+ Products</div>
+                            <div class="feature-stats">Equipment Shop</div>
                         </div>
                         <div class="feature-header">
                             <div class="feature-icon">
@@ -230,20 +233,28 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                     <p class="section-description">Quickly jump into what you love playing</p>
                 </div>
                 <div class="categories-grid">
+                    <?php
+                        // Map sport names to suitable image files
+                        $sportImages = [
+                            'football' => 'football.jpg',
+                            'soccer' => 'football.jpg',
+                            'cricket' => 'ground.jpeg',
+                            'tennis' => 'ground.jpeg',
+                            'basketball' => 'ground.jpeg',
+                            'badminton' => 'ground.jpeg',
+                            'swimming' => 'ground.jpeg',
+                        ];
+                    ?>
                     <?php if (!empty($sportsCategories ?? [])): ?>
                         <?php foreach ($sportsCategories as $cat): ?>
+                        <?php $imgKey = strtolower($cat['name']); $imgFile = $sportImages[$imgKey] ?? 'ground.jpeg'; ?>
                         <a class="category-card" href="<?= $_base ?>/book-ground?sport=<?= htmlspecialchars(strtolower($cat['name'])) ?>">
-                            <img src="<?= $_base ?>/public/assets/images/football.jpg" alt="<?= htmlspecialchars($cat['name']) ?>" />
+                            <img src="<?= $_base ?>/public/assets/images/<?= $imgFile ?>" alt="<?= htmlspecialchars($cat['name']) ?>" />
                             <span><?= htmlspecialchars($cat['name']) ?></span>
                         </a>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=football"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Football" /><span>Football</span></a>
-                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=tennis"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Tennis" /><span>Tennis</span></a>
-                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=basketball"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Basketball" /><span>Basketball</span></a>
-                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=cricket"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Cricket" /><span>Cricket</span></a>
-                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=badminton"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Badminton" /><span>Badminton</span></a>
-                        <a class="category-card" href="<?= $_base ?>/book-ground?sport=swimming"><img src="<?= $_base ?>/public/assets/images/football.jpg" alt="Swimming" /><span>Swimming</span></a>
+                        <p style="text-align:center; color:#64748b; grid-column:1/-1;">No sports categories available yet. Check back soon!</p>
                     <?php endif; ?>
                 </div>
             </div>
@@ -290,11 +301,16 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                 </div>
                 <div class="news-container">
                     <div class="news-carousel" id="newsCarousel">
-                        <?php if (!empty($featuredNews ?? [])): ?>
-                            <?php foreach (($featuredNews ?? []) as $news): ?>
+                        <?php if (!empty($latestNews ?? [])): ?>
+                            <?php foreach ($latestNews as $news): ?>
                                 <div class="news-item" data-id="<?= (int)($news['id'] ?? 0) ?>">
                                     <div class="news-image">
-                                        <img src="<?= htmlspecialchars($news['featured_image'] ?? $_base . '/public/assets/images/football.jpg') ?>" alt="<?= htmlspecialchars($news['title'] ?? 'News') ?>" loading="lazy"
+                                        <?php
+                                            $newsImg = !empty($news['featured_image'])
+                                                ? htmlspecialchars($news['featured_image'])
+                                                : $_base . '/public/assets/images/football.jpg';
+                                        ?>
+                                        <img src="<?= $newsImg ?>" alt="<?= htmlspecialchars($news['title'] ?? 'News') ?>" loading="lazy"
                                              onerror="this.src='<?= $_base ?>/public/assets/images/football.jpg'">
                                         <?php if (!empty($news['category'])): ?>
                                             <div class="news-badge"><?= htmlspecialchars($news['category']) ?></div>
@@ -306,7 +322,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                                         </div>
                                         <h3 class="news-title"><?= htmlspecialchars($news['title'] ?? '') ?></h3>
                                         <p class="news-excerpt"><?= htmlspecialchars($news['excerpt'] ?? '') ?></p>
-                                        <a href="<?= $_base ?>/news/<?= (int)($news['id'] ?? 0) ?>" class="news-link">Read More</a>
+                                        <a href="<?= $_base ?>/news/<?= htmlspecialchars($news['slug'] ?? '') ?>" class="news-link">Read More</a>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -343,36 +359,37 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                     <p class="section-description">Real stories from our community</p>
                 </div>
                 <div class="testimonials-grid">
-                    <div class="testimonial-card">
-                        <div class="testimonial-quote">"Seamless booking and top-notch venues. We organize all our weekend games here."</div>
-                        <div class="testimonial-user">
-                            <img src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="User" />
-                            <div>
-                                <div class="user-name">Naveen</div>
-                                <div class="user-role">Amateur Footballer</div>
+                    <?php if (!empty($testimonials ?? [])): ?>
+                        <?php foreach ($testimonials as $t): ?>
+                        <div class="testimonial-card">
+                            <div class="testimonial-quote">"<?= htmlspecialchars($t['review_text']) ?>"</div>
+                            <div class="testimonial-user">
+                                <?php
+                                    $profilePic = $t['profile_picture'] ?? '';
+                                    $avatarSrc = !empty($profilePic)
+                                        ? $_base . '/' . ltrim($profilePic, '/')
+                                        : $_base . '/public/assets/images/default-avatar.png';
+                                ?>
+                                <img src="<?= htmlspecialchars($avatarSrc) ?>" alt="User" onerror="this.src='<?= $_base ?>/public/assets/images/default-avatar.png'" />
+                                <div>
+                                    <div class="user-name"><?= htmlspecialchars($t['first_name']) ?></div>
+                                    <div class="user-role"><i class="fas fa-star" style="color:#f59e0b"></i> <?= number_format((float)$t['rating'], 1) ?></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="testimonial-quote">"Found a great tennis coach within minutes. My game has improved dramatically."</div>
-                        <div class="testimonial-user">
-                            <img src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="User" />
-                            <div>
-                                <div class="user-name">Ishara</div>
-                                <div class="user-role">Tennis Enthusiast</div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="testimonial-card">
+                            <div class="testimonial-quote">"Be the first to share your experience on GoPlay!"</div>
+                            <div class="testimonial-user">
+                                <img src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="User" />
+                                <div>
+                                    <div class="user-name">Your Review</div>
+                                    <div class="user-role">Book & review a venue</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="testimonial-quote">"Clean UI, fast checkout, and reliable schedules. Highly recommend for teams."</div>
-                        <div class="testimonial-user">
-                            <img src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="User" />
-                            <div>
-                                <div class="user-name">Dinuka</div>
-                                <div class="user-role">Cricket Captain</div>
-                            </div>
-                        </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>
@@ -400,7 +417,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
             <div class="container">
                 <div class="cta-card">
                     <h2>Ready to play?</h2>
-                    <p>Join thousands of players and book your next session today.</p>
+                    <p>Join our growing community of players and book your next session today.</p>
                     <div class="cta-actions">
                         <a class="hero-btn primary" href="<?= $_base ?>/book-ground"><i class="fas fa-calendar"></i> Book a Ground</a>
                         <a class="hero-btn primary" href="<?= $_base ?>/book-coach"><i class="fas fa-calendar"></i> Hire a Coach</a>

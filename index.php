@@ -96,7 +96,6 @@ try {
     $router->get('/auth/check', 'AuthController@checkAuth');
 
     // Dashboard routes
-    $router->get('/admin/dashboard', 'AdminController@dashboard');
     $router->get('/ground-owner/dashboard', 'GroundOwnerController@dashboard');
     $router->get('/coach/dashboard', 'CoachController@dashboard');
     $router->get('/shop-owner/dashboard', 'ShopOwnerController@dashboard');
@@ -336,7 +335,6 @@ try {
     $router->post('/product/review/update', 'ProductController@updateReview');
     $router->post('/product/review/delete', 'ProductController@deleteReview');
 
-    $router->get('/news', 'NewsController@index');
 
     // ===== CHECKOUT & PAYMENT ROUTES =====
     // Checkout pages
@@ -452,6 +450,10 @@ try {
     // Contact Page Route
     $router->get('/contact', 'HomeController@contact');
 
+    // Legal Pages
+    $router->get('/terms', 'HomeController@terms');
+    $router->get('/privacy', 'HomeController@privacy');
+
     // USER PROFILE ROUTES - Add these to your existing routes in index.php
 
     // User profile routes (ESSENTIAL - ADD THESE)
@@ -548,6 +550,7 @@ try {
     $router->get('/admin/api/recent-content', 'AdminController@getRecentContent');
     $router->get('/admin/api/user-breakdown', 'AdminController@getUserBreakdown');
     $router->get('/admin/api/notifications', 'AdminController@getNotifications');
+    $router->post('/admin/api/notifications/mark-read', 'AdminController@markNotificationsRead');
     $router->get('/admin/api/profile', 'AdminController@getProfile');
 
     // Admin Sports Categories Routes

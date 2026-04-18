@@ -82,12 +82,12 @@ class AuthController extends BaseController
             $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
             $this->userModel->recordLogin($user['id'], $ipAddress, $userAgent);
 
-<<<<<<< HEAD
-=======
             // Store guest session ID before setting user_id (for cart merge)
             $guestSessionId = session_id();
 
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
+            // Regenerate session ID to prevent session fixation attacks
+            session_regenerate_id(true);
+
             // Set session
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_email'] = $user['email'];
@@ -101,10 +101,6 @@ class AuthController extends BaseController
                 'avatar' => $user['profile_picture'] ?? null
             ];
 
-<<<<<<< HEAD
-            // Determine redirect URL
-            $redirectUrl = $this->getDashboardUrl($user['user_type']);
-=======
             // Merge guest cart with user cart if guest had items
             try {
                 $cartModel = new \App\Models\Cart();
@@ -125,7 +121,6 @@ class AuthController extends BaseController
                 // Default redirect based on user type
                 $redirectUrl = $this->getDashboardUrl($user['user_type']);
             }
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
 
             return $this->json([
                 'success' => true,
