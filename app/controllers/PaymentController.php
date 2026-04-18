@@ -33,6 +33,20 @@ class PaymentController extends BaseController
      */
     public function contactDetails(Request $request): Response
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Check if user is logged in
+        if (!isset($_SESSION['user_id'])) {
+            // Store return URL in session to redirect back after login
+            // Redirect to cart checkout so user can review items before contact details
+            $_SESSION['return_after_login'] = '/cart/checkout';
+            
+            // Redirect to login page
+            return $this->redirect('/login');
+        }
+
         // Ensure user has items in cart
         $session = $this->getCartSession();
         $cart = $this->cartModel->getOrCreateCart($session['user_id'], $session['session_id']);
@@ -43,10 +57,6 @@ class PaymentController extends BaseController
         }
 
         // Load previously saved contact details from session if available
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
         $savedContact = $_SESSION['checkout_contact'] ?? [];
 
         return $this->view('checkout/contact-details', ['savedContact' => $savedContact]);
@@ -113,11 +123,18 @@ class PaymentController extends BaseController
      */
     public function paymentMethod(Request $request): Response
     {
-        // Ensure contact details are saved
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
+        // Check if user is logged in
+        if (!isset($_SESSION['user_id'])) {
+            // Redirect to cart checkout so user can review items and redo contact details if needed
+            $_SESSION['return_after_login'] = '/cart/checkout';
+            return $this->redirect('/login');
+        }
+
+        // Ensure contact details are saved
         if (!isset($_SESSION['checkout_contact'])) {
             return $this->redirect('/checkout/contact-details');
         }
@@ -139,11 +156,18 @@ class PaymentController extends BaseController
      */
     public function paymentProcessing(Request $request): Response
     {
-        // Ensure contact details are saved
+        // Ensure user is logged in
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
+        if (!isset($_SESSION['user_id'])) {
+            // Redirect to cart checkout so user can review items if needed
+            $_SESSION['return_after_login'] = '/cart/checkout';
+            return $this->redirect('/login');
+        }
+
+        // Ensure contact details are saved
         if (!isset($_SESSION['checkout_contact'])) {
             return $this->redirect('/checkout/contact-details');
         }
