@@ -241,8 +241,7 @@ function setupFormSubmissions() {
     const editForm = document.getElementById('editProductForm');
     if (editForm) {
         editForm.addEventListener('submit', function(e) {
-            // Optional: Add client-side validation here
-            // Let the form submit normally to /shop-owner/products/update
+            // Form submits normally to /shop-owner/products/update
         });
     }
 }
@@ -391,6 +390,8 @@ function editProduct(productId) {
     const stock = row.dataset.productStock || '0';
     const status = row.dataset.productStatus || 'active';
     const description = row.dataset.productDescription || '';
+    const availableSizes = row.dataset.productSizes || '';
+    const availableColors = row.dataset.productColors || '';
     
     // Populate edit form
     document.getElementById('editProductId').value = productId;
@@ -401,6 +402,8 @@ function editProduct(productId) {
     document.getElementById('editStock').value = stock;
     document.getElementById('editStatus').value = status;
     document.getElementById('editDescription').value = description;
+    document.getElementById('editProductSizes').value = availableSizes;
+    document.getElementById('editProductColors').value = availableColors;
     
     // Select category by ID
     const categorySelect = document.getElementById('editCategory');

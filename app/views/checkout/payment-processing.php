@@ -113,7 +113,11 @@ async function loadOrderSummary() {
                 <div class="summary-items">
                     ${items.map(item => `
                         <div class="summary-item">
-                            <span class="item-name">${item.product_name} × ${item.quantity}</span>
+                            <div>
+                                <span class="item-name">${item.product_name} × ${item.quantity}</span>
+                                ${item.selected_size || item.size ? `<div class="summary-variant">Size: ${item.selected_size || item.size}</div>` : ''}
+                                ${item.selected_color || item.color ? `<div class="summary-variant">Color: ${item.selected_color || item.color}</div>` : ''}
+                            </div>
                             <span class="item-price">Rs. ${parseFloat(item.total_price).toFixed(2)}</span>
                         </div>
                     `).join('')}
@@ -328,10 +332,17 @@ document.addEventListener('DOMContentLoaded', loadOrderSummary);
     justify-content: space-between;
     padding: 0.5rem 0;
     border-bottom: 1px solid #e5e7eb;
+    gap: 1rem;
 }
 
 .summary-item:last-child {
     border-bottom: none;
+}
+
+.summary-variant {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
 }
 
 .summary-totals {

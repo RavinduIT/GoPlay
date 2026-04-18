@@ -358,6 +358,76 @@ body {
     background: var(--background-white);
 }
 
+/* Variant Selection Styles */
+#variants-section {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: var(--background-light);
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--primary-color);
+}
+
+.variant-label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.variant-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.variant-option {
+    padding: 0.6rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--background-white);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.variant-option:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.variant-option.selected {
+    background: var(--primary-color);
+    color: var(--text-white);
+    border-color: var(--primary-color);
+}
+
+.color-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.color-swatch:hover {
+    border-color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.color-swatch.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--background-white), 0 0 0 4px var(--primary-color);
+}
+
 .action-buttons {
     display: flex;
     gap: 1rem;
@@ -823,6 +893,23 @@ body {
                 <i class="fas fa-check-circle"></i>
                 <span id="stock-text">In Stock</span>
             </div>
+
+            <!-- Size and Color Selection -->
+            <div id="variants-section" style="display: none;">
+                <div id="size-selector-container" style="margin-bottom: 1.5rem; display: none;">
+                    <label class="variant-label"><i class="fas fa-ruler"></i> Size</label>
+                    <div id="size-selector" class="variant-options">
+                        <!-- Sizes will be populated dynamically -->
+                    </div>
+                </div>
+
+                <div id="color-selector-container" style="margin-bottom: 1.5rem; display: none;">
+                    <label class="variant-label"><i class="fas fa-palette"></i> Color</label>
+                    <div id="color-selector" class="variant-options">
+                        <!-- Colors will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
             
             <div class="quantity-selector">
                 <span class="quantity-label">Quantity:</span>
@@ -1229,9 +1316,141 @@ function displayProductDetails(product) {
     
     // Display shop owner information
     displayShopOwnerInfo(product);
+
+    // Display available sizes and colors
+    displayVariants(product);
 }
 
-// Display shop owner information
+// Display sizes and colors if available
+function displayVariants(product) {
+    const variantsSection = document.getElementById('variants-section');
+    const sizeContainer = document.getElementById('size-selector-container');
+    const colorContainer = document.getElementById('color-selector-container');
+    const sizeSelector = document.getElementById('size-selector');
+    const colorSelector = document.getElementById('color-selector');
+    
+    // Check if product has sizes or colors
+    const hasSizes = product.available_sizes && product.available_sizes.trim() !== '';
+    const hasColors = product.available_colors && product.available_colors.trim() !== '';
+    
+    if (!hasSizes && !hasColors) {
+        variantsSection.style.display = 'none';
+        return;
+    }
+    
+    variantsSection.style.display = 'block';
+    
+    // Display sizes
+    if (hasSizes) {
+        const sizes = product.available_sizes.split(',').map(s => s.trim()).filter(s => s);
+        sizeContainer.style.display = 'block';
+        sizeSelector.innerHTML = '';
+        
+        sizes.forEach(size => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'variant-option';
+            btn.textContent = size;
+            btn.onclick = (e) => {
+                e.preventDefault();
+                document.querySelectorAll('#size-selector .variant-option').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            };
+            sizeSelector.appendChild(btn);
+        });
+    } else {
+        sizeContainer.style.display = 'none';
+    }
+    
+    // Display colors
+    if (hasColors) {
+        const colors = product.available_colors.split(',').map(c => c.trim()).filter(c => c);
+        colorContainer.style.display = 'block';
+        colorSelector.innerHTML = '';
+        
+        colors.forEach(color => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'variant-option';
+            btn.textContent = color;
+            btn.title = color;
+            btn.onclick = (e) => {
+                e.preventDefault();
+                document.querySelectorAll('#color-selector .variant-option').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            };
+            colorSelector.appendChild(btn);
+        });
+    } else {
+        colorContainer.style.display = 'none';
+    }
+}
+
+// Get selected size
+function getSelectedSize() {
+    const selected = document.querySelector('#size-selector .variant-option.selected');
+    return selected ? selected.textContent : '';
+}
+
+// Get selected color
+function getSelectedColor() {
+    const selected = document.querySelector('#color-selector .variant-option.selected');
+    return selected ? selected.textContent : '';
+}
+
+// Add to cart with variants
+function addToCartFromDetails() {
+    if (!productData) return;
+    
+    const quantity = parseInt(document.getElementById('quantity-input').value);
+    const size = getSelectedSize();
+    const color = getSelectedColor();
+    
+    // Check if variants are required
+    const hasSizes = productData.available_sizes && productData.available_sizes.trim() !== '';
+    const hasColors = productData.available_colors && productData.available_colors.trim() !== '';
+    
+    if (hasSizes && !size) {
+        alert('Please select a size');
+        return;
+    }
+    
+    if (hasColors && !color) {
+        alert('Please select a color');
+        return;
+    }
+    
+    // Call the cart API with size and color
+    const payload = {
+        product_id: productData.id,
+        quantity: quantity
+    };
+    
+    if (size) payload.selected_size = size;
+    if (color) payload.selected_color = color;
+    
+    fetch('/api/cart/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Product added to cart!');
+            // Reload cart or notify cart component
+            window.dispatchEvent(new CustomEvent('cartUpdated'));
+        } else {
+            alert('Error: ' + (data.message || 'Failed to add to cart'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding to cart');
+    });
+}
 function displayShopOwnerInfo(product) {
     const sidebar = document.getElementById('shop-owner-section');
     
@@ -1791,14 +2010,6 @@ function updateQuantity(change) {
 }
 
 // Add to cart from details page
-function addToCartFromDetails() {
-    if (!productData) return;
-    
-    const quantity = parseInt(document.getElementById('quantity-input').value);
-    
-    // Use the existing cart API
-    addToCart(productData.id, quantity);
-}
 
 // Navigate to product
 function viewProduct(productId) {

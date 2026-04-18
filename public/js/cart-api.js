@@ -270,6 +270,8 @@ class CartAPI {
                                 <span>•</span>
                                 <span>${item.brand || 'Brand'}</span>
                             </div>
+                            ${item.selected_size || item.size ? `<div class="cart-item-variant"><strong>Size:</strong> ${item.selected_size || item.size}</div>` : ''}
+                            ${item.selected_color || item.color ? `<div class="cart-item-variant"><strong>Color:</strong> ${item.selected_color || item.color}</div>` : ''}
                             <div class="cart-item-quantity">
                                 <button class="qty-btn" onclick="cartAPI.updateQuantity(${item.product_id}, ${item.quantity - 1})">
                                     <i class="fas fa-minus"></i>

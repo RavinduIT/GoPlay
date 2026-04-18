@@ -79,7 +79,9 @@ class Order extends BaseModel
                     'item_description' => $item['description'] ?? '',
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
-                    'total_price' => $item['total_price']
+                    'total_price' => $item['total_price'],
+                    'selected_size' => $item['selected_size'] ?? null,
+                    'selected_color' => $item['selected_color'] ?? null
                 ];
                 
                 $orderItemModel->create($orderItemData);
@@ -595,6 +597,9 @@ class Order extends BaseModel
                 ];
             }
             
+            // Restore stock for all items in the order BEFORE cancelling
+            $this->restockProducts($orderId);
+            
             // Handle refund logic for paid card payments
             $paymentStatus = $order['payment_status'];
             if ($order['payment_method'] === 'card' && $order['payment_status'] === 'paid') {
@@ -627,6 +632,49 @@ class Order extends BaseModel
                 'success' => false,
                 'message' => 'Failed to cancel order: ' . $e->getMessage()
             ];
+        }
+    }
+
+    /**
+     * Restore stock for all items when order is cancelled
+     */
+    private function restockProducts(int $orderId): void
+    {
+        try {
+            // Get all items for this order with their shop owner info
+            $sql = "SELECT 
+                        oi.product_id,
+                        oi.quantity,
+                        p.shop_owner_id
+                    FROM order_items oi
+                    INNER JOIN products p ON oi.product_id = p.id
+                    WHERE oi.order_id = ?";
+            
+            $items = $this->query($sql, [$orderId])->fetchAll(\PDO::FETCH_ASSOC);
+            
+            if (empty($items)) {
+                error_log("No items found to restock for order: $orderId");
+                return;
+            }
+            
+            // Restore stock for each product
+            $productModel = new Product();
+            foreach ($items as $item) {
+                $productId = $item['product_id'];
+                $quantity = $item['quantity'];
+                $shopOwnerId = $item['shop_owner_id'];
+                
+                $success = $productModel->addStock($productId, $quantity, $shopOwnerId);
+                
+                if ($success) {
+                    error_log("Restocked product $productId: +$quantity units (Order: $orderId)");
+                } else {
+                    error_log("Failed to restock product $productId for order $orderId");
+                }
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Error restocking products for order $orderId: " . $e->getMessage());
         }
     }
 
