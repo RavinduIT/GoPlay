@@ -17,7 +17,9 @@ class OrderItem extends BaseModel
         'item_description',
         'quantity',
         'unit_price',
-        'total_price'
+        'total_price',
+        'selected_size',
+        'selected_color'
     ];
 
     protected array $casts = [

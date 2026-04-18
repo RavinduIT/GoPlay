@@ -300,12 +300,219 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
   box-shadow: 0 4px 8px rgba(217, 48, 37, 0.3);
 }
 
+/* Report Button */
+.btn-report {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-report:hover { 
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal.show {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.modal-body {
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.review-reference {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #2563eb;
+}
+
+.review-reference h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.review-reference p {
+  margin: 0.25rem 0;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.btn-cancel:hover {
+  background: #e0e0e0;
+}
+
+.btn-submit {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-submit:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .dashboard-content { margin-left: 0; }
   .review-card { flex-direction: column; gap: 1rem; }
   .review-actions { align-self: flex-start; margin-top: 1rem; }
   .stats-container { grid-template-columns: 1fr; }
+  .modal-content { width: 95%; padding: 1.5rem; }
 }
 </style>
 
@@ -379,8 +586,8 @@ function displayReviews(reviews) {
         ${review.is_verified_purchase ? '<span class="verified-badge"><i class="fas fa-check-circle"></i> Verified Purchase</span>' : ''}
       </div>
       <div class="review-actions">
-        <button class="btn-delete" onclick="deleteReview(${review.id})">
-          <i class="fas fa-trash"></i> Delete
+        <button class="btn-report" onclick="openReportModal(${review.id}, '${escapeHtml(review.product_name)}', '${escapeHtml(review.customer_name || review.user_name || 'Anonymous')}')">
+          <i class="fas fa-flag"></i> Report
         </button>
       </div>
     </div>
@@ -436,6 +643,76 @@ function deleteReview(reviewId) {
   form.submit();
 }
 
+// Open report modal
+function openReportModal(reviewId, productName, customerName) {
+  document.getElementById('reportModal').classList.add('show');
+  document.getElementById('reviewIdHidden').value = reviewId;
+  document.getElementById('productNameDisplay').textContent = productName;
+  document.getElementById('customerNameDisplay').textContent = customerName;
+  document.getElementById('reportReason').value = '';
+  document.getElementById('reportReason').focus();
+}
+
+// Close report modal
+function closeReportModal() {
+  document.getElementById('reportModal').classList.remove('show');
+  document.getElementById('reportReasonForm').reset();
+}
+
+// Handle report form submission
+function submitReport() {
+  const reviewId = document.getElementById('reviewIdHidden').value;
+  const reason = document.getElementById('reportReason').value.trim();
+  
+  if (!reason) {
+    alert('Please provide a reason for reporting this review.');
+    return;
+  }
+  
+  if (reason.length < 10) {
+    alert('Please provide at least 10 characters for the reason.');
+    return;
+  }
+  
+  // Show success message
+  alert('Thank you! This review has been reported. Our team will review it shortly.');
+  closeReportModal();
+  
+  // TODO: Implement actual report submission to backend
+  // Example code for backend integration when ready:
+  /*
+  fetch('/api/shop-owner/reviews/report', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      review_id: reviewId,
+      reason: reason
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Review reported successfully');
+      closeReportModal();
+      loadReviews();
+    } else {
+      alert('Failed to report review: ' + data.message);
+    }
+  })
+  .catch(error => console.error('Error:', error));
+  */
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+  const modal = document.getElementById('reportModal');
+  if (modal && event.target === modal) {
+    closeReportModal();
+  }
+});
+
 // Show error message
 function showError(message) {
   const container = document.getElementById('reviews-list');
@@ -448,3 +725,62 @@ function showError(message) {
   `;
 }
 </script>
+
+<!-- Report Review Modal -->
+<div id="reportModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-flag"></i> Report Review</h2>
+      <button class="modal-close" onclick="closeReportModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Review Reference Info -->
+      <div class="review-reference">
+        <h4>Review Information:</h4>
+        <p><strong>Product:</strong> <span id="productNameDisplay"></span></p>
+        <p><strong>Reviewer:</strong> <span id="customerNameDisplay"></span></p>
+      </div>
+      
+      <!-- Report Form -->
+      <form id="reportReasonForm" onsubmit="submitReport(); return false;">
+        <input type="hidden" id="reviewIdHidden" value="">
+        
+        <div class="form-group">
+          <label for="reportReason">Reason for Report <span style="color: #ef4444;">*</span></label>
+          <textarea 
+            id="reportReason" 
+            name="reportReason" 
+            placeholder="Please explain why you are reporting this review (minimum 10 characters)..."
+            required
+            minlength="10"></textarea>
+          <small style="color: #999; display: block; margin-top: 0.5rem;">
+            <span id="charCount">0</span>/500 characters
+          </small>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" onclick="closeReportModal()">
+        Cancel
+      </button>
+      <button type="button" class="btn-submit" onclick="submitReport()">
+        <i class="fas fa-paper-plane"></i> Submit Report
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Character counter for textarea
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.getElementById('reportReason');
+  if (textarea) {
+    textarea.addEventListener('input', function() {
+      document.getElementById('charCount').textContent = this.value.length;
+    });
+  }
+});

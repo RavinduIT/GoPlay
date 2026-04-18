@@ -78,6 +78,8 @@ class CartController extends BaseController
 
             $productId = (int) $data['product_id'];
             $quantity = (int) ($data['quantity'] ?? 1);
+            $selectedSize = $data['selected_size'] ?? null;
+            $selectedColor = $data['selected_color'] ?? null;
 
             if ($quantity < 1) {
                 return $this->json([
@@ -92,8 +94,8 @@ class CartController extends BaseController
             // Get or create cart
             $cart = $cartModel->getOrCreateCart($session['user_id'], $session['session_id']);
             
-            // Add item to cart
-            $success = $cartModel->addItem($cart['id'], $productId, $quantity);
+            // Add item to cart with size and color
+            $success = $cartModel->addItem($cart['id'], $productId, $quantity, $selectedSize, $selectedColor);
             
             if ($success) {
                 // Return updated cart details

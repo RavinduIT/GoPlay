@@ -20,7 +20,7 @@ class AdminController extends BaseController
     public function dashboard(Request $request): Response
     {
         // Check if user is authenticated and is admin
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
             return $this->redirect('/login');
         }
@@ -238,26 +238,56 @@ class AdminController extends BaseController
                 ], 404);
             }
 
-            // Update application status
-            $updateSql = "UPDATE provider_applications
-                          SET status = 'approved',
-                              reviewed_by = ?,
-                              reviewed_at = NOW()
-                          WHERE id = ?";
-            $updateStmt = $db->prepare($updateSql);
-            $updateStmt->execute([$_SESSION['user_id'], $id]);
-
-            // Update user type if user_id exists
-            if ($application['user_id']) {
-                $userUpdateSql = "UPDATE users SET user_type = ? WHERE id = ?";
-                $userUpdateStmt = $db->prepare($userUpdateSql);
-                $userUpdateStmt->execute([$application['provider_type'], $application['user_id']]);
-                
-                // Auto-create profile based on provider type
-                $this->createProviderProfile($application);
+            // Validate state transition — only pending applications can be approved
+            if ($application['status'] !== 'pending') {
+                return $this->json([
+                    'success' => false,
+                    'message' => "Cannot approve an application with status '{$application['status']}'. Only pending applications can be approved."
+                ], 400);
             }
 
-            // Send approval email to applicant
+            $db->beginTransaction();
+
+            try {
+                // Update application status
+                $updateSql = "UPDATE provider_applications
+                              SET status = 'approved',
+                                  reviewed_by = ?,
+                                  reviewed_at = NOW()
+                              WHERE id = ? AND status = 'pending'";
+                $updateStmt = $db->prepare($updateSql);
+                $updateStmt->execute([$_SESSION['user_id'], $id]);
+
+                if ($updateStmt->rowCount() === 0) {
+                    $db->rollBack();
+                    return $this->json([
+                        'success' => false,
+                        'message' => 'Application was already processed by another admin.'
+                    ], 409);
+                }
+
+                // Update user type if user_id exists
+                if ($application['user_id']) {
+                    $userUpdateSql = "UPDATE users SET user_type = ? WHERE id = ?";
+                    $userUpdateStmt = $db->prepare($userUpdateSql);
+                    $userUpdateStmt->execute([$application['provider_type'], $application['user_id']]);
+                    
+                    // Auto-create profile based on provider type
+                    $this->createProviderProfile($application);
+                }
+
+                $db->commit();
+            } catch (\Exception $txErr) {
+                $db->rollBack();
+                error_log("Approval transaction failed: " . $txErr->getMessage());
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Failed to approve application. Profile creation error: ' . $txErr->getMessage()
+                ], 500);
+            }
+
+            // Send approval email to applicant (outside transaction — non-critical)
+            $emailWarning = '';
             try {
                 $emailService = new \App\Services\EmailService();
                 $emailService->sendProviderApprovalEmail(
@@ -267,6 +297,7 @@ class AdminController extends BaseController
                 );
             } catch (\Exception $emailErr) {
                 error_log("Approval email failed: " . $emailErr->getMessage());
+                $emailWarning = ' Note: confirmation email could not be sent.';
             }
 
             // Create in-app notification for the user
@@ -295,7 +326,7 @@ class AdminController extends BaseController
 
             return $this->json([
                 'success' => true,
-                'message' => 'Application approved successfully'
+                'message' => 'Application approved successfully.' . $emailWarning
             ]);
         } catch (\Exception $e) {
             error_log("Error approving application: " . $e->getMessage());
@@ -308,29 +339,25 @@ class AdminController extends BaseController
     
     /**
      * Create provider profile based on application data
+     * Throws on failure so the calling transaction can roll back.
      */
     private function createProviderProfile(array $application): void
     {
-        try {
-            $userId = $application['user_id'];
-            $providerType = $application['provider_type'];
-            
-            switch ($providerType) {
-                case 'shop_owner':
-                    $this->createShopOwnerProfile($userId, $application);
-                    break;
-                    
-                case 'ground_owner':
-                    $this->createGroundOwnerProfile($userId, $application);
-                    break;
-                    
-                case 'coach':
-                    $this->createCoachProfile($userId, $application);
-                    break;
-            }
-        } catch (\Exception $e) {
-            error_log("Error creating provider profile: " . $e->getMessage());
-            // Don't throw error - profile can be completed later by user
+        $userId = $application['user_id'];
+        $providerType = $application['provider_type'];
+        
+        switch ($providerType) {
+            case 'shop_owner':
+                $this->createShopOwnerProfile($userId, $application);
+                break;
+                
+            case 'ground_owner':
+                $this->createGroundOwnerProfile($userId, $application);
+                break;
+                
+            case 'coach':
+                $this->createCoachProfile($userId, $application);
+                break;
         }
     }
     
@@ -421,7 +448,7 @@ class AdminController extends BaseController
             }
 
             // Find sport_category_id from specialization name
-            $sportCategoryId = 1; // Default fallback
+            $sportCategoryId = null;
             $sportName = $application['sport_specialization'] ?? '';
             if (!empty($sportName)) {
                 $catStmt = $db->prepare("SELECT id FROM sports_categories WHERE name LIKE ? AND is_active = 1 LIMIT 1");
@@ -430,6 +457,11 @@ class AdminController extends BaseController
                 if ($cat) {
                     $sportCategoryId = (int)$cat['id'];
                 }
+            }
+            // If no match found, use the first active category as fallback
+            if ($sportCategoryId === null) {
+                $fallback = $db->query("SELECT id FROM sports_categories WHERE is_active = 1 ORDER BY id ASC LIMIT 1")->fetch(\PDO::FETCH_ASSOC);
+                $sportCategoryId = $fallback ? (int)$fallback['id'] : 1;
             }
 
             // Avoid double JSON encoding - specialties may already be a JSON string
@@ -457,6 +489,7 @@ class AdminController extends BaseController
             ]);
         } catch (\Exception $e) {
             error_log("Error creating coach profile: " . $e->getMessage());
+            throw $e; // Re-throw so the approval transaction can roll back
         }
     }
 
@@ -488,58 +521,78 @@ class AdminController extends BaseController
 
             $db = $this->getDatabase();
 
+            // Fetch application and validate state transition
+            $checkStmt = $db->prepare("SELECT * FROM provider_applications WHERE id = ?");
+            $checkStmt->execute([$id]);
+            $application = $checkStmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$application) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Application not found'
+                ], 404);
+            }
+
+            if ($application['status'] !== 'pending') {
+                return $this->json([
+                    'success' => false,
+                    'message' => "Cannot reject an application with status '{$application['status']}'. Only pending applications can be rejected."
+                ], 400);
+            }
+
             // Update application status
             $sql = "UPDATE provider_applications
                     SET status = 'rejected',
                         reviewed_by = ?,
                         reviewed_at = NOW(),
                         rejection_reason = ?
-                    WHERE id = ?";
+                    WHERE id = ? AND status = 'pending'";
             $stmt = $db->prepare($sql);
             $stmt->execute([$_SESSION['user_id'], $reason, $id]);
 
-            // Send rejection email to applicant
+            // Send rejection email and in-app notification
+            $emailWarning = '';
             try {
-                $application = $db->prepare("SELECT * FROM provider_applications WHERE id = ?");
-                $application->execute([$id]);
-                $app = $application->fetch(\PDO::FETCH_ASSOC);
-                if ($app) {
-                    $emailService = new \App\Services\EmailService();
-                    $emailService->sendNotification(
-                        $app['email'],
-                        $app['first_name'] . ' ' . $app['last_name'],
-                        'GoPlay - Application Update',
-                        '<h2>Application Update</h2>'
-                        . '<p>We have reviewed your provider application and unfortunately we are unable to approve it at this time.</p>'
-                        . '<p><strong>Reason:</strong> ' . htmlspecialchars($reason) . '</p>'
-                        . '<p>You are welcome to submit a new application after addressing the above feedback.</p>'
-                        . '<br><p>Best regards,<br><strong>The GoPlay Team</strong></p>'
-                    );
-
-                    // Create in-app notification for the user
-                    if (!empty($app['user_id'])) {
-                        $notificationModel = new \App\Models\Notification();
-                        $providerLabel = str_replace('_', ' ', ucfirst($app['provider_type']));
-                        $notificationModel->createNotification(
-                            (int)$app['user_id'],
-                            'provider_rejected',
-                            'Application Not Approved',
-                            "Your {$providerLabel} application was not approved. Reason: {$reason}. You can resubmit after addressing the feedback.",
-                            [
-                                'application_id' => $id,
-                                'provider_type' => $app['provider_type'],
-                                'reason' => $reason
-                            ]
-                        );
-                    }
-                }
+                $emailService = new \App\Services\EmailService();
+                $emailService->sendNotification(
+                    $application['email'],
+                    $application['first_name'] . ' ' . $application['last_name'],
+                    'GoPlay - Application Update',
+                    '<h2>Application Update</h2>'
+                    . '<p>We have reviewed your provider application and unfortunately we are unable to approve it at this time.</p>'
+                    . '<p><strong>Reason:</strong> ' . htmlspecialchars($reason) . '</p>'
+                    . '<p>You are welcome to submit a new application after addressing the above feedback.</p>'
+                    . '<br><p>Best regards,<br><strong>The GoPlay Team</strong></p>'
+                );
             } catch (\Exception $emailErr) {
                 error_log("Rejection email failed: " . $emailErr->getMessage());
+                $emailWarning = ' Note: notification email could not be sent.';
+            }
+
+            // Create in-app notification for the user
+            try {
+                if (!empty($application['user_id'])) {
+                    $notificationModel = new \App\Models\Notification();
+                    $providerLabel = str_replace('_', ' ', ucfirst($application['provider_type']));
+                    $notificationModel->createNotification(
+                        (int)$application['user_id'],
+                        'provider_rejected',
+                        'Application Not Approved',
+                        "Your {$providerLabel} application was not approved. Reason: {$reason}. You can resubmit after addressing the feedback.",
+                        [
+                            'application_id' => $id,
+                            'provider_type' => $application['provider_type'],
+                            'reason' => $reason
+                        ]
+                    );
+                }
+            } catch (\Exception $notifErr) {
+                error_log("Rejection notification failed: " . $notifErr->getMessage());
             }
 
             return $this->json([
                 'success' => true,
-                'message' => 'Application rejected'
+                'message' => 'Application rejected.' . $emailWarning
             ]);
         } catch (\Exception $e) {
             error_log("Error rejecting application: " . $e->getMessage());
@@ -597,7 +650,7 @@ class AdminController extends BaseController
                         'total' => (int)$totalGrounds,
                         'label' => 'Active facilities'
                     ],
-                    'products' => [
+                    'coaches' => [
                         'total' => (int)$totalCoaches,
                         'label' => 'Active coaches'
                     ]
@@ -621,7 +674,7 @@ class AdminController extends BaseController
 
         try {
             $db = $this->getDatabase();
-            $period = (int)($_GET['period'] ?? 7);
+            $period = (int)($request->query('period') ?? 7);
             if ($period < 1 || $period > 365) $period = 7;
 
             $stmt = $db->prepare(
@@ -671,7 +724,7 @@ class AdminController extends BaseController
 
         try {
             $db = $this->getDatabase();
-            $limit = min(20, max(1, (int)($_GET['limit'] ?? 5)));
+            $limit = min(20, max(1, (int)($request->query('limit') ?? 5)));
 
             $stmt = $db->prepare(
                 "SELECT id, first_name, last_name, email, user_type, created_at
@@ -821,29 +874,34 @@ class AdminController extends BaseController
 
         try {
             $db = $this->getDatabase();
+            $userId = $_SESSION['user_id'];
 
-            // Count pending provider applications
-            $pending = $db->query(
-                "SELECT COUNT(*) as c FROM provider_applications WHERE status = 'pending'"
-            )->fetch(\PDO::FETCH_ASSOC)['c'];
+            // Get recent notifications for this admin
+            $stmt = $db->prepare(
+                "SELECT id, type, title, message, is_read, created_at
+                 FROM notifications
+                 WHERE user_id = ?
+                 ORDER BY created_at DESC
+                 LIMIT 20"
+            );
+            $stmt->execute([$userId]);
+            $notifications = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            // Count new users in last 24h
-            $newUsers = $db->query(
-                "SELECT COUNT(*) as c FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)"
-            )->fetch(\PDO::FETCH_ASSOC)['c'];
-
-            $totalCount = (int)$pending + (int)$newUsers;
+            // Get unread count
+            $countStmt = $db->prepare(
+                "SELECT COUNT(*) as unread FROM notifications WHERE user_id = ? AND is_read = 0"
+            );
+            $countStmt->execute([$userId]);
+            $unreadCount = (int)$countStmt->fetch(\PDO::FETCH_ASSOC)['unread'];
 
             return $this->json([
                 'success' => true,
-                'count' => $totalCount,
-                'details' => [
-                    'pending_applications' => (int)$pending,
-                    'new_users_24h' => (int)$newUsers
-                ]
+                'notifications' => $notifications,
+                'unread_count' => $unreadCount
             ]);
         } catch (\Exception $e) {
-            return $this->json(['success' => true, 'count' => 0], 200);
+            error_log("Admin getNotifications error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to load notifications'], 500);
         }
     }
 
@@ -1010,6 +1068,39 @@ class AdminController extends BaseController
         } catch (\Exception $e) {
             error_log("Admin rejectPayout error: " . $e->getMessage());
             return $this->json(['success' => false, 'message' => 'Failed to reject payout'], 500);
+        }
+    }
+
+
+    /**
+     * API: Mark notification(s) as read
+     */
+    public function markNotificationsRead(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $db = $this->getDatabase();
+            $userId = $_SESSION['user_id'];
+            $data = $request->getJsonBody();
+
+            if (!empty($data['id'])) {
+                // Mark a single notification as read
+                $stmt = $db->prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?");
+                $stmt->execute([(int)$data['id'], $userId]);
+            } else {
+                // Mark all as read
+                $stmt = $db->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0");
+                $stmt->execute([$userId]);
+            }
+
+            return $this->json(['success' => true]);
+        } catch (\Exception $e) {
+            error_log("Admin markNotificationsRead error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to update notifications'], 500);
         }
     }
 }
