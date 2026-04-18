@@ -268,6 +268,78 @@ class ShopOwnerBalance extends BaseModel
     }
 
     /**
+     * Confirm COD credit for ONE specific shop owner in a multi-seller order.
+     * Only releases that owner's pending amount — other owners are not affected.
+     */
+    public function confirmCODCreditForOwner(int $orderId, int $shopOwnerId): bool
+    {
+        try {
+            $txList = $this->query(
+                "SELECT * FROM shop_owner_transactions WHERE order_id = ? AND shop_owner_id = ? AND type = 'credit_sale' AND status = 'pending'",
+                [$orderId, $shopOwnerId]
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($txList as $tx) {
+                $netAmount = (float)$tx['net_amount'];
+
+                $this->query(
+                    "UPDATE {$this->table}
+                     SET available_balance = available_balance + ?,
+                         pending_balance   = GREATEST(0, pending_balance - ?),
+                         total_earned      = total_earned + ?
+                     WHERE shop_owner_id = ?",
+                    [$netAmount, $netAmount, $netAmount, $shopOwnerId]
+                );
+
+                $balance = $this->getOrCreateBalance($shopOwnerId);
+                $this->query(
+                    "UPDATE shop_owner_transactions SET status = 'completed', balance_after = ?, description = REPLACE(description, 'COD pending', 'COD confirmed') WHERE id = ?",
+                    [$balance['available_balance'], $tx['id']]
+                );
+
+                error_log("COD credit confirmed for shop owner {$shopOwnerId}, order {$orderId}: LKR {$netAmount}");
+            }
+            return true;
+        } catch (\Exception $e) {
+            error_log("Failed to confirm COD credit for owner {$shopOwnerId}, order {$orderId}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Cancel COD credit for ONE specific shop owner in a multi-seller order.
+     */
+    public function cancelPendingCODCreditForOwner(int $orderId, int $shopOwnerId): bool
+    {
+        try {
+            $txList = $this->query(
+                "SELECT * FROM shop_owner_transactions WHERE order_id = ? AND shop_owner_id = ? AND type = 'credit_sale' AND status = 'pending'",
+                [$orderId, $shopOwnerId]
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($txList as $tx) {
+                $netAmount = (float)$tx['net_amount'];
+
+                $this->query(
+                    "UPDATE {$this->table} SET pending_balance = GREATEST(0, pending_balance - ?) WHERE shop_owner_id = ?",
+                    [$netAmount, $shopOwnerId]
+                );
+
+                $this->query(
+                    "UPDATE shop_owner_transactions SET status = 'cancelled', description = CONCAT(description, ' [CANCELLED]') WHERE id = ?",
+                    [$tx['id']]
+                );
+
+                error_log("COD pending credit cancelled for shop owner {$shopOwnerId}, order {$orderId}");
+            }
+            return true;
+        } catch (\Exception $e) {
+            error_log("Failed to cancel COD credit for owner {$shopOwnerId}, order {$orderId}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Cancel pending COD credits for an order (order cancelled before delivery).
      * Reduces pending_balance and marks transactions cancelled — no available_balance impact.
      *
