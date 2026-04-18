@@ -10,6 +10,11 @@ use App\Models\ProductReview;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ShopOwnerProfile;
+<<<<<<< HEAD
+=======
+use App\Models\ShopOwnerBalance;
+use App\Models\ShopOwnerPayout;
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
 use App\Models\User;
 
 class ShopOwnerController extends BaseController
@@ -962,6 +967,19 @@ class ShopOwnerController extends BaseController
                 }
                 $messages[] = $result['message'];
                 $hasUpdates = true;
+<<<<<<< HEAD
+=======
+
+                // Release or cancel COD pending earnings based on new status
+                $balanceModel = new ShopOwnerBalance();
+                if ($newStatus === 'delivered') {
+                    // Cash collected — release pending balance to available
+                    $balanceModel->confirmCODCredit($orderId);
+                } elseif (in_array($newStatus, ['cancelled', 'returned'])) {
+                    // Order failed — reverse pending balance
+                    $balanceModel->cancelPendingCODCredit($orderId);
+                }
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
             }
             
             // Update payment status if provided
@@ -1637,6 +1655,88 @@ class ShopOwnerController extends BaseController
     // EARNINGS & PAYOUT METHODS
     // =========================================================
 
+<<<<<<< HEAD
+=======
+    // =============================================
+    // NOTIFICATION METHODS
+    // =============================================
+
+    /** GET /api/shop-owner/notifications/count — unread badge count */
+    public function getNotificationsCount(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->json(['count' => 0]);
+        }
+        $count = (new \App\Models\Notification())->getUnreadCount($_SESSION['user_id']);
+        return $this->json(['count' => $count]);
+    }
+
+    /** GET /api/shop-owner/notifications */
+    public function getNotifications(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        try {
+            $model      = new \App\Models\Notification();
+            $userId     = $_SESSION['user_id'];
+            $type       = $request->getQuery('type');
+            $unreadOnly = $request->getQuery('unread') === 'true';
+            return $this->json([
+                'success'       => true,
+                'notifications' => $model->getByUser($userId, $type, $unreadOnly),
+                'stats'         => $model->getStats($userId),
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Error loading notifications'], 500);
+        }
+    }
+
+    /** PUT /api/shop-owner/notifications/{id}/read */
+    public function markNotificationRead(Request $request, $id): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $ok = (new \App\Models\Notification())->markAsRead((int)$id, $_SESSION['user_id']);
+        return $this->json(['success' => $ok]);
+    }
+
+    /** PUT /api/shop-owner/notifications/mark-all-read */
+    public function markAllNotificationsRead(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        (new \App\Models\Notification())->markAllAsRead($_SESSION['user_id']);
+        return $this->json(['success' => true, 'message' => 'All notifications marked as read']);
+    }
+
+    /** DELETE /api/shop-owner/notifications/{id} */
+    public function deleteNotification(Request $request, $id): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $ok = (new \App\Models\Notification())->deleteNotification((int)$id, $_SESSION['user_id']);
+        return $this->json(['success' => $ok]);
+    }
+
+    /** DELETE /api/shop-owner/notifications/clear-all */
+    public function clearAllNotifications(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        (new \App\Models\Notification())->clearAll($_SESSION['user_id']);
+        return $this->json(['success' => true, 'message' => 'All notifications cleared']);
+    }
+
+    // =============================================
+    // EARNINGS / PAYOUTS
+    // =============================================
+
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
     /**
      * Render earnings & payouts page
      */
@@ -1662,7 +1762,11 @@ class ShopOwnerController extends BaseController
             $page = max(1, (int)$request->getQuery('page', 1));
 
             $balanceModel = new ShopOwnerBalance();
+<<<<<<< HEAD
             $payoutModel = new \App\Models\ShopOwnerPayout();
+=======
+            $payoutModel = new ShopOwnerPayout();
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
 
             $summary = $balanceModel->getEarningsSummary($shopOwnerId);
             $transactions = $balanceModel->getTransactionHistory($shopOwnerId, $page, 15);
@@ -1719,7 +1823,11 @@ class ShopOwnerController extends BaseController
                 'branch_name' => $data['branch_name'] ?? $profile['payout_branch_name'] ?? ''
             ];
 
+<<<<<<< HEAD
             $payoutModel = new \App\Models\ShopOwnerPayout();
+=======
+            $payoutModel = new ShopOwnerPayout();
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
             $result = $payoutModel->createRequest($shopOwnerId, $payoutDetails);
 
             return $this->json($result, $result['success'] ? 200 : 400);

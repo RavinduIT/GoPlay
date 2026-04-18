@@ -425,6 +425,17 @@ try {
     $router->post('/api/shop-owner/request-payout', 'ShopOwnerController@requestPayout');
     $router->post('/api/shop-owner/payout-details', 'ShopOwnerController@updatePayoutDetails');
 
+<<<<<<< HEAD
+=======
+    // Shop Owner Notifications (specific routes before {id} wildcard)
+    $router->get('/api/shop-owner/notifications/count', 'ShopOwnerController@getNotificationsCount');
+    $router->put('/api/shop-owner/notifications/mark-all-read', 'ShopOwnerController@markAllNotificationsRead');
+    $router->delete('/api/shop-owner/notifications/clear-all', 'ShopOwnerController@clearAllNotifications');
+    $router->get('/api/shop-owner/notifications', 'ShopOwnerController@getNotifications');
+    $router->put('/api/shop-owner/notifications/{id}/read', 'ShopOwnerController@markNotificationRead');
+    $router->delete('/api/shop-owner/notifications/{id}', 'ShopOwnerController@deleteNotification');
+
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
     // Admin Payout Management
     $router->get('/admin/payouts', 'AdminController@payoutsPage');
     $router->get('/api/admin/payouts', 'AdminController@getPayouts');

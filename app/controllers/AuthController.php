@@ -82,6 +82,12 @@ class AuthController extends BaseController
             $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
             $this->userModel->recordLogin($user['id'], $ipAddress, $userAgent);
 
+<<<<<<< HEAD
+=======
+            // Store guest session ID before setting user_id (for cart merge)
+            $guestSessionId = session_id();
+
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
             // Set session
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_email'] = $user['email'];
@@ -95,8 +101,31 @@ class AuthController extends BaseController
                 'avatar' => $user['profile_picture'] ?? null
             ];
 
+<<<<<<< HEAD
             // Determine redirect URL
             $redirectUrl = $this->getDashboardUrl($user['user_type']);
+=======
+            // Merge guest cart with user cart if guest had items
+            try {
+                $cartModel = new \App\Models\Cart();
+                $cartModel->mergeGuestCartWithUserCart($guestSessionId, $user['id']);
+            } catch (\Exception $e) {
+                // Log merge error but don't fail login
+                error_log('Cart merge error during login: ' . $e->getMessage());
+            }
+
+            // Determine redirect URL
+            // Check if there's a return URL from checkout or other process
+            $redirectUrl = $_SESSION['return_after_login'] ?? null;
+            
+            if ($redirectUrl) {
+                // Clear the return URL so it's not reused
+                unset($_SESSION['return_after_login']);
+            } else {
+                // Default redirect based on user type
+                $redirectUrl = $this->getDashboardUrl($user['user_type']);
+            }
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
 
             return $this->json([
                 'success' => true,
