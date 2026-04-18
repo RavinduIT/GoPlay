@@ -205,22 +205,12 @@ class BookingController extends BaseController
             $facilityName = $facility['name'] ?? 'Ground';
             $ownerId = $facility['owner_id'] ?? null;
 
-<<<<<<< HEAD
             // Create notifications for user and ground owner
-=======
-            // Create notification for user
-            error_log("=== CREATING BOOKING NOTIFICATION ===");
-            error_log("User ID: {$userId}, Facility ID: {$facilityId}, Facility: {$facilityName}, Date: {$bookingDate}");
-            error_log("Facility data: " . json_encode($facility));
-            error_log("Owner ID from facility: " . ($ownerId ?? 'NULL'));
-
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
             $notificationId = null;
             $ownerNotificationId = null;
 
             try {
                 $notificationModel = new Notification();
-<<<<<<< HEAD
                 $notificationId = $notificationModel->createBookingPendingNotification($userId, [
                     'booking_id'    => $bookingId,
                     'facility_id'   => $facilityId,
@@ -232,55 +222,23 @@ class BookingController extends BaseController
 
                 // Notify ground owner — skip if the owner is the one who made the booking
                 if ($ownerId && (int)$ownerId !== (int)$userId) {
-=======
-                $formattedDate = date('Y-m-d', strtotime($bookingDate));
-                $formattedTime = "{$startTime} to {$endTime}";
-                $notificationId = $notificationModel->createBookingNotification($userId, [
-                    'title' => 'Booking Submitted',
-                    'message' => "Your booking request for {$facilityName} on {$formattedDate} at {$formattedTime} has been submitted and is awaiting approval from the ground owner.",
-                    'booking_id' => $bookingId,
-                    'facility_id' => $facilityId,
-                    'facility_name' => $facilityName,
-                    'booking_date' => $bookingDate,
-                    'start_time' => $startTime,
-                    'end_time' => $endTime
-                ]);
-                error_log("User notification result: " . ($notificationId ? "Created ID {$notificationId}" : "FAILED"));
-
-                // Create notification for ground owner
-                if ($ownerId) {
-                    error_log("Creating notification for owner ID: {$ownerId}");
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
                     $userModel = new User();
                     $user = $userModel->find($userId);
                     $ownerNotificationModel = new GroundOwnerNotification();
                     $ownerNotificationId = $ownerNotificationModel->createBookingNotification($ownerId, [
-<<<<<<< HEAD
                         'booking_id'    => $bookingId,
                         'facility_name' => $facilityName,
                         'first_name'    => $user['first_name'] ?? '',
                         'last_name'     => $user['last_name'] ?? '',
                         'booking_date'  => $bookingDate
                     ]);
-                }
-            } catch (\Exception $e) {
-                error_log("Notification creation error: " . $e->getMessage());
-=======
-                        'booking_id' => $bookingId,
-                        'facility_name' => $facilityName,
-                        'first_name' => $user['first_name'] ?? '',
-                        'last_name' => $user['last_name'] ?? '',
-                        'booking_date' => $bookingDate
-                    ]);
                     error_log("Owner notification result: " . ($ownerNotificationId ? "Created ID {$ownerNotificationId}" : "FAILED"));
                 } else {
-                    error_log("WARNING: No owner_id found for facility {$facilityId} - skipping owner notification");
+                    error_log("Skipping owner notification (owner missing or same as booking user)");
                 }
             } catch (\Exception $e) {
-                // Log notification error but don't fail the booking
                 error_log("Notification creation error: " . $e->getMessage());
                 error_log("Stack trace: " . $e->getTraceAsString());
->>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
             }
 
             return $this->json([
