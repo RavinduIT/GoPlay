@@ -10,8 +10,11 @@ use App\Models\ProductReview;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ShopOwnerProfile;
+<<<<<<< HEAD
+=======
 use App\Models\ShopOwnerBalance;
 use App\Models\ShopOwnerPayout;
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
 use App\Models\User;
 
 class ShopOwnerController extends BaseController
@@ -964,6 +967,8 @@ class ShopOwnerController extends BaseController
                 }
                 $messages[] = $result['message'];
                 $hasUpdates = true;
+<<<<<<< HEAD
+=======
 
                 // Release or cancel COD pending earnings based on new status
                 $balanceModel = new ShopOwnerBalance();
@@ -974,6 +979,7 @@ class ShopOwnerController extends BaseController
                     // Order failed — reverse pending balance
                     $balanceModel->cancelPendingCODCredit($orderId);
                 }
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
             }
             
             // Update payment status if provided
@@ -1228,9 +1234,7 @@ class ShopOwnerController extends BaseController
                 'status' => $_POST['status'] ?? 'active',
                 'brand' => $_POST['brand'] ?? '',
                 'sku' => $_POST['sku'] ?? '',
-                'min_stock_level' => (int)($_POST['min_stock_level'] ?? 10),
-                'available_sizes' => trim($_POST['available_sizes'] ?? '') ?: null,
-                'available_colors' => trim($_POST['available_colors'] ?? '') ?: null
+                'min_stock_level' => (int)($_POST['min_stock_level'] ?? 10)
             ];
             
             // Create product
@@ -1325,9 +1329,6 @@ class ShopOwnerController extends BaseController
             }
             
             // Prepare product data
-            $availableSizes = trim($_POST['available_sizes'] ?? '');
-            $availableColors = trim($_POST['available_colors'] ?? '');
-            
             $productData = [
                 'name' => $name,
                 'description' => $_POST['description'] ?? '',
@@ -1335,9 +1336,7 @@ class ShopOwnerController extends BaseController
                 'price' => $price,
                 'stock_quantity' => (int)($_POST['stock_quantity'] ?? $existingProduct['stock_quantity']),
                 'images' => $allImages,
-                'status' => $_POST['status'] ?? $existingProduct['status'],
-                'available_sizes' => $availableSizes ?: null,
-                'available_colors' => $availableColors ?: null
+                'status' => $_POST['status'] ?? $existingProduct['status']
             ];
             
             // Update product
@@ -1656,6 +1655,8 @@ class ShopOwnerController extends BaseController
     // EARNINGS & PAYOUT METHODS
     // =========================================================
 
+<<<<<<< HEAD
+=======
     // =============================================
     // NOTIFICATION METHODS
     // =============================================
@@ -1735,6 +1736,7 @@ class ShopOwnerController extends BaseController
     // EARNINGS / PAYOUTS
     // =============================================
 
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
     /**
      * Render earnings & payouts page
      */
@@ -1760,7 +1762,11 @@ class ShopOwnerController extends BaseController
             $page = max(1, (int)$request->getQuery('page', 1));
 
             $balanceModel = new ShopOwnerBalance();
+<<<<<<< HEAD
+            $payoutModel = new \App\Models\ShopOwnerPayout();
+=======
             $payoutModel = new ShopOwnerPayout();
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
 
             $summary = $balanceModel->getEarningsSummary($shopOwnerId);
             $transactions = $balanceModel->getTransactionHistory($shopOwnerId, $page, 15);
@@ -1817,7 +1823,11 @@ class ShopOwnerController extends BaseController
                 'branch_name' => $data['branch_name'] ?? $profile['payout_branch_name'] ?? ''
             ];
 
+<<<<<<< HEAD
+            $payoutModel = new \App\Models\ShopOwnerPayout();
+=======
             $payoutModel = new ShopOwnerPayout();
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
             $result = $payoutModel->createRequest($shopOwnerId, $payoutDetails);
 
             return $this->json($result, $result['success'] ? 200 : 400);
@@ -1867,7 +1877,7 @@ class ShopOwnerController extends BaseController
                         payout_branch_name = ?
                     WHERE user_id = ?";
             
-            $balanceModel = new \App\Models\ShopOwnerBalance();
+            $balanceModel = new ShopOwnerBalance();
             $balanceModel->runQuery($sql, [
                 $data['bank_name'],
                 $data['account_number'],
@@ -1889,4 +1899,4 @@ class ShopOwnerController extends BaseController
             ], 500);
         }
     }
-}
+}

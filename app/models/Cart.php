@@ -109,7 +109,7 @@ class Cart extends BaseModel
     /**
      * CREATE/UPDATE: Add item to cart (or update quantity if exists)
      */
-    public function addItem(int $cartId, int $productId, int $quantity = 1, ?string $selectedSize = null, ?string $selectedColor = null): bool
+    public function addItem(int $cartId, int $productId, int $quantity = 1): bool
     {
         // Get current product price
         $product = $this->queryFirst("SELECT price, stock_quantity FROM products WHERE id = ? AND status = 'active'", [$productId]);
@@ -122,10 +122,10 @@ class Cart extends BaseModel
             throw new \Exception('Insufficient stock available');
         }
 
-        // Check if item already exists in cart (considering size/color for variant matching)
+        // Check if item already exists in cart
         $existingItem = $this->queryFirst(
-            "SELECT * FROM cart_items WHERE cart_id = ? AND product_id = ? AND (selected_size <=> ?) AND (selected_color <=> ?)", 
-            [$cartId, $productId, $selectedSize, $selectedColor]
+            "SELECT * FROM cart_items WHERE cart_id = ? AND product_id = ?", 
+            [$cartId, $productId]
         );
 
         if ($existingItem) {
@@ -139,9 +139,9 @@ class Cart extends BaseModel
             $sql = "UPDATE cart_items SET quantity = ?, updated_at = NOW() WHERE id = ?";
             return $this->query($sql, [$newQuantity, $existingItem['id']]) !== false;
         } else {
-            // CREATE: Add new item with variants
-            $sql = "INSERT INTO cart_items (cart_id, product_id, quantity, unit_price, selected_size, selected_color) VALUES (?, ?, ?, ?, ?, ?)";
-            return $this->query($sql, [$cartId, $productId, $quantity, $product['price'], $selectedSize, $selectedColor]) !== false;
+            // CREATE: Add new item
+            $sql = "INSERT INTO cart_items (cart_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)";
+            return $this->query($sql, [$cartId, $productId, $quantity, $product['price']]) !== false;
         }
     }
 

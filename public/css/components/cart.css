@@ -196,22 +196,6 @@
     margin-bottom: 0.5rem;
 }
 
-.cart-item-variant {
-    display: inline-block;
-    background-color: #f1f5f9;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    color: #475569;
-    margin-right: 0.5rem;
-    margin-bottom: 0.25rem;
-}
-
-.cart-item-variant strong {
-    font-weight: 600;
-    color: #1e293b;
-}
-
 .cart-item-quantity {
     display: flex;
     align-items: center;

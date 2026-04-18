@@ -34,58 +34,37 @@
         });
     });
 
-    // Dynamic venues rendering from API (database-backed)
-    function escapeHtml(str) {
-        const d = document.createElement('div');
-        d.textContent = str;
-        return d.innerHTML;
-    }
-
+    // Dynamic venues rendering from local JSON
     async function renderVenues() {
         const grid = document.getElementById('venuesGrid');
         if (!grid) return;
         try {
-            const res = await fetch((window.BASE_URL||'')+'/api/grounds?limit=6&sort=rating');
+            const res = await fetch((window.BASE_URL||'')+'/public/data/grounds.json');
             if (!res.ok) throw new Error('Failed to load grounds');
-            const json = await res.json();
-            const venues = json.data || [];
-            if (!venues.length) {
-                grid.innerHTML = '<p style="text-align:center;color:#64748b;grid-column:1/-1;">No venues available yet. Check back soon!</p>';
-                return;
-            }
-            grid.innerHTML = venues.map(v => {
-                const name = escapeHtml(v.name || 'Venue');
-                const sport = escapeHtml(v.category_name || v.sport || '');
-                const city = escapeHtml(v.city || v.location || '');
-                const rate = Number(v.hourly_rate || v.price || 0).toLocaleString();
-                const rating = Number(v.rating || 0).toFixed(1);
-                const imgSrc = v.images && v.images[0]
-                    ? (window.BASE_URL||'')+'/'+v.images[0]
-                    : (window.BASE_URL||'')+'/public/assets/images/ground.jpeg';
-                const detailUrl = (window.BASE_URL||'')+'/ground-details?id='+parseInt(v.id);
-                return `
+            const data = await res.json();
+            const venues = (data.grounds || []).slice(0, 6);
+            grid.innerHTML = venues.map(v => `
                 <div class="venue-card">
                     <div class="venue-image">
-                        <img src="${imgSrc}" alt="${name}" loading="lazy" onerror="this.src=(window.BASE_URL||'')+'/public/assets/images/ground.jpeg'" />
+                        <img src="${v.image || (window.BASE_URL||'')+'/public/assets/images/ground.jpeg'}" alt="${v.name}" loading="lazy" onerror="this.src=(window.BASE_URL||'')+'/public/assets/images/ground.jpeg'" />
                         <div class="venue-overlay"></div>
-                        <div class="venue-rating"><i class="fas fa-star"></i> ${rating}</div>
+                        <div class="venue-rating"><i class="fas fa-star"></i> ${Number(v.rating || 4.5).toFixed(1)}</div>
                         <div class="venue-info">
-                            <div class="venue-name">${name}</div>
-                            <div class="venue-type">${sport}${sport && city ? ' • ' : ''}${city}</div>
+                            <div class="venue-name">${v.name}</div>
+                            <div class="venue-type">${(v.sport || '').toString().charAt(0).toUpperCase() + (v.sport || '').toString().slice(1)} • ${v.location}</div>
                         </div>
                     </div>
                     <div class="venue-details">
                         <div class="venue-pricing">
-                            <div class="venue-price"><i class="fas fa-tag"></i> LKR ${rate}/hr</div>
+                            <div class="venue-price"><i class="fas fa-tag"></i> LKR ${Number(v.price || 0).toLocaleString()}</div>
+                            <div class="venue-availability">Available</div>
                         </div>
-                        <a class="venue-book-btn" href="${detailUrl}"><i class="fas fa-eye"></i> View Details</a>
+                        <a class="venue-book-btn" href="${window.BASE_URL||''}/book-ground?id=${v.id}"><i class="fas fa-calendar"></i> Book Now</a>
                     </div>
-                </div>`;
-            }).join('');
+                </div>
+            `).join('');
         } catch (e) {
             console.error('Venues load error:', e);
-            const grid2 = document.getElementById('venuesGrid');
-            if (grid2) grid2.innerHTML = '<p style="text-align:center;color:#64748b;grid-column:1/-1;">Unable to load venues. Please refresh the page.</p>';
         }
     }
 

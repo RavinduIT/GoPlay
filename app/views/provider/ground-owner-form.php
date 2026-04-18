@@ -243,7 +243,7 @@ $additionalJS = [];
                         <div class="file-upload-placeholder">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Click to upload or drag and drop</p>
-                            <span>PDF or Image (Max 10MB)</span>
+                            <span>PDF or Image (Max 5MB)</span>
                         </div>
                     </div>
                     <span class="error-message"></span>
@@ -256,7 +256,7 @@ $additionalJS = [];
                         <div class="file-upload-placeholder">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Click to upload or drag and drop</p>
-                            <span>PDF or Image (Max 10MB)</span>
+                            <span>PDF or Image (Max 5MB)</span>
                         </div>
                     </div>
                     <span class="error-message"></span>
@@ -269,7 +269,7 @@ $additionalJS = [];
                         <div class="file-upload-placeholder">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Click to upload or drag and drop</p>
-                            <span>PDF or Image (Max 10MB)</span>
+                            <span>PDF or Image (Max 5MB)</span>
                         </div>
                     </div>
                     <span class="error-message"></span>

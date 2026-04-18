@@ -212,8 +212,6 @@ function displayOrderDetails(order) {
                         <tr>
                             <th>Product</th>
                             <th>SKU</th>
-                            <th>Size</th>
-                            <th>Color</th>
                             <th>Quantity</th>
                             <th>Unit Price</th>
                             <th>Total</th>
@@ -228,8 +226,6 @@ function displayOrderDetails(order) {
                 <tr>
                     <td>${escapeHtml(item.item_name || item.product_name || 'N/A')}</td>
                     <td>${escapeHtml(item.sku || '-')}</td>
-                    <td>${escapeHtml(item.selected_size || '-')}</td>
-                    <td>${escapeHtml(item.selected_color || '-')}</td>
                     <td>${item.quantity}</td>
                     <td>Rs. ${parseFloat(item.unit_price).toFixed(2)}</td>
                     <td>Rs. ${parseFloat(item.total_price).toFixed(2)}</td>

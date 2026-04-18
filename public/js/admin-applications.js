@@ -5,14 +5,6 @@
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    // Escape HTML to prevent XSS
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        const d = document.createElement('div');
-        d.textContent = String(str);
-        return d.innerHTML;
-    }
-
     // Load applications on page load
     document.addEventListener('DOMContentLoaded', function() {
         loadStatistics();
@@ -105,11 +97,11 @@ function renderApplicationsTable(applications) {
 
     tbody.innerHTML = applications.map(app => `
         <tr>
-            <td>#${parseInt(app.id)}</td>
+            <td>#${app.id}</td>
             <td>
                 <div>
-                    <strong>${escapeHtml(app.first_name)} ${escapeHtml(app.last_name)}</strong><br>
-                    <small style="color: #6b7280;">${escapeHtml(app.email)}</small>
+                    <strong>${app.first_name} ${app.last_name}</strong><br>
+                    <small style="color: #6b7280;">${app.email}</small>
                 </div>
             </td>
             <td>
@@ -117,18 +109,18 @@ function renderApplicationsTable(applications) {
             </td>
             <td>${formatDate(app.created_at)}</td>
             <td>
-                <span class="status-badge ${escapeHtml(app.status)}">${escapeHtml(app.status)}</span>
+                <span class="status-badge ${app.status}">${app.status}</span>
             </td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn-view" onclick="viewApplication(${parseInt(app.id)})">
+                    <button class="btn-view" onclick="viewApplication(${app.id})">
                         <i class="fas fa-eye"></i> View
                     </button>
                     ${app.status === 'pending' ? `
-                        <button class="btn-approve-inline" onclick="quickApprove(${parseInt(app.id)})">
+                        <button class="btn-approve-inline" onclick="quickApprove(${app.id})">
                             <i class="fas fa-check"></i>
                         </button>
-                        <button class="btn-reject-inline" onclick="quickReject(${parseInt(app.id)})">
+                        <button class="btn-reject-inline" onclick="quickReject(${app.id})">
                             <i class="fas fa-times"></i>
                         </button>
                     ` : ''}
@@ -210,24 +202,24 @@ function renderApplicationDetails(app) {
             <div class="detail-grid">
                 <div class="detail-item">
                     <div class="detail-label">Full Name</div>
-                    <div class="detail-value">${escapeHtml(app.first_name)} ${escapeHtml(app.last_name)}</div>
+                    <div class="detail-value">${app.first_name} ${app.last_name}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Email</div>
-                    <div class="detail-value">${escapeHtml(app.email)}</div>
+                    <div class="detail-value">${app.email}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Phone</div>
-                    <div class="detail-value">${escapeHtml(app.phone)}</div>
+                    <div class="detail-value">${app.phone}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">City</div>
-                    <div class="detail-value">${escapeHtml(app.city)}</div>
+                    <div class="detail-value">${app.city}</div>
                 </div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">Address</div>
-                <div class="detail-value">${escapeHtml(app.address)}</div>
+                <div class="detail-value">${app.address}</div>
             </div>
         </div>
     `;
@@ -242,156 +234,25 @@ function renderApplicationDetails(app) {
     }
 
     // Add documents section
-    html += renderDocumentsSection(app);
+    html += `
+        <div class="detail-section">
+            <h4>Documents</h4>
+            <div class="detail-grid">
+                ${app.nic_document ? `
+                    <div class="detail-item">
+                        <div class="detail-label">NIC Document</div>
+                        <div class="detail-value">
+                            <a href="${window.BASE_URL||''}/public/uploads/provider-applications/${app.nic_document}" target="_blank">
+                                <i class="fas fa-file-download"></i> View Document
+                            </a>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
 
     detailsDiv.innerHTML = html;
-}
-
-// Render all documents/uploads for an application
-function renderDocumentsSection(app) {
-    const base = window.BASE_URL || '';
-    const uploadBase = base + '/';
-
-    // Collect all document fields
-    const singleDocs = [
-        { key: 'nic_document', label: 'NIC / ID Document' },
-        { key: 'ownership_proof', label: 'Ownership Proof' },
-        { key: 'profile_photo', label: 'Profile Photo' },
-        { key: 'business_registration', label: 'Business Registration' },
-        { key: 'tax_document', label: 'Tax Document' },
-        { key: 'identification_document', label: 'Identification Document' },
-    ];
-
-    const arrayDocs = [
-        { key: 'facility_images', label: 'Facility Images' },
-        { key: 'shop_images', label: 'Shop Images' },
-        { key: 'certifications', label: 'Certifications' },
-        { key: 'additional_documents', label: 'Additional Documents' },
-    ];
-
-    let hasAny = false;
-    let items = '';
-
-    // Single file documents
-    singleDocs.forEach(doc => {
-        if (app[doc.key]) {
-            hasAny = true;
-            items += renderDocItem(doc.label, app[doc.key], uploadBase);
-        }
-    });
-
-    // Array (JSON) documents
-    arrayDocs.forEach(doc => {
-        let arr = app[doc.key];
-        if (!arr) return;
-        if (typeof arr === 'string') {
-            try { arr = JSON.parse(arr); } catch(e) { arr = null; }
-        }
-        if (Array.isArray(arr) && arr.length > 0) {
-            hasAny = true;
-            items += renderDocGallery(doc.label, arr, uploadBase);
-        }
-    });
-
-    if (!hasAny) {
-        return `
-            <div class="detail-section">
-                <h4><i class="fas fa-folder-open" style="margin-right:8px;color:#6b7280;"></i>Documents</h4>
-                <p style="color:#9ca3af;font-size:14px;padding:12px 0;">No documents were submitted with this application.</p>
-            </div>`;
-    }
-
-    return `
-        <div class="detail-section">
-            <h4><i class="fas fa-folder-open" style="margin-right:8px;color:#3b82f6;"></i>Documents & Uploads</h4>
-            <div style="display:flex;flex-direction:column;gap:16px;margin-top:12px;">
-                ${items}
-            </div>
-        </div>`;
-}
-
-function renderDocItem(label, filePath, uploadBase) {
-    const url = uploadBase + filePath;
-    const ext = filePath.split('.').pop().toLowerCase();
-    const isImage = ['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext);
-    const isPdf = ext === 'pdf';
-
-    if (isImage) {
-        return `
-            <div style="border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fafafa;">
-                <div style="padding:10px 16px;background:#f3f4f6;font-size:13px;font-weight:600;color:#374151;border-bottom:1px solid #e5e7eb;">
-                    <i class="fas fa-image" style="color:#3b82f6;margin-right:6px;"></i>${escapeHtml(label)}
-                </div>
-                <div style="padding:12px;text-align:center;">
-                    <img src="${escapeHtml(url)}" alt="${escapeHtml(label)}" 
-                         style="max-width:100%;max-height:300px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1);"
-                         onclick="window.open('${escapeHtml(url)}','_blank')"
-                         onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;color:#ef4444;\\'>Image failed to load</div>'" />
-                </div>
-                <div style="padding:8px 16px;border-top:1px solid #e5e7eb;text-align:right;">
-                    <a href="${escapeHtml(url)}" target="_blank" rel="noopener" style="font-size:12px;color:#3b82f6;text-decoration:none;font-weight:500;">
-                        <i class="fas fa-external-link-alt"></i> Open full size
-                    </a>
-                </div>
-            </div>`;
-    }
-
-    // PDF or other file
-    const icon = isPdf ? 'fa-file-pdf' : 'fa-file-alt';
-    const iconColor = isPdf ? '#ef4444' : '#6b7280';
-    return `
-        <div style="border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fafafa;">
-            <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
-                <div style="width:44px;height:44px;border-radius:10px;background:#fee2e2;display:flex;align-items:center;justify-content:center;">
-                    <i class="fas ${icon}" style="font-size:20px;color:${iconColor};"></i>
-                </div>
-                <div style="flex:1;">
-                    <div style="font-size:13px;font-weight:600;color:#374151;">${escapeHtml(label)}</div>
-                    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">${escapeHtml(filePath.split('/').pop())}</div>
-                </div>
-                <a href="${escapeHtml(url)}" target="_blank" rel="noopener" 
-                   style="padding:8px 16px;background:#3b82f6;color:#fff;border-radius:8px;font-size:12px;text-decoration:none;font-weight:500;white-space:nowrap;">
-                    <i class="fas fa-download" style="margin-right:4px;"></i> View
-                </a>
-            </div>
-        </div>`;
-}
-
-function renderDocGallery(label, files, uploadBase) {
-    const thumbs = files.map(f => {
-        const url = uploadBase + f;
-        const ext = f.split('.').pop().toLowerCase();
-        const isImage = ['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext);
-
-        if (isImage) {
-            return `<div style="width:120px;flex-shrink:0;">
-                <img src="${escapeHtml(url)}" alt="" 
-                     style="width:120px;height:90px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid #e5e7eb;transition:border-color 0.2s;"
-                     onclick="window.open('${escapeHtml(url)}','_blank')"
-                     onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#e5e7eb'"
-                     onerror="this.style.display='none'" />
-            </div>`;
-        }
-        // Non-image file
-        const isPdf = ext === 'pdf';
-        return `<div style="width:120px;flex-shrink:0;">
-            <a href="${escapeHtml(url)}" target="_blank" rel="noopener" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:120px;height:90px;border-radius:8px;border:2px solid #e5e7eb;background:#f9fafb;text-decoration:none;transition:border-color 0.2s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#e5e7eb'">
-                <i class="fas ${isPdf ? 'fa-file-pdf' : 'fa-file-alt'}" style="font-size:24px;color:${isPdf ? '#ef4444' : '#6b7280'};margin-bottom:4px;"></i>
-                <span style="font-size:10px;color:#6b7280;text-align:center;padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px;">${escapeHtml(f.split('/').pop())}</span>
-            </a>
-        </div>`;
-    }).join('');
-
-    return `
-        <div style="border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fafafa;">
-            <div style="padding:10px 16px;background:#f3f4f6;font-size:13px;font-weight:600;color:#374151;border-bottom:1px solid #e5e7eb;">
-                <i class="fas fa-images" style="color:#3b82f6;margin-right:6px;"></i>${escapeHtml(label)}
-                <span style="font-weight:400;color:#9ca3af;margin-left:4px;">(${files.length})</span>
-            </div>
-            <div style="padding:12px;display:flex;gap:10px;overflow-x:auto;">
-                ${thumbs}
-            </div>
-        </div>`;
 }
 
 // Render ground owner details
@@ -402,20 +263,20 @@ function renderGroundOwnerDetails(app) {
             <div class="detail-grid">
                 <div class="detail-item">
                     <div class="detail-label">Facility Name</div>
-                    <div class="detail-value">${escapeHtml(app.facility_name || 'N/A')}</div>
+                    <div class="detail-value">${app.facility_name || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Number of Courts</div>
-                    <div class="detail-value">${escapeHtml(app.number_of_courts || 'N/A')}</div>
+                    <div class="detail-value">${app.number_of_courts || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Hourly Rate</div>
-                    <div class="detail-value">LKR ${escapeHtml(app.proposed_hourly_rate || 'N/A')}</div>
+                    <div class="detail-value">LKR ${app.proposed_hourly_rate || 'N/A'}</div>
                 </div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">Description</div>
-                <div class="detail-value">${escapeHtml(app.facility_description || 'N/A')}</div>
+                <div class="detail-value">${app.facility_description || 'N/A'}</div>
             </div>
         </div>
     `;
@@ -429,24 +290,24 @@ function renderCoachDetails(app) {
             <div class="detail-grid">
                 <div class="detail-item">
                     <div class="detail-label">Sport Specialization</div>
-                    <div class="detail-value">${escapeHtml(app.sport_specialization || 'N/A')}</div>
+                    <div class="detail-value">${app.sport_specialization || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Experience</div>
-                    <div class="detail-value">${escapeHtml(app.experience_years || 'N/A')} years</div>
+                    <div class="detail-value">${app.experience_years || 'N/A'} years</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Session Rate</div>
-                    <div class="detail-value">LKR ${escapeHtml(app.session_rate || 'N/A')}</div>
+                    <div class="detail-value">LKR ${app.session_rate || 'N/A'}</div>
                 </div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">Bio</div>
-                <div class="detail-value">${escapeHtml(app.bio || 'N/A')}</div>
+                <div class="detail-value">${app.bio || 'N/A'}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">Qualifications</div>
-                <div class="detail-value">${escapeHtml(app.qualifications || 'N/A')}</div>
+                <div class="detail-value">${app.qualifications || 'N/A'}</div>
             </div>
         </div>
     `;
@@ -460,24 +321,24 @@ function renderShopOwnerDetails(app) {
             <div class="detail-grid">
                 <div class="detail-item">
                     <div class="detail-label">Shop Name</div>
-                    <div class="detail-value">${escapeHtml(app.shop_name || 'N/A')}</div>
+                    <div class="detail-value">${app.shop_name || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Business Type</div>
-                    <div class="detail-value">${escapeHtml(app.business_type || 'N/A')}</div>
+                    <div class="detail-value">${app.business_type || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Year Established</div>
-                    <div class="detail-value">${escapeHtml(app.year_established || 'N/A')}</div>
+                    <div class="detail-value">${app.year_established || 'N/A'}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Registration Number</div>
-                    <div class="detail-value">${escapeHtml(app.business_registration_number || 'N/A')}</div>
+                    <div class="detail-value">${app.business_registration_number || 'N/A'}</div>
                 </div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">Description</div>
-                <div class="detail-value">${escapeHtml(app.business_description || 'N/A')}</div>
+                <div class="detail-value">${app.business_description || 'N/A'}</div>
             </div>
         </div>
     `;
@@ -507,10 +368,6 @@ function showRejectForm() {
 async function approveApplication() {
     if (!currentApplicationId) return;
 
-    // Disable all action buttons to prevent double-click
-    const actionBtns = document.querySelectorAll('.btn-approve, .btn-approve-inline, .btn-reject, .btn-reject-inline');
-    actionBtns.forEach(b => b.disabled = true);
-
     try {
         const response = await fetch(`${window.BASE_URL||""}/admin/provider-applications/approve/${currentApplicationId}`, {
             method: 'POST',
@@ -522,7 +379,7 @@ async function approveApplication() {
         const data = await response.json();
 
         if (data.success) {
-            showSuccess(data.message || 'Application approved successfully!');
+            showSuccess('Application approved successfully!');
             closeModal();
             loadApplications(currentPage);
             loadStatistics();
@@ -532,8 +389,6 @@ async function approveApplication() {
     } catch (error) {
         console.error('Error approving application:', error);
         showError('An error occurred while approving the application');
-    } finally {
-        actionBtns.forEach(b => b.disabled = false);
     }
 }
 
@@ -544,15 +399,9 @@ async function rejectApplication() {
     const reason = document.getElementById('rejectionReason').value.trim();
 
     if (!reason) {
-        showError('Please provide a reason for rejection');
+        alert('Please provide a reason for rejection');
         return;
     }
-
-    // Disable buttons to prevent double-click
-    const submitBtn = document.querySelector('#rejectModal .btn-reject, #rejectModal button[type=\"submit\"], #rejectModal .btn-confirm-reject');
-    const actionBtns = document.querySelectorAll('.btn-approve, .btn-approve-inline, .btn-reject, .btn-reject-inline');
-    actionBtns.forEach(b => b.disabled = true);
-    if (submitBtn) submitBtn.disabled = true;
 
     try {
         const response = await fetch(`${window.BASE_URL||""}/admin/provider-applications/reject/${currentApplicationId}`, {
@@ -566,7 +415,7 @@ async function rejectApplication() {
         const data = await response.json();
 
         if (data.success) {
-            showSuccess(data.message || 'Application rejected');
+            showSuccess('Application rejected');
             closeRejectModal();
             loadApplications(currentPage);
             loadStatistics();
@@ -576,9 +425,6 @@ async function rejectApplication() {
     } catch (error) {
         console.error('Error rejecting application:', error);
         showError('An error occurred while rejecting the application');
-    } finally {
-        actionBtns.forEach(b => b.disabled = false);
-        if (submitBtn) submitBtn.disabled = false;
     }
 }
 

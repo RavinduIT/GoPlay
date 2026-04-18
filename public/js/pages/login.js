@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = result.redirect;
                 }, 1500);
             } else {
-                showToast(result.message || 'Login failed', 'error');
+                showToast(result.error || 'Login failed', 'error');
             }
         } catch (error) {
             console.error('Login error:', error);

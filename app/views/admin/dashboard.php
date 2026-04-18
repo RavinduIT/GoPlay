@@ -17,18 +17,11 @@
                 <h1 class="page-title">Dashboard Overview</h1>
             </div>
             <div class="header-right">
-                <div class="header-notifications" style="position:relative;">
-                    <button class="notification-btn" id="notifBellBtn" title="Notifications">
+                <div class="header-notifications">
+                    <button class="notification-btn">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-count" id="notifCount" style="display: none;">0</span>
+                        <span class="notification-count" style="display: none;">0</span>
                     </button>
-                    <div class="notif-dropdown" id="notifDropdown" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:380px;max-height:420px;background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e5e7eb;">
-                            <h4 style="margin:0;font-size:15px;font-weight:600;color:#1f2937;">Notifications</h4>
-                            <button id="markAllReadBtn" style="background:none;border:none;color:#3b82f6;font-size:12px;cursor:pointer;font-weight:500;">Mark all read</button>
-                        </div>
-                        <div id="notifList" style="overflow-y:auto;max-height:340px;"></div>
-                    </div>
                 </div>
                 <div class="admin-profile">
                     <div class="profile-info">
@@ -143,17 +136,17 @@
                         <h3>Quick Actions</h3>
                     </div>
                     <div class="quick-actions">
-                        <a href="<?= $_base ?>/admin/provider-applications" class="action-btn blue">
+                        <a href="<?= $_base ?>/admin/grounds/create" class="action-btn blue">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Add Ground</span>
+                        </a>
+                        <a href="<?= $_base ?>/admin/coaches/create" class="action-btn green">
                             <i class="fas fa-user-plus"></i>
-                            <span>Provider Apps</span>
+                            <span>Add Coach</span>
                         </a>
-                        <a href="<?= $_base ?>/admin/categories" class="action-btn green">
-                            <i class="fas fa-running"></i>
-                            <span>Categories</span>
-                        </a>
-                        <a href="<?= $_base ?>/admin/promotions" class="action-btn purple">
-                            <i class="fas fa-bullhorn"></i>
-                            <span>Promotions</span>
+                        <a href="<?= $_base ?>/admin/products/create" class="action-btn purple">
+                            <i class="fas fa-box"></i>
+                            <span>Add Product</span>
                         </a>
                         <a href="<?= $_base ?>/admin/news/create" class="action-btn orange">
                             <i class="fas fa-newspaper"></i>
@@ -166,7 +159,7 @@
                 <div class="dashboard-card">
                     <div class="card-header">
                         <h3>Recent Content</h3>
-                        <a href="<?= $_base ?>/admin/news" class="view-all">View All</a>
+                        <a href="<?= $_base ?>/admin/content" class="view-all">View All</a>
                     </div>
                     <div class="order-list">
                         <div class="loading-state">

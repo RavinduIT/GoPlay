@@ -51,7 +51,7 @@ async function loadDashboardStats() {
             updateStatCard('users', data.stats.users);
             updateStatCard('revenue', data.stats.revenue);
             updateStatCard('grounds', data.stats.grounds);
-            updateStatCard('coaches', data.stats.coaches);
+            updateStatCard('products', data.stats.products);
         }
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
@@ -72,6 +72,8 @@ function updateStatCard(type, stats) {
         } else if (type === 'grounds' && title.includes('grounds')) {
             updateCardContent(card, stats.total, stats.label, 0);
         } else if (type === 'coaches' && title.includes('coaches')) {
+            updateCardContent(card, stats.total, stats.label, 0);
+        } else if (type === 'products' && title.includes('products')) {
             updateCardContent(card, stats.total, stats.label, 0);
         }
     });
@@ -150,15 +152,6 @@ async function loadRevenueChart(period = '7') {
         }
     } catch (error) {
         console.error('Error loading revenue chart:', error);
-        const canvas = document.getElementById('revenueChart');
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ef4444';
-            ctx.font = '14px Inter';
-            ctx.textAlign = 'center';
-            ctx.fillText('Failed to load revenue data', canvas.width / 2, canvas.height / 2);
-        }
     }
 }
 
@@ -166,17 +159,9 @@ function drawRevenueChart(data) {
     const canvas = document.getElementById('revenueChart');
     if (!canvas) return;
     
-    // Scale canvas for crisp rendering
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    
     const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    
-    const width = rect.width;
-    const height = rect.height;
+    const width = canvas.width;
+    const height = canvas.height;
     
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
@@ -315,8 +300,6 @@ async function loadRecentRegistrations() {
         }
     } catch (error) {
         console.error('Error loading recent registrations:', error);
-        const container = document.querySelector('.booking-list');
-        if (container) container.innerHTML = '<div class="empty-state" style="color:#ef4444">Failed to load registrations</div>';
     }
 }
 
@@ -354,8 +337,6 @@ async function loadRecentContent() {
         }
     } catch (error) {
         console.error('Error loading recent content:', error);
-        const container = document.querySelector('.order-list');
-        if (container) container.innerHTML = '<div class="empty-state" style="color:#ef4444">Failed to load content</div>';
     }
 }
 
@@ -556,120 +537,4 @@ document.addEventListener('click', function(e) {
             sidebar.classList.remove('open');
         }
     }
-});
-
-// ==============================
-// Notification Bell & Dropdown
-// ==============================
-
-function loadNotifications() {
-    const base = window.BASE_URL || '';
-    fetch(base + '/admin/api/notifications')
-        .then(r => r.json())
-        .then(data => {
-            if (!data.success) return;
-            const countEl = document.getElementById('notifCount');
-            if (countEl) {
-                if (data.unread_count > 0) {
-                    countEl.textContent = data.unread_count > 9 ? '9+' : data.unread_count;
-                    countEl.style.display = 'flex';
-                } else {
-                    countEl.style.display = 'none';
-                }
-            }
-            renderNotifList(data.notifications || []);
-        })
-        .catch(err => console.error('Notifications load error:', err));
-}
-
-function renderNotifList(items) {
-    const list = document.getElementById('notifList');
-    if (!list) return;
-    if (!items.length) {
-        list.innerHTML = '<div style="padding:32px 20px;text-align:center;color:#9ca3af;font-size:14px;"><i class="fas fa-bell-slash" style="font-size:28px;margin-bottom:8px;display:block;"></i>No notifications</div>';
-        return;
-    }
-    list.innerHTML = items.map(n => {
-        const isUnread = !parseInt(n.is_read);
-        const iconMap = {
-            'system': 'fa-cog',
-            'booking_confirmation': 'fa-calendar-check',
-            'payment_success': 'fa-credit-card',
-            'order_status': 'fa-box',
-            'review_request': 'fa-star',
-            'promotional': 'fa-bullhorn'
-        };
-        const icon = iconMap[n.type] || 'fa-bell';
-        const ago = timeAgo(n.created_at);
-        return `<div style="padding:12px 20px;border-bottom:1px solid #f3f4f6;background:${isUnread ? '#f0f7ff' : '#fff'};cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='${isUnread ? '#f0f7ff' : '#fff'}'">
-            <div style="display:flex;gap:12px;align-items:flex-start;">
-                <div style="width:36px;height:36px;border-radius:50%;background:${isUnread ? '#3b82f6' : '#e5e7eb'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <i class="fas ${icon}" style="color:${isUnread ? '#fff' : '#6b7280'};font-size:14px;"></i>
-                </div>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-size:13px;font-weight:${isUnread ? '600' : '400'};color:#1f2937;margin-bottom:2px;">${escapeNotifHtml(n.title)}</div>
-                    <div style="font-size:12px;color:#6b7280;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeNotifHtml(n.message)}</div>
-                    <div style="font-size:11px;color:#9ca3af;margin-top:4px;">${ago}</div>
-                </div>
-                ${isUnread ? '<div style="width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0;margin-top:6px;"></div>' : ''}
-            </div>
-        </div>`;
-    }).join('');
-}
-
-function escapeNotifHtml(str) {
-    if (!str) return '';
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
-}
-
-function timeAgo(dateStr) {
-    const now = new Date();
-    const d = new Date(dateStr);
-    const secs = Math.floor((now - d) / 1000);
-    if (secs < 60) return 'Just now';
-    if (secs < 3600) return Math.floor(secs / 60) + 'm ago';
-    if (secs < 86400) return Math.floor(secs / 3600) + 'h ago';
-    if (secs < 604800) return Math.floor(secs / 86400) + 'd ago';
-    return d.toLocaleDateString();
-}
-
-// Toggle dropdown
-document.addEventListener('DOMContentLoaded', function() {
-    const bell = document.getElementById('notifBellBtn');
-    const dropdown = document.getElementById('notifDropdown');
-    const markAllBtn = document.getElementById('markAllReadBtn');
-
-    if (bell && dropdown) {
-        bell.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const isOpen = dropdown.style.display !== 'none';
-            dropdown.style.display = isOpen ? 'none' : 'block';
-        });
-
-        // Close on outside click
-        document.addEventListener('click', function(e) {
-            if (!dropdown.contains(e.target) && e.target !== bell && !bell.contains(e.target)) {
-                dropdown.style.display = 'none';
-            }
-        });
-    }
-
-    if (markAllBtn) {
-        markAllBtn.addEventListener('click', function() {
-            const base = window.BASE_URL || '';
-            fetch(base + '/admin/api/notifications/mark-read', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-            })
-            .then(r => r.json())
-            .then(() => loadNotifications())
-            .catch(err => console.error('Mark read error:', err));
-        });
-    }
-
-    // Auto-refresh notifications every 30s
-    setInterval(loadNotifications, 30000);
 });
