@@ -137,7 +137,7 @@ $menuItems = [
                 <i class="fas fa-user-shield"></i>
             </div>
             <div class="user-details">
-                <span class="user-name">Admin</span>
+                <span class="user-name"><?= htmlspecialchars($_SESSION['user_name'] ?? $_SESSION['first_name'] ?? 'Admin') ?></span>
                 <span class="user-role">Super Admin</span>
             </div>
         </div>

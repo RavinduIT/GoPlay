@@ -1,0 +1,12 @@
+# Disable PHP execution in uploads directory
+<FilesMatch "\.(?:php|phtml|php3|php4|php5|php7|phps|pht|shtml|cgi)$">
+    Require all denied
+</FilesMatch>
+
+# Disable directory listing
+Options -Indexes
+
+# Only allow safe file types to be served
+<FilesMatch "\.(?:jpg|jpeg|png|gif|pdf|webp|svg)$">
+    Require all granted
+</FilesMatch>
