@@ -159,6 +159,155 @@ class ShopOwnerBalance extends BaseModel
     }
 
     /**
+     * Credit a shop owner's PENDING balance for a COD order.
+     * Cash has not been collected yet — holds in pending_balance until delivery confirmed.
+     *
+     * @param int $shopOwnerId
+     * @param int $orderId
+     * @param float $grossAmount  Total sale amount for this shop owner's items
+     * @param float $feeAmount    Platform fee (5%)
+     * @return bool
+     */
+    public function creditSalePending(int $shopOwnerId, int $orderId, float $grossAmount, float $feeAmount): bool
+    {
+        try {
+            $netAmount = round($grossAmount - $feeAmount, 2);
+
+            // Idempotency check
+            $existingTx = $this->queryFirst(
+                "SELECT id FROM shop_owner_transactions WHERE shop_owner_id = ? AND order_id = ? AND type = 'credit_sale' LIMIT 1",
+                [$shopOwnerId, $orderId]
+            );
+            if ($existingTx) {
+                error_log("Idempotency guard (COD pending): order {$orderId} already recorded for shop owner {$shopOwnerId}");
+                return true;
+            }
+
+            // Ensure balance row exists
+            $this->getOrCreateBalance($shopOwnerId);
+
+            // Hold in pending_balance only — available_balance unchanged until delivery
+            $sql = "UPDATE {$this->table}
+                    SET pending_balance = pending_balance + ?
+                    WHERE shop_owner_id = ?";
+            $this->query($sql, [$netAmount, $shopOwnerId]);
+
+            $balance = $this->getOrCreateBalance($shopOwnerId);
+
+            // Record as pending transaction
+            $this->recordTransaction($shopOwnerId, [
+                'order_id'    => $orderId,
+                'type'        => 'credit_sale',
+                'gross_amount'=> $grossAmount,
+                'fee_amount'  => $feeAmount,
+                'net_amount'  => $netAmount,
+                'balance_after' => $balance['available_balance'], // available unchanged
+                'description' => "COD pending — order #{$orderId} (Gross: LKR " . number_format($grossAmount, 2) . ", Fee: LKR " . number_format($feeAmount, 2) . ")",
+                'status'      => 'pending'
+            ]);
+
+            error_log("COD pending credit LKR {$netAmount} held for shop owner {$shopOwnerId}, order {$orderId}");
+            return true;
+
+        } catch (\Exception $e) {
+            error_log("Failed to pending-credit shop owner {$shopOwnerId}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Confirm all pending COD credits for an order when delivery is confirmed.
+     * Moves pending_balance → available_balance and marks transactions completed.
+     *
+     * @param int $orderId
+     * @return bool
+     */
+    public function confirmCODCredit(int $orderId): bool
+    {
+        try {
+            // Find all pending transactions for this order
+            $txList = $this->query(
+                "SELECT * FROM shop_owner_transactions WHERE order_id = ? AND type = 'credit_sale' AND status = 'pending'",
+                [$orderId]
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (empty($txList)) {
+                // Either already confirmed or this was an online-payment order (already completed)
+                return true;
+            }
+
+            foreach ($txList as $tx) {
+                $shopOwnerId = (int)$tx['shop_owner_id'];
+                $netAmount   = (float)$tx['net_amount'];
+
+                // Move pending → available, update total_earned
+                $sql = "UPDATE {$this->table}
+                        SET available_balance = available_balance + ?,
+                            pending_balance   = GREATEST(0, pending_balance - ?),
+                            total_earned      = total_earned + ?
+                        WHERE shop_owner_id = ?";
+                $this->query($sql, [$netAmount, $netAmount, $netAmount, $shopOwnerId]);
+
+                $balance = $this->getOrCreateBalance($shopOwnerId);
+
+                // Mark transaction completed and update balance_after
+                $this->query(
+                    "UPDATE shop_owner_transactions SET status = 'completed', balance_after = ?, description = REPLACE(description, 'COD pending', 'COD confirmed') WHERE id = ?",
+                    [$balance['available_balance'], $tx['id']]
+                );
+
+                error_log("COD credit confirmed: LKR {$netAmount} released to shop owner {$shopOwnerId} for order {$orderId}");
+            }
+
+            return true;
+
+        } catch (\Exception $e) {
+            error_log("Failed to confirm COD credit for order {$orderId}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Cancel pending COD credits for an order (order cancelled before delivery).
+     * Reduces pending_balance and marks transactions cancelled — no available_balance impact.
+     *
+     * @param int $orderId
+     * @return bool
+     */
+    public function cancelPendingCODCredit(int $orderId): bool
+    {
+        try {
+            $txList = $this->query(
+                "SELECT * FROM shop_owner_transactions WHERE order_id = ? AND type = 'credit_sale' AND status = 'pending'",
+                [$orderId]
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($txList as $tx) {
+                $shopOwnerId = (int)$tx['shop_owner_id'];
+                $netAmount   = (float)$tx['net_amount'];
+
+                $this->query(
+                    "UPDATE {$this->table} SET pending_balance = GREATEST(0, pending_balance - ?) WHERE shop_owner_id = ?",
+                    [$netAmount, $shopOwnerId]
+                );
+
+                $this->query(
+                    "UPDATE shop_owner_transactions SET status = 'cancelled', description = CONCAT(description, ' [CANCELLED]') WHERE id = ?",
+                    [$tx['id']]
+                );
+
+                error_log("COD pending credit cancelled for shop owner {$shopOwnerId}, order {$orderId}");
+            }
+
+            return true;
+
+        } catch (\Exception $e) {
+            error_log("Failed to cancel COD credit for order {$orderId}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Debit a shop owner's balance for a payout withdrawal.
      * 
      * @param int $shopOwnerId The shop owner's user ID
@@ -355,6 +504,7 @@ class ShopOwnerBalance extends BaseModel
         
         return [
             'available_balance' => (float)$balance['available_balance'],
+            'pending_balance'   => (float)$balance['pending_balance'],
             'total_earned' => (float)$balance['total_earned'],
             'total_withdrawn' => (float)$balance['total_withdrawn'],
             'pending_payouts' => (float)($pendingResult['total'] ?? 0),

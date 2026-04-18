@@ -86,6 +86,20 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js'];
                             </div>
                         </div>
                     </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(255, 193, 7, 0.15);">
+                            <i class="fas fa-truck" style="color: #ffc107;"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Pending (COD)</h3>
+                            <p class="stat-number" id="pendingBalance">Rs 0.00</p>
+                            <div class="stat-change neutral">
+                                <i class="fas fa-clock"></i>
+                                <span>Awaiting delivery</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Platform Info Banner -->
@@ -273,6 +287,7 @@ function renderEarnings(data) {
     document.getElementById('totalEarned').textContent = 'Rs ' + formatNumber(s.total_earned);
     document.getElementById('monthlyEarnings').textContent = 'Rs ' + formatNumber(s.this_month_earnings);
     document.getElementById('totalWithdrawn').textContent = 'Rs ' + formatNumber(s.total_withdrawn);
+    document.getElementById('pendingBalance').textContent = 'Rs ' + formatNumber(s.pending_balance || 0);
     document.getElementById('feePercentage').textContent = s.service_fee_percentage;
     document.getElementById('minPayoutAmount').textContent = formatNumber(s.min_payout_amount);
     
@@ -323,14 +338,19 @@ function renderTransactions(txData) {
             'debit_refund': '<span style="color: #ff6348;"><i class="fas fa-undo"></i> Refund</span>',
             'credit_adjustment': '<span style="color: #2ed573;"><i class="fas fa-plus"></i> Adjustment</span>'
         };
-        
+        const statusBadge = tx.status === 'pending'
+            ? '<span style="font-size:0.7rem;background:rgba(255,193,7,0.15);color:#ffc107;border:1px solid rgba(255,193,7,0.3);border-radius:4px;padding:2px 6px;margin-left:6px;"><i class="fas fa-truck"></i> COD</span>'
+            : (tx.status === 'cancelled'
+                ? '<span style="font-size:0.7rem;background:rgba(255,99,72,0.15);color:#ff6348;border:1px solid rgba(255,99,72,0.3);border-radius:4px;padding:2px 6px;margin-left:6px;">Cancelled</span>'
+                : '');
+
         return `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
             <td style="padding: 12px; color: #ccc; font-size: 0.85rem;">${formatDate(tx.created_at)}</td>
-            <td style="padding: 12px;">${typeLabels[tx.type] || tx.type}</td>
-            <td style="padding: 12px; color: #aaa;">${tx.order_number ? '#' + tx.order_number : '-'}</td>
+            <td style="padding: 12px;">${typeLabels[tx.type] || tx.type}${statusBadge}</td>
+            <td style="padding: 12px;">${tx.order_number ? `<a href="/shop-owner/orders?search=${tx.order_number}" style="color:#00d2ff;text-decoration:none;font-size:0.85rem;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">#${tx.order_number}</a>` : '<span style="color:#555">-</span>'}</td>
             <td style="padding: 12px; text-align: right; color: #ccc;">Rs ${formatNumber(tx.gross_amount)}</td>
             <td style="padding: 12px; text-align: right; color: #ff6348;">-Rs ${formatNumber(tx.fee_amount)}</td>
-            <td style="padding: 12px; text-align: right; color: ${isCredit ? '#2ed573' : '#ff6348'}; font-weight: 600;">${isCredit ? '+' : '-'}Rs ${formatNumber(tx.net_amount)}</td>
+            <td style="padding: 12px; text-align: right; color: ${isCredit ? (tx.status === 'pending' ? '#ffc107' : '#2ed573') : '#ff6348'}; font-weight: 600;">${isCredit ? '+' : '-'}Rs ${formatNumber(tx.net_amount)}</td>
             <td style="padding: 12px; text-align: right; color: #00d2ff; font-weight: 500;">Rs ${formatNumber(tx.balance_after)}</td>
         </tr>`;
     }).join('');

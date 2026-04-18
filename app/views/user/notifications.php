@@ -42,6 +42,12 @@
             <button class="filter-tab" data-filter="order_status">
                 <i class="fas fa-shopping-bag"></i> Orders
             </button>
+            <button class="filter-tab" data-filter="new_order">
+                <i class="fas fa-store"></i> New Orders
+            </button>
+            <button class="filter-tab" data-filter="payout_approved">
+                <i class="fas fa-check-circle"></i> Payouts
+            </button>
             <button class="filter-tab" data-filter="promotional">
                 <i class="fas fa-gift"></i> Promotions
             </button>
@@ -318,6 +324,10 @@
 .icon-review-request { background: #e0e7ff; color: #6366f1; }
 .icon-promotional { background: #fce7f3; color: #ec4899; }
 .icon-system { background: #e5e7eb; color: #6b7280; }
+.icon-new-order { background: #fef3c7; color: #d97706; }
+.icon-payout-requested { background: #e0e7ff; color: #4f46e5; }
+.icon-payout-approved { background: #d1fae5; color: #059669; }
+.icon-payout-rejected { background: #fee2e2; color: #dc2626; }
 
 .notification-content {
     flex: 1;
@@ -533,7 +543,11 @@ function createNotificationCard(notification) {
         'payment':              'fa-credit-card',
         'review':               'fa-star',
         'maintenance':          'fa-tools',
-        'coach_request':        'fa-user-tie'
+        'coach_request':        'fa-user-tie',
+        'new_order':            'fa-shopping-cart',
+        'payout_requested':     'fa-paper-plane',
+        'payout_approved':      'fa-check-circle',
+        'payout_rejected':      'fa-times-circle'
     };
 
     return `
@@ -562,6 +576,10 @@ function filterNotifications() {
 
     if (currentFilter === 'unread') {
         filtered = filtered.filter(n => !n.is_read);
+    } else if (currentFilter === 'payout_approved') {
+        // Group all payout types under this tab
+        const payoutTypes = ['payout_approved', 'payout_rejected', 'payout_requested'];
+        filtered = filtered.filter(n => payoutTypes.includes(n.type || n.notification_type));
     } else if (currentFilter !== 'all') {
         filtered = filtered.filter(n => (n.type || n.notification_type) === currentFilter);
     }
