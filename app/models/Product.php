@@ -30,7 +30,9 @@ class Product extends BaseModel
         'status',
         'rating',
         'total_reviews',
-        'total_sales'
+        'total_sales',
+        'available_sizes',
+        'available_colors'
     ];
     
     protected array $casts = [
