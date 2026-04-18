@@ -1,0 +1,775 @@
+﻿malika1234m|||Shopowner payout methods
+Piyumi|||fixed cart checkout
+malika1234m|||debugging notification system
+Ravindu Lakshan Weerasinghe|||bug fix in provider registration
+Ravindu Lakshan Weerasinghe|||bug fix in shop and updated DB
+Ravindu Lakshan Weerasinghe|||payment gateway, coach, shop bug fixes
+W.T Mahagmage|||final implementation
+W.T Mahagmage|||final implmentations changes
+W.T Mahagmage|||final implmentations changes
+WinuMG|||iupdate shop owner dashboard
+W.T Mahagmage|||fix devops error
+W.T Mahagmage|||fix devops error
+W.T Mahagmage|||fix devops error
+malika1234m|||debugging notification system
+malika1234m|||debugging notification system
+Ravindu Lakshan Weerasinghe|||bug fix in provider registration
+Ravindu Lakshan Weerasinghe|||bug fix in provider registration
+Ravindu Lakshan Weerasinghe|||bug fix in provider registration
+Ravindu Lakshan Weerasinghe|||bug fix in shop and updated DB
+Ravindu Lakshan Weerasinghe|||bug fix in shop and updated DB
+Ravindu Lakshan Weerasinghe|||bug fix in shop and updated DB
+Ravindu Lakshan Weerasinghe|||payment gateway, coach, shop bug fixes
+WinukaMG|||payment gateway, coach, shop bug fixes
+WinukaMG|||payment gateway, coach, shop bug fixes
+malika1234m|||Intiate User dashboard
+malika1234m|||Intiate User dashboard
+malika1234m|||Intiate User dashboard
+malika1234m|||Remove files from tracking
+malika1234m|||Remove files from tracking
+malika1234m|||Remove files from tracking
+malika1234m|||Update coach enrollment process schemas
+WinukaMG|||Update coach enrollment process schemas
+WinukaMG|||Update coach enrollment process schemas
+malika1234m|||implement new booking system
+malika1234m|||implement new booking system
+malika1234m|||implement new booking system
+malika1234m|||update shop owner dashboard
+malika1234m|||update my order page
+malika1234m|||update the groundowner profile
+malika1234m|||update the groundowner profile
+malika1234m|||update the groundowner profile
+malika1234m|||update the shop page
+malika1234m|||updating dashboard stats
+malika1234m|||updating dashboard stats
+malika1234m|||updating dashboard stats
+malika1234m|||Update the dashboard
+malika1234m|||Update the dashboard
+malika1234m|||Update the dashboard
+malika1234m|||Updating facility models
+malika1234m|||Updating facility models
+malika1234m|||Updating facility models
+malika1234m|||Adding CSS patterns to Coach dashboard
+WinukaMG|||Adding CSS patterns to Coach dashboard
+WinukaMG|||Adding CSS patterns to Coach dashboard
+malika1234m|||updating coach booking system for users
+WinukaMG|||updating coach booking system for users
+WinukaMG|||updating coach booking system for users
+malika1234m|||implement coach reveiw system
+WinukaMG|||implement coach reveiw system
+WinukaMG|||implement coach reveiw system
+malika1234m|||finishing the coach available time slot management
+WinukaMG|||finishing the coach available time slot management
+WinukaMG|||finishing the coach available time slot management
+malika1234m|||update coach profiile with API endpoints
+WinukaMG|||update coach profiile with API endpoints
+WinukaMG|||update coach profiile with API endpoints
+malika1234m|||update database schemas
+malika1234m|||update database schemas
+malika1234m|||update database schemas
+malika1234m|||Updating coach dashboard stats
+WinukaMG|||Updating coach dashboard stats
+WinukaMG|||Updating coach dashboard stats
+malika1234m|||Intiating booking api routes
+malika1234m|||Intiating booking api routes
+malika1234m|||Intiating booking api routes
+malika1234m|||update ground owner settings
+malika1234m|||update ground owner settings
+malika1234m|||update ground owner settings
+malika1234m|||Update coach booking process
+WinukaMG|||Update coach booking process
+WinukaMG|||Update coach booking process
+malika1234m||| Add new api routes
+malika1234m||| Add new api routes
+malika1234m||| Add new api routes
+Piyumi_19|||implemented the payment gateway for shop
+Piyumi_19|||implemented the payment gateway for shop
+Piyumi_19|||implemented the payment gateway for shop
+Piyumi_19|||fixed the sidebar and some issues
+Piyumi_19|||fixed the sidebar and some issues
+Piyumi_19|||fixed the sidebar and some issues
+Piyumi_19|||.
+Piyumi_19|||.
+Piyumi_19|||.
+Piyumi_19|||updated sidebar
+Piyumi_19|||updated sidebar
+Piyumi_19|||updated sidebar
+Piyumi_19|||fixed review page problem
+Piyumi_19|||fixed review page problem
+Piyumi_19|||fixed review page problem
+Piyumi_19|||updated the dashboard functionality
+Piyumi_19|||updated the dashboard functionality
+Piyumi_19|||updated the dashboard functionality
+Piyumi_19|||fixed product details page
+Piyumi_19|||fixed product details page
+Piyumi_19|||fixed product details page
+Piyumi_19|||updated product detail page
+Piyumi_19|||updated product detail page
+Piyumi_19|||updated product detail page
+Piyumi_19|||fixed the profile page by updating the tables
+Piyumi_19|||fixed the profile page by updating the tables
+Piyumi_19|||fixed the profile page by updating the tables
+Piyumi_19|||implemented my orders page
+Piyumi_19|||implemented my orders page
+Piyumi_19|||implemented my orders page
+Piyumi_19|||order page issues fixed
+Piyumi_19|||order page issues fixed
+Piyumi_19|||order page issues fixed
+Piyumi_19|||fixed issues in orders page
+Piyumi_19|||fixed issues in orders page
+Piyumi_19|||fixed issues in orders page
+Piyumi_19|||removed some unwanted files
+Piyumi_19|||removed some unwanted files
+Piyumi_19|||removed some unwanted files
+Piyumi_19|||made some chanages in the sidebar shopowner
+Piyumi_19|||made some chanages in the sidebar shopowner
+Piyumi_19|||made some chanages in the sidebar shopowner
+Piyumi_19|||checkout and payment implementation
+Piyumi_19|||checkout and payment implementation
+Piyumi_19|||checkout and payment implementation
+Piyumi_19|||implementing order management functionalities
+Piyumi_19|||implementing order management functionalities
+Piyumi_19|||implementing order management functionalities
+Piyumi_19|||some changes in dashboard
+Piyumi_19|||some changes in dashboard
+Piyumi_19|||some changes in dashboard
+Piyumi_19|||implemented the review and rating system in shop
+Piyumi_19|||implemented the review and rating system in shop
+Piyumi_19|||implemented the review and rating system in shop
+Piyumi_19|||implemented the functionality of the inventory page(crud) - shopowner
+Piyumi_19|||implemented the functionality of the inventory page(crud) - shopowner
+Piyumi_19|||implemented the functionality of the inventory page(crud) - shopowner
+Piyumi_19|||implemented the product management crud
+Piyumi_19|||implemented the product management crud
+Piyumi_19|||implemented the product management crud
+malika1234m|||products page fix
+malika1234m|||products page fix
+malika1234m|||products page fix
+malika1234m|||set up the admin authorization email system
+malika1234m|||set up the admin authorization email system
+malika1234m|||set up the admin authorization email system
+malika1234m|||composer config
+malika1234m|||composer config
+malika1234m|||composer config
+malika1234m|||Implement phpMailer
+malika1234m|||Implement phpMailer
+malika1234m|||Implement phpMailer
+malika1234m|||finalize ground owner dashboard
+malika1234m|||finalize ground owner dashboard
+malika1234m|||finalize ground owner dashboard
+malika1234m|||update ground review system
+malika1234m|||update ground review system
+malika1234m|||update ground review system
+malika1234m|||Update ground owner dashboard
+malika1234m|||Update ground owner dashboard
+malika1234m|||Update ground owner dashboard
+malika1234m|||intiate reveiew system for users
+malika1234m|||intiate reveiew system for users
+malika1234m|||intiate reveiew system for users
+malika1234m|||intiate ground owner profile
+malika1234m|||intiate ground owner profile
+malika1234m|||intiate ground owner profile
+malika1234m|||update bookings queries
+malika1234m|||update bookings queries
+malika1234m|||update bookings queries
+malika1234m|||final commit
+malika1234m|||final commit
+malika1234m|||final commit
+malika1234m|||join as a provider section
+malika1234m|||join as a provider section
+malika1234m|||join as a provider section
+Ravindu Lakshan Weerasinghe|||implemented analytics
+Ravindu Lakshan Weerasinghe|||implemented analytics
+Ravindu Lakshan Weerasinghe|||implemented analytics
+malika1234m|||book session commit
+malika1234m|||book session commit
+malika1234m|||book session commit
+WinuMG|||fixing coach dashboard
+malika1234m|||Update mybookings
+malika1234m|||Update mybookings
+malika1234m|||Update mybookings
+Piyumi_19|||updated notifications and my orders pages
+Ravindu Lakshan Weerasinghe|||Fixed bugs in Admin news
+Ravindu Lakshan Weerasinghe|||Fixed bugs in Admin news
+Ravindu Lakshan Weerasinghe|||Fixed bugs in Admin news
+Ravindu Lakshan Weerasinghe|||News page updated UI
+Ravindu Lakshan Weerasinghe|||News page updated UI
+Ravindu Lakshan Weerasinghe|||News page updated UI
+Ravindu Lakshan Weerasinghe|||implemented analytics  and settings
+Ravindu Lakshan Weerasinghe|||implemented analytics  and settings
+Ravindu Lakshan Weerasinghe|||implemented analytics  and settings
+Ravindu Lakshan Weerasinghe|||fixed bugs in user registration
+Ravindu Lakshan Weerasinghe|||fixed bugs in user registration
+Ravindu Lakshan Weerasinghe|||fixed bugs in user registration
+malika1234m|||update model
+malika1234m|||update model
+malika1234m|||first commit
+Ravindu Lakshan Weerasinghe|||Admin Navbar separated the component
+Ravindu Lakshan Weerasinghe|||Admin Navbar separated the component
+Ravindu Lakshan Weerasinghe|||Admin Navbar separated the component
+malika1234m|||debugging coach booking session
+WinukaMG|||debugging coach booking session
+WinukaMG|||debugging coach booking session
+malika1234m|||Revert "update book-sessions"
+malika1234m|||Revert "Merge branch 'booking-new' into main"
+malika1234m|||Revert "Merge branch 'booking-new' into main"
+malika1234m|||Revert "Merge branch 'booking-new' into main"
+malika1234m|||update book-sessions
+Piyumi_19|||updated the shop dashboard
+Piyumi_19|||added myorders page
+Piyumi_19|||updated the shop dashboard
+Piyumi_19|||added myorders page
+Ravindu Lakshan Weerasinghe|||Admin News Functionalities implemented
+malika1234m|||Update coach data
+Piyumi_19|||updated the shop dashboard
+Piyumi_19|||added myorders page
+malika1234m|||update mybookings for the user
+Ravindu Lakshan Weerasinghe|||Admin News Functionalities implemented
+malika1234m|||remove console errors
+malika1234m|||Update coach data
+Piyumi_19|||shop dashboard update
+Piyumi_19|||updated the shop dashboard
+malika1234m|||update public profile colors
+malika1234m|||update coach profile
+Piyumi_19|||remove settings
+malika1234m|||update coach profile
+malika1234m|||add myorders page
+Piyumi_19|||notification page
+Piyumi_19|||added myorders page
+malika1234m|||update
+malika1234m|||update sidebar fixed position
+malika1234m|||edit shopowner side bar
+malika1234m|||update mybookings for the user
+malika1234m|||update ground-owner dashboard
+malika1234m|||edit view details pages
+malika1234m|||Update coach data
+Piyumi_19|||updated the shop dashboard
+Piyumi_19|||added myorders page
+malika1234m|||Update coach data
+Piyumi_19|||shop dashboard update
+Piyumi_19|||updated the shop dashboard
+malika1234m|||update public profile colors
+malika1234m|||update coach profile
+Piyumi_19|||remove settings
+malika1234m|||update coach profile
+malika1234m|||add myorders page
+Piyumi_19|||notification page
+Piyumi_19|||added myorders page
+malika1234m|||update
+malika1234m|||update sidebar fixed position
+malika1234m|||edit shopowner side bar
+malika1234m|||update mybookings for the user
+malika1234m|||update ground-owner dashboard
+Ravindu Lakshan Weerasinghe|||Admin News Functionalities implemented
+malika1234m|||edit view details pages
+malika1234m|||add shop_owner to the registration form
+malika1234m|||remove console errors
+malika1234m|||Update coach data
+Piyumi_19|||shop dashboard update
+Piyumi_19|||updated the shop dashboard
+malika1234m|||update public profile colors
+malika1234m|||update coach profile
+Piyumi_19|||remove settings
+malika1234m|||update coach profile
+malika1234m|||add myorders page
+Piyumi_19|||notification page
+Piyumi_19|||added myorders page
+malika1234m|||update
+malika1234m|||update sidebar fixed position
+malika1234m|||edit shopowner side bar
+malika1234m|||update mybookings for the user
+malika1234m|||update ground-owner dashboard
+Ravindu Lakshan Weerasinghe|||Admin News Functionalities implemented
+malika1234m|||edit view details pages
+malika1234m|||add shop_owner to the registration form
+malika1234m|||remove console errors
+WinukaMG|||add coach-earnings
+WinukaMG|||add coach-earnings
+malika1234m|||add coach-earnings
+WinukaMG|||add coach age filter
+WinukaMG|||add coach age filter
+malika1234m|||add coach age filter
+Ravindu Lakshan Weerasinghe|||admin user management updated
+Ravindu Lakshan Weerasinghe|||admin user management updated
+Ravindu Lakshan Weerasinghe|||admin user management updated
+malika1234m|||Update ground-owner dashboard
+malika1234m|||Update ground-owner dashboard
+malika1234m|||Update ground-owner dashboard
+Ravindu Lakshan Weerasinghe|||Implemented admin user controller
+Ravindu Lakshan Weerasinghe|||Implemented admin user controller
+Ravindu Lakshan Weerasinghe|||Implemented admin user controller
+Ravindu Lakshan Weerasinghe|||updated news and user profile stylings
+Ravindu Lakshan Weerasinghe|||updated news and user profile stylings
+Ravindu Lakshan Weerasinghe|||updated news and user profile stylings
+malika1234m|||Update coach data
+Ravindu Lakshan Weerasinghe|||implemented stylings
+Ravindu Lakshan Weerasinghe|||implemented stylings
+Ravindu Lakshan Weerasinghe|||implemented stylings
+Piyumi_19|||shop dashboard update
+Piyumi_19|||updated the shop dashboard
+malika1234m|||update public profile colors
+malika1234m|||update coach profile
+Piyumi_19|||remove settings
+malika1234m|||update coach profile
+malika1234m|||add myorders page
+Piyumi_19|||notification page
+Piyumi_19|||added myorders page
+malika1234m|||update
+malika1234m|||update sidebar fixed position
+malika1234m|||edit shopowner side bar
+malika1234m|||update mybookings for the user
+malika1234m|||Update coach bookings
+malika1234m|||update ground-owner dashboard
+malika1234m|||edit view details pages
+malika1234m|||update ground-owner dashboard
+Ravindu Lakshan Weerasinghe|||Admin News Functionalities implemented
+Ravindu Lakshan Weerasinghe|||Admin News Functionalities implemented
+Ravindu Lakshan Weerasinghe|||Admin News Functionalities implemented
+malika1234m|||edit view details pages
+malika1234m|||add shop_owner to the registration form
+malika1234m|||add shop_owner to the registration form
+malika1234m|||add shop_owner to the registration form
+malika1234m|||remove console errors
+malika1234m|||remove console errors
+malika1234m|||remove console errors
+malika1234m|||remove test debugging files
+malika1234m|||remove test debugging files
+malika1234m|||remove test debugging files
+malika1234m|||update coach booking process
+WinukaMG|||update coach booking process
+WinukaMG|||update coach booking process
+malika1234m|||updated product schema
+malika1234m|||updated product schema
+malika1234m|||updated product schema
+WinuMG|||Update router.php
+WinuMG|||Update router.php
+WinuMG|||Update router.php
+WinuMG|||Create router.php
+WinuMG|||Create router.php
+WinuMG|||Create router.php
+malika1234m|||update login details
+malika1234m|||update login details
+malika1234m|||update login details
+malika1234m|||Update  products page
+malika1234m|||update filter functions on grounds
+malika1234m|||update filter functions on grounds
+malika1234m|||update filter functions on grounds
+malika1234m|||Edit sign up function
+malika1234m|||Edit sign up function
+malika1234m|||Edit sign up function
+malika1234m|||Finish homepage design
+malika1234m|||Finish homepage design
+malika1234m|||Finish homepage design
+malika1234m|||Enhance the home page features
+malika1234m|||Enhance the home page features
+malika1234m|||Enhance the home page features
+malika1234m|||add background CSS styles
+malika1234m|||add background CSS styles
+malika1234m|||add background CSS styles
+malika1234m|||Update design system
+malika1234m|||Update design system
+malika1234m|||Update design system
+malika1234m|||final design
+malika1234m|||final design
+malika1234m|||final design
+malika1234m|||add css
+malika1234m|||add css
+malika1234m|||add css
+malika1234m|||home page edit
+malika1234m|||home page edit
+malika1234m|||home page edit
+malika1234m|||remove FIND NEAR ME function
+malika1234m|||remove FIND NEAR ME function
+malika1234m|||remove FIND NEAR ME function
+malika1234m|||remove duplicated data from the model
+malika1234m|||remove duplicated data from the model
+malika1234m|||remove duplicated data from the model
+malika1234m|||API data;
+malika1234m|||API data;
+malika1234m|||API data;
+WinukaMG|||ADD coach img paths and products img paths
+WinukaMG|||ADD coach img paths and products img paths
+malika1234m|||ADD coach img paths and products img paths
+malika1234m|||adding img path
+malika1234m|||adding img path
+malika1234m|||adding img path
+malika1234m|||finish cart functionality
+malika1234m|||finish cart functionality
+malika1234m|||finish cart functionality
+malika1234m|||Implement the User booking dashboard
+malika1234m|||Implement the User booking dashboard
+malika1234m|||Implement the User booking dashboard
+malika1234m|||implement the booking window
+malika1234m|||implement the booking window
+malika1234m|||implement the booking window
+malika1234m|||implement ground-owner booking models
+malika1234m|||implement ground-owner booking models
+malika1234m|||implement ground-owner booking models
+malika1234m|||add baseModel paths
+malika1234m|||add baseModel paths
+malika1234m|||add baseModel paths
+malika1234m|||update products page with database
+malika1234m|||update products page with database
+malika1234m|||update products page with database
+WinukaMG|||implementing Booking sessions for coaches
+WinukaMG|||implementing Booking sessions for coaches
+malika1234m|||implementing Booking sessions for coaches
+Ravindu Lakshan Weerasinghe|||user profile edit option implemented
+Ravindu Lakshan Weerasinghe|||user profile edit option implemented
+Ravindu Lakshan Weerasinghe|||user profile edit option implemented
+Piyumi_19|||new pay
+Piyumi_19|||new pay
+Piyumi_19|||new pay
+Piyumi_19|||linked payment pages
+Piyumi_19|||linked payment pages
+Piyumi_19|||linked payment pages
+WinukaMG|||Update coach dashboard
+WinukaMG|||Update coach dashboard
+malika1234m|||Update coach dashboard
+malika1234m|||Implement google map for ground details page
+malika1234m|||Implement google map for ground details page
+malika1234m|||Implement google map for ground details page
+malika1234m|||implement google-map
+malika1234m|||implement google-map
+malika1234m|||implement google-map
+malika1234m|||implement product details page
+malika1234m|||implement product details page
+malika1234m|||implement product details page
+malika1234m|||update ground-views page
+malika1234m|||update ground-views page
+malika1234m|||update ground-views page
+malika1234m|||ADD cart functionality
+malika1234m|||ADD cart functionality
+malika1234m|||ADD cart functionality
+Piyumi_19|||updated pay-method
+Piyumi_19|||updated pay-method
+Piyumi_19|||updated pay-method
+Piyumi_19|||pay - method ui
+Piyumi_19|||pay - method ui
+Piyumi_19|||pay - method ui
+Piyumi_19|||UI of payment and product-details
+Piyumi_19|||UI of payment and product-details
+Piyumi_19|||UI of payment and product-details
+Ravindu Lakshan Weerasinghe|||User profile view through navbar
+Ravindu Lakshan Weerasinghe|||User profile view through navbar
+Ravindu Lakshan Weerasinghe|||User profile view through navbar
+malika1234m|||Stop
+malika1234m|||Stop
+malika1234m|||Stop
+Piyumi_19|||.
+Piyumi_19|||.
+Piyumi_19|||.
+Piyumi_19|||edited the shop main page
+Piyumi_19|||edited the shop main page
+Piyumi_19|||edited the shop main page
+malika1234m|||update login data
+malika1234m|||update login data
+malika1234m|||update login data
+WinukaMG|||implement book-coach
+WinukaMG|||implement book-coach
+malika1234m|||implement book-coach
+malika1234m|||close color modification branch
+malika1234m|||close color modification branch
+malika1234m|||close color modification branch
+WinukaMG|||implemented coach dashboard
+WinukaMG|||implemented coach dashboard
+malika1234m|||implemented coach dashboard
+malika1234m|||implement MVC login authentication
+malika1234m|||implement MVC login authentication
+malika1234m|||implement MVC login authentication
+malika1234m|||edit footer
+malika1234m|||edit footer
+malika1234m|||edit footer
+malika1234m|||change the colour to blue (ammended)
+malika1234m|||change the colour to blue (ammended)
+malika1234m|||change the colour to blue (ammended)
+WinukaMG|||implemented coach dashboard
+WinukaMG|||implemented coach dashboard
+malika1234m|||implemented coach dashboard
+malika1234m|||implement MVC login authentication
+malika1234m|||implement MVC login authentication
+malika1234m|||implement MVC login authentication
+Ravindu Lakshan Weerasinghe|||Implemented CRUD in News section
+Ravindu Lakshan Weerasinghe|||Implemented CRUD in News section
+Ravindu Lakshan Weerasinghe|||Implemented CRUD in News section
+malika1234m|||edit footer
+malika1234m|||edit footer
+malika1234m|||edit footer
+Ravindu Lakshan Weerasinghe|||Revert "Revert "change the colour to blue""
+Ravindu Lakshan Weerasinghe|||Revert "change the colour to blue"
+Ravindu Lakshan Weerasinghe|||Revert "change the colour to blue"
+Ravindu Lakshan Weerasinghe|||Revert "change the colour to blue"
+Ravindu Lakshan Weerasinghe|||updated news section
+Ravindu Lakshan Weerasinghe|||updated news section
+Ravindu Lakshan Weerasinghe|||updated news section
+malika1234m|||change the colour to blue
+malika1234m|||change the colour to blue
+malika1234m|||change the colour to blue
+malika1234m|||Implementing template layout for the UI
+malika1234m|||Implementing template layout for the UI
+malika1234m|||Implementing template layout for the UI
+WinuMG|||Create php.yml
+WinuMG|||Create php.yml
+WinuMG|||Create php.yml
+malika1234m|||remove debug files
+malika1234m|||remove debug files
+malika1234m|||remove debug files
+malika1234m|||debug routes
+malika1234m|||debug routes
+malika1234m|||debug routes
+malika1234m|||debug files
+malika1234m|||debug files
+malika1234m|||debug files
+malika1234m|||Update database port
+malika1234m|||Update database port
+malika1234m|||Update database port
+malika1234m|||Update ground owner dashboard
+malika1234m|||Update ground owner dashboard
+malika1234m|||Update ground owner dashboard
+Piyumi_19|||updated the dashboard pages-shop
+Piyumi_19|||updated the dashboard pages-shop
+Piyumi_19|||updated the dashboard pages-shop
+Piyumi_19|||updated sop owner profile dashboard page
+Piyumi_19|||updated sop owner profile dashboard page
+Piyumi_19|||updated sop owner profile dashboard page
+Piyumi_19|||updated the product review dashboard page
+Piyumi_19|||updated the product review dashboard page
+Piyumi_19|||updated the product review dashboard page
+Piyumi_19|||shop dashboard review page
+Piyumi_19|||shop dashboard review page
+Piyumi_19|||shop dashboard review page
+malika1234m|||change the routing patterns
+malika1234m|||change the routing patterns
+malika1234m|||change the routing patterns
+malika1234m|||add shop owner API endpoints
+malika1234m|||add shop owner API endpoints
+malika1234m|||add shop owner API endpoints
+malika1234m|||implement shop owner sidebar
+malika1234m|||implement shop owner sidebar
+malika1234m|||implement shop owner sidebar
+Piyumi_19|||editted review dashboard page
+Piyumi_19|||editted review dashboard page
+Piyumi_19|||editted review dashboard page
+Piyumi_19|||editted th eshop dashboard
+Piyumi_19|||editted th eshop dashboard
+Piyumi_19|||editted th eshop dashboard
+Piyumi_19|||updated dashboard shop owner
+Piyumi_19|||updated dashboard shop owner
+Piyumi_19|||updated dashboard shop owner
+Piyumi_19|||updated dashboard pages and edited
+Piyumi_19|||updated dashboard pages and edited
+Piyumi_19|||updated dashboard pages and edited
+Piyumi_19|||product dashboard page updated
+Piyumi_19|||product dashboard page updated
+Piyumi_19|||product dashboard page updated
+Piyumi_19|||shop-owner dashboard products page
+Piyumi_19|||shop-owner dashboard products page
+Piyumi_19|||shop-owner dashboard products page
+malika1234m|||update user schema
+malika1234m|||update user schema
+malika1234m|||update user schema
+malika1234m|||edit shop schema
+malika1234m|||edit shop schema
+malika1234m|||edit shop schema
+malika1234m|||shop tables update
+malika1234m|||shop tables update
+malika1234m|||shop tables update
+WinukaMG|||update coach section
+WinukaMG|||update coach section
+WinuMG|||update coach section
+malika1234m|||update login demo credentials
+malika1234m|||update login demo credentials
+malika1234m|||update login demo credentials
+malika1234m|||Update login page
+malika1234m|||Update login page
+malika1234m|||Update login page
+malika1234m|||Update login authentication
+malika1234m|||Update login authentication
+malika1234m|||Update login authentication
+malika1234m|||Update the shop tables according to the current tables
+malika1234m|||Update the shop tables according to the current tables
+malika1234m|||Update the shop tables according to the current tables
+malika1234m|||deleting test files
+malika1234m|||deleting test files
+malika1234m|||deleting test files
+malika1234m|||login authentication and dashboard implementation
+malika1234m|||login authentication and dashboard implementation
+malika1234m|||login authentication and dashboard implementation
+malika1234m|||connect database with shop
+malika1234m|||connect database with shop
+malika1234m|||connect database with shop
+malika1234m|||Finishing frontend
+malika1234m|||Finishing frontend
+malika1234m|||Finishing frontend
+malika1234m|||add ground-details pages
+malika1234m|||add ground-details pages
+malika1234m|||add ground-details pages
+malika1234m|||update footer
+malika1234m|||update footer
+malika1234m|||update footer
+malika1234m|||update nav bar
+malika1234m|||update nav bar
+malika1234m|||update nav bar
+malika1234m|||update home page
+malika1234m|||update home page
+malika1234m|||update home page
+malika1234m|||update login and signup pages
+malika1234m|||update login and signup pages
+malika1234m|||update login and signup pages
+WinukaMG|||update navbar
+malika1234m|||update navbar
+malika1234m|||update navbar
+malika1234m|||update book-ground UI
+malika1234m|||update book-ground UI
+malika1234m|||intiate book-ground UI
+malika1234m|||intiate book-ground UI
+malika1234m|||updates router.php
+malika1234m|||updates router.php
+malika1234m|||new MVC file structure
+malika1234m|||new MVC file structure
+malika1234m|||Revert "MVC file structure"
+malika1234m|||Revert "MVC file structure"
+malika1234m|||intial structure
+malika1234m|||intial structure
+malika1234m|||update ground css file
+malika1234m|||update ground css file
+malika1234m|||Update Footer
+malika1234m|||Update Footer
+malika1234m|||Update home page
+malika1234m|||Update home page
+malika1234m|||finished book-ground part
+malika1234m|||finished book-ground part
+malika1234m|||finished ground details page
+malika1234m|||finished ground details page
+malika1234m|||connect google maps API
+malika1234m|||connect google maps API
+malika1234m|||update paths to absolute
+malika1234m|||update paths to absolute
+malika1234m|||update to paths
+malika1234m|||update to paths
+Ravindu Lakshan Weerasinghe|||updated database tables
+Ravindu Lakshan Weerasinghe|||updated database tables
+Ravindu Lakshan Weerasinghe|||updated new file structure
+Ravindu Lakshan Weerasinghe|||updated new file structure
+Ravindu Lakshan Weerasinghe|||implemented news section and main admin
+Ravindu Lakshan Weerasinghe|||implemented news section and main admin
+malika1234m|||Edit shop list view
+malika1234m|||Edit shop list view
+malika1234m|||Implement payment page
+malika1234m|||Implement payment page
+WinukaMG|||Update Footer links
+malika1234m|||Update Footer links
+WinukaMG|||Update data on Footer
+malika1234m|||Update data on Footer
+WinukaMG|||update the footer
+malika1234m|||update the footer
+WinukaMG|||update all pages with footer
+malika1234m|||update all pages with footer
+WinukaMG|||Initaiate Footer
+malika1234m|||Initaiate Footer
+malika1234m|||Intiate footer to shop UI
+malika1234m|||Intiate footer to shop UI
+malika1234m|||update shop
+malika1234m|||update shop
+WinukaMG|||Update coach booking details
+malika1234m|||Update coach booking details
+malika1234m|||Add the shopping cart function
+malika1234m|||Add the shopping cart function
+malika1234m|||Update shop UI
+malika1234m|||Update shop UI
+WinukaMG|||Update shop and coach UI
+malika1234m|||Update shop and coach UI
+malika1234m|||Changing the color pallete
+malika1234m|||Changing the color pallete
+malika1234m|||change paths
+malika1234m|||change paths
+malika1234m|||Add navigation bar to dashboard
+malika1234m|||Add navigation bar to dashboard
+malika1234m|||Implement shop admin dashboard
+malika1234m|||Implement shop admin dashboard
+WinukaMG|||Implement coach admin dashboard
+malika1234m|||Implement coach admin dashboard
+malika1234m|||update admin dashboard functions
+malika1234m|||update admin dashboard functions
+WinukaMG|||Update navbar
+malika1234m|||Update navbar
+WinukaMG|||Conflict resolve
+malika1234m|||Conflict resolve
+WinukaMG|||uploading data to local storage
+malika1234m|||uploading data to local storage
+WinukaMG|||uploading data to local storage
+malika1234m|||uploading data to local storage
+Ravindu Lakshan Weerasinghe|||added admin page and implemented navbar
+Ravindu Lakshan Weerasinghe|||added admin page and implemented navbar
+WinukaMG|||implemented coach profile
+Ravindu Lakshan Weerasinghe|||implemented coach profile
+malika1234m|||implementing ground admin dashboard
+malika1234m|||implementing ground admin dashboard
+malika1234m|||Update all ground details
+malika1234m|||Update all ground details
+malika1234m|||update filter functions
+malika1234m|||update filter functions
+malika1234m|||directing files
+malika1234m|||directing files
+malika1234m|||update ground details page
+malika1234m|||update ground details page
+malika1234m|||Update shop.css
+malika1234m|||Update shop.css
+malika1234m|||update navbar in shop page
+malika1234m|||update navbar in shop page
+malika1234m|||Update shop page
+malika1234m|||Update shop page
+malika1234m|||connecting ground details page
+malika1234m|||connecting ground details page
+malika1234m|||implenting ground data
+malika1234m|||implenting ground data
+malika1234m|||Update ground data
+malika1234m|||Update ground data
+Piyumi_19|||updated shop css
+Piyumi_19|||updated shop css
+Piyumi_19|||added shop css file
+Piyumi_19|||added shop css file
+Piyumi_19|||updated shop
+Piyumi_19|||updated shop
+Piyumi_19|||updated the shop page
+Piyumi_19|||updated the shop page
+Piyumi_19|||created the home page of the shop
+Piyumi_19|||created the home page of the shop
+Ravindu Lakshan Weerasinghe|||updated navbar in shop
+Ravindu Lakshan Weerasinghe|||updated navbar in shop
+WinukaMG|||Update book-coach.css
+WinuMG|||Update book-coach.css
+WinukaMG|||updated coach booking stylings
+Ravindu Lakshan Weerasinghe|||updated coach booking stylings
+WinukaMG|||added navbar to coach booking
+Ravindu Lakshan Weerasinghe|||added navbar to coach booking
+WinukaMG|||Update book-coach.html
+WinuMG|||Update book-coach.html
+malika1234m|||updating ground booking files
+malika1234m|||updating ground booking files
+Ravindu Lakshan Weerasinghe|||implemented navbar
+Ravindu Lakshan Weerasinghe|||implemented navbar
+malika1234m|||Update ground booking page
+malika1234m|||Update ground booking page
+Ravindu Lakshan Weerasinghe|||implemented navbar
+Ravindu Lakshan Weerasinghe|||implemented navbar
+malika1234m|||Update navigation bar
+malika1234m|||Update navigation bar
+malika1234m|||Implement ground detailspage
+malika1234m|||Implement ground detailspage
+Ravindu Lakshan Weerasinghe|||updated images for home page
+Ravindu Lakshan Weerasinghe|||updated images for home page
+malika1234m|||Implented Gground booking page
+malika1234m|||Implented Gground booking page
+Ravindu Lakshan Weerasinghe|||implemented login system
+Ravindu Lakshan Weerasinghe|||implemented login system
+Ravindu Lakshan Weerasinghe|||asdas
+Ravindu Lakshan Weerasinghe|||asdas
+Ravindu Lakshan Weerasinghe|||implemented home page
+WinukaMG|||Update book-coach.html
+WinuMG|||Update book-coach.html
+Ravindu Lakshan Weerasinghe|||Add home,login,signup pages layout
+Ravindu Lakshan Weerasinghe|||updated file structure
+Ravindu Lakshan Weerasinghe|||new structure
+Ravindu Lakshan Weerasinghe|||1.0.0
+Ravindu Lakshan Weerasinghe|||Initial commit
