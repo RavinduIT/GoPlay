@@ -375,7 +375,11 @@ class Product extends BaseModel
         $sql = "SELECT p.*, c.name as category_name 
                 FROM {$this->table} p 
                 LEFT JOIN categories c ON p.category_id = c.id 
+<<<<<<< HEAD
+                WHERE (p.shop_owner_id = ? OR p.shop_owner_id IS NULL)";
+=======
                 WHERE p.shop_owner_id = ?";
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
         
         $params = [$shopOwnerId];
         
@@ -471,7 +475,11 @@ class Product extends BaseModel
                     SUM(CASE WHEN stock_quantity > 0 AND stock_quantity <= min_stock_level THEN 1 ELSE 0 END) as low_stock,
                     SUM(CASE WHEN stock_quantity = 0 THEN 1 ELSE 0 END) as out_of_stock
                 FROM {$this->table} 
+<<<<<<< HEAD
+                WHERE (shop_owner_id = ? OR shop_owner_id IS NULL)";
+=======
                 WHERE shop_owner_id = ?";
+>>>>>>> 18941f66cb081928b3385b630a63cc878d80563e
         $result = $this->queryFirst($sql, [$shopOwnerId]);
         return $result ? $result : ['total_products' => 0, 'active_products' => 0, 'in_stock' => 0, 'low_stock' => 0, 'out_of_stock' => 0];
     }
