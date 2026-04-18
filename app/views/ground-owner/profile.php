@@ -308,7 +308,27 @@ include __DIR__ . '/layout-head.php';
             <div class="gp-tab-panel" id="gpTabBanking">
                 <div class="gp-form-group">
                     <label>Bank Name</label>
-                    <input type="text" id="gpFBankName" placeholder="e.g., Bank of Ceylon">
+                    <select id="gpFBankName">
+                        <option value="">Select Bank</option>
+                        <option value="Bank of Ceylon">Bank of Ceylon</option>
+                        <option value="People's Bank">People's Bank</option>
+                        <option value="Commercial Bank">Commercial Bank</option>
+                        <option value="Hatton National Bank">Hatton National Bank</option>
+                        <option value="Sampath Bank">Sampath Bank</option>
+                        <option value="Nations Trust Bank">Nations Trust Bank</option>
+                        <option value="DFCC Bank">DFCC Bank</option>
+                        <option value="National Development Bank">National Development Bank</option>
+                        <option value="Seylan Bank">Seylan Bank</option>
+                        <option value="Pan Asia Banking Corporation">Pan Asia Banking Corporation</option>
+                        <option value="Union Bank">Union Bank</option>
+                        <option value="Amana Bank">Amana Bank</option>
+                        <option value="National Savings Bank">National Savings Bank</option>
+                        <option value="Regional Development Bank">Regional Development Bank</option>
+                        <option value="Sanasa Development Bank">Sanasa Development Bank</option>
+                        <option value="HSBC Sri Lanka">HSBC Sri Lanka</option>
+                        <option value="Standard Chartered Bank">Standard Chartered Bank</option>
+                        <option value="Citi Bank">Citi Bank</option>
+                    </select>
                 </div>
                 <div class="gp-form-group">
                     <label>Account Holder Name</label>

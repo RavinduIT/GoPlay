@@ -60,6 +60,18 @@ body {
     overflow-x: hidden;
 }
 
+/* Hide public navbar, footer, and reset main wrapper when admin dashboard is present */
+body:has(.admin-dashboard) .navbar,
+body:has(.admin-dashboard) .footer {
+    display: none !important;
+}
+
+body:has(.admin-dashboard) #main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+}
+
 .admin-dashboard {
     display: flex;
     min-height: 100vh;
@@ -473,10 +485,15 @@ body {
     font-size: 1.25rem;
     color: var(--primary);
     cursor: pointer;
-    padding: 0.625rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 50%;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    overflow: hidden;
+    overflow: visible;
+    flex-shrink: 0;
 }
 
 .notification-btn::before {
@@ -582,9 +599,9 @@ body {
 ============================================= */
 
 .dashboard-content {
-    padding: 2.5rem;
-    max-width: 1400px;
-    margin: 0 auto;
+    padding: 2rem;
+    max-width: 100%;
+    margin: 0;
     animation: fadeIn 0.8s ease-out;
 }
 
@@ -764,8 +781,8 @@ body {
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
     grid-template-areas: 
         "chart bookings"
         "actions orders";
@@ -874,8 +891,8 @@ body {
 }
 
 .chart-container {
-    padding: 1.75rem;
-    height: 300px;
+    padding: 1.5rem;
+    height: 420px;
     position: relative;
     z-index: 1;
 }

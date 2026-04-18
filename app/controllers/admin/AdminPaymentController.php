@@ -79,7 +79,8 @@ class AdminPaymentController extends BaseController
             
             // Get service fee percentage
             $sql = "SELECT value FROM settings WHERE key_name = 'service_fee_percentage' LIMIT 1";
-            $result = $earningsModel->queryFirst($sql);
+            $db = \Core\Database::getInstance();
+            $result = $db->query($sql)->fetch();
             $serviceFeePercentage = $result ? (float)$result['value'] : 5.00;
             
             // Combine all statistics
@@ -240,7 +241,7 @@ class AdminPaymentController extends BaseController
             
             // Update setting
             $sql = "UPDATE settings SET value = ? WHERE key_name = 'service_fee_percentage'";
-            $this->getEarningsModel()->query($sql, [$percentage]);
+            \Core\Database::getInstance()->query($sql, [$percentage]);
             
             return $this->json([
                 'success' => true,

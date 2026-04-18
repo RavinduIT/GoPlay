@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 /**
  * Admin Payments & Earnings Page
@@ -833,7 +833,27 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                 <div id="bankTransferFields" style="display: none;">
                     <div class="form-group">
                         <label class="form-label">Bank Name</label>
-                        <input type="text" class="form-input" id="bankName">
+                        <select class="form-input" id="bankName">
+                            <option value="">Select Bank</option>
+                            <option value="Bank of Ceylon">Bank of Ceylon</option>
+                            <option value="People's Bank">People's Bank</option>
+                            <option value="Commercial Bank">Commercial Bank</option>
+                            <option value="Hatton National Bank">Hatton National Bank</option>
+                            <option value="Sampath Bank">Sampath Bank</option>
+                            <option value="Nations Trust Bank">Nations Trust Bank</option>
+                            <option value="DFCC Bank">DFCC Bank</option>
+                            <option value="National Development Bank">National Development Bank</option>
+                            <option value="Seylan Bank">Seylan Bank</option>
+                            <option value="Pan Asia Banking Corporation">Pan Asia Banking Corporation</option>
+                            <option value="Union Bank">Union Bank</option>
+                            <option value="Amana Bank">Amana Bank</option>
+                            <option value="National Savings Bank">National Savings Bank</option>
+                            <option value="Regional Development Bank">Regional Development Bank</option>
+                            <option value="Sanasa Development Bank">Sanasa Development Bank</option>
+                            <option value="HSBC Sri Lanka">HSBC Sri Lanka</option>
+                            <option value="Standard Chartered Bank">Standard Chartered Bank</option>
+                            <option value="Citi Bank">Citi Bank</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Account Number</label>
@@ -922,7 +942,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
             const dateTo = document.getElementById('earningsDateTo').value;
             const search = document.getElementById('earningsSearch').value;
 
-            let url = `/api/admin/payments/earnings?page=${page}`;
+            let url = `${window.BASE_URL||""}/api/admin/payments/earnings?page=${page}`;
             if (status) url += `&status=${status}`;
             if (type) url += `&booking_type=${type}`;
             if (dateFrom) url += `&date_from=${dateFrom}`;
@@ -975,7 +995,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
             const dateFrom = document.getElementById('withdrawalDateFrom').value;
             const dateTo = document.getElementById('withdrawalDateTo').value;
 
-            let url = `/api/admin/payments/withdrawals?page=${page}`;
+            let url = `${window.BASE_URL||""}/api/admin/payments/withdrawals?page=${page}`;
             if (status) url += `&status=${status}`;
             if (dateFrom) url += `&date_from=${dateFrom}`;
             if (dateTo) url += `&date_to=${dateTo}`;
@@ -1184,7 +1204,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
             const dateFrom = document.getElementById('earningsDateFrom').value;
             const dateTo = document.getElementById('earningsDateTo').value;
             
-            let url = '/api/admin/payments/export?format=csv';
+            let url = `${window.BASE_URL||""}/api/admin/payments/export?format=csv`;
             if (dateFrom) url += `&date_from=${dateFrom}`;
             if (dateTo) url += `&date_to=${dateTo}`;
             

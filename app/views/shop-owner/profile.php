@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $_base = defined('BASE_URL') ? BASE_URL : '';
 $title = 'Profile - GoPlay';
 
@@ -266,7 +266,16 @@ $bankBranch = $profile['bank_branch'] ?? '';
             <div class="form-grid">
               <div class="form-group">
                 <label><i class="fas fa-landmark"></i> Bank Name</label>
-                <input type="text" name="bank_name" value="<?php echo htmlspecialchars($bankName); ?>" class="form-input" placeholder="e.g., Commercial Bank of Ceylon">
+                <select name="bank_name" class="form-input">
+                    <option value="">Select Bank</option>
+                    <?php
+                    $banks = ['Bank of Ceylon', "People's Bank", 'Commercial Bank', 'Hatton National Bank', 'Sampath Bank', 'Nations Trust Bank', 'DFCC Bank', 'National Development Bank', 'Seylan Bank', 'Pan Asia Banking Corporation', 'Union Bank', 'Amana Bank', 'National Savings Bank', 'Regional Development Bank', 'Sanasa Development Bank', 'HSBC Sri Lanka', 'Standard Chartered Bank', 'Citi Bank'];
+                    foreach ($banks as $bank) {
+                        $sel = ($bankName === $bank) ? 'selected' : '';
+                        echo "<option value=\"".htmlspecialchars($bank)."\" $sel>".htmlspecialchars($bank)."</option>";
+                    }
+                    ?>
+                </select>
               </div>
               <div class="form-group">
                 <label><i class="fas fa-building"></i> Branch</label>

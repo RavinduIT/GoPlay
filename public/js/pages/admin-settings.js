@@ -38,7 +38,8 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    event.target.classList.add('active');
+    const clickedBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+    if (clickedBtn) clickedBtn.classList.add('active');
 
     // Update panels
     document.querySelectorAll('.settings-panel').forEach(panel => {

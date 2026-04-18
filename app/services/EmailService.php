@@ -21,26 +21,37 @@ class EmailService
     public function __construct()
     {
         $this->mailer = new PHPMailer(true);
-        $this->fromAddress = $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@goplay.lk';
-        $this->fromName = $_ENV['MAIL_FROM_NAME'] ?? 'GoPlay Sports Platform';
+        // Read from admin settings first, then env, then hardcoded default
+        $this->fromAddress = \Core\SiteSettings::get('email_from_address', '') 
+            ?: ($_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@goplay.lk');
+        $this->fromName = \Core\SiteSettings::get('email_from_name', '') 
+            ?: ($_ENV['MAIL_FROM_NAME'] ?? 'GoPlay Sports Platform');
 
         $this->configureSMTP();
     }
 
     /**
-     * Configure SMTP settings from environment variables
+     * Configure SMTP settings from admin settings (DB), then environment variables
      */
     private function configureSMTP(): void
     {
         try {
             // Server settings
             $this->mailer->isSMTP();
-            $this->mailer->Host = $_ENV['MAIL_HOST'] ?? 'smtp.gmail.com';
+            $this->mailer->Host = \Core\SiteSettings::get('smtp_host', '') 
+                ?: ($_ENV['MAIL_HOST'] ?? 'smtp.gmail.com');
             $this->mailer->SMTPAuth = true;
-            $this->mailer->Username = $_ENV['MAIL_USERNAME'] ?? '';
-            $this->mailer->Password = $_ENV['MAIL_PASSWORD'] ?? '';
-            $this->mailer->SMTPSecure = $_ENV['MAIL_ENCRYPTION'] === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-            $this->mailer->Port = (int)($_ENV['MAIL_PORT'] ?? 587);
+            $this->mailer->Username = \Core\SiteSettings::get('smtp_username', '') 
+                ?: ($_ENV['MAIL_USERNAME'] ?? '');
+            $this->mailer->Password = \Core\SiteSettings::get('smtp_password', '') 
+                ?: ($_ENV['MAIL_PASSWORD'] ?? '');
+            
+            $encryption = \Core\SiteSettings::get('smtp_encryption', '') 
+                ?: ($_ENV['MAIL_ENCRYPTION'] ?? 'tls');
+            $this->mailer->SMTPSecure = $encryption === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+            
+            $this->mailer->Port = (int)(\Core\SiteSettings::get('smtp_port', '') 
+                ?: ($_ENV['MAIL_PORT'] ?? 587));
 
             // CRITICAL: Set short timeouts to prevent 120s PHP fatal errors
             $this->mailer->Timeout = 5;        // 5 second connection timeout
