@@ -473,6 +473,8 @@ $menuItems = [
 </style>
 
 <script>
+window.BASE_URL = '<?= defined('BASE_URL') ? BASE_URL : '' ?>';
+
 function toggleSidebarCollapse() {
     const sidebar = document.getElementById('adminSidebar');
     const isCollapsed = sidebar.classList.toggle('collapsed');

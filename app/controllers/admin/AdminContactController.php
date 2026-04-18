@@ -58,12 +58,12 @@ class AdminContactController extends BaseController
             $params = [];
 
             if ($status !== 'all') {
-                $where[] = "status = ?";
+                $where[] = "cm.status = ?";
                 $params[] = $status;
             }
 
             if (!empty($search)) {
-                $where[] = "(name LIKE ? OR email LIKE ? OR subject LIKE ?)";
+                $where[] = "(cm.name LIKE ? OR cm.email LIKE ? OR cm.subject LIKE ?)";
                 $searchTerm = "%{$search}%";
                 $params[] = $searchTerm;
                 $params[] = $searchTerm;
@@ -73,7 +73,7 @@ class AdminContactController extends BaseController
             $whereSql = !empty($where) ? "WHERE " . implode(' AND ', $where) : "";
 
             // Count
-            $countSql = "SELECT COUNT(*) as total FROM contact_messages {$whereSql}";
+            $countSql = "SELECT COUNT(*) as total FROM contact_messages cm {$whereSql}";
             $countStmt = $db->prepare($countSql);
             $countStmt->execute($params);
             $total = $countStmt->fetch(\PDO::FETCH_ASSOC)['total'];
@@ -86,10 +86,16 @@ class AdminContactController extends BaseController
                     ORDER BY cm.created_at DESC
                     LIMIT ? OFFSET ?";
 
-            $params[] = $limit;
-            $params[] = $offset;
+
             $stmt = $db->prepare($sql);
-            $stmt->execute($params);
+            // Bind filter params as strings
+            foreach ($params as $i => $param) {
+                $stmt->bindValue($i + 1, $param);
+            }
+            // Bind LIMIT and OFFSET as integers
+            $stmt->bindValue(count($params) + 1, (int)$limit, \PDO::PARAM_INT);
+            $stmt->bindValue(count($params) + 2, (int)$offset, \PDO::PARAM_INT);
+            $stmt->execute();
             $messages = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             // Stats

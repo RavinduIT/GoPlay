@@ -1,5 +1,5 @@
 <?php 
-$title = 'GoPlay - Premier Sports Booking Platform';
+$title = \Core\SiteSettings::get('site_name', 'GoPlay Sports Platform');
 $description = 'Book sports facilities, hire professional coaches, and shop for equipment at GoPlay';
 $additionalCSS = ['/public/css/pages/index.css'];
 $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/index.js'];

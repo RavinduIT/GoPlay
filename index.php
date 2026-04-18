@@ -83,6 +83,26 @@ try {
     // Initialize the application
     $app = new Core\Application();
 
+    // Load site settings from DB (makes admin settings apply globally)
+    Core\SiteSettings::load();
+
+    // Override timezone from admin settings (if set)
+    $dbTimezone = Core\SiteSettings::get('timezone', '');
+    if ($dbTimezone) {
+        date_default_timezone_set($dbTimezone);
+    }
+
+    // Maintenance mode check — block all non-admin, non-API requests
+    if (Core\SiteSettings::getBool('maintenance_mode')) {
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $isAdmin = strpos($uri, '/admin') !== false || strpos($uri, '/login') !== false || strpos($uri, '/api/') !== false;
+        if (!$isAdmin) {
+            http_response_code(503);
+            echo '<!DOCTYPE html><html><head><title>Maintenance Mode</title></head><body style="display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;"><div style="text-align:center;"><h1 style="font-size:2.5rem;color:#1e293b;">🔧 Under Maintenance</h1><p style="color:#64748b;font-size:1.2rem;">We\'re performing scheduled maintenance. Please check back shortly.</p></div></body></html>';
+            exit;
+        }
+    }
+
     // Set up basic routes
     $router = $app->getRouter();
 

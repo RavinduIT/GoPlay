@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?? 'GoPlay Sports Platform' ?></title>
+    <title><?= $title ?? \Core\SiteSettings::get('site_name', 'GoPlay Sports Platform') ?></title>
     
     <!-- CSS -->
      <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/components/navbar.css">
@@ -17,7 +17,7 @@
     <?php endif; ?>
     
     <!-- Meta tags -->
-    <meta name="description" content="<?= $description ?? 'GoPlay - Premier Sports Booking Platform' ?>">
+    <meta name="description" content="<?= $description ?? \Core\SiteSettings::get('site_description', 'GoPlay - Premier Sports Booking Platform') ?>">
     <meta name="keywords" content="sports, booking, facilities, coaches, equipment">
     
     <!-- Favicon -->

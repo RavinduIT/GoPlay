@@ -181,9 +181,28 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js'];
                         <form id="payoutDetailsForm" onsubmit="savePayoutDetails(event)" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 0.5rem 0;">
                             <div class="form-group">
                                 <label style="display: block; margin-bottom: 6px; color: #ccc; font-size: 0.85rem;">Bank Name *</label>
-                                <input type="text" id="bankName" name="bank_name" required
-                                    style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem;"
-                                    placeholder="e.g. Bank of Ceylon">
+                                <select id="bankName" name="bank_name" required
+                                    style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+                                    <option value="">Select Bank</option>
+                                    <option value="Bank of Ceylon">Bank of Ceylon</option>
+                                    <option value="People's Bank">People's Bank</option>
+                                    <option value="Commercial Bank">Commercial Bank</option>
+                                    <option value="Hatton National Bank">Hatton National Bank</option>
+                                    <option value="Sampath Bank">Sampath Bank</option>
+                                    <option value="Nations Trust Bank">Nations Trust Bank</option>
+                                    <option value="DFCC Bank">DFCC Bank</option>
+                                    <option value="National Development Bank">National Development Bank</option>
+                                    <option value="Seylan Bank">Seylan Bank</option>
+                                    <option value="Pan Asia Banking Corporation">Pan Asia Banking Corporation</option>
+                                    <option value="Union Bank">Union Bank</option>
+                                    <option value="Amana Bank">Amana Bank</option>
+                                    <option value="National Savings Bank">National Savings Bank</option>
+                                    <option value="Regional Development Bank">Regional Development Bank</option>
+                                    <option value="Sanasa Development Bank">Sanasa Development Bank</option>
+                                    <option value="HSBC Sri Lanka">HSBC Sri Lanka</option>
+                                    <option value="Standard Chartered Bank">Standard Chartered Bank</option>
+                                    <option value="Citi Bank">Citi Bank</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label style="display: block; margin-bottom: 6px; color: #ccc; font-size: 0.85rem;">Account Number *</label>

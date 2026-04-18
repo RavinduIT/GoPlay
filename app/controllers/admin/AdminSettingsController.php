@@ -69,8 +69,8 @@ class AdminSettingsController extends BaseController
     public function updateSetting(Request $request): Response
     {
         try {
-            $key = $request->post('key');
-            $value = $request->post('value');
+            $key = $request->getBody('key');
+            $value = $request->getBody('value');
 
             if (!$key) {
                 return $this->json(['success' => false, 'message' => 'Setting key is required'], 400);
@@ -111,7 +111,7 @@ class AdminSettingsController extends BaseController
     public function updateBulk(Request $request): Response
     {
         try {
-            $settings = $request->post('settings');
+            $settings = $request->getBody('settings');
 
             if (!is_array($settings)) {
                 return $this->json(['success' => false, 'message' => 'Invalid settings data'], 400);
@@ -139,6 +139,9 @@ class AdminSettingsController extends BaseController
             }
 
             $this->db->commit();
+
+            // Flush cached settings so next request picks up new values
+            \Core\SiteSettings::flush();
 
             return $this->json([
                 'success' => true,
@@ -221,7 +224,7 @@ class AdminSettingsController extends BaseController
     public function testEmail(Request $request): Response
     {
         try {
-            $to = $request->post('email');
+            $to = $request->getBody('email');
 
             if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
                 return $this->json(['success' => false, 'message' => 'Invalid email address'], 400);
@@ -332,11 +335,58 @@ class AdminSettingsController extends BaseController
      */
     private function getCategoryFromKey(string $key): string
     {
-        if (strpos($key, 'site_') === 0) return 'general';
-        if (strpos($key, 'email_') === 0) return 'email';
-        if (strpos($key, 'payment_') === 0) return 'payment';
-        if (strpos($key, 'booking_') === 0) return 'booking';
-        if (strpos($key, 'tax_') === 0 || strpos($key, 'service_fee') === 0) return 'financial';
-        return 'other';
+        // Explicit mapping of keys to categories matching the settings form tabs
+        $categoryMap = [
+            // General tab
+            'site_name' => 'general',
+            'site_description' => 'general',
+            'contact_email' => 'general',
+            'support_phone' => 'general',
+            'timezone' => 'general',
+            'default_currency' => 'general',
+            'maintenance_mode' => 'general',
+            'admin_email' => 'general',
+            
+            // Email tab
+            'email_from_name' => 'email',
+            'email_from_address' => 'email',
+            'smtp_host' => 'email',
+            'smtp_port' => 'email',
+            'smtp_encryption' => 'email',
+            'smtp_username' => 'email',
+            'smtp_password' => 'email',
+            
+            // Payment tab
+            'tax_rate' => 'payment',
+            'service_fee_rate' => 'payment',
+            'service_fee_percentage' => 'payment',
+            'enable_stripe' => 'payment',
+            'stripe_public_key' => 'payment',
+            'stripe_secret_key' => 'payment',
+            'enable_paypal' => 'payment',
+            'paypal_client_id' => 'payment',
+            'paypal_secret' => 'payment',
+            'enable_cash' => 'payment',
+            
+            // Booking tab
+            'booking_advance_days' => 'booking',
+            'max_booking_duration' => 'booking',
+            'min_booking_duration' => 'booking',
+            'cancellation_hours' => 'booking',
+            'allow_same_day_booking' => 'booking',
+            'require_payment_upfront' => 'booking',
+            'auto_approve_bookings' => 'booking',
+            
+            // Security tab (mapped to 'other' to match JS populateSettings)
+            'enable_2fa' => 'other',
+            'session_timeout' => 'other',
+            'password_min_length' => 'other',
+            'require_strong_password' => 'other',
+            'max_login_attempts' => 'other',
+            'lockout_duration' => 'other',
+            'enable_activity_logs' => 'other',
+        ];
+
+        return $categoryMap[$key] ?? 'other';
     }
 }

@@ -33,8 +33,8 @@
             <div class="footer-section">
                 <h4>Contact Info</h4>
                 <div class="contact-info">
-                    <p><strong>Phone:</strong> +94 11 123 4567</p>
-                    <p><strong>Email:</strong> info@goplay.lk</p>
+                    <p><strong>Phone:</strong> <?= \Core\SiteSettings::get('support_phone', '+94 11 123 4567') ?></p>
+                    <p><strong>Email:</strong> <?= \Core\SiteSettings::get('contact_email', 'info@goplay.lk') ?></p>
                     <p><strong>Address:</strong> 123 Sports Street, Colombo 03, Sri Lanka</p>
                 </div>
             </div>
