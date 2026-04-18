@@ -33,6 +33,20 @@ class PaymentController extends BaseController
      */
     public function contactDetails(Request $request): Response
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Check if user is logged in
+        if (!isset($_SESSION['user_id'])) {
+            // Store return URL in session to redirect back after login
+            // Redirect to cart checkout so user can review items before contact details
+            $_SESSION['return_after_login'] = '/cart/checkout';
+            
+            // Redirect to login page
+            return $this->redirect('/login');
+        }
+
         // Ensure user has items in cart
         $session = $this->getCartSession();
         $cart = $this->cartModel->getOrCreateCart($session['user_id'], $session['session_id']);
@@ -43,10 +57,6 @@ class PaymentController extends BaseController
         }
 
         // Load previously saved contact details from session if available
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
         $savedContact = $_SESSION['checkout_contact'] ?? [];
 
         return $this->view('checkout/contact-details', ['savedContact' => $savedContact]);
@@ -113,11 +123,18 @@ class PaymentController extends BaseController
      */
     public function paymentMethod(Request $request): Response
     {
-        // Ensure contact details are saved
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
+        // Check if user is logged in
+        if (!isset($_SESSION['user_id'])) {
+            // Redirect to cart checkout so user can review items and redo contact details if needed
+            $_SESSION['return_after_login'] = '/cart/checkout';
+            return $this->redirect('/login');
+        }
+
+        // Ensure contact details are saved
         if (!isset($_SESSION['checkout_contact'])) {
             return $this->redirect('/checkout/contact-details');
         }
@@ -139,11 +156,18 @@ class PaymentController extends BaseController
      */
     public function paymentProcessing(Request $request): Response
     {
-        // Ensure contact details are saved
+        // Ensure user is logged in
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
+        if (!isset($_SESSION['user_id'])) {
+            // Redirect to cart checkout so user can review items if needed
+            $_SESSION['return_after_login'] = '/cart/checkout';
+            return $this->redirect('/login');
+        }
+
+        // Ensure contact details are saved
         if (!isset($_SESSION['checkout_contact'])) {
             return $this->redirect('/checkout/contact-details');
         }
@@ -236,8 +260,8 @@ class PaymentController extends BaseController
                 'status' => 'pending'
             ]);
 
-            // Credit shop owners for COD orders
-            $this->creditShopOwnersForOrder($order);
+            // Hold COD earnings in pending until delivery is confirmed
+            $this->holdCODEarningsForOrder($order);
             $this->sendOrderNotifications($order);
 
             // Clear cart
@@ -819,9 +843,8 @@ class PaymentController extends BaseController
     }
 
     /**
-     * Credit shop owners for a completed order.
-     * Calculates each shop owner's share from their items,
-     * deducts platform fee, and credits their balance.
+     * Credit shop owners for a CONFIRMED (online-paid) order.
+     * Releases directly to available_balance — payment already received.
      */
     private function creditShopOwnersForOrder(array $order): void
     {
@@ -829,21 +852,49 @@ class PaymentController extends BaseController
             $orderId = $order['id'];
             $balanceModel = new ShopOwnerBalance();
             $feePercentage = $balanceModel->getServiceFeePercentage();
-            
+
             $shopOwnerShares = $balanceModel->getShopOwnerSharesByOrder($orderId);
-            
+
             foreach ($shopOwnerShares as $share) {
                 $shopOwnerId = (int)$share['shop_owner_id'];
                 $grossAmount = (float)$share['owner_total'];
-                $feeAmount = round($grossAmount * ($feePercentage / 100), 2);
-                
+                $feeAmount   = round($grossAmount * ($feePercentage / 100), 2);
+
                 $balanceModel->creditSale($shopOwnerId, $orderId, $grossAmount, $feeAmount);
-                
-                error_log("Credited shop owner {$shopOwnerId}: gross={$grossAmount}, fee={$feeAmount}, net=" . ($grossAmount - $feeAmount));
+
+                error_log("Online credit — shop owner {$shopOwnerId}: gross={$grossAmount}, fee={$feeAmount}, net=" . ($grossAmount - $feeAmount));
             }
-            
+
         } catch (\Exception $e) {
             error_log('Failed to credit shop owners for order ' . ($order['id'] ?? 'unknown') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Hold COD earnings in pending_balance until delivery is confirmed.
+     * Cash has NOT been collected — do not release to available_balance yet.
+     */
+    private function holdCODEarningsForOrder(array $order): void
+    {
+        try {
+            $orderId = $order['id'];
+            $balanceModel = new ShopOwnerBalance();
+            $feePercentage = $balanceModel->getServiceFeePercentage();
+
+            $shopOwnerShares = $balanceModel->getShopOwnerSharesByOrder($orderId);
+
+            foreach ($shopOwnerShares as $share) {
+                $shopOwnerId = (int)$share['shop_owner_id'];
+                $grossAmount = (float)$share['owner_total'];
+                $feeAmount   = round($grossAmount * ($feePercentage / 100), 2);
+
+                $balanceModel->creditSalePending($shopOwnerId, $orderId, $grossAmount, $feeAmount);
+
+                error_log("COD hold — shop owner {$shopOwnerId}: gross={$grossAmount}, fee={$feeAmount}, net=" . ($grossAmount - $feeAmount));
+            }
+
+        } catch (\Exception $e) {
+            error_log('Failed to hold COD earnings for order ' . ($order['id'] ?? 'unknown') . ': ' . $e->getMessage());
         }
     }
 

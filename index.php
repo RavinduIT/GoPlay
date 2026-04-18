@@ -3,10 +3,18 @@
 /**
  * GoPlay Sports Platform
  * Main Entry Point
- * 
+ *
  * This file serves as the front controller for all HTTP requests.
  * It handles routing, middleware, and response generation.
  */
+
+// Serve static files directly when using PHP built-in server (php -S localhost:8000)
+if (php_sapi_name() === 'cli-server') {
+    $staticFile = $_SERVER['DOCUMENT_ROOT'] . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if (is_file($staticFile)) {
+        return false;
+    }
+}
 
 // Define application constants
 define('APP_START', microtime(true));
@@ -416,6 +424,14 @@ try {
     $router->get('/api/shop-owner/earnings', 'ShopOwnerController@getEarningsData');
     $router->post('/api/shop-owner/request-payout', 'ShopOwnerController@requestPayout');
     $router->post('/api/shop-owner/payout-details', 'ShopOwnerController@updatePayoutDetails');
+
+    // Shop Owner Notifications (specific routes before {id} wildcard)
+    $router->get('/api/shop-owner/notifications/count', 'ShopOwnerController@getNotificationsCount');
+    $router->put('/api/shop-owner/notifications/mark-all-read', 'ShopOwnerController@markAllNotificationsRead');
+    $router->delete('/api/shop-owner/notifications/clear-all', 'ShopOwnerController@clearAllNotifications');
+    $router->get('/api/shop-owner/notifications', 'ShopOwnerController@getNotifications');
+    $router->put('/api/shop-owner/notifications/{id}/read', 'ShopOwnerController@markNotificationRead');
+    $router->delete('/api/shop-owner/notifications/{id}', 'ShopOwnerController@deleteNotification');
 
     // Admin Payout Management
     $router->get('/admin/payouts', 'AdminController@payoutsPage');

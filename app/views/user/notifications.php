@@ -28,13 +28,25 @@
                 <i class="fas fa-envelope"></i> Unread
             </button>
             <button class="filter-tab" data-filter="booking_confirmation">
-                <i class="fas fa-calendar-check"></i> Bookings
+                <i class="fas fa-calendar-check"></i> Ground Bookings
+            </button>
+            <button class="filter-tab" data-filter="booking_cancelled">
+                <i class="fas fa-ban"></i> Cancelled
+            </button>
+            <button class="filter-tab" data-filter="coach_booking">
+                <i class="fas fa-running"></i> Coach Sessions
             </button>
             <button class="filter-tab" data-filter="payment_success">
                 <i class="fas fa-credit-card"></i> Payments
             </button>
             <button class="filter-tab" data-filter="order_status">
                 <i class="fas fa-shopping-bag"></i> Orders
+            </button>
+            <button class="filter-tab" data-filter="new_order">
+                <i class="fas fa-store"></i> New Orders
+            </button>
+            <button class="filter-tab" data-filter="payout_approved">
+                <i class="fas fa-check-circle"></i> Payouts
             </button>
             <button class="filter-tab" data-filter="promotional">
                 <i class="fas fa-gift"></i> Promotions
@@ -301,11 +313,21 @@
 }
 
 .icon-booking { background: #dbeafe; color: #2563eb; }
+.icon-booking-confirmation { background: #dbeafe; color: #2563eb; }
+.icon-booking-cancelled { background: #fee2e2; color: #dc2626; }
+.icon-coach-booking { background: #dcfce7; color: #16a34a; }
 .icon-payment { background: #d1fae5; color: #10b981; }
+.icon-payment-success { background: #d1fae5; color: #10b981; }
 .icon-order { background: #fef3c7; color: #f59e0b; }
+.icon-order-status { background: #fef3c7; color: #f59e0b; }
 .icon-review { background: #e0e7ff; color: #6366f1; }
+.icon-review-request { background: #e0e7ff; color: #6366f1; }
 .icon-promotional { background: #fce7f3; color: #ec4899; }
 .icon-system { background: #e5e7eb; color: #6b7280; }
+.icon-new-order { background: #fef3c7; color: #d97706; }
+.icon-payout-requested { background: #e0e7ff; color: #4f46e5; }
+.icon-payout-approved { background: #d1fae5; color: #059669; }
+.icon-payout-rejected { background: #fee2e2; color: #dc2626; }
 
 .notification-content {
     flex: 1;
@@ -506,21 +528,33 @@ function displayNotifications(notifications) {
 }
 
 function createNotificationCard(notification) {
-    const iconClass = `icon-${notification.type.replace('_', '-')}`;
+    const nType = notification.type || notification.notification_type || 'system';
+    const iconClass = `icon-${nType.replace(/_/g, '-')}`;
     const iconMap = {
         'booking_confirmation': 'fa-calendar-check',
-        'payment_success': 'fa-credit-card',
-        'order_status': 'fa-shopping-bag',
-        'review_request': 'fa-star',
-        'promotional': 'fa-gift',
-        'system': 'fa-info-circle'
+        'booking_cancelled':    'fa-ban',
+        'coach_booking':        'fa-running',
+        'payment_success':      'fa-credit-card',
+        'order_status':         'fa-shopping-bag',
+        'review_request':       'fa-star',
+        'promotional':          'fa-gift',
+        'system':               'fa-info-circle',
+        'booking':              'fa-calendar-check',
+        'payment':              'fa-credit-card',
+        'review':               'fa-star',
+        'maintenance':          'fa-tools',
+        'coach_request':        'fa-user-tie',
+        'new_order':            'fa-shopping-cart',
+        'payout_requested':     'fa-paper-plane',
+        'payout_approved':      'fa-check-circle',
+        'payout_rejected':      'fa-times-circle'
     };
 
     return `
         <div class="notification-card ${!notification.is_read ? 'unread' : ''}"
              onclick="markAsRead(${notification.id})">
             <div class="notification-icon ${iconClass}">
-                <i class="fas ${iconMap[notification.type] || 'fa-bell'}"></i>
+                <i class="fas ${iconMap[nType] || 'fa-bell'}"></i>
             </div>
             <div class="notification-content">
                 <div class="notification-title">${notification.title}</div>
@@ -542,8 +576,12 @@ function filterNotifications() {
 
     if (currentFilter === 'unread') {
         filtered = filtered.filter(n => !n.is_read);
+    } else if (currentFilter === 'payout_approved') {
+        // Group all payout types under this tab
+        const payoutTypes = ['payout_approved', 'payout_rejected', 'payout_requested'];
+        filtered = filtered.filter(n => payoutTypes.includes(n.type || n.notification_type));
     } else if (currentFilter !== 'all') {
-        filtered = filtered.filter(n => n.type === currentFilter);
+        filtered = filtered.filter(n => (n.type || n.notification_type) === currentFilter);
     }
 
     displayNotifications(filtered);
