@@ -802,24 +802,84 @@ class CoachController extends BaseController
     }
 
     /**
-     * Get sidebar stats
+     * Get sidebar stats — real data from database
      */
     public function getSidebarStats(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
 
-        $stats = [
-            'activeClients' => 38,
-            'monthSessions' => 12,
-            'upcomingSchedule' => 5,
-            'totalClients' => 45,
-            'pendingReviews' => 3
-        ];
+        try {
+            $coachModel = new Coach();
+            $coach = $coachModel->getByUserId((int)$_SESSION['user_id']);
 
-        return $this->json($stats);
+            if (!$coach) {
+                return $this->json([
+                    'activeClients'    => 0,
+                    'monthSessions'    => 0,
+                    'upcomingSchedule' => 0,
+                    'totalClients'     => 0,
+                    'pendingReviews'   => 0,
+                    'totalReviews'     => 0,
+                    'upcomingSessions' => 0,
+                ]);
+            }
+
+            $coachId = (int)$coach['id'];
+
+            // Client stats from coach_bookings
+            $clientStats = $coachModel->getClientStats($coachId);
+
+            // Review stats from coach_reviews
+            $reviewStats = $coachModel->getReviewStats($coachId);
+
+            // Upcoming sessions count (confirmed/pending with future dates)
+            $upcomingSessions = $coachModel->getUpcomingSessions($coachId, 100);
+            $upcomingCount = count($upcomingSessions);
+
+            // This month's session count from coach_bookings
+            $monthSessions = $this->getMonthSessionCount($coachModel, $coachId);
+
+            $stats = [
+                'activeClients'    => (int)($clientStats['active_clients'] ?? 0),
+                'monthSessions'    => $monthSessions,
+                'upcomingSchedule' => $upcomingCount,
+                'totalClients'     => (int)($clientStats['total_clients'] ?? 0),
+                'pendingReviews'   => (int)($reviewStats['total'] ?? 0),
+                'totalReviews'     => (int)($reviewStats['total'] ?? 0),
+                'upcomingSessions' => $upcomingCount,
+            ];
+
+            return $this->json($stats);
+        } catch (\Exception $e) {
+            // Fallback to zeros if DB query fails
+            return $this->json([
+                'activeClients'    => 0,
+                'monthSessions'    => 0,
+                'upcomingSchedule' => 0,
+                'totalClients'     => 0,
+                'pendingReviews'   => 0,
+                'totalReviews'     => 0,
+                'upcomingSessions' => 0,
+            ]);
+        }
+    }
+
+    /**
+     * Helper: Count sessions in the current month for a coach
+     */
+    private function getMonthSessionCount($coachModel, int $coachId): int
+    {
+        $year  = (int)date('Y');
+        $month = (int)date('m');
+        $monthBookings = $coachModel->getMonthBookings($coachId, $year, $month);
+        $total = 0;
+        foreach ($monthBookings as $day) {
+            $total += (int)($day['session_count'] ?? 0);
+        }
+        return $total;
     }
 
     /**
