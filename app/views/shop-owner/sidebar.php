@@ -85,6 +85,8 @@ if (strpos($currentPath, '/shop-owner/dashboard') !== false) {
         </ul>
     </nav>
 </aside>
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <!-- Sidebar JavaScript -->
 <script src="<?= $_base ?>/public/js/shop-owner-sidebar.js"></script>

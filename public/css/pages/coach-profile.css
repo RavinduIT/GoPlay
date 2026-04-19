@@ -1246,9 +1246,11 @@ body {
     .profile-right { display: grid; grid-template-columns: 1fr 1fr; }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
     .main-content { margin-left: 0; }
+}
 
+@media (max-width: 900px) {
     .hero-body { padding: 40px 24px 0; flex-wrap: wrap; }
     .hero-footer { padding: 12px 24px; }
     .hero-stats { gap: 8px; }

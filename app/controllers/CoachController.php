@@ -181,7 +181,7 @@ class CoachController extends BaseController
                 'price' => (float)($coach['hourly_rate'] ?? 0),
                 'hourly_rate' => (float)($coach['hourly_rate'] ?? 0),
                 'rating' => round((float)($coach['rating'] ?? 0), 1),
-                'reviews_count' => (int)($coach['total_reviews'] ?? 0),
+                'reviews' => (int)($coach['total_reviews'] ?? 0),
                 'total_sessions' => (int)($coach['total_sessions'] ?? 0),
                 'bio' => $coach['bio'] ?? '',
                 'specialties' => $specializations,
@@ -189,7 +189,14 @@ class CoachController extends BaseController
                 'status' => $coach['status'] ?? 'active',
                 'certificates' => $certificates,
                 'achievements' => $achievements,
-                'reviews' => $reviews,
+                'reviews_list' => array_map(function($r) {
+                    return [
+                        'rating'        => $r['rating'],
+                        'review_text'   => $r['review_text'] ?? '',
+                        'reviewer_name' => trim(($r['first_name'] ?? '') . ' ' . ($r['last_name'] ?? '')),
+                        'created_at'    => $r['created_at'],
+                    ];
+                }, $reviews),
                 'availability' => $availability,
                 'facilities' => $facilities,
             ];

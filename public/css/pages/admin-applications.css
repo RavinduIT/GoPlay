@@ -676,9 +676,22 @@ body {
 
 /* ====== RESPONSIVE ====== */
 @media (max-width: 1024px) {
-  .dashboard-main { margin-left: 0; padding: 1.5rem; }
   .detail-grid { grid-template-columns: 1fr; }
   .filters-section { flex-direction: column; align-items: stretch; }
   .search-group { margin-left: 0; }
   .search-input { min-width: 100%; }
+}
+
+@media (max-width: 768px) {
+  .dashboard-main { margin-left: 0; padding: 1rem; }
+  .applications-table { overflow-x: auto; }
+  .applications-table table { min-width: 600px; }
+  .page-header,
+  .filters-section { padding: 1rem; }
+  .modal-content { width: 95%; margin: 1rem auto; padding: 1.25rem; }
+}
+
+@media (max-width: 480px) {
+  .filters-section { gap: 0.75rem; }
+  .btn { padding: 0.5rem 0.875rem; font-size: 0.8rem; }
 }

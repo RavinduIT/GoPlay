@@ -81,6 +81,8 @@
         </ul>
     </nav>
 </aside>
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <script>
 // Sidebar functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -120,9 +122,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function toggleSidebar() {
     const sidebar = document.getElementById('dashboardSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
     if (!sidebar) return;
-    sidebar.classList.toggle('collapsed');
-    localStorage.setItem('coachSidebarCollapsed', sidebar.classList.contains('collapsed'));
+    if (window.innerWidth <= 768) {
+        sidebar.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('active');
+    } else {
+        sidebar.classList.toggle('collapsed');
+        localStorage.setItem('coachSidebarCollapsed', sidebar.classList.contains('collapsed'));
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('dashboardSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
 }
 
 async function loadSidebarStats() {

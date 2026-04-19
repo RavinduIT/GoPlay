@@ -92,3 +92,33 @@
         </ul>
     </nav>
 </aside>
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<script>
+function toggleSidebar() {
+    const sidebar = document.getElementById('dashboardSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (!sidebar) return;
+    // Desktop: collapse/expand; Mobile: show/hide via 'open' class
+    if (window.innerWidth <= 768) {
+        sidebar.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('active');
+    } else {
+        sidebar.classList.toggle('collapsed');
+        localStorage.setItem('groundOwnerSidebarCollapsed', sidebar.classList.contains('collapsed'));
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('dashboardSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
+}
+document.addEventListener('DOMContentLoaded', function () {
+    const sidebar = document.getElementById('dashboardSidebar');
+    if (sidebar && localStorage.getItem('groundOwnerSidebarCollapsed') === 'true') {
+        sidebar.classList.add('collapsed');
+    }
+});
+</script>

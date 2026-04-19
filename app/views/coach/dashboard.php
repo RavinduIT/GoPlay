@@ -219,7 +219,9 @@ $additionalCSS = [
     .stats-row { grid-template-columns:repeat(2,1fr); }
     .dash-grid  { grid-template-columns:1fr; }
     .span-full  { grid-column:1; }
-    .cd-main    { margin-left:0; }
+}
+@media (max-width: 768px) {
+    .cd-main { margin-left: 0 !important; }
 }
 @media (max-width: 640px) {
     .stats-section, .dash-grid { padding:14px; }
@@ -412,10 +414,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('headerDate').textContent =
         new Date().toLocaleDateString('en-US', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
 
-    const toggle  = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.dashboard-sidebar');
-    if (toggle && sidebar) {
-        toggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+    const toggle = document.getElementById('sidebarToggle');
+    if (toggle) {
+        toggle.addEventListener('click', () => {
+            if (typeof toggleSidebar === 'function') toggleSidebar();
+        });
     }
 
     loadAll();

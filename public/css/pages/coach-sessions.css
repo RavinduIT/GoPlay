@@ -1262,11 +1262,13 @@
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
+@media (max-width: 768px) {
     .main-content {
         margin-left: 0;
     }
+}
 
+@media (max-width: 1200px) {
     .session-stats {
         grid-template-columns: repeat(2, 1fr);
         padding: 24px;

@@ -607,8 +607,11 @@ body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-page); 
 .no-history { text-align: center; color: var(--text-3); padding: 30px; font-size: 14px; }
 
 /* ── Responsive ──────────────────────────────────────────── */
-@media (max-width: 1200px) {
+@media (max-width: 768px) {
     .main-content { margin-left: 0; }
+}
+
+@media (max-width: 1200px) {
     .client-stats { grid-template-columns: repeat(2, 1fr); padding: 20px 24px 0; }
     .clients-filters { margin: 16px 24px 0; }
     .clients-container { padding: 20px 24px 32px; }

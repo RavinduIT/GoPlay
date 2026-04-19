@@ -1,8 +1,8 @@
 :root {
     /* Shop Owner Theme Colors */
-    --primary-color: #7c3aed;
-    --primary-light: #8b5cf6;
-    --primary-dark: #6d28d9;
+    --primary-color: #2563eb;
+    --primary-light: #3b82f6;
+    --primary-dark: #1d4ed8;
     --secondary-color: #059669;
     --secondary-light: #10b981;
     --accent-color: #f59e0b;
@@ -123,6 +123,7 @@ body {
 
 .sidebar-nav li {
     margin: 0.25rem 0;
+    list-style: none;
 }
 
 .sidebar-nav a {
@@ -658,8 +659,8 @@ body {
 }
 
 .status-badge.shipped {
-    background: #e0e7ff;
-    color: #7c3aed;
+    background: #dbeafe;
+    color: #1d4ed8;
 }
 
 .status-badge.low-stock {
@@ -1201,6 +1202,21 @@ body {
 .recent-reviews .review-time::before {
     content: "•";
     margin-right: 0.25rem;
+}
+
+/* ===============================
+   SIDEBAR OVERLAY (mobile)
+   =============================== */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    backdrop-filter: blur(2px);
+}
+.sidebar-overlay.active {
+    display: block;
 }
 
 /* ===============================

@@ -272,7 +272,7 @@ $recentReviews = $recentReviews ?? [];
                         <p class="card-subtitle">Manage your shop efficiently</p>
                     </div>
                     <div class="actions-grid">
-                        <a href="<?= $_base ?>/shop-owner/products" class="action-card purple">
+                        <a href="<?= $_base ?>/shop-owner/products" class="action-card">
                             <div class="action-icon">
                                 <i class="fas fa-plus-circle"></i>
                             </div>
@@ -285,7 +285,7 @@ $recentReviews = $recentReviews ?? [];
                             </div>
                         </a>
                         
-                        <a href="<?= $_base ?>/shop-owner/orders" class="action-card blue">
+                        <a href="<?= $_base ?>/shop-owner/orders" class="action-card">
                             <div class="action-icon">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
@@ -298,7 +298,7 @@ $recentReviews = $recentReviews ?? [];
                             </div>
                         </a>
                         
-                        <a href="<?= $_base ?>/shop-owner/reviews" class="action-card orange">
+                        <a href="<?= $_base ?>/shop-owner/reviews" class="action-card">
                             <div class="action-icon">
                                 <i class="fas fa-star"></i>
                             </div>
@@ -311,7 +311,7 @@ $recentReviews = $recentReviews ?? [];
                             </div>
                         </a>
                         
-                        <a href="<?= $_base ?>/shop-owner/inventory" class="action-card green">
+                        <a href="<?= $_base ?>/shop-owner/inventory" class="action-card">
                             <div class="action-icon">
                                 <i class="fas fa-warehouse"></i>
                             </div>

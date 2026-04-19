@@ -896,11 +896,13 @@
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
     .dashboard-main {
         margin-left: 0;
     }
-    
+}
+
+@media (max-width: 1024px) {
     .stats-overview {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }

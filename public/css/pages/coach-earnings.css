@@ -374,8 +374,11 @@ body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-page); 
 .d-loading, .d-err { text-align: center; padding: 32px; color: var(--text-3); }
 
 /* ── Responsive ──────────────────────────────────────── */
-@media (max-width: 1200px) {
+@media (max-width: 768px) {
     .main-content { margin-left: 0; }
+}
+
+@media (max-width: 1200px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .earnings-content { padding: 20px 24px 32px; }
 }

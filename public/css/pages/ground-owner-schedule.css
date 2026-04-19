@@ -390,3 +390,51 @@
 
 @keyframes scFadeIn  { from{opacity:0} to{opacity:1} }
 @keyframes scSlideUp { from{transform:translateY(18px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .sc-header-actions { flex-wrap: wrap; gap: 8px; }
+    .sc-ground-select { min-width: 0; flex: 1; }
+    .sc-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .sc-nav-group { width: 100%; justify-content: space-between; }
+    .sc-view-tabs { width: 100%; }
+    .sc-view-tab { flex: 1; text-align: center; font-size: 12px; }
+    .sc-period-label { font-size: 14px; }
+    .sc-stats-strip { gap: 10px; }
+    .sc-stat { padding: 12px 14px; }
+    .sc-stat-num { font-size: 18px; }
+    .sc-month-cell { min-height: 60px; padding: 4px; }
+    .sc-month-day-header { font-size: 9px; padding: 6px 3px; }
+    .sc-cell-num { font-size: 11px; width: 22px; height: 22px; }
+    .sc-booking-pill { font-size: 9px; padding: 2px 4px; }
+    .sc-day-banner { flex-direction: column; padding: 16px; gap: 12px; }
+    .sc-day-chips { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+    .sc-day-chip { padding: 8px 12px; }
+    .sc-day-chip-num { font-size: 18px; }
+    .sc-dbc-time { min-width: 60px; }
+    .sc-dbc-start { font-size: 18px; }
+    .sc-dbc-title { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .sc-dbc-meta { gap: 8px; }
+    .sc-form-grid { grid-template-columns: 1fr; }
+    .sc-blocked-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .sc-blocked-table-wrap { overflow-x: auto; }
+    .sc-week-grid { overflow-x: auto; min-width: 500px; }
+    .sc-calendar-card { overflow-x: auto; }
+    .sc-legend { gap: 12px; font-size: 11px; }
+}
+
+@media (max-width: 480px) {
+    .sc-btn { padding: 6px 12px; font-size: 12px; }
+    .sc-month-cell { min-height: 44px; padding: 2px; }
+    .sc-modal { max-width: calc(100vw - 32px); }
+    .sc-modal-header { padding: 16px 20px; }
+    .sc-modal-body { padding: 16px 20px; }
+    .sc-modal-footer { padding: 12px 20px; }
+    .sc-day-view { padding: 12px; }
+    .sc-day-booking-card { flex-direction: column; gap: 10px; }
+    .sc-dbc-time { text-align: left; }
+}
