@@ -10,9 +10,6 @@ use App\Models\GroundBooking;
 use App\Models\Notification;
 use App\Models\GroundOwnerNotification;
 use App\Models\User;
-use App\Models\Order;
-use App\Models\Payment;
-use App\Services\PayHereService;
 
 /**
  * Booking Controller
@@ -200,87 +197,72 @@ class BookingController extends BaseController
                 ], 500);
             }
 
-            // Get the created booking and facility details
-            $booking  = $this->getGroundBookingModel()->find($bookingId);
+            // Get the created booking with details
+            $booking = $this->getGroundBookingModel()->find($bookingId);
+
+            // Get facility details for notifications
             $facility = $this->getFacilityModel()->find($facilityId);
             $facilityName = $facility['name'] ?? 'Ground';
-            $amount = (float)($booking['total_amount'] ?? 0);
+            $ownerId = $facility['owner_id'] ?? null;
 
-            // Load user info for PayHere customer fields
-            $userModel = new User();
-            $userRow   = $userModel->find($userId);
+            // Create notification for user
+            error_log("=== CREATING BOOKING NOTIFICATION ===");
+            error_log("User ID: {$userId}, Facility ID: {$facilityId}, Facility: {$facilityName}, Date: {$bookingDate}");
+            error_log("Facility data: " . json_encode($facility));
+            error_log("Owner ID from facility: " . ($ownerId ?? 'NULL'));
 
-            // Create an order record so the payment can be tracked
-            $orderModel = new Order();
-            $orderData  = [
-                'user_id'        => $userId,
-                'order_type'     => 'booking',
-                'subtotal'       => $amount,
-                'total_amount'   => $amount,
-                'currency'       => 'LKR',
-                'status'         => 'pending',
-                'payment_status' => 'pending',
-                'payment_method' => 'card',
-            ];
+            $notificationId = null;
+            $ownerNotificationId = null;
 
-            $orderId = $orderModel->createBookingOrder($orderData, 'facility', $bookingId, [
-                'item_name'   => $facilityName . ' Ground Booking',
-                'unit_price'  => $amount,
-                'total_price' => $amount,
-            ]);
+            try {
+                $notificationModel = new Notification();
+                $formattedDate = date('Y-m-d', strtotime($bookingDate));
+                $formattedTime = "{$startTime} to {$endTime}";
+                $notificationId = $notificationModel->createBookingNotification($userId, [
+                    'title' => 'Booking Submitted',
+                    'message' => "Your booking request for {$facilityName} on {$formattedDate} at {$formattedTime} has been submitted and is awaiting approval from the ground owner.",
+                    'booking_id' => $bookingId,
+                    'facility_id' => $facilityId,
+                    'facility_name' => $facilityName,
+                    'booking_date' => $bookingDate,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime
+                ]);
+                error_log("User notification result: " . ($notificationId ? "Created ID {$notificationId}" : "FAILED"));
 
-            if (!$orderId) {
-                // Roll back the booking if order creation fails
-                $this->getGroundBookingModel()->update($bookingId, ['status' => 'cancelled']);
-                return $this->json([
-                    'success' => false,
-                    'message' => 'Failed to create payment order'
-                ], 500);
+                // Create notification for ground owner
+                if ($ownerId) {
+                    error_log("Creating notification for owner ID: {$ownerId}");
+                    $userModel = new User();
+                    $user = $userModel->find($userId);
+                    $ownerNotificationModel = new GroundOwnerNotification();
+                    $ownerNotificationId = $ownerNotificationModel->createBookingNotification($ownerId, [
+                        'booking_id' => $bookingId,
+                        'facility_name' => $facilityName,
+                        'first_name' => $user['first_name'] ?? '',
+                        'last_name' => $user['last_name'] ?? '',
+                        'booking_date' => $bookingDate
+                    ]);
+                    error_log("Owner notification result: " . ($ownerNotificationId ? "Created ID {$ownerNotificationId}" : "FAILED"));
+                } else {
+                    error_log("WARNING: No owner_id found for facility {$facilityId} - skipping owner notification");
+                }
+            } catch (\Exception $e) {
+                // Log notification error but don't fail the booking
+                error_log("Notification creation error: " . $e->getMessage());
+                error_log("Stack trace: " . $e->getTraceAsString());
             }
 
-            $order = $orderModel->find($orderId);
-
-            // Create a pending payment record
-            $paymentModel = new Payment();
-            $paymentModel->createPayment([
-                'order_id'       => $orderId,
-                'payment_method' => 'credit_card',
-                'amount'         => $amount,
-                'currency'       => 'LKR',
-                'status'         => 'pending',
-            ]);
-
-            // Store session token for sandbox verification
-            if (session_status() === PHP_SESSION_NONE) { session_start(); }
-            $_SESSION['payhere_session_' . $order['order_number']] = [
-                'token'     => bin2hex(random_bytes(16)),
-                'timestamp' => time(),
-                'order_id'  => $order['order_number'],
-            ];
-
-            // Build PayHere payload
-            $payhere = new PayHereService();
-            $paymentData = $payhere->buildPayload(
-                $order['order_number'],
-                $amount,
-                $facilityName . ' Ground Booking',
-                [
-                    'first_name' => $userRow['first_name'] ?? '',
-                    'last_name'  => $userRow['last_name']  ?? '',
-                    'email'      => $userRow['email']      ?? '',
-                    'phone'      => $userRow['phone']      ?? '',
-                    'address'    => '',
-                    'city'       => $facility['city']      ?? '',
-                ]
-            );
-
             return $this->json([
-                'success'          => true,
-                'requires_payment' => true,
-                'booking_id'       => $bookingId,
-                'order_number'     => $order['order_number'],
-                'amount'           => $amount,
-                'payment_data'     => $paymentData,
+                'success' => true,
+                'message' => 'Booking submitted! Awaiting ground owner approval.',
+                'booking' => $booking,
+                'booking_id' => $bookingId,
+                'notifications' => [
+                    'user_notification_id' => $notificationId ?? null,
+                    'owner_notification_id' => $ownerNotificationId ?? null,
+                    'owner_id' => $ownerId
+                ]
             ], 201);
 
         } catch (\Exception $e) {

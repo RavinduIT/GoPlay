@@ -628,10 +628,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
             });
             const data = await res.json();
 
-            if (data.success && data.requires_payment && data.payment_data) {
-                showToast('Redirecting to payment…', 'success');
-                setTimeout(() => launchPayHere(data.payment_data), 800);
-            } else if (data.success) {
+            if (data.success) {
                 const msg = facilityId
                     ? 'Session + facility booked successfully!'
                     : 'Session booked successfully!';
@@ -652,25 +649,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         }
     };
 
-    // ── PayHere redirect helper ───────────────────────────────────────────
-    function launchPayHere(pd) {
-        const gatewayUrl = pd.sandbox
-            ? 'https://sandbox.payhere.lk/pay/checkout'
-            : 'https://www.payhere.lk/pay/checkout';
-        const form = document.createElement('form');
-        form.method = 'POST'; form.action = gatewayUrl; form.style.display = 'none';
-        ['merchant_id','return_url','cancel_url','notify_url','order_id','items',
-         'currency','amount','first_name','last_name','email','phone',
-         'address','city','country','hash'].forEach(k => {
-            if (pd[k] === undefined) return;
-            const inp = document.createElement('input');
-            inp.type = 'hidden'; inp.name = k; inp.value = pd[k];
-            form.appendChild(inp);
-        });
-        document.body.appendChild(form); form.submit();
-    }
-
-    //  Init
+    //  Init 
     document.addEventListener('DOMContentLoaded', () => {
         const id = getCoachIdFromUrl();
         if (!id || isNaN(id)) {

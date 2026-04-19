@@ -1,8 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cp:*)",
-      "Bash(plantuml erd.puml -verbose)"
+      "Bash(cp:*)"
     ],
     "deny": [],
     "ask": []

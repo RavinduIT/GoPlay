@@ -971,7 +971,6 @@ class AdminController extends BaseController
 
     /**
      * API: Get payout requests list
-     * ?type=shop|ground_owner|coach   ?status=pending|completed|rejected|all   ?page=1
      */
     public function getPayouts(Request $request): Response
     {
@@ -981,25 +980,17 @@ class AdminController extends BaseController
         }
 
         try {
-            $type   = $request->query('type')   ?? 'shop';
+            $page = max(1, (int)($request->query('page') ?? 1));
             $status = $request->query('status') ?? 'all';
-            $page   = max(1, (int)($request->query('page') ?? 1));
-            $perPage = 20;
-            $offset  = ($page - 1) * $perPage;
 
-            $db = \Core\Database::getInstance()->getConnection();
-
-            [$rows, $stats] = match ($type) {
-                'ground_owner' => $this->fetchGroundOwnerPayouts($db, $status, $perPage, $offset),
-                'coach'        => $this->fetchCoachPayouts($db, $status, $perPage, $offset),
-                default        => $this->fetchShopOwnerPayouts($db, $status, $perPage, $offset),
-            };
+            $payoutModel = new \App\Models\ShopOwnerPayout();
+            $payouts = $payoutModel->getPendingRequests($page, 20, $status);
+            $stats = $payoutModel->getPayoutStats();
 
             return $this->json([
                 'success' => true,
-                'type'    => $type,
-                'payouts' => ['data' => $rows],
-                'stats'   => $stats,
+                'payouts' => $payouts,
+                'stats' => $stats
             ]);
 
         } catch (\Exception $e) {
@@ -1008,85 +999,8 @@ class AdminController extends BaseController
         }
     }
 
-    private function fetchShopOwnerPayouts(\PDO $db, string $status, int $limit, int $offset): array
-    {
-        $where = $status !== 'all' ? "WHERE p.status = '$status'" : '';
-        $rows = $db->query(
-            "SELECT p.*, u.first_name AS owner_first_name, u.last_name AS owner_last_name,
-                    u.email AS owner_email, sp.shop_name,
-                    b.available_balance, b.total_earned
-             FROM shop_owner_payouts p
-             JOIN users u ON u.id = p.shop_owner_id
-             LEFT JOIN shop_owner_profiles sp ON sp.user_id = p.shop_owner_id
-             LEFT JOIN shop_owner_balances b ON b.shop_owner_id = p.shop_owner_id
-             $where ORDER BY p.requested_at DESC LIMIT $limit OFFSET $offset"
-        )->fetchAll(\PDO::FETCH_ASSOC);
-
-        $s = $db->query(
-            "SELECT COUNT(*) AS pending_count,
-                    SUM(CASE WHEN status='pending' THEN amount ELSE 0 END) AS pending_amount,
-                    SUM(CASE WHEN status='completed' THEN amount ELSE 0 END) AS completed_amount,
-                    SUM(CASE WHEN status='completed' AND completed_at >= DATE_FORMAT(NOW(),'%Y-%m-01') THEN amount ELSE 0 END) AS this_month_paid
-             FROM shop_owner_payouts WHERE status='pending'"
-        )->fetch(\PDO::FETCH_ASSOC);
-
-        return [$rows, $s];
-    }
-
-    private function fetchGroundOwnerPayouts(\PDO $db, string $status, int $limit, int $offset): array
-    {
-        $where = $status !== 'all' ? "WHERE p.status = '$status'" : '';
-        $rows = $db->query(
-            "SELECT p.*, u.first_name AS owner_first_name, u.last_name AS owner_last_name,
-                    u.email AS owner_email, gop.business_name AS shop_name,
-                    b.available_balance, b.total_earned
-             FROM ground_owner_payouts p
-             JOIN users u ON u.id = p.owner_id
-             LEFT JOIN ground_owner_profiles gop ON gop.user_id = p.owner_id
-             LEFT JOIN ground_owner_balances b ON b.owner_id = p.owner_id
-             $where ORDER BY p.requested_at DESC LIMIT $limit OFFSET $offset"
-        )->fetchAll(\PDO::FETCH_ASSOC);
-
-        $s = $db->query(
-            "SELECT COUNT(*) AS pending_count,
-                    SUM(CASE WHEN status='pending' THEN amount ELSE 0 END) AS pending_amount,
-                    SUM(CASE WHEN status='completed' THEN amount ELSE 0 END) AS completed_amount,
-                    SUM(CASE WHEN status='completed' AND completed_at >= DATE_FORMAT(NOW(),'%Y-%m-01') THEN amount ELSE 0 END) AS this_month_paid
-             FROM ground_owner_payouts WHERE status='pending'"
-        )->fetch(\PDO::FETCH_ASSOC);
-
-        return [$rows, $s];
-    }
-
-    private function fetchCoachPayouts(\PDO $db, string $status, int $limit, int $offset): array
-    {
-        $where = $status !== 'all' ? "WHERE p.status = '$status'" : '';
-        $rows = $db->query(
-            "SELECT p.*, u.first_name AS owner_first_name, u.last_name AS owner_last_name,
-                    u.email AS owner_email,
-                    CONCAT(u.first_name,' ',u.last_name) AS shop_name,
-                    b.available_balance, b.total_earned
-             FROM coach_payouts p
-             JOIN coaches c ON c.id = p.coach_id
-             JOIN users u ON u.id = c.user_id
-             LEFT JOIN coach_balances b ON b.coach_id = p.coach_id
-             $where ORDER BY p.requested_at DESC LIMIT $limit OFFSET $offset"
-        )->fetchAll(\PDO::FETCH_ASSOC);
-
-        $s = $db->query(
-            "SELECT COUNT(*) AS pending_count,
-                    SUM(CASE WHEN status='pending' THEN amount ELSE 0 END) AS pending_amount,
-                    SUM(CASE WHEN status='completed' THEN amount ELSE 0 END) AS completed_amount,
-                    SUM(CASE WHEN status='completed' AND completed_at >= DATE_FORMAT(NOW(),'%Y-%m-01') THEN amount ELSE 0 END) AS this_month_paid
-             FROM coach_payouts WHERE status='pending'"
-        )->fetch(\PDO::FETCH_ASSOC);
-
-        return [$rows, $s];
-    }
-
     /**
-     * API: Approve a payout request (shop | ground_owner | coach)
-     * Body: { payout_id, type, transaction_reference }
+     * API: Approve a payout request
      */
     public function approvePayout(Request $request): Response
     {
@@ -1096,27 +1010,22 @@ class AdminController extends BaseController
         }
 
         try {
-            $data           = $request->getJsonBody();
-            $payoutId       = (int)($data['payout_id'] ?? 0);
-            $type           = $data['type'] ?? 'shop';
-            $transactionRef = trim($data['transaction_reference'] ?? '');
+            $data = $request->getJsonBody();
+            $payoutId = (int)($data['payout_id'] ?? 0);
+            $transactionRef = $data['transaction_reference'] ?? '';
 
-            if (!$payoutId) return $this->json(['success' => false, 'message' => 'Payout ID required'], 400);
-            if (!$transactionRef) return $this->json(['success' => false, 'message' => 'Transaction reference required'], 400);
+            if (!$payoutId) {
+                return $this->json(['success' => false, 'message' => 'Payout ID is required'], 400);
+            }
 
-            $adminId = (int)$_SESSION['user_id'];
+            if (empty($transactionRef)) {
+                return $this->json(['success' => false, 'message' => 'Transaction reference is required'], 400);
+            }
 
-            $ok = match ($type) {
-                'ground_owner' => (new \App\Models\GroundOwnerBalance())->approvePayout($payoutId, $adminId, $transactionRef),
-                'coach'        => (new \App\Models\CoachBalance())->approvePayout($payoutId, $adminId, $transactionRef),
-                default        => $this->approveShopPayout($payoutId, $adminId, $transactionRef),
-            };
+            $payoutModel = new \App\Models\ShopOwnerPayout();
+            $result = $payoutModel->approveRequest($payoutId, $_SESSION['user_id'], $transactionRef);
 
-            return $this->json(
-                $ok ? ['success' => true, 'message' => 'Payout approved and processed']
-                    : ['success' => false, 'message' => 'Payout not found or already processed'],
-                $ok ? 200 : 400
-            );
+            return $this->json($result, $result['success'] ? 200 : 400);
 
         } catch (\Exception $e) {
             error_log("Admin approvePayout error: " . $e->getMessage());
@@ -1125,8 +1034,7 @@ class AdminController extends BaseController
     }
 
     /**
-     * API: Reject a payout request (shop | ground_owner | coach)
-     * Body: { payout_id, type, reason }
+     * API: Reject a payout request
      */
     public function rejectPayout(Request $request): Response
     {
@@ -1136,44 +1044,27 @@ class AdminController extends BaseController
         }
 
         try {
-            $data     = $request->getJsonBody();
+            $data = $request->getJsonBody();
             $payoutId = (int)($data['payout_id'] ?? 0);
-            $type     = $data['type'] ?? 'shop';
-            $reason   = trim($data['reason'] ?? '');
+            $reason = $data['reason'] ?? '';
 
-            if (!$payoutId) return $this->json(['success' => false, 'message' => 'Payout ID required'], 400);
-            if (!$reason)   return $this->json(['success' => false, 'message' => 'Rejection reason required'], 400);
+            if (!$payoutId) {
+                return $this->json(['success' => false, 'message' => 'Payout ID is required'], 400);
+            }
 
-            $adminId = (int)$_SESSION['user_id'];
+            if (empty($reason)) {
+                return $this->json(['success' => false, 'message' => 'Rejection reason is required'], 400);
+            }
 
-            $ok = match ($type) {
-                'ground_owner' => (new \App\Models\GroundOwnerBalance())->rejectPayout($payoutId, $adminId, $reason),
-                'coach'        => (new \App\Models\CoachBalance())->rejectPayout($payoutId, $adminId, $reason),
-                default        => $this->rejectShopPayout($payoutId, $adminId, $reason),
-            };
+            $payoutModel = new \App\Models\ShopOwnerPayout();
+            $result = $payoutModel->rejectRequest($payoutId, $_SESSION['user_id'], $reason);
 
-            return $this->json(
-                $ok ? ['success' => true, 'message' => 'Payout rejected']
-                    : ['success' => false, 'message' => 'Payout not found or already processed'],
-                $ok ? 200 : 400
-            );
+            return $this->json($result, $result['success'] ? 200 : 400);
 
         } catch (\Exception $e) {
             error_log("Admin rejectPayout error: " . $e->getMessage());
             return $this->json(['success' => false, 'message' => 'Failed to reject payout'], 500);
         }
-    }
-
-    private function approveShopPayout(int $payoutId, int $adminId, string $ref): bool
-    {
-        $result = (new \App\Models\ShopOwnerPayout())->approveRequest($payoutId, $adminId, $ref);
-        return $result['success'] ?? false;
-    }
-
-    private function rejectShopPayout(int $payoutId, int $adminId, string $reason): bool
-    {
-        $result = (new \App\Models\ShopOwnerPayout())->rejectRequest($payoutId, $adminId, $reason);
-        return $result['success'] ?? false;
     }
 
 

@@ -165,12 +165,6 @@ try {
     $router->get('/api/coach/earnings-trend', 'CoachController@getEarningsTrend');
     $router->get('/api/coach/session-breakdown', 'CoachController@getSessionBreakdown');
 
-    // Coach Balance & Payout routes
-    $router->get('/api/coach/balance', 'CoachController@getBalance');
-    $router->get('/api/coach/payouts', 'CoachController@getPayouts');
-    $router->post('/api/coach/payouts', 'CoachController@requestPayout');
-    $router->delete('/api/coach/payouts/{id}', 'CoachController@cancelPayout');
-
     // Coach Certificates API
     $router->get('/api/coach/certificates', 'CoachController@getCertificates');
     $router->post('/api/coach/certificates', 'CoachController@addCertificate');
@@ -302,12 +296,6 @@ try {
     $router->get('/api/ground-owner/earnings/analytics', 'GroundOwnerController@getEarningsAnalytics');
     // Backward compatible route for transactions
     $router->get('/api/ground-owner/transactions', 'GroundOwnerController@getEarningsTransactions');
-
-    // Ground Owner Balance & Payout routes
-    $router->get('/api/ground-owner/balance', 'GroundOwnerController@getBalance');
-    $router->get('/api/ground-owner/payouts', 'GroundOwnerController@getPayouts');
-    $router->post('/api/ground-owner/payouts', 'GroundOwnerController@requestPayout');
-    $router->delete('/api/ground-owner/payouts/{id}', 'GroundOwnerController@cancelPayout');
     $router->post('/api/ground-owner/earnings/walk-in', 'GroundOwnerController@addWalkInTransaction');
 
     // Ground Owner Notifications API routes
@@ -374,7 +362,6 @@ try {
     $router->get('/checkout/payment-method', 'PaymentController@paymentMethod');
     $router->get('/checkout/payment-processing', 'PaymentController@paymentProcessing');
     $router->get('/checkout/order-success', 'PaymentController@orderSuccess');
-    $router->get('/booking/success', 'PaymentController@bookingSuccess');
 
     // API endpoints for checkout
     $router->post('/api/checkout/save-contact', 'PaymentController@saveContactDetails');
