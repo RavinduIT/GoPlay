@@ -949,6 +949,17 @@ class PaymentController extends BaseController
                         ['order_id' => $orderId, 'booking_id' => $bookingId]
                     );
 
+                    // Notify customer — booking is confirmed
+                    if (!empty($order['user_id'])) {
+                        $this->insertNotification(
+                            (int)$order['user_id'],
+                            'booking_confirmation',
+                            'Ground Booking Confirmed!',
+                            'Your ground booking has been confirmed. Reference: ' . ($order['order_number'] ?? ''),
+                            ['order_id' => $orderId, 'booking_id' => $bookingId, 'order_number' => $order['order_number'] ?? '']
+                        );
+                    }
+
                     error_log("Facility booking credited — owner {$ownerId}, booking {$bookingId}, gross={$gross}");
                 }
 
@@ -978,6 +989,17 @@ class PaymentController extends BaseController
                             'Session Payment Received',
                             'A session payment of Rs. ' . number_format($gross, 2) . ' was received. After 10% commission, Rs. ' . number_format($gross * 0.9, 2) . ' has been credited to your wallet.',
                             ['order_id' => $orderId, 'booking_id' => $bookingId]
+                        );
+                    }
+
+                    // Notify customer — coach session is confirmed
+                    if (!empty($order['user_id'])) {
+                        $this->insertNotification(
+                            (int)$order['user_id'],
+                            'booking_confirmation',
+                            'Coach Session Confirmed!',
+                            'Your coach session has been confirmed and payment received. Reference: ' . ($order['order_number'] ?? ''),
+                            ['order_id' => $orderId, 'booking_id' => $bookingId, 'order_number' => $order['order_number'] ?? '']
                         );
                     }
 
@@ -1115,13 +1137,19 @@ class PaymentController extends BaseController
      */
     private function sendOrderNotifications(array $order): void
     {
+        // Booking orders: customer + owner/coach notifications are handled inside
+        // creditBookingParties() with booking-specific language. Skip here.
+        if (($order['order_type'] ?? 'product') === 'booking') {
+            return;
+        }
+
         try {
             $orderId = $order['id'];
             $orderNumber = $order['order_number'] ?? 'N/A';
             $totalAmount = $order['total_amount'] ?? 0;
-            
+
             $balanceModel = new ShopOwnerBalance();
-            
+
             // 1. Notify customer
             if (!empty($order['user_id'])) {
                 $balanceModel->insertNotification(
@@ -1132,10 +1160,10 @@ class PaymentController extends BaseController
                     ['order_id' => $orderId, 'order_number' => $orderNumber]
                 );
             }
-            
+
             // 2. Notify each shop owner
             $owners = $balanceModel->getShopOwnersByOrder($orderId);
-            
+
             foreach ($owners as $owner) {
                 $balanceModel->insertNotification(
                     $owner['shop_owner_id'],
@@ -1145,9 +1173,9 @@ class PaymentController extends BaseController
                     ['order_id' => $orderId, 'order_number' => $orderNumber]
                 );
             }
-            
+
             error_log("Order notifications sent for order #{$orderNumber}");
-            
+
         } catch (\Exception $e) {
             error_log('Failed to send order notifications: ' . $e->getMessage());
         }

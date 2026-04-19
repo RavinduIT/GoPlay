@@ -46,7 +46,7 @@ class CoachBooking extends BaseModel
             'session_title'    => $data['session_title'] ?? null,
             'total_amount'     => (float)$data['total_amount'],
             'payment_status'   => 'pending',
-            'status'           => 'confirmed',
+            'status'           => 'pending',
             'special_requests' => $data['special_requests'] ?? null,
         ];
 
