@@ -2185,3 +2185,292 @@ html {
     padding: 0.15rem 0.4rem !important;
   }
 }
+
+/* =============================================
+   SECTION DECORATIVE BACKGROUNDS (CSS-only)
+   ============================================= */
+
+/* --- News Section: Floating gradient orbs + diagonal mesh --- */
+.news-section {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f0f4ff 50%, #f8fafc 100%) !important;
+}
+
+.news-section::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -120px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: floatOrb 12s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.news-section::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: -100px;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(8, 145, 178, 0.07) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: floatOrb 15s ease-in-out infinite alternate-reverse;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.news-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -20px) scale(1.1); }
+  100% { transform: translate(-20px, 15px) scale(0.95); }
+}
+
+/* --- Features Section: Diagonal stripes + corner accents --- */
+.features-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.features-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 80px,
+      rgba(37, 99, 235, 0.015) 80px,
+      rgba(37, 99, 235, 0.015) 81px
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.features-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- How It Works: Dotted grid pattern --- */
+.how-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.how-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(37, 99, 235, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.how-section::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.how-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Testimonials: Warm glow + quote pattern --- */
+.testimonials-section {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #fefbf6 40%, #fff7ed 100%) !important;
+}
+
+.testimonials-section::before {
+  content: '"';
+  position: absolute;
+  top: 20px;
+  left: 5%;
+  font-size: 18rem;
+  font-family: Georgia, serif;
+  color: rgba(37, 99, 235, 0.03);
+  line-height: 1;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.testimonials-section::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -100px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 65%);
+  border-radius: 50%;
+  transform: translateY(-50%);
+  animation: floatOrb 18s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.testimonials-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Venues Section: Hexagonal mesh + accent glows --- */
+.venues-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.venues-section::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  left: -50px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.venues-section::after {
+  content: '';
+  position: absolute;
+  bottom: -80px;
+  right: -60px;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: floatOrb 14s ease-in-out infinite alternate-reverse;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.venues-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Categories Section: Subtle cross-hatch + glow --- */
+.categories-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.categories-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(45deg, rgba(37, 99, 235, 0.02) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(37, 99, 235, 0.02) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(37, 99, 235, 0.02) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(37, 99, 235, 0.02) 75%);
+  background-size: 40px 40px;
+  background-position: 0 0, 0 20px, 20px -20px, -20px 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.categories-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- CTA Section: Animated gradient border + spotlight --- */
+.cta-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.06) 0%, rgba(8, 145, 178, 0.03) 40%, transparent 70%);
+  border-radius: 50%;
+  animation: ctaPulse 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes ctaPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+}
+
+.cta-card {
+  position: relative;
+  z-index: 1;
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.03) 0%, rgba(8, 145, 178, 0.03) 100%),
+    linear-gradient(180deg, #ffffff, #f8fafc) !important;
+}
+
+/* --- Trust Bar: Subtle shimmer --- */
+.trust-bar-section {
+  background:
+    linear-gradient(180deg, #f8fafc 0%, #f0f4ff 50%, #eef2f7 100%) !important;
+}
+
+.trust-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.trust-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.04), transparent);
+  animation: trustShimmer 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.trust-item:nth-child(2)::before { animation-delay: 0.5s; }
+.trust-item:nth-child(3)::before { animation-delay: 1s; }
+.trust-item:nth-child(4)::before { animation-delay: 1.5s; }
+
+@keyframes trustShimmer {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
+}
