@@ -96,12 +96,13 @@ class HomeController extends BaseController
         try {
             $db = Database::getInstance()->getConnection();
             $stmt = $db->query(
-                "SELECT fr.review_text, fr.rating, u.first_name, u.last_name, u.profile_picture
+                "SELECT fr.review_text, fr.rating, u.first_name, u.last_name, u.profile_picture, sf.name as facility_name
                  FROM facility_reviews fr
                  JOIN users u ON fr.user_id = u.id
+                 LEFT JOIN sports_facilities sf ON fr.facility_id = sf.id
                  WHERE fr.rating >= 4 AND fr.review_text IS NOT NULL AND fr.review_text != ''
                  ORDER BY fr.rating DESC, fr.created_at DESC
-                 LIMIT 3"
+                 LIMIT 4"
             );
             $testimonials = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Exception $e) {

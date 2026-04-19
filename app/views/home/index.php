@@ -362,6 +362,11 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                     <?php if (!empty($testimonials ?? [])): ?>
                         <?php foreach ($testimonials as $t): ?>
                         <div class="testimonial-card">
+                            <div class="testimonial-stars">
+                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                    <i class="fas fa-star" style="color:<?= $i <= (int)$t['rating'] ? '#f59e0b' : '#d1d5db' ?>"></i>
+                                <?php endfor; ?>
+                            </div>
                             <div class="testimonial-quote">"<?= htmlspecialchars($t['review_text']) ?>"</div>
                             <div class="testimonial-user">
                                 <?php
@@ -372,8 +377,8 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                                 ?>
                                 <img src="<?= htmlspecialchars($avatarSrc) ?>" alt="User" onerror="this.src='<?= $_base ?>/public/assets/images/default-avatar.png'" />
                                 <div>
-                                    <div class="user-name"><?= htmlspecialchars($t['first_name']) ?></div>
-                                    <div class="user-role"><i class="fas fa-star" style="color:#f59e0b"></i> <?= number_format((float)$t['rating'], 1) ?></div>
+                                    <div class="user-name"><?= htmlspecialchars($t['first_name'] . ' ' . ($t['last_name'][0] ?? '') . '.') ?></div>
+                                    <div class="user-role"><?= !empty($t['facility_name']) ? '<i class="fas fa-map-marker-alt" style="color:#2563eb"></i> ' . htmlspecialchars($t['facility_name']) : 'Verified Player' ?></div>
                                 </div>
                             </div>
                         </div>

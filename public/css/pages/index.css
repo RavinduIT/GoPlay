@@ -1968,6 +1968,13 @@ html {
   margin-bottom: 0.75rem;
 }
 
+.testimonial-stars {
+  display: flex;
+  gap: 0.2rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
 .testimonial-user {
   display: flex;
   align-items: center;
