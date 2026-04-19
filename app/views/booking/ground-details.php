@@ -1931,14 +1931,14 @@ $groundId = $_GET['id'] ?? 1;
 
                 const data = await response.json();
 
-                if (data.success) {
-                    alert('Booking confirmed successfully! ' + data.message);
+                if (data.success && data.requires_payment && data.payment_data) {
+                    // Redirect to PayHere for payment
                     closeBookingModal();
-
-                    // Optionally redirect to bookings page
-                    if (confirm('Would you like to view your bookings?')) {
-                        window.location.href=(window.BASE_URL||'')+'/my-bookings';
-                    }
+                    launchPayHere(data.payment_data);
+                } else if (data.success) {
+                    alert('Booking submitted! ' + (data.message || ''));
+                    closeBookingModal();
+                    window.location.href = (window.BASE_URL || '') + '/my-bookings';
                 } else {
                     throw new Error(data.message || 'Booking failed');
                 }
@@ -1951,6 +1951,34 @@ $groundId = $_GET['id'] ?? 1;
                 confirmText.textContent = 'Confirm Booking';
                 confirmBtn.disabled = false;
             }
+        }
+
+        // ── PayHere redirect helper ──────────────────────────────────────────
+        function launchPayHere(pd) {
+            const gatewayUrl = pd.sandbox
+                ? 'https://sandbox.payhere.lk/pay/checkout'
+                : 'https://www.payhere.lk/pay/checkout';
+
+            const form = document.createElement('form');
+            form.method  = 'POST';
+            form.action  = gatewayUrl;
+            form.style.display = 'none';
+
+            const fields = ['merchant_id','return_url','cancel_url','notify_url',
+                            'order_id','items','currency','amount',
+                            'first_name','last_name','email','phone',
+                            'address','city','country','hash'];
+            fields.forEach(k => {
+                if (pd[k] === undefined) return;
+                const inp = document.createElement('input');
+                inp.type  = 'hidden';
+                inp.name  = k;
+                inp.value = pd[k];
+                form.appendChild(inp);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
         }
 
         // Google Maps for Ground Details

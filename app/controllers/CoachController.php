@@ -6,8 +6,13 @@ use Core\Request;
 use Core\Response;
 use App\Models\Coach;
 use App\Models\CoachBooking;
+use App\Models\CoachBalance;
 use App\Models\SportsFacility;
 use App\Models\GroundOwnerNotification;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Models\Notification;
+use App\Services\PayHereService;
 
 /**
  * Coach Controller
@@ -1418,18 +1423,97 @@ class CoachController extends BaseController
 
             $bookingId = $coachBookingModel->createBooking($bookingData);
 
-            if ($bookingId) {
-                return $this->json([
-                    'success' => true,
-                    'message' => 'Booking created successfully',
-                    'booking_id' => $bookingId
-                ], 201);
-            } else {
+            if (!$bookingId) {
                 return $this->json([
                     'success' => false,
                     'error' => 'Failed to create booking'
                 ], 500);
             }
+
+            // Load coach + user details for PayHere
+            $coachModel = new Coach();
+            $coach      = $coachModel->find((int)$data['coach_id']);
+            $coachUser  = null;
+            if ($coach) {
+                $coachUser = $coachModel->getByUserId($coach['user_id'] ?? 0) ?? null;
+            }
+
+            // Use coach's user record to look up the booking user
+            $userId   = $_SESSION['user_id'];
+            $amount   = (float)$data['total_amount'];
+            $label    = 'Coach Session — ' . ($coach ? ($coach['first_name'] ?? 'Coach') : 'Coach');
+
+            // Create order record
+            $orderModel = new Order();
+            $orderId = $orderModel->createBookingOrder(
+                [
+                    'user_id'        => $userId,
+                    'order_type'     => 'booking',
+                    'subtotal'       => $amount,
+                    'total_amount'   => $amount,
+                    'currency'       => 'LKR',
+                    'status'         => 'pending',
+                    'payment_status' => 'pending',
+                    'payment_method' => 'card',
+                ],
+                'coach',
+                $bookingId,
+                [
+                    'item_name'   => $label,
+                    'unit_price'  => $amount,
+                    'total_price' => $amount,
+                ]
+            );
+
+            if (!$orderId) {
+                $coachBookingModel->update($bookingId, ['status' => 'cancelled']);
+                return $this->json(['success' => false, 'error' => 'Failed to create payment order'], 500);
+            }
+
+            $order = $orderModel->find($orderId);
+
+            $paymentModel = new Payment();
+            $paymentModel->createPayment([
+                'order_id'       => $orderId,
+                'payment_method' => 'credit_card',
+                'amount'         => $amount,
+                'currency'       => 'LKR',
+                'status'         => 'pending',
+            ]);
+
+            if (session_status() === PHP_SESSION_NONE) { session_start(); }
+            $_SESSION['payhere_session_' . $order['order_number']] = [
+                'token'     => bin2hex(random_bytes(16)),
+                'timestamp' => time(),
+                'order_id'  => $order['order_number'],
+            ];
+
+            // Build PayHere payload
+            // We use the booking user's stored info from session; we need user row
+            $userRow = (new \App\Models\User())->find($userId);
+            $payhere = new PayHereService();
+            $paymentData = $payhere->buildPayload(
+                $order['order_number'],
+                $amount,
+                $label,
+                [
+                    'first_name' => $userRow['first_name'] ?? '',
+                    'last_name'  => $userRow['last_name']  ?? '',
+                    'email'      => $userRow['email']      ?? '',
+                    'phone'      => $userRow['phone']      ?? '',
+                    'address'    => '',
+                    'city'       => '',
+                ]
+            );
+
+            return $this->json([
+                'success'          => true,
+                'requires_payment' => true,
+                'booking_id'       => $bookingId,
+                'order_number'     => $order['order_number'],
+                'amount'           => $amount,
+                'payment_data'     => $paymentData,
+            ], 201);
 
         } catch (\Exception $e) {
             return $this->json([
@@ -2350,6 +2434,148 @@ class CoachController extends BaseController
                 'stats'         => $stats,
             ]);
 
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // ─── Coach Balance & Payouts ─────────────────────────────────────────────
+
+    /**
+     * GET /api/coach/balance
+     * Return available balance, pending balance, totals.
+     */
+    public function getBalance(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $coachModel = new Coach();
+            $coaches    = $coachModel->where(['user_id' => (int)$_SESSION['user_id']]);
+            if (empty($coaches)) {
+                return $this->json(['success' => false, 'error' => 'Coach profile not found'], 404);
+            }
+            $coachId = (int)$coaches[0]['id'];
+
+            $balanceModel = new CoachBalance();
+            return $this->json([
+                'success' => true,
+                'balance' => $balanceModel->getSummary($coachId),
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/coach/payouts
+     * List all payout requests for this coach.
+     */
+    public function getPayouts(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $coachModel = new Coach();
+            $coaches    = $coachModel->where(['user_id' => (int)$_SESSION['user_id']]);
+            if (empty($coaches)) {
+                return $this->json(['success' => false, 'error' => 'Coach profile not found'], 404);
+            }
+            $coachId = (int)$coaches[0]['id'];
+
+            $balanceModel = new CoachBalance();
+            return $this->json([
+                'success' => true,
+                'payouts' => $balanceModel->getPayouts($coachId),
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * POST /api/coach/payouts
+     * Request a payout.
+     * Body: { amount, bank_name, account_number, account_holder, branch_name }
+     */
+    public function requestPayout(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $coachModel = new Coach();
+            $coaches    = $coachModel->where(['user_id' => (int)$_SESSION['user_id']]);
+            if (empty($coaches)) {
+                return $this->json(['success' => false, 'error' => 'Coach profile not found'], 404);
+            }
+            $coachId = (int)$coaches[0]['id'];
+
+            $data   = $request->getJsonBody() ?: $request->getBody();
+            $amount = (float)($data['amount'] ?? 0);
+
+            if ($amount <= 0) {
+                return $this->json(['success' => false, 'error' => 'Invalid amount'], 400);
+            }
+
+            $balanceModel = new CoachBalance();
+            $payoutId = $balanceModel->requestPayout($coachId, $amount, [
+                'bank_name'      => $data['bank_name']      ?? '',
+                'account_number' => $data['account_number'] ?? '',
+                'account_holder' => $data['account_holder'] ?? '',
+                'branch_name'    => $data['branch_name']    ?? '',
+            ]);
+
+            if (!$payoutId) {
+                return $this->json(['success' => false, 'error' => 'Insufficient balance or request failed'], 400);
+            }
+
+            return $this->json([
+                'success'   => true,
+                'message'   => 'Payout request submitted. Admin will process within 3 business days.',
+                'payout_id' => $payoutId,
+            ], 201);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * DELETE /api/coach/payouts/{id}
+     * Cancel a pending payout.
+     */
+    public function cancelPayout(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id'])) {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $coachModel = new Coach();
+            $coaches    = $coachModel->where(['user_id' => (int)$_SESSION['user_id']]);
+            if (empty($coaches)) {
+                return $this->json(['success' => false, 'error' => 'Coach profile not found'], 404);
+            }
+            $coachId  = (int)$coaches[0]['id'];
+            $payoutId = (int)($request->getRouteParam('id') ?? 0);
+
+            $balanceModel = new CoachBalance();
+            $ok = $balanceModel->cancelPayout($payoutId, $coachId);
+
+            if (!$ok) {
+                return $this->json(['success' => false, 'error' => 'Payout not found or already processed'], 404);
+            }
+
+            return $this->json(['success' => true, 'message' => 'Payout cancelled and amount returned to balance']);
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
         }

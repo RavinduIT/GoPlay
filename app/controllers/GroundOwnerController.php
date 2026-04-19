@@ -8,6 +8,7 @@ use App\Models\SportsFacility;
 use App\Models\SportsCategory;
 use App\Models\GroundBooking;
 use App\Models\GroundOwnerEarnings;
+use App\Models\GroundOwnerBalance;
 use App\Models\GroundOwnerNotification;
 use App\Models\FacilityAvailability;
 use App\Models\Coach;
@@ -2934,6 +2935,107 @@ class GroundOwnerController extends BaseController
 
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'message' => 'Failed to remove blocked date', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // ─── Ground Owner Balance & Payouts ─────────────────────────────────────
+
+    /** GET /api/ground-owner/balance */
+    public function getBalance(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            $ownerId = $_SESSION['user_id'] ?? null;
+            if (!$ownerId) return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+            $balanceModel = new GroundOwnerBalance();
+            return $this->json([
+                'success' => true,
+                'balance' => $balanceModel->getSummary((int)$ownerId),
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /** GET /api/ground-owner/payouts */
+    public function getPayouts(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            $ownerId = $_SESSION['user_id'] ?? null;
+            if (!$ownerId) return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+            $balanceModel = new GroundOwnerBalance();
+            return $this->json([
+                'success' => true,
+                'payouts' => $balanceModel->getPayouts((int)$ownerId),
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * POST /api/ground-owner/payouts
+     * Body: { amount, bank_name, account_number, account_holder, branch_name }
+     */
+    public function requestPayout(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            $ownerId = $_SESSION['user_id'] ?? null;
+            if (!$ownerId) return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+            $data   = $request->getJsonBody() ?: $request->getBody();
+            $amount = (float)($data['amount'] ?? 0);
+
+            if ($amount <= 0) {
+                return $this->json(['success' => false, 'message' => 'Invalid amount'], 400);
+            }
+
+            $balanceModel = new GroundOwnerBalance();
+            $payoutId = $balanceModel->requestPayout((int)$ownerId, $amount, [
+                'bank_name'      => $data['bank_name']      ?? '',
+                'account_number' => $data['account_number'] ?? '',
+                'account_holder' => $data['account_holder'] ?? '',
+                'branch_name'    => $data['branch_name']    ?? '',
+            ]);
+
+            if (!$payoutId) {
+                return $this->json(['success' => false, 'message' => 'Insufficient balance or request failed'], 400);
+            }
+
+            return $this->json([
+                'success'   => true,
+                'message'   => 'Payout request submitted. Admin will process within 3 business days.',
+                'payout_id' => $payoutId,
+            ], 201);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /** DELETE /api/ground-owner/payouts/{id} */
+    public function cancelPayout(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            $ownerId  = $_SESSION['user_id'] ?? null;
+            if (!$ownerId) return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+            $payoutId = (int)($request->getRouteParam('id') ?? 0);
+
+            $balanceModel = new GroundOwnerBalance();
+            $ok = $balanceModel->cancelPayout($payoutId, (int)$ownerId);
+
+            if (!$ok) {
+                return $this->json(['success' => false, 'message' => 'Payout not found or already processed'], 404);
+            }
+
+            return $this->json(['success' => true, 'message' => 'Payout cancelled and amount returned to balance']);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 }
