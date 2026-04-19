@@ -36,6 +36,49 @@ include __DIR__ . '/layout-head.php';
 
         <div class="go-earnings-content">
 
+            <!-- Wallet Balance Panel -->
+            <div class="go-wallet-panel" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;">
+                <div style="flex:1;min-width:150px;">
+                    <div style="font-size:.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Available Balance</div>
+                    <div id="walletAvailable" style="font-size:1.6rem;font-weight:700;color:#16a34a;">—</div>
+                </div>
+                <div style="flex:1;min-width:150px;">
+                    <div style="font-size:.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Pending (Unprocessed)</div>
+                    <div id="walletPending" style="font-size:1.6rem;font-weight:700;color:#d97706;">—</div>
+                </div>
+                <div style="flex:1;min-width:150px;">
+                    <div style="font-size:.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Total Withdrawn</div>
+                    <div id="walletWithdrawn" style="font-size:1.6rem;font-weight:700;color:#6b7280;">—</div>
+                </div>
+                <div style="display:flex;gap:.75rem;flex-shrink:0;">
+                    <button class="go-btn" onclick="openPayoutModal()" style="background:#16a34a;color:#fff;border:none;padding:.55rem 1.1rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:.875rem;">
+                        <i class="fas fa-money-bill-wave"></i> Request Payout
+                    </button>
+                    <button class="go-btn go-btn-secondary" onclick="togglePayoutHistory()" style="padding:.55rem 1.1rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:.875rem;">
+                        <i class="fas fa-history"></i> History
+                    </button>
+                </div>
+            </div>
+
+            <!-- Payout History (hidden by default) -->
+            <div id="payoutHistory" style="display:none;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
+                <h3 style="margin:0 0 1rem;font-size:1rem;font-weight:700;">Payout Requests</h3>
+                <div id="payoutList" style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:.875rem;">
+                        <thead>
+                            <tr style="background:#f9fafb;">
+                                <th style="padding:.5rem .75rem;text-align:left;color:#6b7280;font-weight:600;">Date</th>
+                                <th style="padding:.5rem .75rem;text-align:left;color:#6b7280;font-weight:600;">Amount</th>
+                                <th style="padding:.5rem .75rem;text-align:left;color:#6b7280;font-weight:600;">Bank</th>
+                                <th style="padding:.5rem .75rem;text-align:left;color:#6b7280;font-weight:600;">Status</th>
+                                <th style="padding:.5rem .75rem;text-align:left;color:#6b7280;font-weight:600;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="payoutRows"><tr><td colspan="5" style="padding:.75rem;color:#9ca3af;text-align:center;">Loading…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!--  Stat Cards  -->
             <div class="go-stats-grid">
                 <div class="go-stat-card go-stat-gold">
@@ -231,5 +274,191 @@ include __DIR__ . '/layout-head.php';
         </form>
     </div>
 </div>
+
+<!-- Payout Request Modal -->
+<div id="payoutModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:2rem;width:100%;max-width:440px;margin:1rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+            <h3 style="margin:0;font-size:1.125rem;font-weight:700;">Request Payout</h3>
+            <button onclick="closePayoutModal()" style="background:none;border:none;cursor:pointer;font-size:1.25rem;color:#6b7280;">&times;</button>
+        </div>
+        <p style="color:#6b7280;font-size:.875rem;margin-bottom:1.25rem;">
+            Available balance: <strong id="modalAvailable" style="color:#16a34a;">—</strong>
+        </p>
+        <form id="payoutForm" onsubmit="submitPayout(event)">
+            <div style="display:grid;gap:.875rem;">
+                <div>
+                    <label style="display:block;font-size:.8125rem;font-weight:600;color:#374151;margin-bottom:.3rem;">Amount (LKR) <span style="color:#ef4444;">*</span></label>
+                    <input type="number" id="payoutAmount" min="1" step="0.01" required placeholder="e.g. 5000"
+                           style="width:100%;padding:.55rem .75rem;border:1px solid #d1d5db;border-radius:8px;font-size:.875rem;box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:.8125rem;font-weight:600;color:#374151;margin-bottom:.3rem;">Bank Name <span style="color:#ef4444;">*</span></label>
+                    <input type="text" id="payoutBank" required placeholder="e.g. Sampath Bank"
+                           style="width:100%;padding:.55rem .75rem;border:1px solid #d1d5db;border-radius:8px;font-size:.875rem;box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:.8125rem;font-weight:600;color:#374151;margin-bottom:.3rem;">Account Number <span style="color:#ef4444;">*</span></label>
+                    <input type="text" id="payoutAccNo" required placeholder="e.g. 1234567890"
+                           style="width:100%;padding:.55rem .75rem;border:1px solid #d1d5db;border-radius:8px;font-size:.875rem;box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:.8125rem;font-weight:600;color:#374151;margin-bottom:.3rem;">Account Holder <span style="color:#ef4444;">*</span></label>
+                    <input type="text" id="payoutHolder" required placeholder="Name on account"
+                           style="width:100%;padding:.55rem .75rem;border:1px solid #d1d5db;border-radius:8px;font-size:.875rem;box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:.8125rem;font-weight:600;color:#374151;margin-bottom:.3rem;">Branch</label>
+                    <input type="text" id="payoutBranch" placeholder="e.g. Colombo 03"
+                           style="width:100%;padding:.55rem .75rem;border:1px solid #d1d5db;border-radius:8px;font-size:.875rem;box-sizing:border-box;">
+                </div>
+            </div>
+            <div id="payoutError" style="display:none;color:#ef4444;font-size:.8125rem;margin-top:.75rem;"></div>
+            <div style="display:flex;gap:.75rem;margin-top:1.25rem;">
+                <button type="button" onclick="closePayoutModal()"
+                        style="flex:1;padding:.6rem;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;">
+                    Cancel
+                </button>
+                <button type="submit" id="payoutSubmitBtn"
+                        style="flex:1;padding:.6rem;border:none;border-radius:8px;background:#16a34a;color:#fff;cursor:pointer;font-weight:600;">
+                    Submit Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    // ── Wallet balance ───────────────────────────────────────
+    function fmt(n) { return 'Rs. ' + Number(n || 0).toLocaleString('en-LK', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+    function loadBalance() {
+        fetch('/api/ground-owner/balance')
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return;
+                const b = data.balance;
+                document.getElementById('walletAvailable').textContent  = fmt(b.available_balance);
+                document.getElementById('walletPending').textContent    = fmt(b.pending_balance);
+                document.getElementById('walletWithdrawn').textContent  = fmt(b.total_withdrawn);
+                document.getElementById('modalAvailable').textContent   = fmt(b.available_balance);
+            })
+            .catch(() => {});
+    }
+
+    loadBalance();
+
+    // ── Payout modal ─────────────────────────────────────────
+    window.openPayoutModal = function () {
+        loadBalance();
+        document.getElementById('payoutModal').style.display = 'flex';
+    };
+    window.closePayoutModal = function () {
+        document.getElementById('payoutModal').style.display = 'none';
+        document.getElementById('payoutError').style.display = 'none';
+    };
+
+    window.submitPayout = function (e) {
+        e.preventDefault();
+        const btn = document.getElementById('payoutSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Submitting…';
+
+        const body = {
+            amount:         parseFloat(document.getElementById('payoutAmount').value),
+            bank_name:      document.getElementById('payoutBank').value.trim(),
+            account_number: document.getElementById('payoutAccNo').value.trim(),
+            account_holder: document.getElementById('payoutHolder').value.trim(),
+            branch_name:    document.getElementById('payoutBranch').value.trim(),
+        };
+
+        fetch('/api/ground-owner/payouts', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(body),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                closePayoutModal();
+                loadBalance();
+                loadPayoutHistory();
+                alert('✅ ' + data.message);
+                document.getElementById('payoutForm').reset();
+            } else {
+                const err = document.getElementById('payoutError');
+                err.textContent = data.error || data.message || 'Request failed';
+                err.style.display = 'block';
+            }
+        })
+        .catch(() => {
+            const err = document.getElementById('payoutError');
+            err.textContent = 'Network error. Please try again.';
+            err.style.display = 'block';
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = 'Submit Request';
+        });
+    };
+
+    // ── Payout history ───────────────────────────────────────
+    let historyVisible = false;
+
+    window.togglePayoutHistory = function () {
+        historyVisible = !historyVisible;
+        const el = document.getElementById('payoutHistory');
+        el.style.display = historyVisible ? 'block' : 'none';
+        if (historyVisible) loadPayoutHistory();
+    };
+
+    function statusBadge(status) {
+        const map = {
+            pending:    ['#d97706','#fef3c7','Pending'],
+            processing: ['#2563eb','#dbeafe','Processing'],
+            completed:  ['#16a34a','#dcfce7','Completed'],
+            rejected:   ['#dc2626','#fee2e2','Rejected'],
+        };
+        const [c, bg, label] = map[status] || ['#6b7280','#f3f4f6', status];
+        return `<span style="background:${bg};color:${c};padding:.2rem .6rem;border-radius:99px;font-size:.75rem;font-weight:600;">${label}</span>`;
+    }
+
+    function loadPayoutHistory() {
+        fetch('/api/ground-owner/payouts')
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return;
+                const rows = data.payouts;
+                const tbody = document.getElementById('payoutRows');
+                if (!rows.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="padding:.75rem;color:#9ca3af;text-align:center;">No payout requests yet.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = rows.map(p => `
+                    <tr style="border-top:1px solid #f3f4f6;">
+                        <td style="padding:.5rem .75rem;">${new Date(p.requested_at).toLocaleDateString()}</td>
+                        <td style="padding:.5rem .75rem;font-weight:600;">${fmt(p.amount)}</td>
+                        <td style="padding:.5rem .75rem;">${p.bank_name || '—'} ${p.account_number ? '•••' + p.account_number.slice(-4) : ''}</td>
+                        <td style="padding:.5rem .75rem;">${statusBadge(p.status)}</td>
+                        <td style="padding:.5rem .75rem;">
+                            ${p.status === 'pending' ? `<button onclick="cancelPayout(${p.id})" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.75rem;font-weight:600;">Cancel</button>` : ''}
+                        </td>
+                    </tr>`).join('');
+            })
+            .catch(() => {});
+    }
+
+    window.cancelPayout = function (id) {
+        if (!confirm('Cancel this payout request? The amount will be returned to your available balance.')) return;
+        fetch('/api/ground-owner/payouts/' + id, {method:'DELETE'})
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) { loadBalance(); loadPayoutHistory(); }
+                else alert(data.error || data.message || 'Failed to cancel');
+            });
+    };
+})();
+</script>
 
 <?php include __DIR__ . '/layout-foot.php'; ?>

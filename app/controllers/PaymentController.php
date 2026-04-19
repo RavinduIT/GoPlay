@@ -9,6 +9,13 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Cart;
 use App\Models\ShopOwnerBalance;
+use App\Models\GroundOwnerBalance;
+use App\Models\CoachBalance;
+use App\Models\GroundBooking;
+use App\Models\CoachBooking;
+use App\Models\GroundOwnerEarnings;
+use App\Models\Notification;
+use App\Models\Coach;
 
 /**
  * Payment Controller
@@ -518,8 +525,12 @@ class PaymentController extends BaseController
                     }
                 }
 
-                // Credit shop owners and send notifications
-                $this->creditShopOwnersForOrder($order);
+                // Credit the right party depending on order type
+                if (($order['order_type'] ?? 'product') === 'booking') {
+                    $this->creditBookingParties($order);
+                } else {
+                    $this->creditShopOwnersForOrder($order);
+                }
                 $this->sendOrderNotifications($order);
 
                 error_log('Payment successful for order: ' . $orderId);
@@ -529,6 +540,11 @@ class PaymentController extends BaseController
                     'payment_status' => 'failed',
                     'status' => 'cancelled'
                 ]);
+
+                // Cancel the booking too
+                if (($order['order_type'] ?? 'product') === 'booking') {
+                    $this->cancelBookingForOrder($order['id']);
+                }
 
                 $payment = $this->paymentModel->findByOrderId($order['id']);
                 if ($payment) {
@@ -628,8 +644,18 @@ class PaymentController extends BaseController
 
                     error_log('Payment completed via return URL for order: ' . $orderId);
 
-                    // Redirect to success page
-                    return $this->redirect('/checkout/order-success?order=' . $orderId);
+                    // Credit the right party depending on order type
+                    if (($order['order_type'] ?? 'product') === 'booking') {
+                        $this->creditBookingParties($order);
+                    } else {
+                        $this->creditShopOwnersForOrder($order);
+                    }
+                    $this->sendOrderNotifications($order);
+
+                    $successUrl = ($order['order_type'] ?? 'product') === 'booking'
+                        ? '/booking/success?order=' . $orderId
+                        : '/checkout/order-success?order=' . $orderId;
+                    return $this->redirect($successUrl);
                 } else if ($statusCode != '2') {
                     // Payment failed
                     $this->orderModel->update($order['id'], [
@@ -706,12 +732,19 @@ class PaymentController extends BaseController
                 // Clear session checkout data
                 unset($_SESSION['checkout_contact']);
 
-                // Credit shop owners and send notifications
-                $this->creditShopOwnersForOrder($order);
+                // Credit the right party depending on order type
+                if (($order['order_type'] ?? 'product') === 'booking') {
+                    $this->creditBookingParties($order);
+                } else {
+                    $this->creditShopOwnersForOrder($order);
+                }
                 $this->sendOrderNotifications($order);
 
-                // Redirect to success page
-                return $this->redirect('/checkout/order-success?order=' . $orderId);
+                // Redirect to appropriate success page
+                $successUrl = ($order['order_type'] ?? 'product') === 'booking'
+                    ? '/booking/success?order=' . $orderId
+                    : '/checkout/order-success?order=' . $orderId;
+                return $this->redirect($successUrl);
             }
 
             // Check payment status (if already updated by notify callback)
@@ -722,8 +755,11 @@ class PaymentController extends BaseController
                 }
                 unset($_SESSION['checkout_contact']);
 
-                // Redirect to success page
-                return $this->redirect('/checkout/order-success?order=' . $orderId);
+                // Route to the correct success page based on order type
+                $successUrl = ($order['order_type'] ?? 'product') === 'booking'
+                    ? '/booking/success?order=' . $orderId
+                    : '/checkout/order-success?order=' . $orderId;
+                return $this->redirect($successUrl);
             } else {
                 // Payment not confirmed yet or failed
                 error_log('Payment status check failed for order: ' . $orderId . ' - Status: ' . $order['payment_status']);
@@ -765,11 +801,21 @@ class PaymentController extends BaseController
     }
 
     /**
-     * Display order success page
+     * Display order success page (shop products)
      */
     public function orderSuccess(Request $request): Response
     {
         return $this->view('checkout/order-success');
+    }
+
+    /**
+     * Display booking payment success page (facility / coach)
+     */
+    public function bookingSuccess(Request $request): Response
+    {
+        $orderNumber = $_GET['order'] ?? null;
+        $order = $orderNumber ? $this->orderModel->findByOrderNumber($orderNumber) : null;
+        return $this->view('booking/payment-success', ['order' => $order]);
     }
 
     /**
@@ -840,6 +886,172 @@ class PaymentController extends BaseController
     {
         // Update payment status and notify user
         // Implementation depends on your payment gateway
+    }
+
+    /**
+     * Credit ground owner or coach for a confirmed booking payment.
+     * Reads order_items to find facility_booking_id or coach_booking_id.
+     */
+    private function creditBookingParties(array $order): void
+    {
+        try {
+            $orderId = $order['id'];
+            $db = \Core\Database::getInstance()->getConnection();
+
+            // Find all booking items for this order
+            $stmt = $db->prepare(
+                "SELECT oi.*, fb.facility_id, fb.total_amount AS fb_amount,
+                        sf.owner_id AS facility_owner_id,
+                        cb.coach_id, cb.total_amount AS cb_amount
+                 FROM order_items oi
+                 LEFT JOIN facility_bookings fb ON fb.id = oi.facility_booking_id
+                 LEFT JOIN sports_facilities sf ON sf.id = fb.facility_id
+                 LEFT JOIN coach_bookings cb ON cb.id = oi.coach_booking_id
+                 WHERE oi.order_id = ?"
+            );
+            $stmt->execute([$orderId]);
+            $items = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            $feeRate = 0.10; // 10% platform commission
+
+            foreach ($items as $item) {
+                // ── Facility booking ──────────────────────────────────
+                if (!empty($item['facility_booking_id'])) {
+                    $bookingId = (int)$item['facility_booking_id'];
+                    $ownerId   = (int)$item['facility_owner_id'];
+                    $gross     = (float)($item['fb_amount'] ?? $item['total_price']);
+
+                    // Confirm the facility booking
+                    $db->prepare("UPDATE facility_bookings SET status = 'confirmed', payment_status = 'paid' WHERE id = ?")
+                       ->execute([$bookingId]);
+
+                    // Add/update the ground_owner_earnings row
+                    $db->prepare(
+                        "INSERT INTO ground_owner_earnings
+                             (owner_id, booking_id, facility_id, amount, earning_date, earning_type, payment_status, payment_method)
+                         VALUES (?, ?, ?, ?, CURDATE(), 'booking', 'paid', 'payhere')
+                         ON DUPLICATE KEY UPDATE payment_status = 'paid', payment_method = 'payhere'"
+                    )->execute([$ownerId, $bookingId, (int)$item['facility_id'], $gross]);
+
+                    // Credit ground owner wallet
+                    $balanceModel = new GroundOwnerBalance();
+                    $balanceModel->creditBooking($ownerId, $bookingId, $gross, 'facility');
+
+                    // Platform earnings
+                    $this->recordPlatformEarning($orderId, null, $bookingId, 'facility', $gross, $feeRate, $ownerId);
+
+                    // Notify ground owner
+                    $this->insertNotification(
+                        $ownerId,
+                        'payment_success',
+                        'New Booking Payment Received',
+                        'A booking payment of Rs. ' . number_format($gross, 2) . ' was received. After 10% commission, Rs. ' . number_format($gross * 0.9, 2) . ' has been credited to your wallet.',
+                        ['order_id' => $orderId, 'booking_id' => $bookingId]
+                    );
+
+                    error_log("Facility booking credited — owner {$ownerId}, booking {$bookingId}, gross={$gross}");
+                }
+
+                // ── Coach booking ─────────────────────────────────────
+                if (!empty($item['coach_booking_id'])) {
+                    $bookingId = (int)$item['coach_booking_id'];
+                    $coachId   = (int)$item['coach_id'];
+                    $gross     = (float)($item['cb_amount'] ?? $item['total_price']);
+
+                    // Confirm the coach booking
+                    $db->prepare("UPDATE coach_bookings SET status = 'confirmed', payment_status = 'paid' WHERE id = ?")
+                       ->execute([$bookingId]);
+
+                    // Credit coach wallet
+                    $coachBalModel = new CoachBalance();
+                    $coachBalModel->creditSession($coachId, $bookingId, $gross);
+
+                    // Platform earnings — get coach's user_id for merchant_id
+                    $coachRow = (new Coach())->find($coachId);
+                    $this->recordPlatformEarning($orderId, null, $bookingId, 'coach', $gross, $feeRate, $coachRow['user_id'] ?? null);
+
+                    // Notify coach user
+                    if ($coachRow) {
+                        $this->insertNotification(
+                            (int)$coachRow['user_id'],
+                            'payment_success',
+                            'Session Payment Received',
+                            'A session payment of Rs. ' . number_format($gross, 2) . ' was received. After 10% commission, Rs. ' . number_format($gross * 0.9, 2) . ' has been credited to your wallet.',
+                            ['order_id' => $orderId, 'booking_id' => $bookingId]
+                        );
+                    }
+
+                    error_log("Coach booking credited — coach {$coachId}, booking {$bookingId}, gross={$gross}");
+                }
+            }
+        } catch (\Exception $e) {
+            error_log('creditBookingParties error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cancel the underlying facility/coach booking when payment fails.
+     */
+    private function cancelBookingForOrder(int $orderId): void
+    {
+        try {
+            $db = \Core\Database::getInstance()->getConnection();
+            $stmt = $db->prepare(
+                "SELECT facility_booking_id, coach_booking_id FROM order_items WHERE order_id = ?"
+            );
+            $stmt->execute([$orderId]);
+            $items = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($items as $item) {
+                if (!empty($item['facility_booking_id'])) {
+                    $db->prepare("UPDATE facility_bookings SET status = 'cancelled' WHERE id = ?")
+                       ->execute([$item['facility_booking_id']]);
+                }
+                if (!empty($item['coach_booking_id'])) {
+                    $db->prepare("UPDATE coach_bookings SET status = 'cancelled' WHERE id = ?")
+                       ->execute([$item['coach_booking_id']]);
+                }
+            }
+        } catch (\Exception $e) {
+            error_log('cancelBookingForOrder error: ' . $e->getMessage());
+        }
+    }
+
+    /** Insert a row into the platform_earnings table. */
+    private function recordPlatformEarning(
+        int $orderId, ?int $paymentId, int $bookingId, string $bookingType,
+        float $gross, float $feeRate, ?int $merchantId
+    ): void {
+        try {
+            $db = \Core\Database::getInstance()->getConnection();
+            $fee      = round($gross * $feeRate, 2);
+            $merchant = round($gross - $fee, 2);
+            $db->prepare(
+                "INSERT INTO platform_earnings
+                 (payment_id, order_id, booking_id, booking_type, transaction_amount,
+                  service_fee_percentage, service_fee_amount, merchant_amount, merchant_id,
+                  currency, status, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'LKR', 'completed', NOW())"
+            )->execute([
+                $paymentId, $orderId, $bookingId, $bookingType,
+                $gross, $feeRate * 100, $fee, $merchant, $merchantId,
+            ]);
+        } catch (\Exception $e) {
+            error_log('recordPlatformEarning error: ' . $e->getMessage());
+        }
+    }
+
+    /** Quick notification insert. */
+    private function insertNotification(int $userId, string $type, string $title, string $message, array $data = []): void
+    {
+        try {
+            $db = \Core\Database::getInstance()->getConnection();
+            $db->prepare(
+                "INSERT INTO notifications (user_id, type, title, message, data, is_read) VALUES (?, ?, ?, ?, ?, 0)"
+            )->execute([$userId, $type, $title, $message, json_encode($data)]);
+        } catch (\Exception $e) {
+            error_log('insertNotification error: ' . $e->getMessage());
+        }
     }
 
     /**

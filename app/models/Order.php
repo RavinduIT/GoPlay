@@ -47,6 +47,54 @@ class Order extends BaseModel
     }
 
     /**
+     * Create an order for a facility or coach booking (no cart items).
+     *
+     * @param array  $orderData     Standard order fields (user_id, total_amount, etc.)
+     * @param string $bookingType   'facility' or 'coach'
+     * @param int    $bookingId     ID of the facility_bookings / coach_bookings row
+     * @param array  $itemMeta      ['item_name', 'unit_price', 'total_price']
+     * @return int|null
+     */
+    public function createBookingOrder(array $orderData, string $bookingType, int $bookingId, array $itemMeta): ?int
+    {
+        try {
+            $orderData['order_number'] = $this->generateOrderNumber();
+            $attempts = 0;
+            while ($this->findByOrderNumber($orderData['order_number']) && $attempts < 10) {
+                $orderData['order_number'] = $this->generateOrderNumber();
+                $attempts++;
+            }
+
+            $orderId = $this->create($orderData);
+            if (!$orderId) {
+                throw new \Exception('Failed to create booking order');
+            }
+
+            $orderItemModel = new OrderItem();
+            $itemData = [
+                'order_id'   => $orderId,
+                'item_name'  => $itemMeta['item_name']  ?? 'Booking',
+                'quantity'   => 1,
+                'unit_price' => $itemMeta['unit_price'] ?? $orderData['total_amount'],
+                'total_price'=> $itemMeta['total_price']?? $orderData['total_amount'],
+            ];
+
+            if ($bookingType === 'facility') {
+                $itemData['facility_booking_id'] = $bookingId;
+            } elseif ($bookingType === 'coach') {
+                $itemData['coach_booking_id'] = $bookingId;
+            }
+
+            $orderItemModel->create($itemData);
+
+            return $orderId;
+        } catch (\Exception $e) {
+            error_log("createBookingOrder failed: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Create new order with items
      */
     public function createOrder(array $orderData, array $cartItems): ?int
