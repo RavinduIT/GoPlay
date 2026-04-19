@@ -170,166 +170,184 @@
 <div id="toastContainer" class="toast-container"></div>
 
 <script>
-// Password toggle functionality
+// Password visibility toggle
 function togglePassword(inputId) {
     const input = document.getElementById(inputId);
     const icon = input.parentNode.querySelector('.password-toggle i');
-    
     if (input.type === 'password') {
         input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
     } else {
         input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
     }
 }
 
 // Password strength checker
 function checkPasswordStrength(password) {
     const requirements = {
-        length: password.length >= 8,
+        length:    password.length >= 8,
         uppercase: /[A-Z]/.test(password),
         lowercase: /[a-z]/.test(password),
-        number: /\d/.test(password)
+        number:    /\d/.test(password)
     };
-    
-    const score = Object.values(requirements).filter(Boolean).length;
-    return { requirements, score };
+    return { requirements, score: Object.values(requirements).filter(Boolean).length };
 }
 
-// Update password requirements UI
 function updatePasswordRequirements(requirements) {
     Object.keys(requirements).forEach(req => {
-        const element = document.querySelector(`[data-requirement="${req}"]`);
-        if (element) {
-            element.classList.toggle('met', requirements[req]);
-        }
+        const el = document.querySelector(`[data-requirement="${req}"]`);
+        if (el) el.classList.toggle('met', requirements[req]);
     });
 }
 
-// Update password strength bar
 function updatePasswordStrength(score) {
-    const strengthBar = document.getElementById('password-strength-bar');
-    const strengthContainer = document.getElementById('password-strength');
-    
-    strengthContainer.classList.add('visible');
-    
-    if (score <= 1) {
-        strengthBar.className = 'password-strength-bar weak';
-    } else if (score <= 2) {
-        strengthBar.className = 'password-strength-bar medium';
-    } else {
-        strengthBar.className = 'password-strength-bar strong';
-    }
+    const bar       = document.getElementById('password-strength-bar');
+    const container = document.getElementById('password-strength');
+    container.classList.add('visible');
+    bar.className = 'password-strength-bar ' + (score <= 1 ? 'weak' : score <= 2 ? 'medium' : 'strong');
 }
 
-// Real-time password validation
-document.getElementById('password').addEventListener('input', function() {
-    const password = this.value;
-    
-    if (password.length === 0) {
+document.getElementById('password').addEventListener('input', function () {
+    if (!this.value.length) {
         document.getElementById('password-strength').classList.remove('visible');
         return;
     }
-    
-    const { requirements, score } = checkPasswordStrength(password);
+    const { requirements, score } = checkPasswordStrength(this.value);
     updatePasswordRequirements(requirements);
     updatePasswordStrength(score);
 });
 
-// Form validation and submission
-document.getElementById('signupForm').addEventListener('submit', function(e) {
+// Form submission
+document.getElementById('signupForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const password = document.getElementById('password').value;
+    const firstName       = document.getElementById('firstName').value.trim();
+    const lastName        = document.getElementById('lastName').value.trim();
+    const email           = document.getElementById('email').value.trim();
+    const phone           = document.getElementById('phone').value.trim();
+    const password        = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    const userType = 'user'; // Always register as regular user
+    const submitBtn       = document.getElementById('submitBtn');
 
-
-    // Validation
+    // Client-side validation
     if (!firstName || !lastName || !email || !phone) {
-        showToast('Please fill in all required fields', 'error');
+        showToast('Please fill in all required fields before continuing.', 'warning', 'Fields Required');
+        return;
+    }
+
+    if (!email.includes('@') || !email.includes('.')) {
+        showToast('Please enter a valid email address.', 'error', 'Invalid Email');
+        document.getElementById('email').focus();
         return;
     }
 
     const { score } = checkPasswordStrength(password);
-
     if (score < 3) {
-        showToast('Please create a stronger password', 'error');
+        showToast('Use 8+ characters with uppercase, lowercase, and a number.', 'warning', 'Weak Password');
+        document.getElementById('password').focus();
         return;
     }
 
     if (password !== confirmPassword) {
-        showToast('Passwords do not match', 'error');
+        showToast('Your passwords do not match. Please re-enter them.', 'error', 'Password Mismatch');
+        document.getElementById('confirmPassword').value = '';
+        document.getElementById('confirmPassword').focus();
         return;
     }
 
-    
-
-    // Disable submit button
-    const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
 
-    // Send registration request
-    fetch((window.BASE_URL||'')+'/auth/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-            phone: phone,
-            password: password,
-            user_type: userType
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+        const response = await fetch((window.BASE_URL || '') + '/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                first_name: firstName,
+                last_name:  lastName,
+                email:      email,
+                phone:      phone,
+                password:   password,
+                user_type:  'user'
+            })
+        });
+
+        const data = await response.json();
+
         if (data.success) {
-            showToast('Account created successfully! Redirecting...', 'success');
+            showToast('Your account has been created! Redirecting...', 'success', 'Account Created!');
             setTimeout(() => {
-                window.location.href = data.redirect || (window.BASE_URL||'')+'/';
-            }, 1500);
-        } else {
-            showToast(data.error || 'Registration failed', 'error');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span class="btn-text">Create Account</span><i class="fas fa-user-plus btn-icon"></i>';
+                window.location.href = data.redirect || (window.BASE_URL || '') + '/';
+            }, 1600);
+            return;
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showToast('An error occurred. Please try again.', 'error');
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span class="btn-text">Create Account</span><i class="fas fa-user-plus btn-icon"></i>';
-    });
+
+        // Map server messages to specific toasts
+        const msg = (data.message || '').toLowerCase();
+        if (msg.includes('email already registered') || msg.includes('email already')) {
+            showToast('This email is already registered. Try signing in instead.', 'error', 'Email Taken');
+        } else if (msg.includes('username already')) {
+            showToast('This username is already in use. Please choose another.', 'warning', 'Username Taken');
+        } else if (msg.includes('password must be at least')) {
+            showToast('Password must be at least 8 characters long.', 'warning', 'Weak Password');
+        } else if (msg.includes('invalid email')) {
+            showToast('Please enter a valid email address.', 'error', 'Invalid Email');
+        } else if (msg.includes('failed to create')) {
+            showToast('Failed to create your account. Please try again.', 'error', 'Registration Failed');
+        } else {
+            showToast(data.message || 'Registration failed. Please try again.', 'error', 'Registration Failed');
+        }
+
+    } catch (error) {
+        console.error('Registration error:', error);
+        showToast('Unable to connect. Please check your internet connection.', 'error', 'Connection Error');
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<span class="btn-text">Create Account</span><i class="fas fa-user-plus btn-icon"></i>';
 });
 
-// Toast notification function
-function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toastContainer');
+// ── Toast system ─────────────────────────────────────────────────
+function showToast(message, type = 'info', title = null) {
+    const config = {
+        success: { icon: 'fa-check-circle',        title: title || 'Success' },
+        error:   { icon: 'fa-times-circle',         title: title || 'Error'   },
+        warning: { icon: 'fa-exclamation-triangle', title: title || 'Warning' },
+        info:    { icon: 'fa-info-circle',          title: title || 'Info'    }
+    };
+    const { icon, title: toastTitle } = config[type] || config.info;
+    const duration = 4500;
+
+    const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.textContent = message;
-    
-    toastContainer.appendChild(toast);
-    
-    // Trigger animation
-    setTimeout(() => toast.classList.add('show'), 10);
-    
-    // Auto remove
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
+    toast.style.setProperty('--toast-duration', `${duration / 1000}s`);
+    toast.innerHTML = `
+        <i class="fas ${icon} toast-icon"></i>
+        <div class="toast-body">
+            <div class="toast-title">${toastTitle}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" aria-label="Dismiss"><i class="fas fa-times"></i></button>
+        <div class="toast-progress"></div>
+    `;
+
+    toast.querySelector('.toast-close').addEventListener('click', () => dismissToast(toast));
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+
+    toast._timer = setTimeout(() => dismissToast(toast), duration);
+}
+
+function dismissToast(toast) {
+    if (!toast || toast._dismissed) return;
+    toast._dismissed = true;
+    clearTimeout(toast._timer);
+    toast.classList.add('hiding');
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 280);
 }
 </script>
 </body>

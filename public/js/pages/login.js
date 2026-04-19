@@ -1,130 +1,131 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const emailInput = document.getElementById('email');
+document.addEventListener('DOMContentLoaded', function () {
+    const loginForm    = document.getElementById('loginForm');
+    const submitBtn    = document.getElementById('submitBtn');
+    const emailInput   = document.getElementById('email');
     const passwordInput = document.getElementById('password');
 
-    // Handle form submission
-    loginForm.addEventListener('submit', async function(e) {
+    loginForm.addEventListener('submit', async function (e) {
         e.preventDefault();
-        
-        const email = emailInput.value.trim();
+
+        const email    = emailInput.value.trim();
         const password = passwordInput.value.trim();
-        
-        if (!email || !password) {
-            showToast('Please fill in all fields', 'error');
+
+        // Client-side field validation
+        if (!email && !password) {
+            showToast('Please enter your email and password to continue.', 'warning', 'Fields Required');
+            emailInput.focus();
+            return;
+        }
+        if (!email) {
+            showToast('Please enter your email address.', 'warning', 'Email Required');
+            emailInput.focus();
+            return;
+        }
+        if (!password) {
+            showToast('Please enter your password.', 'warning', 'Password Required');
+            passwordInput.focus();
             return;
         }
 
-        // Disable submit button
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
-        
+
         try {
-            const response = await fetch((window.BASE_URL||'')+'/auth/login', {
+            const response = await fetch((window.BASE_URL || '') + '/auth/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
 
             const result = await response.json();
 
             if (result.success) {
-                showToast('Login successful! Redirecting...', 'success');
-                
-                // Store user info in localStorage
+                showToast('Login successful. Redirecting you now...', 'success', 'Welcome Back!');
                 localStorage.setItem('user', JSON.stringify(result.user));
-                
-                // Redirect based on role
-                setTimeout(() => {
-                    window.location.href = result.redirect;
-                }, 1500);
-            } else {
-                showToast(result.message || 'Login failed', 'error');
+                setTimeout(() => { window.location.href = result.redirect; }, 1600);
+                return;
             }
+
+            // Map HTTP status to specific toast
+            if (response.status === 401) {
+                showToast('Incorrect email or password. Please try again.', 'error', 'Login Failed');
+                passwordInput.value = '';
+                passwordInput.focus();
+            } else if (response.status === 403) {
+                const msg = (result.message || '').toLowerCase();
+                if (msg.includes('suspended')) {
+                    showToast('Your account has been suspended. Please contact support.', 'error', 'Account Suspended');
+                } else if (msg.includes('inactive')) {
+                    showToast('Your account is inactive. Please contact support.', 'warning', 'Account Inactive');
+                } else {
+                    showToast(result.message || 'Access denied. Please contact support.', 'error', 'Access Denied');
+                }
+            } else if (response.status === 400) {
+                showToast('Email and password are required.', 'warning', 'Missing Fields');
+            } else {
+                showToast('Something went wrong on our end. Please try again later.', 'error', 'Server Error');
+            }
+
         } catch (error) {
             console.error('Login error:', error);
-            showToast('Connection error. Please try again.', 'error');
-        } finally {
-            // Re-enable submit button
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span class="btn-text">Sign In</span><i class="fas fa-arrow-right btn-icon"></i>';
+            showToast('Unable to connect. Please check your internet connection.', 'error', 'Connection Error');
         }
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="btn-text">Sign In</span><i class="fas fa-arrow-right btn-icon"></i>';
     });
 
-    // Toggle password visibility
-    window.togglePassword = function() {
-        const passwordInput = document.getElementById('password');
-        const passwordEye = document.getElementById('password-eye');
-        
+    // Password visibility toggle
+    window.togglePassword = function () {
+        const eye = document.getElementById('password-eye');
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
-            passwordEye.className = 'fas fa-eye-slash';
+            eye.className = 'fas fa-eye-slash';
         } else {
             passwordInput.type = 'password';
-            passwordEye.className = 'fas fa-eye';
+            eye.className = 'fas fa-eye';
         }
     };
 
-   
-// popup message eka 
-    function showToast(message, type = 'info') {
+    // ── Toast system ────────────────────────────────────────────
+    function showToast(message, type = 'info', title = null) {
+        const config = {
+            success: { icon: 'fa-check-circle',        title: title || 'Success' },
+            error:   { icon: 'fa-times-circle',         title: title || 'Error'   },
+            warning: { icon: 'fa-exclamation-triangle', title: title || 'Warning' },
+            info:    { icon: 'fa-info-circle',          title: title || 'Info'    }
+        };
+        const { icon, title: toastTitle } = config[type] || config.info;
+        const duration = 4500;
+
+        const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
+        toast.className = `toast ${type}`;
+        toast.style.setProperty('--toast-duration', `${duration / 1000}s`);
         toast.innerHTML = `
-            <div class="toast-content">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
+            <i class="fas ${icon} toast-icon"></i>
+            <div class="toast-body">
+                <div class="toast-title">${toastTitle}</div>
+                <div class="toast-message">${message}</div>
             </div>
+            <button class="toast-close" aria-label="Dismiss"><i class="fas fa-times"></i></button>
+            <div class="toast-progress"></div>
         `;
 
-        // Create toast container if it doesn't exist
-        let container = document.getElementById('toastContainer');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toastContainer';
-            container.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 10000;
-                max-width: 400px;
-            `;
-            document.body.appendChild(container);
-        }
-        
-        // Add inline styles for toast
-        toast.style.cssText = `
-            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
-            color: white;
-            padding: 12px 20px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        
+        toast.querySelector('.toast-close').addEventListener('click', () => dismissToast(toast));
         container.appendChild(toast);
 
-        // Trigger animation
-        setTimeout(() => {
-            toast.style.transform = 'translateX(0)';
-        }, 100);
+        requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
 
-        // Remove after 5 seconds
-        setTimeout(() => {
-            toast.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                if (container.contains(toast)) {
-                    container.removeChild(toast);
-                }
-            }, 300);
-        }, 5000);
+        toast._timer = setTimeout(() => dismissToast(toast), duration);
+    }
+
+    function dismissToast(toast) {
+        if (!toast || toast._dismissed) return;
+        toast._dismissed = true;
+        clearTimeout(toast._timer);
+        toast.classList.add('hiding');
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 280);
     }
 });
