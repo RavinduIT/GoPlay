@@ -85,7 +85,16 @@
 // Sidebar functionality
 document.addEventListener('DOMContentLoaded', function() {
     const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.coach-sidebar');
+    const sidebar = document.getElementById('dashboardSidebar');
+
+    const syncSidebarOffset = () => {
+        const nav = document.querySelector('.navbar');
+        const offset = nav ? nav.offsetHeight : 0;
+        document.documentElement.style.setProperty('--app-navbar-height', offset + 'px');
+    };
+
+    syncSidebarOffset();
+    window.addEventListener('resize', syncSidebarOffset);
     
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function() {
@@ -108,6 +117,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update badges periodically
     setInterval(updateNotificationBadges, 30000); // Every 30 seconds
 });
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('dashboardSidebar');
+    if (!sidebar) return;
+    sidebar.classList.toggle('collapsed');
+    localStorage.setItem('coachSidebarCollapsed', sidebar.classList.contains('collapsed'));
+}
 
 async function loadSidebarStats() {
     try {
