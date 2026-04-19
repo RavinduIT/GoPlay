@@ -16,6 +16,7 @@
     --sidebar-width: 280px;
     --sidebar-collapsed-width: 80px;
     --header-height: 70px;
+    --app-navbar-height: 0px;
     --border-radius: 12px;
 
     /* Shadows */
@@ -51,9 +52,9 @@ body {
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
     color: white;
     position: fixed;
-    top: 0;
+    top: var(--app-navbar-height);
     left: 0;
-    height: 100vh;
+    height: calc(100vh - var(--app-navbar-height));
     z-index: 1000;
     transition: var(--transition);
     overflow-y: auto;

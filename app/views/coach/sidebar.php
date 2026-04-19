@@ -29,7 +29,7 @@
                 <a href="<?= $_base ?>/coach/sessions">
                     <i class="fas fa-dumbbell"></i>
                     <span>Training Sessions</span>
-                    <span class="badge" id="sessionsCount">0</span>
+                    <span class="badge" id="sessionsCount" style="display:none">0</span>
                 </a>
             </li>
             <!-- <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/book-session') !== false ? 'active' : '' ?>">
@@ -42,7 +42,7 @@
                 <a href="<?= $_base ?>/coach/clients">
                     <i class="fas fa-users"></i>
                     <span>My Clients</span>
-                    <span class="badge" id="clientsCount">0</span>
+                    <span class="badge" id="clientsCount" style="display:none">0</span>
                 </a>
             </li>
             <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/earnings') !== false ? 'active' : '' ?>">
@@ -61,7 +61,7 @@
                 <a href="<?= $_base ?>/coach/reviews">
                     <i class="fas fa-star"></i>
                     <span>Reviews</span>
-                    <span class="badge" id="reviewsCount">0</span>
+                    <span class="badge" id="reviewsCount" style="display:none">0</span>
                 </a>
             </li>
             <!-- <li class="<?= strpos($_SERVER['REQUEST_URI'], '/coach/notifications') !== false ? 'active' : '' ?>">
@@ -85,7 +85,16 @@
 // Sidebar functionality
 document.addEventListener('DOMContentLoaded', function() {
     const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.coach-sidebar');
+    const sidebar = document.getElementById('dashboardSidebar');
+
+    const syncSidebarOffset = () => {
+        const nav = document.querySelector('.navbar');
+        const offset = nav ? nav.offsetHeight : 0;
+        document.documentElement.style.setProperty('--app-navbar-height', offset + 'px');
+    };
+
+    syncSidebarOffset();
+    window.addEventListener('resize', syncSidebarOffset);
     
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function() {
@@ -109,17 +118,33 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateNotificationBadges, 30000); // Every 30 seconds
 });
 
+function toggleSidebar() {
+    const sidebar = document.getElementById('dashboardSidebar');
+    if (!sidebar) return;
+    sidebar.classList.toggle('collapsed');
+    localStorage.setItem('coachSidebarCollapsed', sidebar.classList.contains('collapsed'));
+}
+
 async function loadSidebarStats() {
     try {
         const response = await fetch((window.BASE_URL||'')+'/api/coach/sidebar-stats');
+        if (!response.ok) return;
         const stats = await response.json();
+        if (stats.error) return;
 
-        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-        set('activeClients', stats.activeClients || 0);
-        set('monthSessions', stats.monthSessions || 0);
-        set('scheduleCount', stats.upcomingSchedule || 0);
-        set('clientsCount',  stats.totalClients || 0);
-        set('reviewsCount',  stats.pendingReviews || 0);
+        // Helper: set badge text and show/hide based on count
+        const setBadge = (id, val) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const count = parseInt(val) || 0;
+            el.textContent = count;
+            el.style.display = count > 0 ? 'inline-flex' : 'none';
+        };
+
+        // Map API response to sidebar badge elements
+        setBadge('sessionsCount',  stats.upcomingSessions || 0);   // Training Sessions badge
+        setBadge('clientsCount',   stats.totalClients || 0);       // My Clients badge
+        setBadge('reviewsCount',   stats.totalReviews || 0);       // Reviews badge
     } catch (error) {
         // Sidebar stats are non-critical; fail silently
     }
