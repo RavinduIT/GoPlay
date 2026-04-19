@@ -55,7 +55,7 @@ class AdminNewsController extends BaseController
             // Get statistics
             $stats = $this->newsModel->getStatistics();
 
-            return $this->view('admin.news.index', [
+            return $this->viewWithoutLayout('admin.news.index', [
                 'news' => $news,
                 'stats' => $stats
             ]);
@@ -77,7 +77,7 @@ class AdminNewsController extends BaseController
             return $this->redirect('/login');
         }
 
-        return $this->view('admin.news.create');
+        return $this->viewWithoutLayout('admin.news.create');
     }
 
     /**
@@ -193,7 +193,7 @@ class AdminNewsController extends BaseController
                 ]);
             }
 
-            return $this->view('admin.news.edit', [
+            return $this->viewWithoutLayout('admin.news.edit', [
                 'news' => $news
             ]);
 

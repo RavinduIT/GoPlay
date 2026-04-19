@@ -15,6 +15,7 @@ $pageTitle = $isEdit ? 'Edit News Article' : 'Create News Article';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-dashboard.css">
     <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-news-form.css">
+    <script>window.BASE_URL = '<?= $_base ?>';</script>
     <style>
         .alert {
             padding: 1rem;
@@ -277,7 +278,7 @@ document.getElementById('newsForm').addEventListener('submit', async function(e)
     const formData = new FormData(this);
     
     // Determine URL
-    const url = isEdit ? `/admin/news/update/${newsId}` : '/admin/news/store';
+    const url = isEdit ? `${window.BASE_URL||''}/admin/news/update/${newsId}` : `${window.BASE_URL||''}/admin/news/store`;
     
     try {
         console.log('Submitting to:', url);

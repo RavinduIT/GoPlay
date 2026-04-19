@@ -13,6 +13,7 @@ $stats = $data['stats'] ?? [];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-dashboard.css">
     <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-news.css">
+    <script>window.BASE_URL = '<?= $_base ?>';</script>
 </head>
 <body>
 
