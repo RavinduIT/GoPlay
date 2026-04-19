@@ -31,9 +31,9 @@
 /* Subtle page background (clean gradient + soft radial accents) */
 .home {
   background:
-    radial-gradient(900px 500px at 10% -10%, rgba(37, 99, 235, .06), transparent 60%),
-    radial-gradient(900px 500px at 110% 0%, rgba(8, 145, 178, .06), transparent 60%),
-    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    radial-gradient(900px 500px at 10% -10%, rgba(37, 99, 235, .08), transparent 60%),
+    radial-gradient(900px 500px at 110% 0%, rgba(8, 145, 178, .08), transparent 60%),
+    linear-gradient(180deg, #f0f4ff 0%, #e8efff 50%, #f0f4ff 100%);
 }
 
 /* Main Content */
@@ -1041,7 +1041,7 @@
 
 /* Feature cards – gradient edge + subtle glow */
 .features-section {
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%) !important;
+  background: linear-gradient(180deg, #f0f4ff 0%, #e8efff 50%, #f0f4ff 100%) !important;
   position: relative;
 }
 
@@ -1099,7 +1099,7 @@
 
 /* News – premium surface + spacing rhythm */
 .news-section {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  background: linear-gradient(180deg, #f0f4ff 0%, #e8efff 50%, #f0f4ff 100%) !important;
 }
 
 .news-carousel {
@@ -1121,7 +1121,7 @@
 
 /* Venues – elevated grid */
 .venues-section {
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%) !important;
+  background: linear-gradient(180deg, #e8efff 0%, #f0f4ff 50%, #f5f7ff 100%) !important;
 }
 
 .venue-card {
@@ -2195,7 +2195,7 @@ html {
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(180deg, #ffffff 0%, #f0f4ff 50%, #f8fafc 100%) !important;
+    linear-gradient(180deg, #f0f4ff 0%, #e8efff 50%, #f0f4ff 100%) !important;
 }
 
 .news-section::before {
@@ -2237,27 +2237,38 @@ html {
   100% { transform: translate(-20px, 15px) scale(0.95); }
 }
 
-/* --- Features Section: Diagonal stripes + corner accents --- */
+/* --- Features Section: Floating orbs + diagonal stripes --- */
 .features-section {
   position: relative;
   overflow: hidden;
+  background:
+    linear-gradient(180deg, #f0f4ff 0%, #e8efff 50%, #f0f4ff 100%) !important;
+}
+
+.features-section::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: -80px;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: floatOrb 14s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .features-section::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 80px,
-      rgba(37, 99, 235, 0.015) 80px,
-      rgba(37, 99, 235, 0.015) 81px
-    );
+  bottom: -80px;
+  right: -100px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(8, 145, 178, 0.07) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: floatOrb 16s ease-in-out infinite alternate-reverse;
   pointer-events: none;
   z-index: 0;
 }
@@ -2267,10 +2278,12 @@ html {
   z-index: 1;
 }
 
-/* --- How It Works: Dotted grid pattern --- */
+/* --- How It Works: Dotted grid pattern + blue tint --- */
 .how-section {
   position: relative;
   overflow: hidden;
+  background:
+    linear-gradient(180deg, #e8efff 0%, #f0f4ff 50%, #e8efff 100%) !important;
 }
 
 .how-section::before {
@@ -2303,12 +2316,12 @@ html {
   z-index: 1;
 }
 
-/* --- Testimonials: Warm glow + quote pattern --- */
+/* --- Testimonials: Blue glow + quote pattern --- */
 .testimonials-section {
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(180deg, #ffffff 0%, #fefbf6 40%, #fff7ed 100%) !important;
+    linear-gradient(180deg, #f0f4ff 0%, #e8efff 40%, #f0f4ff 100%) !important;
 }
 
 .testimonials-section::before {
@@ -2331,7 +2344,7 @@ html {
   right: -100px;
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.06) 0%, transparent 65%);
   border-radius: 50%;
   transform: translateY(-50%);
   animation: floatOrb 18s ease-in-out infinite alternate;
@@ -2344,10 +2357,12 @@ html {
   z-index: 1;
 }
 
-/* --- Venues Section: Hexagonal mesh + accent glows --- */
+/* --- Venues Section: Accent glows + blue tint --- */
 .venues-section {
   position: relative;
   overflow: hidden;
+  background:
+    linear-gradient(180deg, #e8efff 0%, #f0f4ff 50%, #f5f7ff 100%) !important;
 }
 
 .venues-section::before {
@@ -2382,10 +2397,12 @@ html {
   z-index: 1;
 }
 
-/* --- Categories Section: Subtle cross-hatch + glow --- */
+/* --- Categories Section: Cross-hatch + blue glow --- */
 .categories-section {
   position: relative;
   overflow: hidden;
+  background:
+    linear-gradient(180deg, #f0f4ff 0%, #e8efff 50%, #f0f4ff 100%) !important;
 }
 
 .categories-section::before {
@@ -2412,6 +2429,8 @@ html {
 .cta-section {
   position: relative;
   overflow: hidden;
+  background:
+    linear-gradient(180deg, #f0f4ff 0%, #e8efff 50%, #f0f4ff 100%) !important;
 }
 
 .cta-section::before {
@@ -2445,7 +2464,7 @@ html {
 /* --- Trust Bar: Subtle shimmer --- */
 .trust-bar-section {
   background:
-    linear-gradient(180deg, #f8fafc 0%, #f0f4ff 50%, #eef2f7 100%) !important;
+    linear-gradient(180deg, #e8efff 0%, #f0f4ff 50%, #e8efff 100%) !important;
 }
 
 .trust-item {
