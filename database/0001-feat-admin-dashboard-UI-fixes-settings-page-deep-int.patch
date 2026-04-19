@@ -1,0 +1,873 @@
+From b6e5acbf02e34dc1cbba56fe5758af79153b5626 Mon Sep 17 00:00:00 2001
+From: Ravindu Lakshan Weerasinghe <ravinduarduino1000@gmail.com>
+Date: Sat, 18 Apr 2026 18:50:32 +0530
+Subject: [PATCH] feat: admin dashboard UI fixes + settings page deep
+ integration
+
+- Hide public navbar/footer on admin pages via CSS :has() selector
+- Enlarge Revenue Trend chart (300px -> 420px), fix grid layout
+- Fix notification icon clipping (explicit 44px sizing, overflow visible)
+- Create SiteSettings helper (core/SiteSettings.php) for global DB settings access
+- Fix getCategoryFromKey() - explicit key-to-category mapping for all 41 settings
+- Wire SiteSettings into main layout (site_name, site_description)
+- Wire SiteSettings into footer (contact_email, support_phone)
+- Wire SiteSettings into EmailService (SMTP host/port/credentials from DB)
+- Add maintenance mode check in index.php (blocks public with 503)
+- Add timezone override from admin settings
+- Flush settings cache after bulk save
+- Seed all missing settings keys in database
+- Fix AdminContactController SQL ambiguity
+- Fix AdminPaymentController protected method access
+- Fix admin-settings.js tab switching with data-tab attributes
+---
+ .../admin/AdminContactController.php          | 18 ++--
+ .../admin/AdminPaymentController.php          |  5 +-
+ .../admin/AdminSettingsController.php         | 70 +++++++++++++---
+ app/services/EmailService.php                 | 27 ++++--
+ app/views/admin/payments.php                  | 30 +++++--
+ app/views/components/admin-sidebar.php        |  2 +
+ app/views/components/footer.php               |  4 +-
+ app/views/ground-owner/profile.php            | 22 ++++-
+ app/views/home/index.php                      |  2 +-
+ app/views/layouts/main.php                    |  4 +-
+ app/views/shop-owner/earnings.php             | 25 +++++-
+ app/views/shop-owner/profile.php              | 13 ++-
+ core/SiteSettings.php                         | 84 +++++++++++++++++++
+ database/_fix_maintenance.php                 |  9 ++
+ database/_seed_settings.php                   | 51 +++++++++++
+ database/_test_e2e_settings.php               | 45 ++++++++++
+ database/_test_settings_save.php              | 27 ++++++
+ index.php                                     | 20 +++++
+ public/css/pages/admin-dashboard.css          | 35 ++++++--
+ public/js/pages/admin-settings.js             |  3 +-
+ 20 files changed, 444 insertions(+), 52 deletions(-)
+ create mode 100644 core/SiteSettings.php
+ create mode 100644 database/_fix_maintenance.php
+ create mode 100644 database/_seed_settings.php
+ create mode 100644 database/_test_e2e_settings.php
+ create mode 100644 database/_test_settings_save.php
+
+diff --git a/app/controllers/admin/AdminContactController.php b/app/controllers/admin/AdminContactController.php
+index 8d3265e..a945554 100644
+--- a/app/controllers/admin/AdminContactController.php
++++ b/app/controllers/admin/AdminContactController.php
+@@ -58,12 +58,12 @@ class AdminContactController extends BaseController
+             $params = [];
+ 
+             if ($status !== 'all') {
+-                $where[] = "status = ?";
++                $where[] = "cm.status = ?";
+                 $params[] = $status;
+             }
+ 
+             if (!empty($search)) {
+-                $where[] = "(name LIKE ? OR email LIKE ? OR subject LIKE ?)";
++                $where[] = "(cm.name LIKE ? OR cm.email LIKE ? OR cm.subject LIKE ?)";
+                 $searchTerm = "%{$search}%";
+                 $params[] = $searchTerm;
+                 $params[] = $searchTerm;
+@@ -73,7 +73,7 @@ class AdminContactController extends BaseController
+             $whereSql = !empty($where) ? "WHERE " . implode(' AND ', $where) : "";
+ 
+             // Count
+-            $countSql = "SELECT COUNT(*) as total FROM contact_messages {$whereSql}";
++            $countSql = "SELECT COUNT(*) as total FROM contact_messages cm {$whereSql}";
+             $countStmt = $db->prepare($countSql);
+             $countStmt->execute($params);
+             $total = $countStmt->fetch(\PDO::FETCH_ASSOC)['total'];
+@@ -86,10 +86,16 @@ class AdminContactController extends BaseController
+                     ORDER BY cm.created_at DESC
+                     LIMIT ? OFFSET ?";
+ 
+-            $params[] = $limit;
+-            $params[] = $offset;
++
+             $stmt = $db->prepare($sql);
+-            $stmt->execute($params);
++            // Bind filter params as strings
++            foreach ($params as $i => $param) {
++                $stmt->bindValue($i + 1, $param);
++            }
++            // Bind LIMIT and OFFSET as integers
++            $stmt->bindValue(count($params) + 1, (int)$limit, \PDO::PARAM_INT);
++            $stmt->bindValue(count($params) + 2, (int)$offset, \PDO::PARAM_INT);
++            $stmt->execute();
+             $messages = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+ 
+             // Stats
+diff --git a/app/controllers/admin/AdminPaymentController.php b/app/controllers/admin/AdminPaymentController.php
+index 0c20952..0ea77d1 100644
+--- a/app/controllers/admin/AdminPaymentController.php
++++ b/app/controllers/admin/AdminPaymentController.php
+@@ -79,7 +79,8 @@ class AdminPaymentController extends BaseController
+             
+             // Get service fee percentage
+             $sql = "SELECT value FROM settings WHERE key_name = 'service_fee_percentage' LIMIT 1";
+-            $result = $earningsModel->queryFirst($sql);
++            $db = \Core\Database::getInstance();
++            $result = $db->query($sql)->fetch();
+             $serviceFeePercentage = $result ? (float)$result['value'] : 5.00;
+             
+             // Combine all statistics
+@@ -240,7 +241,7 @@ class AdminPaymentController extends BaseController
+             
+             // Update setting
+             $sql = "UPDATE settings SET value = ? WHERE key_name = 'service_fee_percentage'";
+-            $this->getEarningsModel()->query($sql, [$percentage]);
++            \Core\Database::getInstance()->query($sql, [$percentage]);
+             
+             return $this->json([
+                 'success' => true,
+diff --git a/app/controllers/admin/AdminSettingsController.php b/app/controllers/admin/AdminSettingsController.php
+index 3f4cf46..850a0a5 100644
+--- a/app/controllers/admin/AdminSettingsController.php
++++ b/app/controllers/admin/AdminSettingsController.php
+@@ -69,8 +69,8 @@ class AdminSettingsController extends BaseController
+     public function updateSetting(Request $request): Response
+     {
+         try {
+-            $key = $request->post('key');
+-            $value = $request->post('value');
++            $key = $request->getBody('key');
++            $value = $request->getBody('value');
+ 
+             if (!$key) {
+                 return $this->json(['success' => false, 'message' => 'Setting key is required'], 400);
+@@ -111,7 +111,7 @@ class AdminSettingsController extends BaseController
+     public function updateBulk(Request $request): Response
+     {
+         try {
+-            $settings = $request->post('settings');
++            $settings = $request->getBody('settings');
+ 
+             if (!is_array($settings)) {
+                 return $this->json(['success' => false, 'message' => 'Invalid settings data'], 400);
+@@ -140,6 +140,9 @@ class AdminSettingsController extends BaseController
+ 
+             $this->db->commit();
+ 
++            // Flush cached settings so next request picks up new values
++            \Core\SiteSettings::flush();
++
+             return $this->json([
+                 'success' => true,
+                 'message' => 'Settings updated successfully'
+@@ -221,7 +224,7 @@ class AdminSettingsController extends BaseController
+     public function testEmail(Request $request): Response
+     {
+         try {
+-            $to = $request->post('email');
++            $to = $request->getBody('email');
+ 
+             if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+                 return $this->json(['success' => false, 'message' => 'Invalid email address'], 400);
+@@ -332,11 +335,58 @@ class AdminSettingsController extends BaseController
+      */
+     private function getCategoryFromKey(string $key): string
+     {
+-        if (strpos($key, 'site_') === 0) return 'general';
+-        if (strpos($key, 'email_') === 0) return 'email';
+-        if (strpos($key, 'payment_') === 0) return 'payment';
+-        if (strpos($key, 'booking_') === 0) return 'booking';
+-        if (strpos($key, 'tax_') === 0 || strpos($key, 'service_fee') === 0) return 'financial';
+-        return 'other';
++        // Explicit mapping of keys to categories matching the settings form tabs
++        $categoryMap = [
++            // General tab
++            'site_name' => 'general',
++            'site_description' => 'general',
++            'contact_email' => 'general',
++            'support_phone' => 'general',
++            'timezone' => 'general',
++            'default_currency' => 'general',
++            'maintenance_mode' => 'general',
++            'admin_email' => 'general',
++            
++            // Email tab
++            'email_from_name' => 'email',
++            'email_from_address' => 'email',
++            'smtp_host' => 'email',
++            'smtp_port' => 'email',
++            'smtp_encryption' => 'email',
++            'smtp_username' => 'email',
++            'smtp_password' => 'email',
++            
++            // Payment tab
++            'tax_rate' => 'payment',
++            'service_fee_rate' => 'payment',
++            'service_fee_percentage' => 'payment',
++            'enable_stripe' => 'payment',
++            'stripe_public_key' => 'payment',
++            'stripe_secret_key' => 'payment',
++            'enable_paypal' => 'payment',
++            'paypal_client_id' => 'payment',
++            'paypal_secret' => 'payment',
++            'enable_cash' => 'payment',
++            
++            // Booking tab
++            'booking_advance_days' => 'booking',
++            'max_booking_duration' => 'booking',
++            'min_booking_duration' => 'booking',
++            'cancellation_hours' => 'booking',
++            'allow_same_day_booking' => 'booking',
++            'require_payment_upfront' => 'booking',
++            'auto_approve_bookings' => 'booking',
++            
++            // Security tab (mapped to 'other' to match JS populateSettings)
++            'enable_2fa' => 'other',
++            'session_timeout' => 'other',
++            'password_min_length' => 'other',
++            'require_strong_password' => 'other',
++            'max_login_attempts' => 'other',
++            'lockout_duration' => 'other',
++            'enable_activity_logs' => 'other',
++        ];
++
++        return $categoryMap[$key] ?? 'other';
+     }
+ }
+\ No newline at end of file
+diff --git a/app/services/EmailService.php b/app/services/EmailService.php
+index 8c1cd51..fece6d8 100644
+--- a/app/services/EmailService.php
++++ b/app/services/EmailService.php
+@@ -21,26 +21,37 @@ class EmailService
+     public function __construct()
+     {
+         $this->mailer = new PHPMailer(true);
+-        $this->fromAddress = $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@goplay.lk';
+-        $this->fromName = $_ENV['MAIL_FROM_NAME'] ?? 'GoPlay Sports Platform';
++        // Read from admin settings first, then env, then hardcoded default
++        $this->fromAddress = \Core\SiteSettings::get('email_from_address', '') 
++            ?: ($_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@goplay.lk');
++        $this->fromName = \Core\SiteSettings::get('email_from_name', '') 
++            ?: ($_ENV['MAIL_FROM_NAME'] ?? 'GoPlay Sports Platform');
+ 
+         $this->configureSMTP();
+     }
+ 
+     /**
+-     * Configure SMTP settings from environment variables
++     * Configure SMTP settings from admin settings (DB), then environment variables
+      */
+     private function configureSMTP(): void
+     {
+         try {
+             // Server settings
+             $this->mailer->isSMTP();
+-            $this->mailer->Host = $_ENV['MAIL_HOST'] ?? 'smtp.gmail.com';
++            $this->mailer->Host = \Core\SiteSettings::get('smtp_host', '') 
++                ?: ($_ENV['MAIL_HOST'] ?? 'smtp.gmail.com');
+             $this->mailer->SMTPAuth = true;
+-            $this->mailer->Username = $_ENV['MAIL_USERNAME'] ?? '';
+-            $this->mailer->Password = $_ENV['MAIL_PASSWORD'] ?? '';
+-            $this->mailer->SMTPSecure = $_ENV['MAIL_ENCRYPTION'] === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+-            $this->mailer->Port = (int)($_ENV['MAIL_PORT'] ?? 587);
++            $this->mailer->Username = \Core\SiteSettings::get('smtp_username', '') 
++                ?: ($_ENV['MAIL_USERNAME'] ?? '');
++            $this->mailer->Password = \Core\SiteSettings::get('smtp_password', '') 
++                ?: ($_ENV['MAIL_PASSWORD'] ?? '');
++            
++            $encryption = \Core\SiteSettings::get('smtp_encryption', '') 
++                ?: ($_ENV['MAIL_ENCRYPTION'] ?? 'tls');
++            $this->mailer->SMTPSecure = $encryption === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
++            
++            $this->mailer->Port = (int)(\Core\SiteSettings::get('smtp_port', '') 
++                ?: ($_ENV['MAIL_PORT'] ?? 587));
+ 
+             // CRITICAL: Set short timeouts to prevent 120s PHP fatal errors
+             $this->mailer->Timeout = 5;        // 5 second connection timeout
+diff --git a/app/views/admin/payments.php b/app/views/admin/payments.php
+index 747b2d2..c44aeb6 100644
+--- a/app/views/admin/payments.php
++++ b/app/views/admin/payments.php
+@@ -1,4 +1,4 @@
+-﻿<?php
++<?php
+ $_base = defined('BASE_URL') ? BASE_URL : '';
+ /**
+  * Admin Payments & Earnings Page
+@@ -833,7 +833,27 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
+                 <div id="bankTransferFields" style="display: none;">
+                     <div class="form-group">
+                         <label class="form-label">Bank Name</label>
+-                        <input type="text" class="form-input" id="bankName">
++                        <select class="form-input" id="bankName">
++                            <option value="">Select Bank</option>
++                            <option value="Bank of Ceylon">Bank of Ceylon</option>
++                            <option value="People's Bank">People's Bank</option>
++                            <option value="Commercial Bank">Commercial Bank</option>
++                            <option value="Hatton National Bank">Hatton National Bank</option>
++                            <option value="Sampath Bank">Sampath Bank</option>
++                            <option value="Nations Trust Bank">Nations Trust Bank</option>
++                            <option value="DFCC Bank">DFCC Bank</option>
++                            <option value="National Development Bank">National Development Bank</option>
++                            <option value="Seylan Bank">Seylan Bank</option>
++                            <option value="Pan Asia Banking Corporation">Pan Asia Banking Corporation</option>
++                            <option value="Union Bank">Union Bank</option>
++                            <option value="Amana Bank">Amana Bank</option>
++                            <option value="National Savings Bank">National Savings Bank</option>
++                            <option value="Regional Development Bank">Regional Development Bank</option>
++                            <option value="Sanasa Development Bank">Sanasa Development Bank</option>
++                            <option value="HSBC Sri Lanka">HSBC Sri Lanka</option>
++                            <option value="Standard Chartered Bank">Standard Chartered Bank</option>
++                            <option value="Citi Bank">Citi Bank</option>
++                        </select>
+                     </div>
+                     <div class="form-group">
+                         <label class="form-label">Account Number</label>
+@@ -922,7 +942,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
+             const dateTo = document.getElementById('earningsDateTo').value;
+             const search = document.getElementById('earningsSearch').value;
+ 
+-            let url = `/api/admin/payments/earnings?page=${page}`;
++            let url = `${window.BASE_URL||""}/api/admin/payments/earnings?page=${page}`;
+             if (status) url += `&status=${status}`;
+             if (type) url += `&booking_type=${type}`;
+             if (dateFrom) url += `&date_from=${dateFrom}`;
+@@ -975,7 +995,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
+             const dateFrom = document.getElementById('withdrawalDateFrom').value;
+             const dateTo = document.getElementById('withdrawalDateTo').value;
+ 
+-            let url = `/api/admin/payments/withdrawals?page=${page}`;
++            let url = `${window.BASE_URL||""}/api/admin/payments/withdrawals?page=${page}`;
+             if (status) url += `&status=${status}`;
+             if (dateFrom) url += `&date_from=${dateFrom}`;
+             if (dateTo) url += `&date_to=${dateTo}`;
+@@ -1184,7 +1204,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
+             const dateFrom = document.getElementById('earningsDateFrom').value;
+             const dateTo = document.getElementById('earningsDateTo').value;
+             
+-            let url = '/api/admin/payments/export?format=csv';
++            let url = `${window.BASE_URL||""}/api/admin/payments/export?format=csv`;
+             if (dateFrom) url += `&date_from=${dateFrom}`;
+             if (dateTo) url += `&date_to=${dateTo}`;
+             
+diff --git a/app/views/components/admin-sidebar.php b/app/views/components/admin-sidebar.php
+index c08a4b9..d0a0799 100644
+--- a/app/views/components/admin-sidebar.php
++++ b/app/views/components/admin-sidebar.php
+@@ -473,6 +473,8 @@ $menuItems = [
+ </style>
+ 
+ <script>
++window.BASE_URL = '<?= defined('BASE_URL') ? BASE_URL : '' ?>';
++
+ function toggleSidebarCollapse() {
+     const sidebar = document.getElementById('adminSidebar');
+     const isCollapsed = sidebar.classList.toggle('collapsed');
+diff --git a/app/views/components/footer.php b/app/views/components/footer.php
+index cd55f5b..12022d9 100644
+--- a/app/views/components/footer.php
++++ b/app/views/components/footer.php
+@@ -33,8 +33,8 @@
+             <div class="footer-section">
+                 <h4>Contact Info</h4>
+                 <div class="contact-info">
+-                    <p><strong>Phone:</strong> +94 11 123 4567</p>
+-                    <p><strong>Email:</strong> info@goplay.lk</p>
++                    <p><strong>Phone:</strong> <?= \Core\SiteSettings::get('support_phone', '+94 11 123 4567') ?></p>
++                    <p><strong>Email:</strong> <?= \Core\SiteSettings::get('contact_email', 'info@goplay.lk') ?></p>
+                     <p><strong>Address:</strong> 123 Sports Street, Colombo 03, Sri Lanka</p>
+                 </div>
+             </div>
+diff --git a/app/views/ground-owner/profile.php b/app/views/ground-owner/profile.php
+index fc8a144..282413c 100644
+--- a/app/views/ground-owner/profile.php
++++ b/app/views/ground-owner/profile.php
+@@ -308,7 +308,27 @@ include __DIR__ . '/layout-head.php';
+             <div class="gp-tab-panel" id="gpTabBanking">
+                 <div class="gp-form-group">
+                     <label>Bank Name</label>
+-                    <input type="text" id="gpFBankName" placeholder="e.g., Bank of Ceylon">
++                    <select id="gpFBankName">
++                        <option value="">Select Bank</option>
++                        <option value="Bank of Ceylon">Bank of Ceylon</option>
++                        <option value="People's Bank">People's Bank</option>
++                        <option value="Commercial Bank">Commercial Bank</option>
++                        <option value="Hatton National Bank">Hatton National Bank</option>
++                        <option value="Sampath Bank">Sampath Bank</option>
++                        <option value="Nations Trust Bank">Nations Trust Bank</option>
++                        <option value="DFCC Bank">DFCC Bank</option>
++                        <option value="National Development Bank">National Development Bank</option>
++                        <option value="Seylan Bank">Seylan Bank</option>
++                        <option value="Pan Asia Banking Corporation">Pan Asia Banking Corporation</option>
++                        <option value="Union Bank">Union Bank</option>
++                        <option value="Amana Bank">Amana Bank</option>
++                        <option value="National Savings Bank">National Savings Bank</option>
++                        <option value="Regional Development Bank">Regional Development Bank</option>
++                        <option value="Sanasa Development Bank">Sanasa Development Bank</option>
++                        <option value="HSBC Sri Lanka">HSBC Sri Lanka</option>
++                        <option value="Standard Chartered Bank">Standard Chartered Bank</option>
++                        <option value="Citi Bank">Citi Bank</option>
++                    </select>
+                 </div>
+                 <div class="gp-form-group">
+                     <label>Account Holder Name</label>
+diff --git a/app/views/home/index.php b/app/views/home/index.php
+index 1b52f6b..176cd7a 100644
+--- a/app/views/home/index.php
++++ b/app/views/home/index.php
+@@ -1,5 +1,5 @@
+ <?php 
+-$title = 'GoPlay - Premier Sports Booking Platform';
++$title = \Core\SiteSettings::get('site_name', 'GoPlay Sports Platform');
+ $description = 'Book sports facilities, hire professional coaches, and shop for equipment at GoPlay';
+ $additionalCSS = ['/public/css/pages/index.css'];
+ $additionalJS = ['/public/js/components/news-carousel.js', '/public/js/pages/index.js'];
+diff --git a/app/views/layouts/main.php b/app/views/layouts/main.php
+index 2cad56e..f3f5fcd 100644
+--- a/app/views/layouts/main.php
++++ b/app/views/layouts/main.php
+@@ -3,7 +3,7 @@
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+-    <title><?= $title ?? 'GoPlay Sports Platform' ?></title>
++    <title><?= $title ?? \Core\SiteSettings::get('site_name', 'GoPlay Sports Platform') ?></title>
+     
+     <!-- CSS -->
+      <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/components/navbar.css">
+@@ -17,7 +17,7 @@
+     <?php endif; ?>
+     
+     <!-- Meta tags -->
+-    <meta name="description" content="<?= $description ?? 'GoPlay - Premier Sports Booking Platform' ?>">
++    <meta name="description" content="<?= $description ?? \Core\SiteSettings::get('site_description', 'GoPlay - Premier Sports Booking Platform') ?>">
+     <meta name="keywords" content="sports, booking, facilities, coaches, equipment">
+     
+     <!-- Favicon -->
+diff --git a/app/views/shop-owner/earnings.php b/app/views/shop-owner/earnings.php
+index 4cb9ae7..6253d3e 100644
+--- a/app/views/shop-owner/earnings.php
++++ b/app/views/shop-owner/earnings.php
+@@ -184,9 +184,28 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js'];
+                         <form id="payoutDetailsForm" onsubmit="savePayoutDetails(event)" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 0.5rem 0;">
+                             <div class="form-group">
+                                 <label style="display: block; margin-bottom: 6px; color: #ccc; font-size: 0.85rem;">Bank Name *</label>
+-                                <input type="text" id="bankName" name="bank_name" required
+-                                    style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem;"
+-                                    placeholder="e.g. Bank of Ceylon">
++                                <select id="bankName" name="bank_name" required
++                                    style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem;">
++                                    <option value="">Select Bank</option>
++                                    <option value="Bank of Ceylon">Bank of Ceylon</option>
++                                    <option value="People's Bank">People's Bank</option>
++                                    <option value="Commercial Bank">Commercial Bank</option>
++                                    <option value="Hatton National Bank">Hatton National Bank</option>
++                                    <option value="Sampath Bank">Sampath Bank</option>
++                                    <option value="Nations Trust Bank">Nations Trust Bank</option>
++                                    <option value="DFCC Bank">DFCC Bank</option>
++                                    <option value="National Development Bank">National Development Bank</option>
++                                    <option value="Seylan Bank">Seylan Bank</option>
++                                    <option value="Pan Asia Banking Corporation">Pan Asia Banking Corporation</option>
++                                    <option value="Union Bank">Union Bank</option>
++                                    <option value="Amana Bank">Amana Bank</option>
++                                    <option value="National Savings Bank">National Savings Bank</option>
++                                    <option value="Regional Development Bank">Regional Development Bank</option>
++                                    <option value="Sanasa Development Bank">Sanasa Development Bank</option>
++                                    <option value="HSBC Sri Lanka">HSBC Sri Lanka</option>
++                                    <option value="Standard Chartered Bank">Standard Chartered Bank</option>
++                                    <option value="Citi Bank">Citi Bank</option>
++                                </select>
+                             </div>
+                             <div class="form-group">
+                                 <label style="display: block; margin-bottom: 6px; color: #ccc; font-size: 0.85rem;">Account Number *</label>
+diff --git a/app/views/shop-owner/profile.php b/app/views/shop-owner/profile.php
+index 2ed8b1d..55ab748 100644
+--- a/app/views/shop-owner/profile.php
++++ b/app/views/shop-owner/profile.php
+@@ -1,4 +1,4 @@
+-﻿<?php
++<?php
+ $_base = defined('BASE_URL') ? BASE_URL : '';
+ $title = 'Profile - GoPlay';
+ 
+@@ -266,7 +266,16 @@ $bankBranch = $profile['bank_branch'] ?? '';
+             <div class="form-grid">
+               <div class="form-group">
+                 <label><i class="fas fa-landmark"></i> Bank Name</label>
+-                <input type="text" name="bank_name" value="<?php echo htmlspecialchars($bankName); ?>" class="form-input" placeholder="e.g., Commercial Bank of Ceylon">
++                <select name="bank_name" class="form-input">
++                    <option value="">Select Bank</option>
++                    <?php
++                    $banks = ['Bank of Ceylon', "People's Bank", 'Commercial Bank', 'Hatton National Bank', 'Sampath Bank', 'Nations Trust Bank', 'DFCC Bank', 'National Development Bank', 'Seylan Bank', 'Pan Asia Banking Corporation', 'Union Bank', 'Amana Bank', 'National Savings Bank', 'Regional Development Bank', 'Sanasa Development Bank', 'HSBC Sri Lanka', 'Standard Chartered Bank', 'Citi Bank'];
++                    foreach ($banks as $bank) {
++                        $sel = ($bankName === $bank) ? 'selected' : '';
++                        echo "<option value=\"".htmlspecialchars($bank)."\" $sel>".htmlspecialchars($bank)."</option>";
++                    }
++                    ?>
++                </select>
+               </div>
+               <div class="form-group">
+                 <label><i class="fas fa-building"></i> Branch</label>
+diff --git a/core/SiteSettings.php b/core/SiteSettings.php
+new file mode 100644
+index 0000000..bfd2e8a
+--- /dev/null
++++ b/core/SiteSettings.php
+@@ -0,0 +1,84 @@
++<?php
++
++namespace Core;
++
++/**
++ * SiteSettings - Global settings accessor
++ * 
++ * Loads all settings from the DB once per request and provides
++ * a static interface so every controller, view, and service can
++ * read admin-configured values instead of hardcoded defaults.
++ */
++class SiteSettings
++{
++    private static ?array $cache = null;
++
++    /**
++     * Load all settings from the database into a static cache.
++     * Call this once during application bootstrap.
++     */
++    public static function load(): void
++    {
++        if (self::$cache !== null) {
++            return; // Already loaded
++        }
++
++        try {
++            $db = Database::getInstance();
++            $rows = $db->query("SELECT key_name, value FROM settings")->fetchAll();
++            self::$cache = [];
++            foreach ($rows as $row) {
++                self::$cache[$row['key_name']] = $row['value'];
++            }
++        } catch (\Exception $e) {
++            error_log("SiteSettings::load() failed: " . $e->getMessage());
++            self::$cache = [];
++        }
++    }
++
++    /**
++     * Get a setting value by key, with an optional default.
++     */
++    public static function get(string $key, string $default = ''): string
++    {
++        if (self::$cache === null) {
++            self::load();
++        }
++        return self::$cache[$key] ?? $default;
++    }
++
++    /**
++     * Get a boolean setting (stored as '1'/'0' or 'true'/'false').
++     */
++    public static function getBool(string $key, bool $default = false): bool
++    {
++        $val = self::get($key, $default ? '1' : '0');
++        return $val === '1' || $val === 'true';
++    }
++
++    /**
++     * Get a numeric setting.
++     */
++    public static function getInt(string $key, int $default = 0): int
++    {
++        $val = self::get($key, '');
++        return $val !== '' ? (int)$val : $default;
++    }
++
++    /**
++     * Get a float setting.
++     */
++    public static function getFloat(string $key, float $default = 0.0): float
++    {
++        $val = self::get($key, '');
++        return $val !== '' ? (float)$val : $default;
++    }
++
++    /**
++     * Flush the cache (e.g. after admin saves settings).
++     */
++    public static function flush(): void
++    {
++        self::$cache = null;
++    }
++}
+diff --git a/database/_fix_maintenance.php b/database/_fix_maintenance.php
+new file mode 100644
+index 0000000..02f7f8b
+--- /dev/null
++++ b/database/_fix_maintenance.php
+@@ -0,0 +1,9 @@
++<?php
++require_once __DIR__ . '/../core/Database.php';
++$db = \Core\Database::getInstance();
++$db->query("UPDATE settings SET value = '0' WHERE key_name = 'maintenance_mode'");
++echo "Maintenance mode disabled\n";
++
++// Verify
++$val = $db->query("SELECT value FROM settings WHERE key_name = 'maintenance_mode'")->fetch();
++echo "maintenance_mode = " . $val['value'] . "\n";
+diff --git a/database/_seed_settings.php b/database/_seed_settings.php
+new file mode 100644
+index 0000000..2cd1f52
+--- /dev/null
++++ b/database/_seed_settings.php
+@@ -0,0 +1,51 @@
++<?php
++require_once __DIR__ . '/../core/Database.php';
++
++$db = \Core\Database::getInstance();
++$conn = $db->getConnection();
++
++$settings = [
++    ['contact_email', 'contact@goplay.lk', 'Primary contact email', 'string'],
++    ['support_phone', '+94 77 123 4567', 'Support phone number', 'string'],
++    ['timezone', 'Asia/Colombo', 'Default timezone', 'string'],
++    ['maintenance_mode', '0', 'Maintenance mode flag', 'boolean'],
++    ['email_from_name', 'GoPlay Sports', 'Email from name', 'string'],
++    ['email_from_address', 'noreply@goplay.lk', 'Email from address', 'string'],
++    ['smtp_host', 'smtp.gmail.com', 'SMTP host', 'string'],
++    ['smtp_port', '587', 'SMTP port', 'number'],
++    ['smtp_encryption', 'tls', 'SMTP encryption type', 'string'],
++    ['smtp_username', '', 'SMTP username', 'string'],
++    ['smtp_password', '', 'SMTP password', 'string'],
++    ['enable_stripe', '0', 'Enable Stripe payments', 'boolean'],
++    ['stripe_public_key', '', 'Stripe public key', 'string'],
++    ['stripe_secret_key', '', 'Stripe secret key', 'string'],
++    ['enable_paypal', '0', 'Enable PayPal payments', 'boolean'],
++    ['paypal_client_id', '', 'PayPal client ID', 'string'],
++    ['paypal_secret', '', 'PayPal secret', 'string'],
++    ['enable_cash', '1', 'Enable cash on delivery', 'boolean'],
++    ['min_booking_duration', '1', 'Min booking hours', 'number'],
++    ['cancellation_hours', '24', 'Cancellation notice hours', 'number'],
++    ['allow_same_day_booking', '1', 'Allow same day booking', 'boolean'],
++    ['require_payment_upfront', '0', 'Require payment before booking', 'boolean'],
++    ['auto_approve_bookings', '1', 'Auto-approve bookings', 'boolean'],
++    ['enable_2fa', '0', 'Two-factor authentication', 'boolean'],
++    ['session_timeout', '60', 'Session timeout minutes', 'number'],
++    ['password_min_length', '8', 'Min password length', 'number'],
++    ['require_strong_password', '1', 'Require strong passwords', 'boolean'],
++    ['max_login_attempts', '5', 'Max login attempts before lockout', 'number'],
++    ['lockout_duration', '30', 'Lockout duration minutes', 'number'],
++    ['enable_activity_logs', '1', 'Enable activity logging', 'boolean'],
++];
++
++$stmt = $conn->prepare('INSERT IGNORE INTO settings (key_name, value, description, type) VALUES (?, ?, ?, ?)');
++$count = 0;
++foreach ($settings as $s) {
++    $stmt->execute($s);
++    $count += $stmt->rowCount();
++}
++
++echo "Inserted {$count} new settings rows\n";
++
++// Verify
++$all = $conn->query("SELECT key_name FROM settings ORDER BY key_name")->fetchAll();
++echo "Total settings in DB: " . count($all) . "\n";
+diff --git a/database/_test_e2e_settings.php b/database/_test_e2e_settings.php
+new file mode 100644
+index 0000000..c9c26b1
+--- /dev/null
++++ b/database/_test_e2e_settings.php
+@@ -0,0 +1,45 @@
++<?php
++require_once __DIR__ . '/../core/Database.php';
++require_once __DIR__ . '/../core/SiteSettings.php';
++
++// 1. Set a test value
++$db = \Core\Database::getInstance();
++$db->query("UPDATE settings SET value = 'GoPlay Test Site Name' WHERE key_name = 'site_name'");
++$db->query("UPDATE settings SET value = '+94 77 888 9999' WHERE key_name = 'support_phone'");
++$db->query("UPDATE settings SET value = 'support@goplay.lk' WHERE key_name = 'contact_email'");
++echo "1. Updated settings in DB\n";
++
++// 2. Clear cache
++\Core\SiteSettings::flush();
++\Core\SiteSettings::load();
++
++// 3. Verify SiteSettings reads them
++echo "2. SiteSettings::get('site_name') = " . \Core\SiteSettings::get('site_name') . "\n";
++echo "   SiteSettings::get('support_phone') = " . \Core\SiteSettings::get('support_phone') . "\n";
++echo "   SiteSettings::get('contact_email') = " . \Core\SiteSettings::get('contact_email') . "\n";
++echo "   SiteSettings::get('smtp_host') = " . \Core\SiteSettings::get('smtp_host', 'NOT SET') . "\n";
++echo "   SiteSettings::getBool('maintenance_mode') = " . (\Core\SiteSettings::getBool('maintenance_mode') ? 'true' : 'false') . "\n";
++echo "   SiteSettings::getInt('booking_advance_days') = " . \Core\SiteSettings::getInt('booking_advance_days') . "\n";
++
++// 4. Verify it shows in HTML output  
++echo "\n3. Fetching homepage title...\n";
++$html = @file_get_contents('http://localhost/GoPlay/');
++if (preg_match('/<title>(.*?)<\/title>/', $html, $matches)) {
++    echo "   Page <title> = " . $matches[1] . "\n";
++}
++if (strpos($html, '+94 77 888 9999') !== false) {
++    echo "   Footer phone: FOUND +94 77 888 9999 ✓\n";
++} else {
++    echo "   Footer phone: NOT FOUND ✗\n";
++}
++if (strpos($html, 'support@goplay.lk') !== false) {
++    echo "   Footer email: FOUND support@goplay.lk ✓\n";
++} else {
++    echo "   Footer email: NOT FOUND ✗\n";
++}
++
++// 5. Reset to original values
++$db->query("UPDATE settings SET value = 'GoPlay Sports Platform' WHERE key_name = 'site_name'");
++$db->query("UPDATE settings SET value = '+94 77 123 4567' WHERE key_name = 'support_phone'");
++$db->query("UPDATE settings SET value = 'contact@goplay.lk' WHERE key_name = 'contact_email'");
++echo "\n4. Reset settings to defaults\n";
+diff --git a/database/_test_settings_save.php b/database/_test_settings_save.php
+new file mode 100644
+index 0000000..ee7989d
+--- /dev/null
++++ b/database/_test_settings_save.php
+@@ -0,0 +1,27 @@
++<?php
++// Test bulk settings save
++$ch = curl_init('http://localhost/GoPlay/api/admin/settings/bulk');
++curl_setopt($ch, CURLOPT_POST, true);
++curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
++curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
++    'settings' => [
++        'support_phone' => '+94 77 999 8888',
++        'contact_email' => 'test@goplay.lk'
++    ]
++]));
++curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
++$response = curl_exec($ch);
++$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
++curl_close($ch);
++
++echo "HTTP Status: $httpCode\n";
++echo "Response: $response\n";
++
++// Verify it saved
++require_once __DIR__ . '/../core/Database.php';
++$db = \Core\Database::getInstance();
++$result = $db->query("SELECT key_name, value FROM settings WHERE key_name IN ('support_phone', 'contact_email')")->fetchAll();
++echo "\nVerification from DB:\n";
++foreach ($result as $row) {
++    echo "  {$row['key_name']} = {$row['value']}\n";
++}
+diff --git a/index.php b/index.php
+index c50f81e..8ffd09c 100644
+--- a/index.php
++++ b/index.php
+@@ -83,6 +83,26 @@ try {
+     // Initialize the application
+     $app = new Core\Application();
+ 
++    // Load site settings from DB (makes admin settings apply globally)
++    Core\SiteSettings::load();
++
++    // Override timezone from admin settings (if set)
++    $dbTimezone = Core\SiteSettings::get('timezone', '');
++    if ($dbTimezone) {
++        date_default_timezone_set($dbTimezone);
++    }
++
++    // Maintenance mode check — block all non-admin, non-API requests
++    if (Core\SiteSettings::getBool('maintenance_mode')) {
++        $uri = $_SERVER['REQUEST_URI'] ?? '/';
++        $isAdmin = strpos($uri, '/admin') !== false || strpos($uri, '/login') !== false || strpos($uri, '/api/') !== false;
++        if (!$isAdmin) {
++            http_response_code(503);
++            echo '<!DOCTYPE html><html><head><title>Maintenance Mode</title></head><body style="display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;"><div style="text-align:center;"><h1 style="font-size:2.5rem;color:#1e293b;">🔧 Under Maintenance</h1><p style="color:#64748b;font-size:1.2rem;">We\'re performing scheduled maintenance. Please check back shortly.</p></div></body></html>';
++            exit;
++        }
++    }
++
+     // Set up basic routes
+     $router = $app->getRouter();
+ 
+diff --git a/public/css/pages/admin-dashboard.css b/public/css/pages/admin-dashboard.css
+index fa3ee80..29d05bd 100644
+--- a/public/css/pages/admin-dashboard.css
++++ b/public/css/pages/admin-dashboard.css
+@@ -60,6 +60,18 @@ body {
+     overflow-x: hidden;
+ }
+ 
++/* Hide public navbar, footer, and reset main wrapper when admin dashboard is present */
++body:has(.admin-dashboard) .navbar,
++body:has(.admin-dashboard) .footer {
++    display: none !important;
++}
++
++body:has(.admin-dashboard) #main-content {
++    padding: 0 !important;
++    margin: 0 !important;
++    max-width: none !important;
++}
++
+ .admin-dashboard {
+     display: flex;
+     min-height: 100vh;
+@@ -473,10 +485,15 @@ body {
+     font-size: 1.25rem;
+     color: var(--primary);
+     cursor: pointer;
+-    padding: 0.625rem;
++    width: 44px;
++    height: 44px;
++    display: flex;
++    align-items: center;
++    justify-content: center;
+     border-radius: 50%;
+     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+-    overflow: hidden;
++    overflow: visible;
++    flex-shrink: 0;
+ }
+ 
+ .notification-btn::before {
+@@ -582,9 +599,9 @@ body {
+ ============================================= */
+ 
+ .dashboard-content {
+-    padding: 2.5rem;
+-    max-width: 1400px;
+-    margin: 0 auto;
++    padding: 2rem;
++    max-width: 100%;
++    margin: 0;
+     animation: fadeIn 0.8s ease-out;
+ }
+ 
+@@ -764,8 +781,8 @@ body {
+ 
+ .dashboard-grid {
+     display: grid;
+-    grid-template-columns: 2fr 1fr;
+-    gap: 2rem;
++    grid-template-columns: 1fr 1fr;
++    gap: 1.5rem;
+     grid-template-areas: 
+         "chart bookings"
+         "actions orders";
+@@ -874,8 +891,8 @@ body {
+ }
+ 
+ .chart-container {
+-    padding: 1.75rem;
+-    height: 300px;
++    padding: 1.5rem;
++    height: 420px;
+     position: relative;
+     z-index: 1;
+ }
+diff --git a/public/js/pages/admin-settings.js b/public/js/pages/admin-settings.js
+index 95c8e20..6c319f1 100644
+--- a/public/js/pages/admin-settings.js
++++ b/public/js/pages/admin-settings.js
+@@ -38,7 +38,8 @@ function switchTab(tabName) {
+     document.querySelectorAll('.tab-btn').forEach(btn => {
+         btn.classList.remove('active');
+     });
+-    event.target.classList.add('active');
++    const clickedBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
++    if (clickedBtn) clickedBtn.classList.add('active');
+ 
+     // Update panels
+     document.querySelectorAll('.settings-panel').forEach(panel => {
+-- 
+2.53.0.windows.1
+

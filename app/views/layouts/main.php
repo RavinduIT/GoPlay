@@ -28,16 +28,31 @@
     <script>window.BASE_URL = '<?= BASE_URL ?>';</script>
 </head>
 <body>
-    <!-- Navigation -->
-    <?php include __DIR__ . '/../components/navbar.php'; ?>
+    <?php
+    // Detect admin/owner pages — skip public navbar and footer
+    $_uri = $_SERVER['REQUEST_URI'] ?? '';
+    $_isAdmin = strpos($_uri, '/admin') !== false;
+    $_isOwnerPanel = strpos($_uri, '/shop-owner') !== false 
+                  || strpos($_uri, '/ground-owner') !== false 
+                  || strpos($_uri, '/coach/') !== false
+                  || preg_match('#/coach$#', $_uri);
+    $_hideNavFooter = $_isAdmin || $_isOwnerPanel;
+    ?>
+    
+    <!-- Navigation (hidden on admin pages) -->
+    <?php if (!$_hideNavFooter): ?>
+        <?php include __DIR__ . '/../components/navbar.php'; ?>
+    <?php endif; ?>
     
     <!-- Main Content -->
-    <main id="main-content">
+    <main id="main-content" <?= $_hideNavFooter ? 'style="padding:0;margin:0;max-width:none;"' : '' ?>>
         <?= $content ?? '' ?>
     </main>
     
-    <!-- Footer -->
-    <?php include __DIR__ . '/../components/footer.php'; ?>
+    <!-- Footer (hidden on admin pages) -->
+    <?php if (!$_hideNavFooter): ?>
+        <?php include __DIR__ . '/../components/footer.php'; ?>
+    <?php endif; ?>
     
    
     <?php if (isset($additionalJS)): ?>

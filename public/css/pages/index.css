@@ -53,6 +53,25 @@
   color: var(--primary-foreground);
 }
 
+/* Sports background image overlay */
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('https://wallpapers.com/images/featured/best-sports-background-9mo6eiyv8hxj5jln.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.12;
+  z-index: 1;
+  animation: heroImagePan 30s ease-in-out infinite alternate;
+}
+
+@keyframes heroImagePan {
+  0% { transform: scale(1) translateX(0); }
+  100% { transform: scale(1.1) translateX(-2%); }
+}
+
 .hero-background {
   position: absolute;
   inset: 0;

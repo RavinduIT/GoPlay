@@ -216,13 +216,32 @@ class UserProfile {
             }
         }
 
-        if (data.date_of_birth) {
-            const date = new Date(data.date_of_birth);
+        if (data.date_of_birth && data.date_of_birth.length > 0) {
+            const date = new Date(data.date_of_birth + 'T00:00:00');
             const today = new Date();
-            const age = today.getFullYear() - date.getFullYear();
             
-            if (age < 13 || age > 120) {
-                this.showToast('Please enter a valid date of birth', 'warning');
+            // Check if the date is valid
+            if (isNaN(date.getTime())) {
+                this.showToast('Please enter a valid date', 'warning');
+                return false;
+            }
+            
+            // Calculate age properly
+            let age = today.getFullYear() - date.getFullYear();
+            const monthDiff = today.getMonth() - date.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+                age--;
+            }
+            
+            // Date must not be in the future
+            if (date > today) {
+                this.showToast('Date of birth cannot be in the future', 'warning');
+                return false;
+            }
+            
+            // Age must be reasonable (5-120)
+            if (age < 5 || age > 120) {
+                this.showToast('Please enter a valid date of birth (age must be between 5 and 120)', 'warning');
                 return false;
             }
         }
@@ -271,7 +290,7 @@ class UserProfile {
                 // Update avatar image
                 const avatar = document.getElementById('profile-avatar');
                 if (avatar) {
-                    avatar.src = result.avatar_url + '?t=' + Date.now(); // Cache busting
+                    avatar.src = (window.BASE_URL||'') + result.avatar_url + '?t=' + Date.now(); // Cache busting
                 }
 
                 this.showToast('Profile picture updated successfully!', 'success');
@@ -351,32 +370,55 @@ class UserProfile {
             const activityList = document.getElementById('activity-list');
             if (!activityList) return;
 
-            // For now, show sample activity - you can replace this with real API calls
-            const activities = [
-                {
-                    icon: 'fas fa-calendar-check',
-                    iconColor: '#28a745',
-                    title: 'Ground Booking Confirmed',
-                    description: 'Your booking at Central Sports Complex has been confirmed',
-                    time: '2 hours ago'
-                },
-                {
-                    icon: 'fas fa-shopping-cart',
-                    iconColor: '#17a2b8',
-                    title: 'Order Placed',
-                    description: 'Order #12345 for sports equipment has been placed',
-                    time: '1 day ago'
-                },
-                {
-                    icon: 'fas fa-user-tie',
-                    iconColor: '#ffc107',
-                    title: 'Coach Session Completed',
-                    description: 'Tennis coaching session with John Smith completed',
-                    time: '3 days ago'
-                }
-            ];
+            // Fetch real data from API
+            const activities = [];
 
-            const activityHTML = activities.map(activity => `
+            try {
+                const bookingsRes = await fetch((window.BASE_URL||'')+'/api/user/ground-bookings');
+                const bookingsData = await bookingsRes.json();
+                if (bookingsData.success && bookingsData.bookings) {
+                    bookingsData.bookings.slice(0, 3).forEach(b => {
+                        activities.push({
+                            icon: 'fas fa-calendar-check',
+                            iconColor: b.status === 'confirmed' ? '#28a745' : b.status === 'pending' ? '#ffc107' : '#6c757d',
+                            title: `Ground Booking ${b.status ? b.status.charAt(0).toUpperCase() + b.status.slice(1) : ''}`,
+                            description: `Booking at ${b.facility_name || b.ground_name || 'Sports Ground'} on ${b.booking_date || ''}`,
+                            time: this.timeAgo(b.created_at)
+                        });
+                    });
+                }
+            } catch(e) { /* bookings API may not exist */ }
+
+            try {
+                const ordersRes = await fetch((window.BASE_URL||'')+'/api/user/orders');
+                const ordersData = await ordersRes.json();
+                if (ordersData.success && ordersData.orders) {
+                    ordersData.orders.slice(0, 3).forEach(o => {
+                        activities.push({
+                            icon: 'fas fa-shopping-cart',
+                            iconColor: o.status === 'delivered' ? '#28a745' : o.status === 'processing' ? '#17a2b8' : '#ffc107',
+                            title: `Order ${o.order_number || '#' + o.id}`,
+                            description: `Order ${o.status || 'placed'} - LKR ${parseFloat(o.total_amount || 0).toFixed(2)}`,
+                            time: this.timeAgo(o.created_at)
+                        });
+                    });
+                }
+            } catch(e) { /* orders API may not exist */ }
+
+            // Sort by most recent
+            activities.sort((a, b) => (b._ts || 0) - (a._ts || 0));
+
+            if (activities.length === 0) {
+                activityList.innerHTML = `
+                    <div class="activity-empty" style="text-align:center;padding:2rem;color:#94a3b8;">
+                        <i class="fas fa-inbox" style="font-size:2rem;margin-bottom:12px;display:block;opacity:0.5;"></i>
+                        <p>No recent activity yet</p>
+                        <small>Your bookings and orders will appear here</small>
+                    </div>`;
+                return;
+            }
+
+            const activityHTML = activities.slice(0, 5).map(activity => `
                 <div class="activity-item">
                     <div class="activity-icon" style="background-color: ${activity.iconColor}">
                         <i class="${activity.icon}"></i>
@@ -394,9 +436,26 @@ class UserProfile {
             console.error('Error loading activity:', error);
             const activityList = document.getElementById('activity-list');
             if (activityList) {
-                activityList.innerHTML = '<div class="loading">Unable to load recent activity</div>';
+                activityList.innerHTML = `
+                    <div class="activity-empty" style="text-align:center;padding:2rem;color:#94a3b8;">
+                        <i class="fas fa-inbox" style="font-size:2rem;margin-bottom:12px;display:block;opacity:0.5;"></i>
+                        <p>No recent activity yet</p>
+                        <small>Your bookings and orders will appear here</small>
+                    </div>`;
             }
         }
+    }
+
+    timeAgo(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const now = new Date();
+        const seconds = Math.floor((now - date) / 1000);
+        if (seconds < 60) return 'Just now';
+        if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes ago';
+        if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+        if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
 
     showLoading(section) {

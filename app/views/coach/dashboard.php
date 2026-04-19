@@ -51,11 +51,11 @@ $additionalCSS = [
 /*  Main content wrapper  */
 .cd-main {
     flex: 1;
-    margin-left: 280px; /* sidebar width */
+    margin-left: 260px; /* sidebar width */
     transition: margin-left .3s ease;
     min-width: 0;
 }
-.dashboard-sidebar.collapsed ~ .cd-main { margin-left: 70px; }
+.admin-sidebar.collapsed ~ .cd-main { margin-left: 80px; }
 
 /*  Stats  */
 .stats-section { padding: 24px 28px 0; }
@@ -219,9 +219,7 @@ $additionalCSS = [
     .stats-row { grid-template-columns:repeat(2,1fr); }
     .dash-grid  { grid-template-columns:1fr; }
     .span-full  { grid-column:1; }
-}
-@media (max-width: 768px) {
-    .cd-main { margin-left: 0 !important; }
+    .cd-main    { margin-left:0; }
 }
 @media (max-width: 640px) {
     .stats-section, .dash-grid { padding:14px; }
@@ -414,11 +412,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('headerDate').textContent =
         new Date().toLocaleDateString('en-US', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
 
-    const toggle = document.getElementById('sidebarToggle');
-    if (toggle) {
-        toggle.addEventListener('click', () => {
-            if (typeof toggleSidebar === 'function') toggleSidebar();
-        });
+    const toggle  = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.admin-sidebar');
+    if (toggle && sidebar) {
+        toggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
     }
 
     loadAll();

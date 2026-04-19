@@ -8,7 +8,8 @@
             <div class="profile-info">
                 <div class="avatar-section">
                     <div class="avatar-container">
-                        <img src="<?= htmlspecialchars($user['profile_picture'] ?? '/public/assets/images/default-avatar.png') ?>" 
+                        <?php $avatarPath = !empty($user['profile_picture']) ? $_base . $user['profile_picture'] : $_base . '/public/assets/images/default-avatar.png'; ?>
+                        <img src="<?= htmlspecialchars($avatarPath) ?>" 
                              alt="Profile Picture" 
                              id="profile-avatar"
                              onerror="this.src='<?= $_base ?>/public/assets/images/default-avatar.png'">
@@ -161,7 +162,7 @@
             <!-- Account Activity -->
             <div class="section-card">
                 <div class="section-header">
-                    <h2><i class="fas fa-activity"></i> Recent Activity</h2>
+                    <h2><i class="fas fa-history"></i> Recent Activity</h2>
                     <button class="btn btn-outline" onclick="location.reload()" title="Refresh Activity">
                         <i class="fas fa-sync-alt"></i>
                     </button>

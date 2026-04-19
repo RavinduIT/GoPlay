@@ -8,7 +8,6 @@
     --success-color: #059669;
     --warning-color: #f59e0b;
     --error-color: #dc2626;
-    --danger-color: #ef4444;
     --sidebar-width: 280px;
     --sidebar-collapsed-width: 80px;
     --header-height: 70px;
@@ -17,7 +16,6 @@
     --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -38,27 +36,8 @@ body {
     min-height: 100vh;
 }
 
-/* ===============================
-   SIDEBAR STYLES
-   =============================== */
-.dashboard-sidebar {
-    width: var(--sidebar-width);
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-    color: white;
-    position: fixed;
-    top: 70px;
-    left: 0;
-    height: calc(100vh - 70px);
-    z-index: 1000;
-    transition: var(--transition);
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-shadow: var(--shadow-xl);
-}
-
-.dashboard-sidebar.collapsed {
-    width: var(--sidebar-collapsed-width);
-}
+/* Sidebar Styles - now handled by admin-sidebar inline CSS */
+/* .dashboard-sidebar styles are overridden by admin-sidebar */
 
 .sidebar-header {
     padding: 1.5rem;
@@ -81,7 +60,6 @@ body {
     padding: 0.5rem;
     border-radius: var(--border-radius);
     font-size: 1rem;
-    box-shadow: var(--shadow-md);
 }
 
 .sidebar-toggle {
@@ -110,7 +88,6 @@ body {
 
 .sidebar-nav li {
     margin: 0.25rem 0;
-    list-style: none;
 }
 
 .sidebar-nav a {
@@ -123,48 +100,38 @@ body {
     transition: var(--transition);
     font-weight: 500;
     position: relative;
-    border-radius: 0;
 }
 
 .sidebar-nav a:hover {
     color: white;
     background: rgba(255, 255, 255, 0.1);
-    padding-left: 2rem;
 }
 
 .sidebar-nav li.active a {
-    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
     color: white;
-    box-shadow: var(--shadow-md);
-    border-radius: 0 25px 25px 0;
-    margin-right: 1rem;
+    background: rgba(16, 185, 129, 0.2);
+    border-right: 3px solid var(--primary-light);
 }
 
-.sidebar-nav a i {
-    font-size: 1.125rem;
+.sidebar-nav i {
     width: 20px;
     text-align: center;
+    font-size: 1rem;
 }
 
 .badge {
-    background: var(--danger-color);
+    background: var(--primary-light);
     color: white;
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
     border-radius: 12px;
     font-weight: 600;
     margin-left: auto;
-    min-width: 20px;
-    text-align: center;
 }
 
 .badge.new {
-    background: var(--success-color);
+    background: #ef4444;
     animation: pulse 2s infinite;
-}
-
-.badge.warning {
-    background: var(--warning-color);
 }
 
 @keyframes pulse {
@@ -179,23 +146,14 @@ body {
 }
 
 .logout-link {
-    color: rgba(255, 255, 255, 0.6) !important;
-}
-
-.logout-link:hover {
-    color: var(--danger-color) !important;
-    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
 }
 
 /* Main Content */
 .dashboard-main {
     flex: 1;
-    margin-left: var(--sidebar-width);
+    margin-left: 260px;
     transition: var(--transition);
-}
-
-.dashboard-sidebar.collapsed ~ .dashboard-main {
-    margin-left: var(--sidebar-collapsed-width);
 }
 
 /* Header */
@@ -904,35 +862,16 @@ body {
     color: #94a3b8;
 }
 
-/* ── Sidebar Overlay (mobile) ─────────────────────────── */
-.sidebar-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    backdrop-filter: blur(2px);
-}
-.sidebar-overlay.active {
-    display: block;
-}
-
 /* Responsive Design */
 @media (max-width: 1200px) {
     .dashboard-grid {
         grid-template-columns: 1fr;
-        grid-template-areas:
+        grid-template-areas: 
             "earnings"
             "bookings"
             "performance"
             "actions"
             "reviews";
-    }
-}
-
-@media (max-width: 1024px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
     }
 }
 

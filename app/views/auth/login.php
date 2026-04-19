@@ -81,6 +81,13 @@
                         <span class="btn-text">Sign In</span>
                         <i class="fas fa-arrow-right btn-icon"></i>
                     </button>
+
+                    <!-- Inline error message -->
+                    <div id="loginError" style="display:none;margin-top:16px;padding:12px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#ef4444;font-size:14px;text-align:center;animation:errorShake .4s ease">
+                        <i class="fas fa-exclamation-circle" style="margin-right:8px"></i>
+                        <span id="loginErrorText"></span>
+                    </div>
+                    <style>@keyframes errorShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}</style>
                 </form>
 
                 <div class="auth-footer">
@@ -98,6 +105,7 @@
 
 <!-- Toast Container -->
 <div id="toastContainer" class="toast-container"></div>
-<script src="<?= $_base ?>/public/js/pages/login.js"></script>
+<script>window.BASE_URL = '<?= $_base ?>';</script>
+<script src="<?= $_base ?>/public/js/pages/login.js?v=<?= time() ?>"></script>
 </body>
 </html>

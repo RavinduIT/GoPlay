@@ -897,6 +897,12 @@ body:has(.admin-dashboard) #main-content {
     z-index: 1;
 }
 
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
 /* =============================================
    BOOKING & ORDER LISTS
 ============================================= */

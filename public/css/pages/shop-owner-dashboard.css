@@ -53,24 +53,8 @@ body {
 }
 
 /* ===============================
-   SIDEBAR STYLES
+   SIDEBAR STYLES - now handled by admin-sidebar inline CSS
    =============================== */
-.dashboard-sidebar {
-    width: var(--sidebar-width);
-    min-width: var(--sidebar-width);
-    max-width: var(--sidebar-width);
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-    color: white;
-    position: fixed;
-    top: 70px;
-    left: 0;
-    height: calc(100vh - 70px);
-    z-index: 999;
-    transition: var(--transition);
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-shadow: var(--shadow-xl);
-}
 
 .sidebar-header {
     padding: 1rem 1.5rem;
@@ -204,22 +188,22 @@ body {
    =============================== */
 .dashboard-main {
     flex: 1;
-    margin-left: var(--sidebar-width);
+    margin-left: 260px;
     transition: var(--transition);
     min-height: 100vh;
-    width: calc(100% - var(--sidebar-width));
+    width: calc(100% - 260px);
 }
 
 /* Alternative content wrapper */
 .dashboard-content {
     flex: 1;
-    margin-left: var(--sidebar-width);
-    margin-top: 70px;
+    margin-left: 260px;
+    margin-top: 0;
     padding: 2rem;
     transition: var(--transition);
-    min-height: calc(100vh - 70px);
+    min-height: 100vh;
     background-color: #f8fafc;
-    width: calc(100% - var(--sidebar-width));
+    width: calc(100% - 260px);
     box-sizing: border-box;
 }
 
@@ -241,7 +225,7 @@ body {
     justify-content: space-between;
     box-shadow: var(--shadow);
     position: sticky;
-    top: 70px;
+    top: 0;
     z-index: 100;
     margin: 0;
 }
@@ -1233,14 +1217,12 @@ body {
 }
 
 @media (max-width: 768px) {
-    .dashboard-sidebar {
-        top: 70px;
-        height: calc(100vh - 70px);
+    .admin-sidebar {
         transform: translateX(-100%);
         z-index: 999;
     }
     
-    .dashboard-sidebar.active {
+    .admin-sidebar.active {
         transform: translateX(0);
     }
     
@@ -1251,13 +1233,13 @@ body {
     
     .dashboard-content {
         margin-left: 0;
-        margin-top: 70px;
+        margin-top: 0;
         padding: 1rem;
         width: 100%;
     }
     
     .dashboard-header {
-        top: 70px;
+        top: 0;
         padding: 0.75rem 1rem;
     }
     

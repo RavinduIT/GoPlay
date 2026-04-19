@@ -28,7 +28,7 @@ class AuthController extends BaseController
             return $this->redirectToDashboard($_SESSION['user_type']);
         }
 
-        return $this->view('auth/login', [
+        return $this->viewWithoutLayout('auth/login', [
             'title' => 'Login - GoPlay Sports Platform'
         ]);
     }
