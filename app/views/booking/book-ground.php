@@ -719,6 +719,37 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
 
 
         /* Responsive Design */
+        @media (max-width: 1100px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2rem;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .search-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-group {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .search-btn {
+                justify-content: center;
+            }
+
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -771,6 +802,28 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
 
             .facility-actions .btn-outline,
             .facility-actions .btn-primary {
+                width: 100%;
+            }
+
+            .header-text h1 {
+                font-size: 2rem;
+            }
+
+            .header-text p {
+                font-size: 1rem;
+            }
+
+            .header-stats,
+            .filter-group {
+                grid-template-columns: 1fr;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .header-actions,
+            .header-actions .btn-secondary,
+            .search-btn,
+            .sort-select {
                 width: 100%;
             }
         }

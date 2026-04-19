@@ -9,6 +9,7 @@
      <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/components/navbar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> 
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/pages/news-index.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/pages/mobile-fixes.css">
     
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>

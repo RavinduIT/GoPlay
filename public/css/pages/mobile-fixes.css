@@ -1,0 +1,108 @@
+/* Shared responsive safety net for public pages */
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+img,
+video,
+canvas,
+svg,
+iframe {
+    max-width: 100%;
+}
+
+main {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+@media (max-width: 1024px) {
+    .page-header .header-content,
+    .results-header,
+    .product-header,
+    .product-content,
+    .cart-layout {
+        width: 100%;
+    }
+
+    .search-bar {
+        grid-template-columns: 1fr !important;
+    }
+
+    .filter-group {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .breadcrumb-nav,
+    .rating-section,
+    .reviews-summary,
+    .quantity-selector,
+    .facility-header,
+    .facility-rating,
+    .coach-footer,
+    .product-price,
+    .review-header {
+        flex-wrap: wrap;
+    }
+
+    .header-actions,
+    .facility-actions,
+    .coach-actions,
+    .product-actions,
+    .action-buttons {
+        width: 100%;
+    }
+
+    .header-actions .btn-primary,
+    .header-actions .btn-secondary,
+    .facility-actions .btn-primary,
+    .facility-actions .btn-outline,
+    .coach-actions .btn-primary,
+    .coach-actions .btn-outline,
+    .product-actions .btn-primary,
+    .product-actions .btn-outline,
+    .action-buttons .btn {
+        width: 100%;
+    }
+
+    .main-image {
+        height: min(70vw, 420px) !important;
+    }
+
+    .cart-summary {
+        width: calc(100vw - 2rem) !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        right: 1rem !important;
+        top: 1rem !important;
+        bottom: 1rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-stats,
+    .search-bar,
+    .filter-group,
+    .product-actions,
+    .facility-actions,
+    .coach-actions,
+    .action-buttons {
+        width: 100%;
+    }
+
+    .search-btn,
+    .filter-select,
+    .sort-select {
+        width: 100%;
+    }
+}
