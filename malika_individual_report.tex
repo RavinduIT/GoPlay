@@ -1,0 +1,313 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{palatino}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{setspace}
+\usepackage{microtype}
+
+\definecolor{hdr}{RGB}{44,102,145}
+
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\setlength{\parskip}{0pt}
+\onehalfspacing
+
+\begin{document}
+
+%% ── Title ────────────────────────────────────────────────────────────────────
+\begin{center}
+\vspace*{1.2cm}
+{\Huge\bfseries GoPlay}\\[0.5cm]
+{\LARGE\bfseries Individual Contribution Report}\\[0.4cm]
+{\large Software Engineering Project}\\[1.8cm]
+
+{\large \textbf{Name ~-:}~ T.G. Malika Nishnatha}\\[0.3cm]
+{\large \textbf{Index ~-:}~ 23001275}\\[0.3cm]
+{\large \textbf{Individual Contribution ~-:}~ 30\%}\\[1.8cm]
+
+{\normalsize The team contributions are as follows:}
+\end{center}
+
+\vspace{0.4cm}
+
+%% ── Team Contributions ───────────────────────────────────────────────────────
+\renewcommand{\arraystretch}{1.3}
+\begin{center}
+\begin{tabular}{|C{3.0cm}|C{3.0cm}|L{7.5cm}|}
+\hline
+\textbf{23001275:}\newline T.G. Malika Nishnatha
+& User Module \&\newline Ground Owner Module
+& \vspace{2pt}
+  \begin{itemize}[leftmargin=1em, itemsep=1pt, topsep=2pt, parsep=0pt]
+    \item User Registration \& Login
+    \item User Dashboard
+    \item Ground Browsing \& Booking
+    \item Profile \& Avatar Management
+    \item Facility Management
+    \item Availability \& Date Blocking
+    \item Maintenance \& Inspections
+    \item Earnings Dashboard
+    \item Review Management
+    \item Coach Enrollment Approval
+  \end{itemize}\vspace{2pt}
+\\ \hline
+\textbf{23001038:}\newline W.T. Mahagamage
+& Coach Module
+& \vspace{2pt}
+  \begin{itemize}[leftmargin=1em, itemsep=1pt, topsep=2pt, parsep=0pt]
+    \item Coach Profile \& Credentials
+    \item Availability Scheduling
+    \item Session Management
+    \item Client Management
+    \item Earnings Dashboard
+    \item Facility Linking
+    \item Public Coach Profile
+  \end{itemize}\vspace{2pt}
+\\ \hline
+\textbf{23002204:}\newline R.L. Weerasinghe
+& Admin Module \&\newline News CRUD
+& \vspace{2pt}
+  \begin{itemize}[leftmargin=1em, itemsep=1pt, topsep=2pt, parsep=0pt]
+    \item Admin Dashboard
+    \item Provider Application Approval
+    \item User Management
+    \item Platform Earnings \& Analytics
+    \item News Article CRUD
+  \end{itemize}\vspace{2pt}
+\\ \hline
+\textbf{23000961:}\newline P.W. Kudahetty
+& Shop Owner Module
+& \vspace{2pt}
+  \begin{itemize}[leftmargin=1em, itemsep=1pt, topsep=2pt, parsep=0pt]
+    \item Shop Owner Dashboard
+    \item Product \& Inventory Management
+    \item Order Management
+    \item Cart \& Checkout (PayHere / COD)
+    \item Product Reviews \& Replies
+    \item Shop Profile Management
+  \end{itemize}\vspace{2pt}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\vspace{0.5cm}
+\begin{center}
+\textbf{Everyone contributed to:}
+\end{center}
+\begin{itemize}[leftmargin=4cm, itemsep=2pt]
+  \item Constructing the database.
+  \item Drawing UML diagrams.
+\end{itemize}
+
+\newpage
+
+%% ── Completion Status ────────────────────────────────────────────────────────
+\renewcommand{\arraystretch}{1.6}
+\begin{center}
+\begin{longtable}{|C{3.8cm}|C{5.5cm}|C{3.8cm}|}
+\hline
+\textbf{Details Developer} & \textbf{Functionality} & \textbf{Complete / Incomplete}\\
+\hline
+\endhead
+
+\multirow{10}{3.8cm}{\centering 23001275:\\ T.G. Malika Nishnatha}
+  & User Registration \& Login    & Complete \\ \cline{2-3}
+  & User Dashboard                & Complete \\ \cline{2-3}
+  & Ground Browsing \& Booking    & Complete \\ \cline{2-3}
+  & Profile \& Avatar Management  & Complete \\ \cline{2-3}
+  & Facility Management           & Complete \\ \cline{2-3}
+  & Availability \& Date Blocking & Complete \\ \cline{2-3}
+  & Maintenance \& Inspections    & Complete \\ \cline{2-3}
+  & Earnings Dashboard            & Complete \\ \cline{2-3}
+  & Review Management             & Complete \\ \cline{2-3}
+  & Coach Enrollment Approval     & Complete \\ \hline
+
+\end{longtable}
+\end{center}
+
+\newpage
+
+%% ── Test Cases ───────────────────────────────────────────────────────────────
+
+\begin{center}{\Large\bfseries User Authentication}\end{center}
+\vspace{0.3cm}
+
+\renewcommand{\arraystretch}{1.8}
+\begin{center}
+\begin{longtable}{|C{1.0cm}|L{2.5cm}|L{2.5cm}|L{3.5cm}|L{2.5cm}|L{1.5cm}|C{1.0cm}|}
+\hline
+\textbf{Test Case ID} & \textbf{Test Description} & \textbf{Test Steps} & \textbf{Test Data} & \textbf{Expected Results} & \textbf{Actual Results} & \textbf{Pass/ Fail}\\
+\hline
+\endhead
+
+TC1
+& Register a new user
+& Go to Register page $\to$ fill name, email, password $\to$ click Register
+& Name: Test User\newline Email: newuser@gmail.com\newline Pass: Test@1234
+& Session created; user redirected to dashboard
+& As Expected
+& Pass
+\\ \hline
+
+TC2
+& Login with wrong password
+& Go to Login $\to$ enter email $\to$ enter wrong password $\to$ click Sign In
+& Email: user@gmail.com\newline Pass: wrongpass
+& Error message shown; session NOT created
+& As Expected
+& Pass
+\\ \hline
+
+\end{longtable}
+\end{center}
+
+\vspace{0.4cm}
+\begin{center}{\Large\bfseries Ground Browsing \& Booking}\end{center}
+\vspace{0.3cm}
+
+\begin{center}
+\begin{longtable}{|C{1.0cm}|L{2.5cm}|L{2.5cm}|L{3.5cm}|L{2.5cm}|L{1.5cm}|C{1.0cm}|}
+\hline
+\textbf{Test Case ID} & \textbf{Test Description} & \textbf{Test Steps} & \textbf{Test Data} & \textbf{Expected Results} & \textbf{Actual Results} & \textbf{Pass/ Fail}\\
+\hline
+\endhead
+
+TC3
+& Search grounds by sport
+& Go to Grounds $\to$ select ``Football'' $\to$ submit search
+& Sport: Football
+& Only Football facilities shown
+& As Expected
+& Pass
+\\ \hline
+
+TC4
+& Book an available slot
+& Select ground $\to$ pick date $\to$ choose slot $\to$ confirm
+& Date: 2026-04-20\newline Time: 10:00--12:00
+& Booking created with status \texttt{pending}
+& As Expected
+& Pass
+\\ \hline
+
+TC5
+& Book an already-taken slot
+& Select same ground $\to$ same date $\to$ same slot $\to$ attempt booking
+& Same date \& time as existing booking
+& Conflict error shown; no duplicate created
+& As Expected
+& Pass
+\\ \hline
+
+\end{longtable}
+\end{center}
+
+\newpage
+
+\begin{center}{\Large\bfseries Profile Management}\end{center}
+\vspace{0.3cm}
+
+\begin{center}
+\begin{longtable}{|C{1.0cm}|L{2.5cm}|L{2.5cm}|L{3.5cm}|L{2.5cm}|L{1.5cm}|C{1.0cm}|}
+\hline
+\textbf{Test Case ID} & \textbf{Test Description} & \textbf{Test Steps} & \textbf{Test Data} & \textbf{Expected Results} & \textbf{Actual Results} & \textbf{Pass/ Fail}\\
+\hline
+\endhead
+
+TC8
+& Upload a profile avatar
+& Go to Profile $\to$ click Upload Avatar $\to$ select image $\to$ save
+& JPG file ($<$2 MB)
+& File saved; profile picture updated in DB
+& As Expected
+& Pass
+\\ \hline
+
+\end{longtable}
+\end{center}
+
+\newpage
+
+\begin{center}{\Large\bfseries Ground Owner --- Facility Management}\end{center}
+\vspace{0.3cm}
+
+\begin{center}
+\begin{longtable}{|C{1.0cm}|L{2.5cm}|L{2.5cm}|L{3.5cm}|L{2.5cm}|L{1.5cm}|C{1.0cm}|}
+\hline
+\textbf{Test Case ID} & \textbf{Test Description} & \textbf{Test Steps} & \textbf{Test Data} & \textbf{Expected Results} & \textbf{Actual Results} & \textbf{Pass/ Fail}\\
+\hline
+\endhead
+
+TC9
+& Create a new facility
+& Go to Facilities $\to$ click Add $\to$ fill name, sport, city, rate $\to$ save
+& Name: City Ground\newline Sport: Cricket\newline City: Colombo\newline Rate: Rs.\ 3,000/hr
+& Facility appears on the public browsing page
+& As Expected
+& Pass
+\\ \hline
+
+TC10
+& Block a specific date
+& Go to Availability $\to$ select facility $\to$ pick date $\to$ save
+& Date: 2026-04-25
+& Date marked unavailable for booking
+& As Expected
+& Pass
+\\ \hline
+
+\end{longtable}
+\end{center}
+
+\vspace{0.4cm}
+\begin{center}{\Large\bfseries Ground Owner --- Operations}\end{center}
+\vspace{0.3cm}
+
+\begin{center}
+\begin{longtable}{|C{1.0cm}|L{2.5cm}|L{2.5cm}|L{3.5cm}|L{2.5cm}|L{1.5cm}|C{1.0cm}|}
+\hline
+\textbf{Test Case ID} & \textbf{Test Description} & \textbf{Test Steps} & \textbf{Test Data} & \textbf{Expected Results} & \textbf{Actual Results} & \textbf{Pass/ Fail}\\
+\hline
+\endhead
+
+TC11
+& Create a maintenance task
+& Go to Maintenance $\to$ click Add Task $\to$ fill title, category, description $\to$ save
+& Task: Fix boundary nets\newline Category: Equipment
+& Task listed with status \texttt{pending}
+& As Expected
+& Pass
+\\ \hline
+
+TC12
+& Approve coach enrollment
+& Go to Coaches $\to$ find pending request $\to$ click Approve $\to$ confirm
+& ---
+& Link status set to \texttt{approved}; coach notified
+& As Expected
+& Pass
+\\ \hline
+
+TC13
+& Reply to a facility review
+& Go to Reviews $\to$ find review $\to$ click Reply $\to$ type response $\to$ save
+& Reply: ``Thank you for your feedback!''
+& Reply saved and shown under the review
+& As Expected
+& Pass
+\\ \hline
+
+\end{longtable}
+\end{center}
+
+\end{document}

@@ -9,6 +9,7 @@ if (strpos($currentPath, '/coach/profile') !== false) $activePage = 'profile';
 elseif (strpos($currentPath, '/coach/sessions') !== false) $activePage = 'sessions';
 elseif (strpos($currentPath, '/coach/clients') !== false) $activePage = 'clients';
 elseif (strpos($currentPath, '/coach/earnings') !== false) $activePage = 'earnings';
+elseif (strpos($currentPath, '/coach/commission') !== false) $activePage = 'commission';
 elseif (strpos($currentPath, '/coach/availability') !== false) $activePage = 'availability';
 elseif (strpos($currentPath, '/coach/reviews') !== false) $activePage = 'reviews';
 elseif (strpos($currentPath, '/coach/dashboard') !== false) $activePage = 'dashboard';
@@ -19,6 +20,7 @@ $menuItems = [
     ['id'=>'sessions','url'=>$_base.'/coach/sessions','icon'=>'fas fa-dumbbell','label'=>'Training Sessions','badge'=>null],
     ['id'=>'clients','url'=>$_base.'/coach/clients','icon'=>'fas fa-users','label'=>'My Clients','badge'=>null],
     ['id'=>'earnings','url'=>$_base.'/coach/earnings','icon'=>'fas fa-wallet','label'=>'Earnings','badge'=>null],
+    ['id'=>'commission','url'=>$_base.'/coach/commission','icon'=>'fas fa-file-invoice-dollar','label'=>'Commission Invoices','badge'=>null],
     ['id'=>'availability','url'=>$_base.'/coach/availability','icon'=>'fas fa-clock','label'=>'Availability','badge'=>null],
     ['id'=>'reviews','url'=>$_base.'/coach/reviews','icon'=>'fas fa-star','label'=>'Reviews','badge'=>null],
     'divider',

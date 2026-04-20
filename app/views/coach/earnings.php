@@ -25,7 +25,7 @@ $_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'earnings'; ?>
                 </button>
                 <div>
                     <h1 class="page-title"><i class="fas fa-wallet"></i> Earnings</h1>
-                    <p class="page-subtitle">Track your income and session revenue</p>
+                    <p class="page-subtitle">Track payment transactions recorded from completed coaching sessions</p>
                 </div>
             </div>
             <div class="header-right">
@@ -112,7 +112,7 @@ $_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'earnings'; ?>
                             <option value="">All Status</option>
                             <option value="paid">Paid</option>
                             <option value="pending">Pending</option>
-                            <option value="refunded">Refunded</option>
+                            <option value="failed">Failed</option>
                         </select>
                     </div>
                     <div class="fgroup fgroup-btn">
@@ -127,7 +127,7 @@ $_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'earnings'; ?>
             <!--  Earnings Table  -->
             <div class="table-card">
                 <div class="table-card-header">
-                    <h3><i class="fas fa-list"></i> Session Earnings</h3>
+                    <h3><i class="fas fa-list"></i> Transaction History</h3>
                     <div class="table-controls">
                         <span class="results-label" id="resultsLabel"></span>
                         <select id="sortBy">
@@ -140,7 +140,7 @@ $_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'earnings'; ?>
                 </div>
 
                 <div id="tableLoading" class="table-loading">
-                    <i class="fas fa-spinner fa-spin"></i> Loading earnings…
+                    <i class="fas fa-spinner fa-spin"></i> Loading transactions…
                 </div>
 
                 <div id="earningsTableContainer" style="display:none">
@@ -162,7 +162,7 @@ $_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'earnings'; ?>
 
                 <div id="noEarnings" class="empty-state" style="display:none">
                     <i class="fas fa-receipt"></i>
-                    <h3>No earnings found</h3>
+                    <h3>No transactions found</h3>
                     <p>Try adjusting your filters or date range.</p>
                 </div>
 
@@ -333,7 +333,7 @@ function updatePagination(pg, total, count) {
 document.getElementById('prevPage').addEventListener('click', () => page > 1 && loadEarnings(page - 1));
 document.getElementById('nextPage').addEventListener('click', () => page < totalPages && loadEarnings(page + 1));
 
-/*  session detail modal  */
+/*  transaction detail modal  */
 window.viewDetail = async function (id) {
     document.getElementById('detailContent').innerHTML =
         '<div class="d-loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>';
@@ -345,14 +345,15 @@ window.viewDetail = async function (id) {
         if (!data.success) throw new Error(data.error || 'Not found');
 
         const s = data.session;
-        const payColor = { paid: '#10b981', pending: '#f59e0b', refunded: '#ef4444' }[s.payment_status] || '#94a3b8';
+        const payColor = { paid: '#10b981', pending: '#f59e0b', failed: '#ef4444' }[s.payment_status] || '#94a3b8';
 
         document.getElementById('detailContent').innerHTML = `
             <div class="detail-grid">
-                <div class="drow"><span>Session ID</span><strong>#${s.id}</strong></div>
+                <div class="drow"><span>Transaction ID</span><strong>#${s.id}</strong></div>
                 <div class="drow"><span>Client</span><strong>${s.client_name || '—'}</strong></div>
                 <div class="drow"><span>Email</span><strong>${s.client_email || '—'}</strong></div>
                 <div class="drow"><span>Phone</span><strong>${s.client_phone || '—'}</strong></div>
+                <div class="drow"><span>Recorded On</span><strong>${fmtDate(s.earning_date)}</strong></div>
                 <div class="drow"><span>Date</span><strong>${fmtDate(s.booking_date)}</strong></div>
                 <div class="drow"><span>Time</span><strong>${s.start_time} – ${s.end_time}</strong></div>
                 <div class="drow"><span>Duration</span><strong>${s.duration_hours} hr</strong></div>
@@ -361,6 +362,7 @@ window.viewDetail = async function (id) {
                 <div class="drow"><span>Payment</span>
                     <strong style="color:${payColor}">${(s.payment_status||'').charAt(0).toUpperCase()+(s.payment_status||'').slice(1)}</strong>
                 </div>
+                <div class="drow"><span>Method</span><strong>${s.payment_method ? (s.payment_method.charAt(0).toUpperCase() + s.payment_method.slice(1)) : '—'}</strong></div>
                 <div class="drow"><span>Booking Status</span><strong>${(s.status||'').charAt(0).toUpperCase()+(s.status||'').slice(1)}</strong></div>
                 ${s.special_requests ? `<div class="drow drow-full"><span>Special Requests</span><p>${s.special_requests}</p></div>` : ''}
                 ${s.coach_notes      ? `<div class="drow drow-full"><span>Coach Notes</span><p>${s.coach_notes}</p></div>` : ''}

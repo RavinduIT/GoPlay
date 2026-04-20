@@ -309,6 +309,19 @@ class CoachController extends BaseController
     }
 
     /**
+     * Coach commission invoices page
+     */
+    public function commissionPage(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->redirect('/login');
+        }
+
+        return $this->viewWithoutLayout('coach/commission');
+    }
+
+    /**
      * Coach availability page
      */
     public function availabilityPage(Request $request): Response
@@ -1682,30 +1695,105 @@ class CoachController extends BaseController
                 return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
             }
 
-            $bookingId = $request->getParam('id');
+            $bookingId = (int)$request->getParam('id');
             $coachBookingModel = new CoachBooking();
-
-            // Verify booking belongs to this coach
-            $booking = $coachBookingModel->find((int)$bookingId);
+            $booking = $coachBookingModel->find($bookingId);
             if (!$booking) {
                 return $this->json(['success' => false, 'error' => 'Booking not found'], 404);
             }
 
-            // Get coach ID
             $coachModel = new Coach();
             $coach = $coachModel->where(['user_id' => $_SESSION['user_id']]);
             if (empty($coach) || $booking['coach_id'] != $coach[0]['id']) {
                 return $this->json(['success' => false, 'error' => 'Unauthorized'], 403);
             }
 
-            $success = $coachBookingModel->updateStatus((int)$bookingId, 'completed');
-
+            // Ask frontend to collect payment method before finalising
             return $this->json([
-                'success' => $success,
-                'message' => $success ? 'Session marked as completed' : 'Failed to update'
+                'success'       => true,
+                'needs_payment' => true,
+                'booking_id'    => $bookingId,
+                'amount'        => $booking['total_amount'],
+                'message'       => 'Please confirm payment method to complete this session'
             ]);
 
         } catch (\Exception $e) {
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
+        }
+    }
+
+    /**
+     * POST /api/coach/bookings/{id}/confirm-payment
+     * Confirms payment, records earnings, marks booking completed.
+     */
+    public function confirmCoachPayment(Request $request): Response
+    {
+        try {
+            $this->startSession();
+            if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'coach') {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 401);
+            }
+
+            $bookingId = (int)$request->getParam('id');
+            $data = $request->getJsonBody();
+            $paymentMethod = $data['payment_method'] ?? '';
+            if (!in_array($paymentMethod, ['online', 'cash'])) {
+                return $this->json(['success' => false, 'error' => 'Invalid payment_method'], 400);
+            }
+
+            $coachBookingModel = new CoachBooking();
+            $booking = $coachBookingModel->find($bookingId);
+            if (!$booking) {
+                return $this->json(['success' => false, 'error' => 'Booking not found'], 404);
+            }
+
+            $coachModel = new Coach();
+            $coach = $coachModel->where(['user_id' => $_SESSION['user_id']]);
+            if (empty($coach) || $booking['coach_id'] != $coach[0]['id']) {
+                return $this->json(['success' => false, 'error' => 'Unauthorized'], 403);
+            }
+
+            if (($booking['status'] ?? '') === 'completed') {
+                return $this->json(['success' => false, 'error' => 'Session is already completed'], 400);
+            }
+
+            $coachId = (int)$coach[0]['id'];
+            $amount  = (float)$booking['total_amount'];
+
+            $db = \Core\Database::getInstance()->getConnection();
+            $db->beginTransaction();
+
+            // Record earning
+            $earningsModel = new \App\Models\CoachEarnings();
+            $recorded = $earningsModel->recordEarning(
+                $coachId, $bookingId, $amount, $paymentMethod, 'paid',
+                'Recorded on session completion'
+            );
+
+            if (!$recorded) {
+                $db->rollBack();
+                return $this->json(['success' => false, 'error' => 'Failed to record earnings (may already exist)'], 500);
+            }
+
+            // Mark booking completed + payment_method + payment_status
+            $db->prepare(
+                "UPDATE coach_bookings
+                 SET status = 'completed', payment_status = 'paid', payment_method = ?
+                 WHERE id = ?"
+            )->execute([$paymentMethod, $bookingId]);
+            $db->commit();
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Session completed and earnings recorded',
+                'amount'  => $amount
+            ]);
+
+        } catch (\Exception $e) {
+            if (isset($db) && $db->inTransaction()) {
+                $db->rollBack();
+            }
             error_log(__METHOD__ . ' error: ' . $e->getMessage());
             return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
@@ -1792,9 +1880,9 @@ class CoachController extends BaseController
             $page  = max(1, (int)($request->getQuery('page')  ?? 1));
             $limit = max(1, min(50, (int)($request->getQuery('limit') ?? 10)));
 
-            $bookingModel = new CoachBooking();
-            $result       = $bookingModel->getEarningsList($coachId, $filters, $page, $limit);
-            $stats        = $bookingModel->getEarningsStats($coachId, $filters);
+            $earningsModel = new \App\Models\CoachEarnings();
+            $result        = $earningsModel->getList($coachId, $filters, $page, $limit);
+            $stats         = $earningsModel->getStats($coachId, $filters);
 
             return $this->json([
                 'success'     => true,
@@ -1870,9 +1958,9 @@ class CoachController extends BaseController
             $coachId = $this->resolveCoachId();
             if (!$coachId) return $this->json(['error' => 'Coach profile not found'], 404);
 
-            $id      = (int)$request->getParam('id');
-            $session = (new CoachBooking())->getEarningById($id, $coachId);
-            if (!$session) return $this->json(['error' => 'Session not found'], 404);
+            $id = (int)$request->getParam('id');
+            $session = (new \App\Models\CoachEarnings())->getDetail($id, $coachId);
+            if (!$session) return $this->json(['error' => 'Transaction not found'], 404);
 
             return $this->json(['success' => true, 'session' => $session]);
         } catch (\Exception $e) {
@@ -1904,20 +1992,22 @@ class CoachController extends BaseController
                 'endDate'       => $request->getQuery('endDate')       ?? null,
             ];
 
-            $result = (new CoachBooking())->getEarningsList($coachId, $filters, 1, 9999);
+            $result = (new \App\Models\CoachEarnings())->getList($coachId, $filters, 1, 9999);
             $rows   = $result['data'];
 
-            $csv  = "Date,Time,Client,Email,Session Type,Duration (hrs),Amount (LKR),Payment Status,Booking Status\n";
+            $csv  = "Transaction Date,Session Date,Time,Client,Email,Session Type,Duration (hrs),Amount (LKR),Payment Status,Payment Method,Booking Status\n";
             foreach ($rows as $r) {
                 $csv .= implode(',', [
-                    '"' . $r['booking_date'] . '"',
-                    '"' . $r['start_time'] . ' - ' . $r['end_time'] . '"',
+                    '"' . ($r['earning_date'] ?? '') . '"',
+                    '"' . ($r['booking_date'] ?? '') . '"',
+                    '"' . (($r['start_time'] ?? '') . ' - ' . ($r['end_time'] ?? '')) . '"',
                     '"' . addslashes($r['client_name'] ?? '') . '"',
                     '"' . ($r['client_email'] ?? '') . '"',
                     '"' . ucfirst($r['session_type'] ?? '') . '"',
-                    $r['duration_hours'],
-                    number_format((float)$r['total_amount'], 2, '.', ''),
+                    $r['duration_hours'] ?? '',
+                    number_format((float)($r['total_amount'] ?? 0), 2, '.', ''),
                     '"' . ucfirst($r['payment_status'] ?? '') . '"',
+                    '"' . ucfirst($r['payment_method'] ?? '') . '"',
                     '"' . ucfirst($r['status'] ?? '') . '"',
                 ]) . "\n";
             }

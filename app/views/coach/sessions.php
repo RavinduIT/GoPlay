@@ -268,11 +268,49 @@ $_base = defined('BASE_URL') ? BASE_URL : ''; $currentPage = 'sessions'; ?>
     }
 
     window.completeSession = async function (id) {
-        if (!confirm('Mark this session as completed?')) return;
+        // Step 1: ping the complete endpoint to get booking details + needs_payment flag
         const res  = await fetch(`${window.BASE_URL||""}/api/coach/bookings/${id}/complete`, { method: 'PUT' });
         const data = await res.json();
-        if (data.success) loadSessions();
-        else alert(data.error || 'Failed');
+        if (!data.success) { alert(data.error || 'Failed'); return; }
+        if (data.needs_payment) {
+            // Show payment modal
+            document.getElementById('payModalBookingId').value = id;
+            document.getElementById('payModalAmount').textContent =
+                'Rs. ' + parseFloat(data.amount || 0).toLocaleString('en-LK', {minimumFractionDigits:2});
+            document.getElementById('payModal').style.display = 'flex';
+        } else {
+            loadSessions();
+        }
+    };
+
+    window.closePayModal = function() {
+        document.getElementById('payModal').style.display = 'none';
+    };
+
+    window.confirmSessionPayment = async function(method) {
+        const id  = document.getElementById('payModalBookingId').value;
+        const btn = method === 'online'
+            ? document.getElementById('payBtnOnline')
+            : document.getElementById('payBtnCash');
+        btn.disabled = true;
+        try {
+            const res  = await fetch(`${window.BASE_URL||""}/api/coach/bookings/${id}/confirm-payment`, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ payment_method: method })
+            });
+            const data = await res.json();
+            if (data.success) {
+                closePayModal();
+                loadSessions();
+            } else {
+                alert(data.error || 'Failed to confirm payment');
+            }
+        } catch(e) {
+            alert('Network error');
+        } finally {
+            btn.disabled = false;
+        }
     };
 
     window.cancelSession = async function (id) {
@@ -613,5 +651,40 @@ Amount: LKR ${parseFloat(s.total_amount || 0).toLocaleString()}`);
     loadSessions();
 })();
 </script>
+
+<!-- Payment Confirmation Modal -->
+<div id="payModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2000;align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:16px;width:min(420px,94vw);box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden">
+        <div style="background:linear-gradient(135deg,#1e40af,#3b82f6);padding:20px 24px;display:flex;align-items:center;justify-content:space-between">
+            <h3 style="color:#fff;font-size:16px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px">
+                <i class="fas fa-money-bill-wave"></i> Confirm Session Payment
+            </h3>
+            <button onclick="closePayModal()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div style="padding:24px">
+            <p style="font-size:14px;color:#4b5563;margin-bottom:6px">Session amount:</p>
+            <p id="payModalAmount" style="font-size:24px;font-weight:800;color:#1e40af;margin-bottom:20px"></p>
+            <p style="font-size:13px;color:#6b7280;margin-bottom:16px">How was this session paid?</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <button id="payBtnOnline" onclick="confirmSessionPayment('online')"
+                    style="padding:14px;border:2px solid #3b82f6;border-radius:12px;background:#eff6ff;color:#1e40af;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+                    <i class="fas fa-credit-card" style="font-size:22px"></i>
+                    Paid Online
+                </button>
+                <button id="payBtnCash" onclick="confirmSessionPayment('cash')"
+                    style="padding:14px;border:2px solid #22c55e;border-radius:12px;background:#f0fdf4;color:#15803d;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+                    <i class="fas fa-money-bill" style="font-size:22px"></i>
+                    Cash on Hand
+                </button>
+            </div>
+            <p style="font-size:11px;color:#9ca3af;margin-top:14px;text-align:center">
+                10% platform commission will be invoiced separately by admin.
+            </p>
+        </div>
+        <input type="hidden" id="payModalBookingId">
+    </div>
+</div>
 </body>
 </html>

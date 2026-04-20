@@ -147,6 +147,7 @@ try {
     $router->get('/coach/programs', 'CoachController@programsPage');
     $router->get('/coach/assessments', 'CoachController@assessmentsPage');
     $router->get('/coach/earnings', 'CoachController@earningsPage');
+    $router->get('/coach/commission', 'CoachController@commissionPage');
     $router->get('/coach/availability', 'CoachController@availabilityPage');
     $router->get('/coach/reviews', 'CoachController@reviewsPage');
     $router->get('/coach/resources', 'CoachController@resourcesPage');
@@ -358,6 +359,7 @@ try {
     $router->get('/api/coach/bookings', 'CoachController@getCoachOwnBookings');
     $router->get('/api/coach/schedule', 'CoachController@getCoachSchedule');
     $router->put('/api/coach/bookings/{id}/complete', 'CoachController@markSessionCompleted');
+    $router->post('/api/coach/bookings/{id}/confirm-payment', 'CoachController@confirmCoachPayment');
     $router->put('/api/coach/bookings/{id}/cancel', 'CoachController@coachCancelSession');
 
     // Public booking API routes
@@ -494,11 +496,14 @@ try {
     $router->get('/admin/commission',                          'AdminController@commissionPage');
     $router->get('/api/admin/commission/stats',                'AdminController@getCommissionStats');
     $router->get('/api/admin/commission/owners',               'AdminController@getCommissionOwners');
+    $router->get('/api/admin/commission/coaches',              'AdminController@getCommissionCoaches');
     $router->get('/api/admin/commission/invoices',             'AdminController@getCommissionInvoices');
     $router->get('/api/admin/commission/invoices/{id}',        'AdminController@getCommissionInvoiceDetail');
     $router->post('/api/admin/commission/invoices',            'AdminController@generateCommissionInvoice');
     $router->put('/api/admin/commission/invoices/{id}/paid',   'AdminController@markCommissionPaid');
     $router->get('/api/ground-owner/commission/invoices',      'AdminController@getMyCommissionInvoices');
+    $router->get('/api/coach/commission/invoices',             'AdminController@getMyCoachCommissionInvoices');
+    $router->get('/api/coach/commission/invoices/{id}',        'AdminController@getMyCoachCommissionInvoiceDetail');
 
     // News Routes - Updated
     $router->get('/news', 'NewsController@index');

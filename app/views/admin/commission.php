@@ -91,7 +91,7 @@ $activePage = 'commission';
             <div style="display:flex;align-items:center;justify-content:space-between">
                 <div>
                     <h1><i class="fas fa-file-invoice-dollar" style="color:#3182ce"></i> Commission Invoices</h1>
-                    <p>Track and invoice 10% platform commission from ground owner walk-in earnings</p>
+                    <p>Track and invoice 10% platform commission from ground owners and coaches</p>
                 </div>
                 <button class="btn btn-ghost" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
             </div>
@@ -123,10 +123,10 @@ $activePage = 'commission';
                 </div>
             </div>
 
-            <!-- Owners with uninvoiced earnings -->
+            <!-- Ground Owners with uninvoiced earnings -->
             <div class="card">
                 <div class="card-head">
-                    <h3><i class="fas fa-user-tie" style="color:#3182ce"></i> Ground Owners — Uninvoiced Earnings</h3>
+                    <h3><i class="fas fa-map-marker-alt" style="color:#3182ce"></i> Ground Owners — Uninvoiced Earnings</h3>
                     <button class="btn btn-ghost" onclick="loadOwners()"><i class="fas fa-sync-alt"></i> Refresh</button>
                 </div>
                 <div class="tbl-wrap">
@@ -140,7 +140,29 @@ $activePage = 'commission';
                     </table>
                     <div id="ownersEmpty" class="empty-state" style="display:none">
                         <i class="fas fa-check-circle" style="color:#38a169"></i>
-                        All earnings have been invoiced.
+                        All ground owner earnings have been invoiced.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coaches with uninvoiced earnings -->
+            <div class="card">
+                <div class="card-head">
+                    <h3><i class="fas fa-user-tie" style="color:#805ad5"></i> Coaches — Uninvoiced Earnings</h3>
+                    <button class="btn btn-ghost" onclick="loadCoaches()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div class="tbl-wrap">
+                    <div id="coachesLoading" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
+                    <table id="coachesTable" style="display:none">
+                        <thead><tr>
+                            <th>Coach</th><th>Email</th><th>Sessions</th>
+                            <th>Period</th><th>Total Earnings</th><th>Commission (10%)</th><th></th>
+                        </tr></thead>
+                        <tbody id="coachesTbody"></tbody>
+                    </table>
+                    <div id="coachesEmpty" class="empty-state" style="display:none">
+                        <i class="fas fa-check-circle" style="color:#38a169"></i>
+                        All coach earnings have been invoiced.
                     </div>
                 </div>
             </div>
@@ -155,7 +177,7 @@ $activePage = 'commission';
                     <div id="invLoading" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
                     <table id="invTable" style="display:none">
                         <thead><tr>
-                            <th>Invoice #</th><th>Owner</th><th>Period</th>
+                            <th>Invoice #</th><th>Provider</th><th>Type</th><th>Period</th>
                             <th>Earnings</th><th>Commission</th><th>Due Date</th><th>Status</th><th></th>
                         </tr></thead>
                         <tbody id="invTbody"></tbody>
@@ -170,7 +192,7 @@ $activePage = 'commission';
     </main>
 </div>
 
-<!-- Generate Invoice Modal -->
+<!-- Generate Invoice Modal (shared for ground owners & coaches) -->
 <div class="modal-backdrop" id="genBackdrop">
     <div class="modal-box">
         <div class="modal-head">
@@ -179,7 +201,7 @@ $activePage = 'commission';
         </div>
         <div class="modal-body">
             <p style="font-size:13px;color:#4a5568;margin-bottom:16px">
-                This will create an invoice for all uninvoiced earnings of
+                This will invoice all uninvoiced earnings of
                 <strong id="genOwnerName"></strong>.
             </p>
             <div id="genPreview" style="background:#f7fafc;border-radius:8px;padding:14px;margin-bottom:16px">
@@ -220,16 +242,34 @@ $activePage = 'commission';
 'use strict';
 
 const BASE = window.BASE_URL || '';
-let pendingOwnerId   = null;
-let pendingOwnerData = null;
+let pendingProviderType = null;
+let pendingProviderId   = null;
+let pendingProviderData = null;
 
 function lkr(n){ return 'Rs. ' + (parseFloat(n)||0).toLocaleString('en-LK',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtDate(d){ return d ? new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'; }
+function esc(v){
+    return String(v ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 function statusBadge(s){
     const map = {sent:'badge-sent',paid:'badge-paid',overdue:'badge-overdue'};
     const icon = {sent:'fa-paper-plane',paid:'fa-check',overdue:'fa-exclamation-triangle'};
     return '<span class="badge '+(map[s]||'badge-sent')+'"><i class="fas '+(icon[s]||'fa-circle')+'"></i> '+s.charAt(0).toUpperCase()+s.slice(1)+'</span>';
+}
+
+function typeBadge(type){
+    const isCoach = type === 'coach';
+    const bg = isCoach ? '#f3e8ff' : '#ebf8ff';
+    const fg = isCoach ? '#7c3aed' : '#2b6cb0';
+    const icon = isCoach ? 'fa-user-tie' : 'fa-map-marker-alt';
+    const label = isCoach ? 'Coach' : 'Ground Owner';
+    return '<span class="badge" style="background:'+bg+';color:'+fg+'"><i class="fas '+icon+'"></i> '+label+'</span>';
 }
 
 // ── Stats ──────────────────────────────────────────
@@ -276,6 +316,39 @@ async function loadOwners(){
 }
 window.loadOwners = loadOwners;
 
+// ── Coaches ───────────────────────────────────────
+async function loadCoaches(){
+    document.getElementById('coachesLoading').style.display = 'block';
+    document.getElementById('coachesTable').style.display   = 'none';
+    document.getElementById('coachesEmpty').style.display   = 'none';
+    try{
+        const r = await fetch(BASE+'/api/admin/commission/coaches');
+        const d = await r.json();
+        const rows = d.coaches || [];
+        document.getElementById('coachesLoading').style.display = 'none';
+        if(!rows.length){ document.getElementById('coachesEmpty').style.display='block'; return; }
+        document.getElementById('coachesTable').style.display = 'table';
+        document.getElementById('coachesTbody').innerHTML = rows.map(c => {
+            const period = fmtDate(c.earliest_date) + ' – ' + fmtDate(c.latest_date);
+            const payload = JSON.stringify(c).replace(/"/g,'&quot;');
+            return '<tr>' +
+                '<td><strong>'+esc(c.coach_name)+'</strong></td>' +
+                '<td style="color:#718096">'+esc(c.email)+'</td>' +
+                '<td>'+esc(c.uninvoiced_count)+' sessions</td>' +
+                '<td style="font-size:12px">'+period+'</td>' +
+                '<td>'+lkr(c.total_earnings)+'</td>' +
+                '<td style="color:#805ad5;font-weight:700">'+lkr(c.commission_owed)+'</td>' +
+                '<td><button class="btn btn-primary" onclick="openGenCoach('+payload+')">' +
+                    '<i class="fas fa-file-invoice-dollar"></i> Generate Invoice</button></td>' +
+                '</tr>';
+        }).join('');
+    }catch(e){
+        console.error(e);
+        document.getElementById('coachesLoading').innerHTML='<i class="fas fa-exclamation-circle"></i> Failed to load';
+    }
+}
+window.loadCoaches = loadCoaches;
+
 // ── Invoices ──────────────────────────────────────
 async function loadInvoices(){
     document.getElementById('invLoading').style.display = 'block';
@@ -290,9 +363,11 @@ async function loadInvoices(){
         document.getElementById('invTable').style.display = 'table';
         document.getElementById('invTbody').innerHTML = rows.map(inv => {
             const period = fmtDate(inv.period_start) + ' – ' + fmtDate(inv.period_end);
+            const providerType = inv.provider_type || 'ground_owner';
             return '<tr>' +
                 '<td><strong style="color:#2b6cb0">'+inv.invoice_number+'</strong></td>' +
-                '<td>'+inv.owner_name+'</td>' +
+                '<td>'+esc(inv.owner_name)+'</td>' +
+                '<td>'+typeBadge(providerType)+'</td>' +
                 '<td style="font-size:12px">'+period+'</td>' +
                 '<td>'+lkr(inv.total_earnings)+'</td>' +
                 '<td style="color:#c05621;font-weight:700">'+lkr(inv.commission_amount)+'</td>' +
@@ -311,8 +386,9 @@ window.loadInvoices = loadInvoices;
 // ── Generate Invoice Modal ────────────────────────
 window.openGen = function(owner){
     if(typeof owner === 'string') owner = JSON.parse(owner);
-    pendingOwnerId   = owner.owner_id;
-    pendingOwnerData = owner;
+    pendingProviderType = 'ground_owner';
+    pendingProviderId   = owner.owner_id;
+    pendingProviderData = owner;
     document.getElementById('genOwnerName').textContent = owner.owner_name;
     document.getElementById('genEarnings').textContent  = lkr(owner.total_earnings);
     document.getElementById('genCommission').textContent = lkr(owner.commission_owed);
@@ -322,26 +398,51 @@ window.openGen = function(owner){
     document.getElementById('genBackdrop').classList.add('open');
 };
 
+window.openGenCoach = function(coach){
+    if(typeof coach === 'string') coach = JSON.parse(coach);
+    pendingProviderType = 'coach';
+    pendingProviderId   = coach.coach_id;
+    pendingProviderData = coach;
+    document.getElementById('genOwnerName').textContent = coach.coach_name;
+    document.getElementById('genEarnings').textContent  = lkr(coach.total_earnings);
+    document.getElementById('genCommission').textContent = lkr(coach.commission_owed);
+    document.getElementById('genPeriod').textContent = fmtDate(coach.earliest_date)+' – '+fmtDate(coach.latest_date);
+    document.getElementById('genNotes').value = '';
+    document.getElementById('genBackdrop').classList.add('open');
+};
+
 window.closeGen = function(){
     document.getElementById('genBackdrop').classList.remove('open');
-    pendingOwnerId = null; pendingOwnerData = null;
+    pendingProviderType = null;
+    pendingProviderId = null;
+    pendingProviderData = null;
 };
 
 window.submitInvoice = async function(){
-    if(!pendingOwnerId) return;
+    if(!pendingProviderId || !pendingProviderType) return;
     const btn = document.getElementById('genSubmitBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
     try{
+        const payload = {
+            notes: document.getElementById('genNotes').value.trim() || null
+        };
+        if (pendingProviderType === 'coach') payload.coach_id = pendingProviderId;
+        else payload.owner_id = pendingProviderId;
+
         const res  = await fetch(BASE+'/api/admin/commission/invoices',{
             method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ owner_id: pendingOwnerId, notes: document.getElementById('genNotes').value.trim()||null })
+            body: JSON.stringify(payload)
         });
         const data = await res.json();
         if(data.success){
             closeGen();
-            alert('Invoice '+data.invoice.invoice_number+' sent to '+data.invoice.owner_name+'!\nCommission: '+lkr(data.invoice.commission_amount));
-            loadStats(); loadOwners(); loadInvoices();
+            const providerName = data.invoice.owner_name || (pendingProviderData && (pendingProviderData.owner_name || pendingProviderData.coach_name)) || 'provider';
+            alert('Invoice '+data.invoice.invoice_number+' sent to '+providerName+'!\nCommission: '+lkr(data.invoice.commission_amount));
+            loadStats();
+            loadOwners();
+            loadCoaches();
+            loadInvoices();
         } else {
             alert(data.message || 'Failed to generate invoice');
         }
@@ -369,7 +470,7 @@ window.viewInvoice = async function(id){
             '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;font-size:13px">'+
             '<div><span style="color:#718096">Invoice #</span><br><strong>'+inv.invoice_number+'</strong></div>'+
             '<div><span style="color:#718096">Status</span><br>'+statusBadge(inv.status)+'</div>'+
-            '<div><span style="color:#718096">Owner</span><br><strong>'+inv.owner_name+'</strong><br><span style="color:#718096;font-size:12px">'+inv.owner_email+'</span></div>'+
+            '<div><span style="color:#718096">Provider</span><br><strong>'+esc(inv.owner_name)+'</strong><br><span style="color:#718096;font-size:12px">'+esc(inv.owner_email)+'</span><br><span style="margin-top:6px;display:inline-block">'+typeBadge(inv.provider_type || 'ground_owner')+'</span></div>'+
             '<div><span style="color:#718096">Due Date</span><br><strong>'+fmtDate(inv.due_date)+'</strong>'+
                 (inv.paid_date ? '<br><span style="color:#38a169;font-size:12px">Paid: '+fmtDate(inv.paid_date)+'</span>' : '')+'</div>'+
             '</div>'+
@@ -395,7 +496,7 @@ window.markPaid = async function(id){
     try{
         const r = await fetch(BASE+'/api/admin/commission/invoices/'+id+'/paid',{method:'PUT'});
         const d = await r.json();
-        if(d.success){ loadStats(); loadOwners(); loadInvoices(); }
+        if(d.success){ loadStats(); loadOwners(); loadCoaches(); loadInvoices(); }
         else alert(d.message||'Failed');
     }catch(e){ alert('Network error'); }
 };
@@ -403,6 +504,7 @@ window.markPaid = async function(id){
 // ── Init ──────────────────────────────────────────
 loadStats();
 loadOwners();
+loadCoaches();
 loadInvoices();
 
 })();

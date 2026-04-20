@@ -1287,6 +1287,13 @@ class AdminController extends BaseController
         return $this->json(['success' => true, 'owners' => $this->commissionModel()->getOwnerSummary()]);
     }
 
+    public function getCommissionCoaches(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        $coaches = (new \App\Models\CoachEarnings())->getCoachUninvoicedSummary();
+        return $this->json(['success' => true, 'coaches' => $coaches]);
+    }
+
     public function getCommissionInvoices(Request $request): Response
     {
         if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
@@ -1307,16 +1314,43 @@ class AdminController extends BaseController
         if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
         $data    = $request->getJsonBody();
         $ownerId = (int)($data['owner_id'] ?? 0);
+        $coachId = (int)($data['coach_id'] ?? 0);
         $notes   = $data['notes'] ?? null;
-        if (!$ownerId) return $this->json(['success' => false, 'message' => 'owner_id required'], 400);
+        $adminId = (int)$_SESSION['user_id'];
 
-        $invoice = $this->commissionModel()->generateInvoice($ownerId, (int)$_SESSION['user_id'], $notes);
+        if ($coachId) {
+            // Coach invoice
+            $invoice = $this->commissionModel()->generateCoachInvoice($coachId, $adminId, $notes);
+            if (!$invoice) return $this->json(['success' => false, 'message' => 'No uninvoiced earnings found for this coach'], 400);
+
+            // Notify the coach (find user_id)
+            try {
+                $db = \Core\Database::getInstance()->getConnection();
+                $stmt = $db->prepare("SELECT user_id FROM coaches WHERE id = ?");
+                $stmt->execute([$coachId]);
+                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+                if ($row) {
+                    (new \App\Models\Notification())->createNotification(
+                        (int)$row['user_id'], 'commission_invoice',
+                        'Commission Invoice Sent',
+                        'A commission invoice ' . $invoice['invoice_number'] . ' for Rs. ' .
+                        number_format($invoice['commission_amount'], 2) . ' has been issued. Due: ' . $invoice['due_date'],
+                        ['invoice_id' => $invoice['id']]
+                    );
+                }
+            } catch (\Exception $e) {
+                error_log('Coach commission invoice notification error: ' . $e->getMessage());
+            }
+            return $this->json(['success' => true, 'invoice' => $invoice]);
+        }
+
+        if (!$ownerId) return $this->json(['success' => false, 'message' => 'owner_id or coach_id required'], 400);
+
+        $invoice = $this->commissionModel()->generateInvoice($ownerId, $adminId, $notes);
         if (!$invoice) return $this->json(['success' => false, 'message' => 'No uninvoiced earnings found for this owner'], 400);
 
-        // Notify the ground owner
         try {
-            $notif = new \App\Models\Notification();
-            $notif->createNotification(
+            (new \App\Models\Notification())->createNotification(
                 $ownerId, 'commission_invoice',
                 'Commission Invoice Sent',
                 'A commission invoice ' . $invoice['invoice_number'] . ' for Rs. ' .
@@ -1347,6 +1381,51 @@ class AdminController extends BaseController
         }
         $invoices = $this->commissionModel()->getInvoicesByOwner((int)$_SESSION['user_id']);
         return $this->json(['success' => true, 'invoices' => $invoices]);
+    }
+
+    // Coach: view their own commission invoices
+    public function getMyCoachCommissionInvoices(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['success' => false], 403);
+        }
+        $db = \Core\Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT id FROM coaches WHERE user_id = ?");
+        $stmt->execute([(int)$_SESSION['user_id']]);
+        $coachRow = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if (!$coachRow) return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+
+        $invoices = $this->commissionModel()->getInvoicesByCoach((int)$coachRow['id']);
+        return $this->json(['success' => true, 'invoices' => $invoices]);
+    }
+
+    public function getMyCoachCommissionInvoiceDetail(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'coach') {
+            return $this->json(['success' => false], 403);
+        }
+
+        $db = \Core\Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT id FROM coaches WHERE user_id = ?");
+        $stmt->execute([(int)$_SESSION['user_id']]);
+        $coachRow = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if (!$coachRow) {
+            return $this->json(['success' => false, 'message' => 'Coach not found'], 404);
+        }
+
+        $invoiceId = (int)$request->getParam('id');
+        $invoice = $this->commissionModel()->getInvoiceWithItems($invoiceId);
+        if (
+            !$invoice ||
+            ($invoice['provider_type'] ?? '') !== 'coach' ||
+            (int)($invoice['coach_id'] ?? 0) !== (int)$coachRow['id']
+        ) {
+            return $this->json(['success' => false, 'message' => 'Invoice not found'], 404);
+        }
+
+        return $this->json(['success' => true, 'invoice' => $invoice]);
     }
 
     // =========================================================
