@@ -43,15 +43,6 @@
         gap: 1.5rem;
     }
 
-    .dashboard-header .avatar {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        border: 3px solid rgba(255,255,255,0.6);
-        object-fit: cover;
-        flex-shrink: 0;
-    }
-
     .dashboard-header h1 {
         font-size: 1.9rem;
         font-weight: 700;
@@ -296,10 +287,6 @@
 
         <!-- Header -->
         <div class="dashboard-header">
-            <img src="<?= htmlspecialchars($user['profile_picture'] ?? '/public/assets/images/default-avatar.svg') ?>"
-                 alt="Avatar"
-                 class="avatar"
-                 onerror="this.src='<?= $_base ?>/public/assets/images/default-avatar.svg'">
             <div>
                 <h1>Welcome back, <?= htmlspecialchars($user['first_name'] ?? 'there') ?>!</h1>
                 <p>Here's an overview of your activity on GoPlay.</p>

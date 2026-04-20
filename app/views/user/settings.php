@@ -282,6 +282,16 @@
 
                 <div class="settings-card">
                     <div class="card-header">
+                        <h3>Deactivate Account</h3>
+                    </div>
+                    <p class="card-description">Temporarily deactivate your account. You will be logged out immediately and will need to contact support to reactivate.</p>
+                    <button class="btn btn-warning" id="deactivate-btn" onclick="deactivateAccount()">
+                        <i class="fas fa-pause-circle"></i> Deactivate Account
+                    </button>
+                </div>
+
+                <div class="settings-card">
+                    <div class="card-header">
                         <h3>Delete Account</h3>
                     </div>
                     <p class="card-description">Permanently delete your account and all associated data</p>
@@ -505,6 +515,15 @@
     background: var(--primary-light);
 }
 
+.btn-warning {
+    background: #d97706;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #b45309;
+}
+
 .btn-danger {
     background: var(--danger-color);
     color: white;
@@ -720,6 +739,36 @@ function editBillingAddress() {
 function downloadData() {
     // TODO: Implement data download
     alert('Your data download will begin shortly. This feature is coming soon!');
+}
+
+async function deactivateAccount() {
+    const confirmed = confirm(
+        'Deactivate your account?\n\n' +
+        'You will be logged out immediately. Your account will be inactive and you will not be able to log in until you contact support to reactivate it.\n\n' +
+        'Click OK to confirm deactivation.'
+    );
+    if (!confirmed) return;
+
+    const btn = document.getElementById('deactivate-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deactivating…';
+
+    try {
+        const res  = await fetch((window.BASE_URL||'')+'/api/user/deactivate', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            alert('Your account has been deactivated. You will now be redirected to the login page.');
+            window.location.href = (window.BASE_URL||'') + '/login';
+        } else {
+            alert(data.error || 'Failed to deactivate account. Please try again.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-pause-circle"></i> Deactivate Account';
+        }
+    } catch (e) {
+        alert('Network error. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-pause-circle"></i> Deactivate Account';
+    }
 }
 
 function deleteAccount() {

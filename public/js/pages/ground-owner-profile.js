@@ -283,6 +283,10 @@
         // Edit button
         $('gpEditBtn').addEventListener('click', openModal);
 
+        // Deactivate button
+        const deactivateBtn = $('gpDeactivateBtn');
+        if (deactivateBtn) deactivateBtn.addEventListener('click', deactivateAccount);
+
         // Modal close
         $('gpModalClose').addEventListener('click', closeModal);
         $('gpModalCancel').addEventListener('click', closeModal);
@@ -326,6 +330,37 @@
     function esc(str) {
         if (str == null) return '';
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    async function deactivateAccount() {
+        const confirmed = confirm(
+            'Deactivate your profile?\n\n' +
+            'You will be logged out immediately. Your profile and all grounds will be hidden from the public. ' +
+            'Contact support to reactivate your account.\n\n' +
+            'Click OK to confirm.'
+        );
+        if (!confirmed) return;
+
+        const btn = $('gpDeactivateBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deactivating…';
+
+        try {
+            const r    = await fetch((window.BASE_URL||'')+'/api/ground-owner/deactivate', { method: 'POST' });
+            const data = await r.json();
+            if (data.success) {
+                alert('Your account has been deactivated. You will now be redirected to the login page.');
+                window.location.href = (window.BASE_URL||'') + '/login';
+            } else {
+                toast(data.message || 'Failed to deactivate account.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-pause-circle"></i> Deactivate';
+            }
+        } catch (e) {
+            toast('Network error. Please try again.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-pause-circle"></i> Deactivate';
+        }
     }
 
     function toast(msg, type = 'info') {

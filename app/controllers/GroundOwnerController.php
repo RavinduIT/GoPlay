@@ -1292,6 +1292,43 @@ class GroundOwnerController extends BaseController
     }
 
     /**
+     * Deactivate the ground owner's own account.
+     * POST /api/ground-owner/deactivate
+     */
+    public function deactivateAccount(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+
+        try {
+            $ownerId = $_SESSION['user_id'];
+
+            $userModel = new \App\Models\User();
+            $success   = $userModel->update($ownerId, ['status' => 'inactive']);
+
+            if (!$success) {
+                return $this->json(['success' => false, 'message' => 'Failed to deactivate account. Please try again.'], 500);
+            }
+
+            // Destroy session — owner is immediately logged out
+            $_SESSION = [];
+            if (ini_get('session.use_cookies')) {
+                $p = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000,
+                    $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+            }
+            session_destroy();
+
+            return $this->json(['success' => true, 'message' => 'Account deactivated.']);
+
+        } catch (\Exception $e) {
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to deactivate account. Please try again.'], 500);
+        }
+    }
+
+    /**
      * Upload ground owner avatar / profile picture
      * POST /api/ground-owner/upload-avatar
      */

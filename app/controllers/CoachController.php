@@ -1449,10 +1449,10 @@ class CoachController extends BaseController
                 return $this->json(['success' => false, 'error' => 'Booking date must be today or in the future'], 400);
             }
 
-            // Verify coach exists and is approved
+            // Verify coach exists and is active
             $coachModel = new Coach();
             $coachRows  = $coachModel->where(['id' => (int)$data['coach_id']]);
-            if (empty($coachRows) || ($coachRows[0]['status'] ?? '') !== 'approved') {
+            if (empty($coachRows) || ($coachRows[0]['status'] ?? '') !== 'active') {
                 return $this->json(['success' => false, 'error' => 'Coach not found or not available'], 404);
             }
             $coach = $coachRows[0];
@@ -2346,10 +2346,10 @@ class CoachController extends BaseController
                 return $this->json(['success' => false, 'error' => 'Booking date must be today or in the future'], 400);
             }
 
-            // Verify coach exists and is approved; compute price server-side
+            // Verify coach exists and is active; compute price server-side
             $coachModel = new Coach();
             $coachRows  = $coachModel->where(['id' => $coachId]);
-            if (empty($coachRows) || ($coachRows[0]['status'] ?? '') !== 'approved') {
+            if (empty($coachRows) || ($coachRows[0]['status'] ?? '') !== 'active') {
                 return $this->json(['success' => false, 'error' => 'Coach not found or not available'], 404);
             }
             $coach    = $coachRows[0];

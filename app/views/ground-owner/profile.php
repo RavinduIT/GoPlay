@@ -189,6 +189,24 @@ include __DIR__ . '/layout-head.php';
                         </div>
                     </div>
 
+                    <!-- Danger Zone -->
+                    <div class="gp-card gp-danger-card">
+                        <div class="gp-card-header">
+                            <i class="fas fa-exclamation-triangle" style="color:#dc2626"></i> Danger Zone
+                        </div>
+                        <div class="gp-card-body">
+                            <div class="gp-danger-row">
+                                <div>
+                                    <strong>Deactivate Profile</strong>
+                                    <p>You will be logged out immediately. Your profile and all grounds will be hidden from the public. Contact support to reactivate.</p>
+                                </div>
+                                <button class="gp-btn-danger" id="gpDeactivateBtn">
+                                    <i class="fas fa-pause-circle"></i> Deactivate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div><!-- /gp-main -->
             </div><!-- /gp-body-grid -->
 

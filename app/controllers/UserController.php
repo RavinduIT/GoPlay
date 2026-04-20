@@ -328,6 +328,42 @@ class UserController extends BaseController
     }
 
     /**
+     * Deactivate the logged-in user's own account.
+     * POST /api/user/deactivate
+     */
+    public function deactivateAccount(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_id'])) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $userId = $_SESSION['user_id'];
+
+            $success = $this->userModel->update($userId, ['status' => 'inactive']);
+            if (!$success) {
+                return $this->json(['error' => 'Failed to deactivate account. Please try again.'], 500);
+            }
+
+            // Destroy session so the user is immediately logged out
+            $_SESSION = [];
+            if (ini_get('session.use_cookies')) {
+                $p = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000,
+                    $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+            }
+            session_destroy();
+
+            return $this->json(['success' => true, 'message' => 'Account deactivated.']);
+
+        } catch (\Exception $e) {
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['error' => 'Failed to deactivate account. Please try again.'], 500);
+        }
+    }
+
+    /**
      * Get user's bookings
      */
     public function getBookings(Request $request): Response

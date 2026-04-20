@@ -238,6 +238,7 @@ try {
     $router->get('/api/ground-owner/profile', 'GroundOwnerController@getProfile');
     $router->put('/api/ground-owner/profile', 'GroundOwnerController@updateProfile');
     $router->post('/api/ground-owner/upload-avatar', 'GroundOwnerController@uploadAvatar');
+    $router->post('/api/ground-owner/deactivate', 'GroundOwnerController@deactivateAccount');
 
     // Ground Owner Coach Management API routes
     $router->get('/api/ground-owner/coaches', 'GroundOwnerController@getOwnerCoaches');
@@ -483,6 +484,7 @@ try {
     $router->put('/api/user/profile', 'UserController@updateProfile');
     $router->post('/api/user/avatar', 'UserController@uploadAvatar');
     $router->post('/api/user/change-password', 'UserController@changePassword');
+    $router->post('/api/user/deactivate', 'UserController@deactivateAccount');
     $router->get('/api/user/bookings', 'UserController@getBookings');
     $router->get('/api/user/orders', 'UserController@getOrders');
     $router->get('/api/user/orders/stats', 'UserController@getOrderStats');

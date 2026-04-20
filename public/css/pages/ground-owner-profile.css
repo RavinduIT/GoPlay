@@ -559,3 +559,38 @@
 .gp-toast.success { border-left: 4px solid #22c55e; }
 .gp-toast.error   { border-left: 4px solid #ef4444; }
 .gp-toast.info    { border-left: 4px solid #3b82f6; }
+
+
+/* Danger Zone */
+.gp-danger-card { border: 1px solid #fecaca; }
+.gp-danger-card .gp-card-header { color: #dc2626; border-bottom-color: #fecaca; }
+.gp-danger-card .gp-card-header i { color: #dc2626; }
+.gp-danger-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+.gp-danger-row > div strong { display: block; font-size: .95rem; color: #1f2937; margin-bottom: .3rem; }
+.gp-danger-row > div p { font-size: .825rem; color: #6b7280; margin: 0; }
+.gp-btn-danger {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .55rem 1.1rem;
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: .875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+    white-space: nowrap;
+}
+.gp-btn-danger:hover { background: #b91c1c; }
+.gp-btn-danger:disabled { opacity: .6; cursor: not-allowed; }
+@media (max-width: 600px) {
+    .gp-danger-row { flex-direction: column; align-items: flex-start; }
+}
