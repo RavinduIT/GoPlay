@@ -362,7 +362,7 @@ document.getElementById('walkInBackdrop').addEventListener('click', (e) => { if 
 
 /*  sidebar toggle  */
 window.toggleSidebar = function () {
-    document.getElementById('dashboardSidebar')?.classList.toggle('collapsed');
+    document.getElementById('adminSidebar')?.classList.toggle('active');
 };
 
 /*  filter events  */

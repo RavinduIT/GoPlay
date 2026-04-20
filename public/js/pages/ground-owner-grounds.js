@@ -403,7 +403,7 @@ document.querySelectorAll('.gr-amenity-item').forEach(el => {
 
 /*  sidebar toggle  */
 window.toggleSidebar = function () {
-    document.getElementById('dashboardSidebar')?.classList.toggle('collapsed');
+    document.getElementById('adminSidebar')?.classList.toggle('active');
 };
 
 /*  wire up events  */

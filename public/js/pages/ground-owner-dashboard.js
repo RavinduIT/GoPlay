@@ -37,13 +37,17 @@
             const u  = d.profile.user          || {};
             const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.username || 'Ground Owner';
 
-            $('dbOwnerName').textContent = name;
+            const nameEl = $('dbOwnerName');
+            if (nameEl) nameEl.textContent = name;
 
             const av = $('dbAvatar');
-            if (u.profile_picture) {
-                av.innerHTML = `<img src="${esc(u.profile_picture)}" alt="${esc(name)}">`;
-            } else {
-                $('dbInitials').textContent = initials(name);
+            if (av) {
+                if (u.profile_picture) {
+                    av.innerHTML = `<img src="${esc(u.profile_picture)}" alt="${esc(name)}">`;
+                } else {
+                    const initEl = $('dbInitials');
+                    if (initEl) initEl.textContent = initials(name);
+                }
             }
         } catch (e) { /* silent */ }
     }
@@ -440,14 +444,14 @@
     ================================================================ */
     function bindSidebar() {
         window.addEventListener('resize', () => {
-            const sb = document.getElementById('dashboardSidebar');
-            if (sb && window.innerWidth > 768) sb.classList.remove('open');
+            const sb = document.getElementById('adminSidebar');
+            if (sb && window.innerWidth > 768) sb.classList.remove('active');
         });
         document.addEventListener('click', e => {
-            const sb = document.getElementById('dashboardSidebar');
+            const sb = document.getElementById('adminSidebar');
             if (!sb || window.innerWidth > 768) return;
-            if (sb.classList.contains('open') && !sb.contains(e.target) && !e.target.closest('.sidebar-toggle')) {
-                sb.classList.remove('open');
+            if (sb.classList.contains('active') && !sb.contains(e.target) && !e.target.closest('.sidebar-toggle')) {
+                sb.classList.remove('active');
             }
         });
     }

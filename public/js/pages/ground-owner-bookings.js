@@ -410,7 +410,7 @@ document.getElementById('nextPage').addEventListener('click', () => {
 
 /*  sidebar  */
 window.toggleSidebar = function () {
-    document.getElementById('dashboardSidebar')?.classList.toggle('collapsed');
+    document.getElementById('adminSidebar')?.classList.toggle('active');
 };
 
 /*  init  */
