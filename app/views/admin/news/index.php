@@ -138,7 +138,7 @@ $stats = $data['stats'] ?? [];
                             <?php foreach ($news as $article): ?>
                             <tr data-status="<?= htmlspecialchars($article['status']) ?>" data-category="<?= htmlspecialchars($article['category']) ?>">
                                 <td>
-                                    <img src="<?= htmlspecialchars($article['featured_image'] ?? '/public/assets/images/placeholder-news.svg') ?>" 
+                                    <img src="<?= imgUrl($article['featured_image'] ?? null, '/public/assets/images/placeholder-news.svg') ?>" 
                                          alt="<?= htmlspecialchars($article['title']) ?>" 
                                          class="news-thumbnail">
                                 </td>

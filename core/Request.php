@@ -16,6 +16,14 @@ class Request
     {
         $this->method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         
+        // Support HTTP method override via _method POST field (for FormData PUT/DELETE)
+        if ($this->method === 'POST' && !empty($_POST['_method'])) {
+            $override = strtoupper($_POST['_method']);
+            if (in_array($override, ['PUT', 'PATCH', 'DELETE'])) {
+                $this->method = $override;
+            }
+        }
+        
         // Parse the URI and strip subdirectory base path (e.g. /GoPlay/) for XAMPP support
         $rawUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
         $scriptName = $_SERVER['SCRIPT_NAME'] ?? '/index.php';

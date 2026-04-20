@@ -71,6 +71,14 @@ class AdminPromotionController extends BaseController
             $stmt->execute($params);
             $promotions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
+            // Resolve image URLs for frontend
+            foreach ($promotions as &$p) {
+                if (!empty($p['image_url'])) {
+                    $p['image_url_full'] = imgUrl('/public' . $p['image_url']);
+                }
+            }
+            unset($p);
+
             // Stats
             $totalStmt = $db->query("SELECT COUNT(*) as total, SUM(is_active) as active FROM promotions");
             $stats = $totalStmt->fetch(\PDO::FETCH_ASSOC);
@@ -109,6 +117,10 @@ class AdminPromotionController extends BaseController
                 return $this->json(['success' => false, 'message' => 'Promotion not found'], 404);
             }
 
+            if (!empty($promotion['image_url'])) {
+                $promotion['image_url_full'] = imgUrl('/public' . $promotion['image_url']);
+            }
+
             return $this->json(['success' => true, 'data' => $promotion]);
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -133,7 +145,7 @@ class AdminPromotionController extends BaseController
             $bgColor = $_POST['bg_color'] ?? '#3b82f6';
             $textColor = $_POST['text_color'] ?? '#ffffff';
             $priority = (int)($_POST['priority'] ?? 0);
-            $isActive = isset($_POST['is_active']) ? 1 : 0;
+            $isActive = (int)($_POST['is_active'] ?? 0);
             $startsAt = !empty($_POST['starts_at']) ? $_POST['starts_at'] : null;
             $endsAt = !empty($_POST['ends_at']) ? $_POST['ends_at'] : null;
 
@@ -141,10 +153,19 @@ class AdminPromotionController extends BaseController
                 return $this->json(['success' => false, 'message' => 'Title is required'], 400);
             }
 
+            // Validate position
+            $validPositions = ['hero', 'sidebar', 'footer', 'popup'];
+            if (!in_array($position, $validPositions)) {
+                $position = 'hero';
+            }
+
             // Handle image upload
             $imageUrl = null;
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                 $imageUrl = $this->handleImageUpload($_FILES['image']);
+                if ($imageUrl === null) {
+                    return $this->json(['success' => false, 'message' => 'Invalid image file. Only JPG, PNG, WebP, GIF allowed (max 5MB).'], 400);
+                }
             }
 
             $db = $this->getDatabase();
@@ -170,7 +191,7 @@ class AdminPromotionController extends BaseController
     }
 
     /**
-     * API: Update promotion
+     * API: Update promotion (supports both JSON and FormData)
      */
     public function updatePromotion(Request $request, int $id): Response
     {
@@ -180,10 +201,20 @@ class AdminPromotionController extends BaseController
 
         try {
             $db = $this->getDatabase();
-            $data = $request->getJsonBody();
 
-            if (empty($data)) {
-                // Try POST data (for form submissions)
+            // Check promotion exists
+            $checkStmt = $db->prepare("SELECT id, image_url FROM promotions WHERE id = ?");
+            $checkStmt->execute([$id]);
+            $existing = $checkStmt->fetch(\PDO::FETCH_ASSOC);
+            if (!$existing) {
+                return $this->json(['success' => false, 'message' => 'Promotion not found'], 404);
+            }
+
+            // Detect content type — support both JSON and FormData
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            if (strpos($contentType, 'application/json') !== false) {
+                $data = json_decode(file_get_contents('php://input'), true) ?? [];
+            } else {
                 $data = $_POST;
             }
 
@@ -193,15 +224,49 @@ class AdminPromotionController extends BaseController
             $allowedFields = ['title', 'subtitle', 'link_url', 'link_text', 'position', 'bg_color', 'text_color', 'priority', 'starts_at', 'ends_at'];
 
             foreach ($allowedFields as $field) {
-                if (isset($data[$field])) {
+                if (array_key_exists($field, $data)) {
                     $fields[] = "$field = ?";
-                    $params[] = $data[$field];
+                    $val = $data[$field];
+                    // Handle empty datetime fields
+                    if (in_array($field, ['starts_at', 'ends_at']) && empty($val)) {
+                        $val = null;
+                    }
+                    $params[] = $val;
                 }
             }
 
-            if (isset($data['is_active'])) {
+            // Handle is_active (could be "1", "0", true, false)
+            if (array_key_exists('is_active', $data)) {
                 $fields[] = "is_active = ?";
-                $params[] = $data['is_active'] ? 1 : 0;
+                $params[] = (int)(bool)$data['is_active'];
+            }
+
+            // Handle image upload for edit
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $imageUrl = $this->handleImageUpload($_FILES['image']);
+                if ($imageUrl !== null) {
+                    // Delete old image
+                    if (!empty($existing['image_url'])) {
+                        $oldPath = ROOT_PATH . '/public' . $existing['image_url'];
+                        if (file_exists($oldPath)) {
+                            unlink($oldPath);
+                        }
+                    }
+                    $fields[] = "image_url = ?";
+                    $params[] = $imageUrl;
+                }
+            }
+
+            // Handle explicit image removal
+            if (isset($data['remove_image']) && $data['remove_image']) {
+                if (!empty($existing['image_url'])) {
+                    $oldPath = ROOT_PATH . '/public' . $existing['image_url'];
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $fields[] = "image_url = ?";
+                $params[] = null;
             }
 
             if (empty($fields)) {
@@ -237,13 +302,20 @@ class AdminPromotionController extends BaseController
             $stmt->execute([$id]);
             $promo = $stmt->fetch(\PDO::FETCH_ASSOC);
 
+            if (!$promo) {
+                return $this->json(['success' => false, 'message' => 'Promotion not found'], 404);
+            }
+
             // Delete from database
             $stmt = $db->prepare("DELETE FROM promotions WHERE id = ?");
             $stmt->execute([$id]);
 
-            // Delete image file if exists
-            if ($promo && $promo['image_url'] && file_exists(ROOT_PATH . '/public' . $promo['image_url'])) {
-                unlink(ROOT_PATH . '/public' . $promo['image_url']);
+            // Delete image file if exists (stored as /uploads/promotions/file.jpg)
+            if (!empty($promo['image_url'])) {
+                $filePath = ROOT_PATH . '/public' . $promo['image_url'];
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
             }
 
             return $this->json(['success' => true, 'message' => 'Promotion deleted successfully']);
@@ -254,12 +326,22 @@ class AdminPromotionController extends BaseController
     }
 
     /**
-     * Handle image upload
+     * Handle image upload with proper MIME validation
      */
     private function handleImageUpload(array $file): ?string
     {
+        // Use finfo for reliable MIME detection (don't trust $file['type'])
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+
         $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        if (!in_array($file['type'], $allowedTypes)) {
+        if (!in_array($mime, $allowedTypes)) {
+            return null;
+        }
+
+        // Max 5MB
+        if ($file['size'] > 5 * 1024 * 1024) {
             return null;
         }
 
@@ -269,7 +351,7 @@ class AdminPromotionController extends BaseController
         }
 
         $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = 'promo_' . uniqid() . '.' . $ext;
+        $filename = 'promo_' . uniqid() . '.' . strtolower($ext);
         $destination = $uploadDir . $filename;
 
         if (move_uploaded_file($file['tmp_name'], $destination)) {

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\GroundBooking;
 use App\Models\Order;
 use App\Models\Notification;
+use App\Helpers\Validator;
 
 /**
  * User Controller
@@ -174,6 +175,17 @@ class UserController extends BaseController
                 return $this->json(['error' => 'No valid fields to update'], 400);
             }
 
+            // Server-side validation
+            $error = Validator::check([
+                ['phone', $updateData['phone'] ?? '', 'Invalid phone number format (digits, +, spaces, dashes only)'],
+                ['maxLength', $updateData['first_name'] ?? '', 'First name too long (max 50)', 50],
+                ['maxLength', $updateData['last_name'] ?? '', 'Last name too long (max 50)', 50],
+                ['date', $updateData['date_of_birth'] ?? '', 'Invalid date of birth (use YYYY-MM-DD)'],
+            ]);
+            if ($error) {
+                return $this->json(['error' => $error], 400);
+            }
+
             // Update user
             $success = $this->userModel->update($userId, $updateData);
             
@@ -260,7 +272,7 @@ class UserController extends BaseController
                     return $this->json([
                         'success' => true,
                         'message' => 'Avatar uploaded successfully',
-                        'avatar_url' => $relativePath
+                        'avatar_url' => imgUrl($relativePath)
                     ]);
                 } else {
                     // Remove uploaded file if database update failed
@@ -616,7 +628,9 @@ class UserController extends BaseController
      */
     public function getGroundBookings(Request $request): Response
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         if (!isset($_SESSION['user_id'])) {
             return $this->json(['error' => 'Unauthorized'], 401);
         }

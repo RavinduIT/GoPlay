@@ -70,7 +70,7 @@ $total = $data['total'] ?? 0;
         <?php if ($featured): ?>
         <div class="featured-section">
             <div class="featured-card clickable-card" data-href="<?= $_base ?>/news/<?= htmlspecialchars($featured['slug']) ?>">
-                <img src="<?= htmlspecialchars($featured['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>" 
+                <img src="<?= imgUrl($featured['featured_image'] ?? null, '/public/assets/images/default-news.jpg') ?>" 
                      alt="<?= htmlspecialchars($featured['title']) ?>" 
                      class="featured-image"
                      loading="lazy">
@@ -99,7 +99,7 @@ $total = $data['total'] ?? 0;
             <div class="news-grid" id="news-grid">
                 <?php foreach ($news as $article): ?>
                 <article class="news-card clickable-card" data-href="<?= $_base ?>/news/<?= htmlspecialchars($article['slug']) ?>">
-                    <img src="<?= htmlspecialchars($article['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>" 
+                    <img src="<?= imgUrl($article['featured_image'] ?? null, '/public/assets/images/default-news.jpg') ?>" 
                          alt="<?= htmlspecialchars($article['title']) ?>" 
                          class="news-image"
                          loading="lazy">

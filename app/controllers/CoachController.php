@@ -8,6 +8,7 @@ use App\Models\Coach;
 use App\Models\CoachBooking;
 use App\Models\SportsFacility;
 use App\Models\GroundOwnerNotification;
+use App\Helpers\Validator;
 
 /**
  * Coach Controller
@@ -803,6 +804,20 @@ class CoachController extends BaseController
             return $this->json(['error' => 'No valid fields to update'], 400);
         }
 
+        // Server-side validation
+        $error = \App\Helpers\Validator::check([
+            ['phone', $filtered['phone'] ?? '', 'Invalid phone number format'],
+            ['email', $filtered['email'] ?? '', 'Invalid email address'],
+            ['price', $filtered['hourly_rate'] ?? '', 'Hourly rate must be a valid positive number'],
+            ['positiveInt', $filtered['experience_years'] ?? '', 'Experience years must be a positive number'],
+            ['maxLength', $filtered['first_name'] ?? '', 'First name too long (max 50)', 50],
+            ['maxLength', $filtered['last_name'] ?? '', 'Last name too long (max 50)', 50],
+            ['maxLength', $filtered['bio'] ?? '', 'Bio too long (max 2000 characters)', 2000],
+        ]);
+        if ($error) {
+            return $this->json(['error' => $error], 400);
+        }
+
         $coachModel->updateProfile((int)$coach['id'], (int)$_SESSION['user_id'], $filtered);
 
         return $this->json(['success' => true, 'message' => 'Profile updated successfully']);
@@ -1072,7 +1087,7 @@ class CoachController extends BaseController
         $coachModel = new Coach();
         $coachModel->updateAvatar((int)$_SESSION['user_id'], $path);
 
-        return $this->json(['success' => true, 'avatarUrl' => $path]);
+        return $this->json(['success' => true, 'avatarUrl' => imgUrl($path)]);
     }
 
     // =====================================================================

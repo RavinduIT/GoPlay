@@ -30,16 +30,13 @@
                         <div id="notifList" style="overflow-y:auto;max-height:340px;"></div>
                     </div>
                 </div>
-                <div class="admin-profile">
+                <a href="<?= $_base ?>/admin/profile" class="admin-profile" style="text-decoration:none; color:inherit;">
                     <div class="profile-info">
-                        <span class="profile-name">Loading...</span>
+                        <span class="profile-name" id="headerProfileName">Loading...</span>
                         <span class="profile-role">Super Admin</span>
                     </div>
-                    <img src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="Admin" class="profile-avatar">
-                    <button class="profile-dropdown">
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                </div>
+                    <img id="headerProfileAvatar" src="<?= $_base ?>/public/assets/images/default-avatar.png" alt="Admin" class="profile-avatar">
+                </a>
             </div>
         </header>
 

@@ -94,6 +94,13 @@ $menuItems = [
     ],
     'divider',
     [
+        'id' => 'profile',
+        'url' => $_base . '/admin/profile',
+        'icon' => 'fas fa-user-circle',
+        'label' => 'My Profile',
+        'badge' => null
+    ],
+    [
         'id' => 'settings',
         'url' => $_base . '/admin/settings',
         'icon' => 'fas fa-cog',

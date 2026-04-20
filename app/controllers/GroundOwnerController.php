@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use Core\Request;
 use Core\Response;
+use App\Helpers\Validator;
 use App\Models\SportsFacility;
 use App\Models\SportsCategory;
 use App\Models\GroundBooking;
@@ -514,6 +515,17 @@ class GroundOwnerController extends BaseController
             $data['owner_id'] = $ownerId;
             $data['status']   = 'pending_review';
             $data['country']  = 'Sri Lanka';
+            
+            // Validate numeric fields
+            $error = Validator::check([
+                ['price', $data['hourly_rate'], 'Hourly rate must be a positive number'],
+                ['positiveInt', $data['capacity'] ?? '', 'Capacity must be a positive number'],
+                ['maxLength', $data['name'], 'Ground name too long (max 150)', 150],
+                ['maxLength', $data['address'] ?? '', 'Address too long (max 300)', 300],
+            ]);
+            if ($error) {
+                return $this->json(['success' => false, 'message' => $error], 400);
+            }
             
             // Handle amenities array
             if (isset($data['amenities']) && is_array($data['amenities'])) {
@@ -1353,6 +1365,15 @@ class GroundOwnerController extends BaseController
                 }
             }
             if (!empty($userFields)) {
+                // Validate user fields
+                $error = Validator::check([
+                    ['phone', $userFields['phone'] ?? '', 'Invalid phone number format'],
+                    ['maxLength', $userFields['first_name'] ?? '', 'First name too long (max 50)', 50],
+                    ['maxLength', $userFields['last_name'] ?? '', 'Last name too long (max 50)', 50],
+                ]);
+                if ($error) {
+                    return $this->json(['success' => false, 'message' => $error], 400);
+                }
                 $userModel = new \App\Models\User();
                 $userModel->update($ownerId, $userFields);
             }
@@ -1458,7 +1479,7 @@ class GroundOwnerController extends BaseController
         $userModel = new \App\Models\User();
         $userModel->update((int)$_SESSION['user_id'], ['profile_picture' => $path]);
 
-        return $this->json(['success' => true, 'avatar_url' => $path]);
+        return $this->json(['success' => true, 'avatar_url' => imgUrl($path)]);
     }
 
     // ======================

@@ -155,7 +155,7 @@ function displayUsers(users) {
                 <div class="user-info">
                     <div class="user-avatar">
                         ${user.profile_picture ? 
-                            `<img src="${user.profile_picture}" alt="${user.first_name}" style="width: 100%; height: 100%; border-radius: 50%;" />` :
+                            `<img src="${(window.BASE_URL||'')+'/'+user.profile_picture.replace(/^\//,'')}" alt="${user.first_name}" style="width: 100%; height: 100%; border-radius: 50%;" />` :
                             `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
                         }
                     </div>

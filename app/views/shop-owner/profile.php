@@ -12,7 +12,7 @@ $lastName = $user['last_name'] ?? '';
 $email = $user['email'] ?? '';
 $phone = $user['phone'] ?? '';
 $username = $user['username'] ?? '';
-$profilePicture = $user['profile_picture'] ?? 'uploads/default-avatar.png';
+$profilePicture = $user['profile_picture'] ?? null;
 
 // Business Details (from shop_owner_profiles table)
 $shopName = $profile['shop_name'] ?? '';
@@ -23,7 +23,7 @@ $shopAddress = $profile['shop_address'] ?? '';
 $shopCity = $profile['shop_city'] ?? '';
 $shopPostalCode = $profile['shop_postal_code'] ?? '';
 $businessDescription = $profile['business_description'] ?? '';
-$shopLogo = $profile['shop_logo'] ?? 'uploads/default-shop-logo.png';
+$shopLogo = $profile['shop_logo'] ?? null;
 $completionPercentage = $profile['profile_completion_percentage'] ?? 10;
 $businessRegNumber = $profile['business_registration_number'] ?? '';
 $taxIdNumber = $profile['tax_identification_number'] ?? '';
@@ -51,7 +51,7 @@ $bankBranch = $profile['bank_branch'] ?? '';
     
     <div class="profile-header-section">
       <div class="profile-avatar-container">
-        <img src="<?= $_base ?>/public/<?php echo htmlspecialchars($shopLogo); ?>" alt="Shop Logo" id="logo-preview" class="profile-avatar">
+        <img src="<?= imgUrl($shopLogo, '/public/assets/images/default-avatar.png') ?>" alt="Shop Logo" id="logo-preview" class="profile-avatar">
         <form id="logo-form" enctype="multipart/form-data">
           <label class="btn-change-avatar">
             <i class="fas fa-camera"></i>

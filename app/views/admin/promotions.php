@@ -12,7 +12,7 @@ $activePage = $activePage ?? 'promotions';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Promotions & Banners - GoPlay Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-promotions.css">
+    <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/admin-promotions.css?v=<?= time() ?>">
 </head>
 <body>
     <div class="admin-dashboard">
@@ -83,13 +83,13 @@ $activePage = $activePage ?? 'promotions';
 
     <!-- Create/Edit Modal -->
     <div class="modal-overlay" id="promoModal">
-        <div class="modal modal-lg">
+        <div class="modal modal-lg" style="max-height:85vh;overflow:hidden;">
             <div class="modal-header">
                 <h2 id="promoModalTitle">New Promotion</h2>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
-            <form id="promoForm" onsubmit="handlePromoSubmit(event)">
-                <div class="modal-body">
+            <form id="promoForm" onsubmit="handlePromoSubmit(event)" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
+                <div class="modal-body" style="overflow-y:auto;flex:1;min-height:0;">
                     <input type="hidden" id="promoId" value="">
                     <div class="form-row">
                         <div class="form-group flex-2">
@@ -150,10 +150,25 @@ $activePage = $activePage ?? 'promotions';
                             <input type="datetime-local" id="promoEndsAt" name="ends_at">
                         </div>
                     </div>
+
+                    <!-- Active Toggle -->
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="promoIsActive" name="is_active" value="1" checked>
+                            <span class="toggle-switch"></span>
+                            <span class="toggle-text">Active — visible on the website</span>
+                        </label>
+                    </div>
+
+                    <!-- Image Upload -->
                     <div class="form-group">
                         <label for="promoImage">Banner Image</label>
-                        <input type="file" id="promoImage" name="image" accept="image/*">
-                        <p class="form-hint">Recommended: 1200x400px. Leave empty to use color background.</p>
+                        <div id="currentImageWrap" class="current-image-wrap" style="display:none;">
+                            <img id="currentImage" src="" alt="Current banner">
+                            <small>Current image. Upload a new one to replace it.</small>
+                        </div>
+                        <input type="file" id="promoImage" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
+                        <p class="form-hint">Recommended: 1200×400px. JPG, PNG, WebP, GIF. Max 5MB. Leave empty to use color background.</p>
                     </div>
 
                     <!-- Live Preview -->
@@ -174,6 +189,25 @@ $activePage = $activePage ?? 'promotions';
         </div>
     </div>
 
-    <script src="<?= $_base ?>/public/js/pages/admin-promotions.js"></script>
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteConfirmOverlay">
+        <div class="modal" style="max-width:440px;">
+            <div class="modal-header" style="border-bottom:none; padding-bottom:0;">
+                <h2 style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Delete Promotion</h2>
+                <button class="modal-close" onclick="closeDeleteConfirm()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align:center; padding-top:8px;">
+                <p style="font-size:15px; color:#475569;">Are you sure you want to permanently delete<br><strong id="deletePromoName"></strong>?</p>
+                <p style="font-size:13px; color:#94a3b8; margin-top:8px;">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer" style="justify-content:center; gap:16px;">
+                <button class="btn btn-secondary" onclick="closeDeleteConfirm()">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>window.BASE_URL = '<?= $_base ?>';</script>
+    <script src="<?= $_base ?>/public/js/pages/admin-promotions.js?v=<?= time() ?>"></script>
 </body>
 </html>

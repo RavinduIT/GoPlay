@@ -25,14 +25,14 @@ if (!$news) {
     <meta property="og:url" content="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
     <meta property="og:title" content="<?= htmlspecialchars($news['title']) ?>">
     <meta property="og:description" content="<?= htmlspecialchars($news['excerpt'] ?? '') ?>">
-    <meta property="og:image" content="<?= htmlspecialchars($news['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>">
+    <meta property="og:image" content="<?= imgUrl($news['featured_image'] ?? null, '/public/assets/images/default-news.jpg') ?>">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
     <meta property="twitter:title" content="<?= htmlspecialchars($news['title']) ?>">
     <meta property="twitter:description" content="<?= htmlspecialchars($news['excerpt'] ?? '') ?>">
-    <meta property="twitter:image" content="<?= htmlspecialchars($news['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>">
+    <meta property="twitter:image" content="<?= imgUrl($news['featured_image'] ?? null, '/public/assets/images/default-news.jpg') ?>">
 
     <link rel="stylesheet" href="<?= $_base ?>/public/css/pages/news-detail.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,7 +44,7 @@ if (!$news) {
         "@context": "https://schema.org",
         "@type": "NewsArticle",
         "headline": "<?= htmlspecialchars($news['title']) ?>",
-        "image": "<?= htmlspecialchars($news['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>",
+        "image": "<?= imgUrl($news['featured_image'] ?? null, '/public/assets/images/default-news.jpg') ?>",
         "datePublished": "<?= date('c', strtotime($news['published_at'])) ?>",
         "dateModified": "<?= date('c', strtotime($news['updated_at'] ?? $news['published_at'])) ?>",
         "author": {
@@ -80,7 +80,7 @@ if (!$news) {
             <div class="article-meta">
                 <div class="author-info">
                     <?php if ($author): ?>
-                    <img src="<?= htmlspecialchars($author['profile_picture'] ?? '/public/assets/images/default-avatar.png') ?>" 
+                    <img src="<?= imgUrl($author['profile_picture'] ?? null) ?>" 
                          alt="<?= htmlspecialchars($author['first_name'] . ' ' . $author['last_name']) ?>" 
                          class="author-avatar"
                          loading="lazy">
@@ -117,7 +117,7 @@ if (!$news) {
 
         <!-- Featured Image -->
         <?php if (!empty($news['featured_image'])): ?>
-        <img src="<?= htmlspecialchars($news['featured_image']) ?>" 
+        <img src="<?= imgUrl($news['featured_image'] ?? null, '/public/assets/images/default-news.jpg') ?>" 
              alt="<?= htmlspecialchars($news['title']) ?>" 
              class="featured-image"
              loading="lazy">
@@ -153,7 +153,7 @@ if (!$news) {
             <div class="related-grid">
                 <?php foreach ($relatedNews as $related): ?>
                 <article class="related-card">
-                    <img src="<?= htmlspecialchars($related['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>" 
+                    <img src="<?= imgUrl($related['featured_image'] ?? null, '/public/assets/images/default-news.jpg') ?>" 
                          alt="<?= htmlspecialchars($related['title']) ?>" 
                          class="related-image"
                          loading="lazy">

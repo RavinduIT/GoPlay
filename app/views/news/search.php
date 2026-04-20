@@ -61,7 +61,7 @@ $categories = $data['categories'] ?? [];
         <div class="news-grid">
             <?php foreach ($news as $article): ?>
             <article class="news-card clickable-card" data-href="<?= $_base ?>/news/<?= htmlspecialchars($article['slug']) ?>">
-                <img src="<?= htmlspecialchars($article['featured_image'] ?? '/public/assets/images/default-news.jpg') ?>" 
+                <img src="<?= imgUrl($article['featured_image'] ?? null, '/public/assets/images/default-news.jpg') ?>" 
                      alt="<?= htmlspecialchars($article['title']) ?>" 
                      class="news-image"
                      loading="lazy">

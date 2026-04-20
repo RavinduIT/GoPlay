@@ -914,7 +914,7 @@ class AdminController extends BaseController
         try {
             $db = $this->getDatabase();
             $stmt = $db->prepare(
-                "SELECT first_name, last_name, profile_picture, user_type FROM users WHERE id = ?"
+                "SELECT first_name, last_name, email, phone, profile_picture, user_type FROM users WHERE id = ?"
             );
             $stmt->execute([$_SESSION['user_id']]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -927,12 +927,162 @@ class AdminController extends BaseController
                 'success' => true,
                 'profile' => [
                     'name' => $user['first_name'] . ' ' . $user['last_name'],
+                    'first_name' => $user['first_name'],
+                    'last_name' => $user['last_name'],
+                    'email' => $user['email'] ?? '',
+                    'phone' => $user['phone'] ?? '',
                     'role' => 'Super Admin',
-                    'avatar' => $user['profile_picture'] ?? '/public/assets/images/default-avatar.png'
+                    'avatar' => imgUrl($user['profile_picture'] ?? null)
                 ]
             ]);
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'message' => 'Failed to load profile'], 500);
+        }
+    }
+
+    /**
+     * Render the admin profile page
+     */
+    public function profilePage(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            header('Location: ' . BASE_URL . '/login');
+            exit;
+        }
+        return $this->view('admin/profile');
+    }
+
+    /**
+     * Upload admin avatar
+     */
+    public function uploadAdminAvatar(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            if (empty($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
+                return $this->json(['success' => false, 'message' => 'No file uploaded'], 400);
+            }
+
+            $file = $_FILES['avatar'];
+            $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+
+            if (!in_array($mime, $allowed)) {
+                return $this->json(['success' => false, 'message' => 'Invalid file type'], 400);
+            }
+            if ($file['size'] > 2 * 1024 * 1024) {
+                return $this->json(['success' => false, 'message' => 'File too large (max 2MB)'], 400);
+            }
+
+            $uploadDir = ROOT_PATH . '/public/uploads/avatars/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $filename = 'admin-' . $_SESSION['user_id'] . '-' . time() . '.' . $ext;
+            $filepath = $uploadDir . $filename;
+
+            if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+                return $this->json(['success' => false, 'message' => 'Failed to save file'], 500);
+            }
+
+            $dbPath = '/public/uploads/avatars/' . $filename;
+            $db = $this->getDatabase();
+            $stmt = $db->prepare("UPDATE users SET profile_picture = ? WHERE id = ?");
+            $stmt->execute([$dbPath, $_SESSION['user_id']]);
+
+            return $this->json([
+                'success' => true,
+                'avatar_url' => imgUrl($dbPath),
+                'message' => 'Avatar updated'
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Upload failed'], 500);
+        }
+    }
+
+    /**
+     * Update admin profile details
+     */
+    public function updateAdminProfile(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?? [];
+            $firstName = trim($data['first_name'] ?? '');
+            $lastName = trim($data['last_name'] ?? '');
+            $phone = trim($data['phone'] ?? '');
+
+            if (empty($firstName) || empty($lastName)) {
+                return $this->json(['success' => false, 'message' => 'Name fields are required'], 400);
+            }
+            if (strlen($firstName) > 50 || strlen($lastName) > 50) {
+                return $this->json(['success' => false, 'message' => 'Name too long (max 50 chars)'], 400);
+            }
+            if (!empty($phone) && !preg_match('/^[0-9+\s\-()]{7,15}$/', $phone)) {
+                return $this->json(['success' => false, 'message' => 'Invalid phone number format'], 400);
+            }
+
+            $db = $this->getDatabase();
+            $stmt = $db->prepare("UPDATE users SET first_name = ?, last_name = ?, phone = ? WHERE id = ?");
+            $stmt->execute([$firstName, $lastName, $phone, $_SESSION['user_id']]);
+
+            return $this->json(['success' => true, 'message' => 'Profile updated']);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Update failed'], 500);
+        }
+    }
+
+    /**
+     * Change admin password
+     */
+    public function changeAdminPassword(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?? [];
+            $currentPassword = $data['current_password'] ?? '';
+            $newPassword = $data['new_password'] ?? '';
+
+            if (empty($currentPassword) || empty($newPassword)) {
+                return $this->json(['success' => false, 'message' => 'All fields are required'], 400);
+            }
+            if (strlen($newPassword) < 8) {
+                return $this->json(['success' => false, 'message' => 'New password must be at least 8 characters'], 400);
+            }
+
+            $db = $this->getDatabase();
+            $stmt = $db->prepare("SELECT password FROM users WHERE id = ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$user || !password_verify($currentPassword, $user['password'])) {
+                return $this->json(['success' => false, 'message' => 'Current password is incorrect'], 400);
+            }
+
+            $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $db->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $stmt->execute([$hashed, $_SESSION['user_id']]);
+
+            return $this->json(['success' => true, 'message' => 'Password updated']);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Failed to change password'], 500);
         }
     }
 

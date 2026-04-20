@@ -287,6 +287,10 @@
 
         <!-- Header -->
         <div class="dashboard-header">
+            <img src="<?= imgUrl($user['profile_picture'] ?? null) ?>"
+                 alt="Avatar"
+                 class="avatar"
+                 onerror="this.src='<?= $_base ?>/public/assets/images/default-avatar.svg'">
             <div>
                 <h1>Welcome back, <?= htmlspecialchars($user['first_name'] ?? 'there') ?>!</h1>
                 <p>Here's an overview of your activity on GoPlay.</p>

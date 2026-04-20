@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use Core\Request;
 use Core\Response;
+use App\Helpers\Validator;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductReview;
@@ -259,6 +260,23 @@ class ShopOwnerController extends BaseController
             error_log("ShopOwnerController: Update request from user_id: " . $userId);
             error_log("ShopOwnerController: Request body: " . json_encode($data));
             
+            // Server-side validation
+            $error = Validator::check([
+                ['phone', $data['business_phone'] ?? '', 'Invalid business phone number format'],
+                ['email', $data['business_email'] ?? '', 'Invalid business email address'],
+                ['postalCode', $data['shop_postal_code'] ?? '', 'Invalid postal code (must be 4-6 digits)'],
+                ['year', $data['year_established'] ?? '', 'Invalid year established'],
+                ['positiveInt', $data['number_of_employees'] ?? '', 'Number of employees must be a positive number'],
+                ['url', $data['website_url'] ?? '', 'Invalid website URL'],
+                ['maxLength', $data['shop_name'] ?? '', 'Shop name too long', 100],
+                ['maxLength', $data['business_name'] ?? '', 'Business name too long', 100],
+                ['maxLength', $data['business_description'] ?? '', 'Description too long', 2000],
+                ['bankAccount', $data['bank_account_number'] ?? '', 'Bank account number must contain only digits (5-20)'],
+            ]);
+            if ($error) {
+                return $this->json(['success' => false, 'message' => $error], 400);
+            }
+            
             // Update shop owner profile
             $updated = $this->getProfileModel()->updateProfile($userId, $data);
             
@@ -307,7 +325,7 @@ class ShopOwnerController extends BaseController
                 return $this->json([
                     'success' => true,
                     'message' => 'Shop logo uploaded successfully',
-                    'logo_url' => '/' . $logoPath
+                    'logo_url' => imgUrl('/' . $logoPath)
                 ]);
             } else {
                 return $this->json([
@@ -596,6 +614,21 @@ class ShopOwnerController extends BaseController
                     ], 400);
                 }
             }
+            
+            // Validate numeric fields
+            $error = Validator::check([
+                ['price', $data['price'], 'Price must be a valid positive number'],
+                ['positiveInt', $data['stock_quantity'] ?? 0, 'Stock quantity must be a positive number'],
+                ['positiveInt', $data['category_id'], 'Invalid category'],
+                ['maxLength', $data['name'], 'Product name too long (max 200)', 200],
+                ['maxLength', $data['description'], 'Description too long (max 5000)', 5000],
+            ]);
+            if ($error) {
+                return $this->json(['success' => false, 'message' => $error], 400);
+            }
+            
+            // Sanitize price
+            $data['price'] = abs((float) $data['price']);
             
             // Add shop owner ID and defaults
             $data['shop_owner_id'] = $shopOwnerId;

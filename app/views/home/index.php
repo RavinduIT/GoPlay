@@ -14,14 +14,32 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
         <?php if (!empty($promotions ?? [])): ?>
         <div class="promo-banner" id="promoBanner">
             <?php foreach ($promotions as $i => $promo): ?>
-            <div class="promo-slide <?= $i === 0 ? 'active' : '' ?>" style="background: <?= htmlspecialchars($promo['bg_color'] ?? '#3b82f6') ?>; color: <?= htmlspecialchars($promo['text_color'] ?? '#fff') ?>;">
+            <?php
+                // Build inline style — support both background color and image
+                $bgStyle = 'background: ' . htmlspecialchars($promo['bg_color'] ?? '#3b82f6') . ';';
+                if (!empty($promo['image_url'])) {
+                    $imgSrc = imgUrl('/public' . $promo['image_url']);
+                    $bgStyle = "background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('" . htmlspecialchars($imgSrc) . "') center/cover no-repeat;";
+                }
+                // Build link href — absolute URLs pass through, relative get BASE_URL prefix
+                $linkHref = '';
+                if (!empty($promo['link_url'])) {
+                    $linkUrl = $promo['link_url'];
+                    if (preg_match('#^https?://#i', $linkUrl)) {
+                        $linkHref = $linkUrl; // absolute — use as-is
+                    } else {
+                        $linkHref = $_base . '/' . ltrim($linkUrl, '/'); // relative — prepend base
+                    }
+                }
+            ?>
+            <div class="promo-slide <?= $i === 0 ? 'active' : '' ?>" style="<?= $bgStyle ?> color: <?= htmlspecialchars($promo['text_color'] ?? '#fff') ?>;">
                 <div class="promo-content">
                     <strong><?= htmlspecialchars($promo['title']) ?></strong>
                     <?php if (!empty($promo['subtitle'])): ?>
-                        <span> - <?= htmlspecialchars($promo['subtitle']) ?></span>
+                        <span> — <?= htmlspecialchars($promo['subtitle']) ?></span>
                     <?php endif; ?>
-                    <?php if (!empty($promo['link_url'])): ?>
-                        <a href="<?= $_base . htmlspecialchars($promo['link_url']) ?>" style="color: inherit; margin-left: 12px; text-decoration: underline; font-weight: 600;"><?= htmlspecialchars($promo['link_text'] ?? 'Learn More') ?></a>
+                    <?php if (!empty($linkHref)): ?>
+                        <a href="<?= htmlspecialchars($linkHref) ?>" style="color: inherit; margin-left: 12px; text-decoration: underline; font-weight: 600;"><?= htmlspecialchars($promo['link_text'] ?? 'Learn More') ?></a>
                     <?php endif; ?>
                 </div>
             </div>
@@ -29,7 +47,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
         </div>
         <style>
             .promo-banner { position: relative; text-align: center; font-size: 14px; overflow: hidden; height: 44px; }
-            .promo-slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 8px 20px; opacity: 0; transition: opacity 0.5s; }
+            .promo-slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 8px 20px; opacity: 0; transition: opacity 0.5s; background-size: cover; background-position: center; }
             .promo-slide.active { opacity: 1; }
         </style>
         <script>
@@ -306,9 +324,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                                 <div class="news-item" data-id="<?= (int)($news['id'] ?? 0) ?>">
                                     <div class="news-image">
                                         <?php
-                                            $newsImg = !empty($news['featured_image'])
-                                                ? htmlspecialchars($news['featured_image'])
-                                                : $_base . '/public/assets/images/football.jpg';
+                                            $newsImg = imgUrl($news['featured_image'] ?? null, '/public/assets/images/football.jpg');
                                         ?>
                                         <img src="<?= $newsImg ?>" alt="<?= htmlspecialchars($news['title'] ?? 'News') ?>" loading="lazy"
                                              onerror="this.src='<?= $_base ?>/public/assets/images/football.jpg'">
@@ -370,10 +386,7 @@ $_base = defined('BASE_URL') ? BASE_URL : '';
                             <div class="testimonial-quote">"<?= htmlspecialchars($t['review_text']) ?>"</div>
                             <div class="testimonial-user">
                                 <?php
-                                    $profilePic = $t['profile_picture'] ?? '';
-                                    $avatarSrc = !empty($profilePic)
-                                        ? $_base . '/' . ltrim($profilePic, '/')
-                                        : $_base . '/public/assets/images/default-avatar.png';
+                                    $avatarSrc = imgUrl($t['profile_picture'] ?? null);
                                 ?>
                                 <img src="<?= htmlspecialchars($avatarSrc) ?>" alt="User" onerror="this.src='<?= $_base ?>/public/assets/images/default-avatar.png'" />
                                 <div>

@@ -51,6 +51,26 @@ if (!function_exists('asset')) {
     }
 }
 
+if (!function_exists('imgUrl')) {
+    /**
+     * Resolve an image path stored in the database to a full URL.
+     * Handles null/empty paths, already-absolute URLs, and BASE_URL prefixing.
+     * @param string|null $path  The stored image path (e.g., '/public/uploads/avatars/file.jpg')
+     * @param string      $fallback  Default image if path is empty
+     * @return string The fully resolved image URL
+     */
+    function imgUrl(?string $path, string $fallback = '/public/assets/images/default-avatar.png'): string {
+        if (empty($path)) {
+            return BASE_URL . '/' . ltrim($fallback, '/');
+        }
+        // Already an absolute URL (external CDN, etc.)
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+        return BASE_URL . '/' . ltrim($path, '/');
+    }
+}
+
 // Load environment variables (simple implementation)
 if (file_exists(ROOT_PATH . '/.env')) {
     $env = file(ROOT_PATH . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -593,6 +613,12 @@ try {
     $router->get('/admin/api/notifications', 'AdminController@getNotifications');
     $router->post('/admin/api/notifications/mark-read', 'AdminController@markNotificationsRead');
     $router->get('/admin/api/profile', 'AdminController@getProfile');
+
+    // Admin Profile Management Routes
+    $router->get('/admin/profile', 'AdminController@profilePage');
+    $router->post('/api/admin/avatar', 'AdminController@uploadAdminAvatar');
+    $router->put('/api/admin/profile', 'AdminController@updateAdminProfile');
+    $router->post('/api/admin/change-password', 'AdminController@changeAdminPassword');
 
     // Admin Sports Categories Routes
     $router->get('/admin/categories', 'Admin\AdminCategoryController@index');
