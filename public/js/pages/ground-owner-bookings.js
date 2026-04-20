@@ -50,9 +50,11 @@ function closeModal(id, backdropId) {
 let allBookings = [];
 let page        = 1;
 const PER_PAGE  = 15;
-let pendingCancelId = null;
-let pendingStatusId = null;
+let pendingCancelId  = null;
+let pendingStatusId  = null;
 let pendingStatusVal = null;
+let pendingPaymentBookingId  = null;
+let pendingPaymentFacilityId = null;
 
 /*  load stats  */
 async function loadStats() {
@@ -261,17 +263,28 @@ window.triggerStatus = function (id, newStatus) {
     pendingStatusId  = id;
     pendingStatusVal = newStatus;
 
-    const isComplete = newStatus === 'completed';
-    document.getElementById('statusModalTitle').innerHTML =
-        `<i class="fas ${isComplete ? 'fa-check' : 'fa-check'}"></i>
-         ${isComplete ? 'Complete Booking' : 'Confirm Booking'}`;
+    if (newStatus === 'completed') {
+        // Go straight to payment confirmation — skip the generic status modal
+        const b = allBookings.find(x => x.id == id);
+        pendingPaymentBookingId  = id;
+        pendingPaymentFacilityId = b ? b.facility_id : null;
 
+        document.getElementById('payConfirmBookingId').textContent = '#' + id;
+        document.getElementById('payConfirmAmount').value = parseFloat(b?.total_amount || 0).toFixed(2);
+        document.getElementById('payConfirmMethod').value = b && b.payment_status === 'paid' ? 'online' : 'cash';
+
+        openModal('payConfirmModal', 'payConfirmBackdrop');
+        return;
+    }
+
+    document.getElementById('statusModalTitle').innerHTML =
+        '<i class="fas fa-check"></i> Confirm Booking';
     document.getElementById('statusModalDesc').innerHTML =
-        `Mark booking <strong>#${id}</strong> as <strong>${cap(newStatus)}</strong>?`;
+        'Mark booking <strong>#' + id + '</strong> as <strong>' + cap(newStatus) + '</strong>?';
 
     const btn = document.getElementById('confirmStatusBtn');
-    btn.className = `bk-btn ${isComplete ? 'bk-btn-success' : 'bk-btn-confirm'}`;
-    btn.innerHTML = `<i class="fas ${isComplete ? 'fa-check' : 'fa-check'}"></i> ${cap(newStatus)}`;
+    btn.className = 'bk-btn bk-btn-confirm';
+    btn.innerHTML = '<i class="fas fa-check"></i> ' + cap(newStatus);
 
     openModal('statusModal', 'statusBackdrop');
 };
@@ -289,7 +302,7 @@ document.getElementById('confirmStatusBtn').addEventListener('click', async () =
         });
         const data = await res.json();
         if (data.success) {
-            toast(`Booking #${id} marked as ${val}`, 'success');
+            toast('Booking #' + id + ' marked as ' + val, 'success');
             await loadStats();
             await loadBookings();
         } else {
@@ -300,6 +313,92 @@ document.getElementById('confirmStatusBtn').addEventListener('click', async () =
     } finally {
         pendingStatusId = null; pendingStatusVal = null;
     }
+});
+
+/*  payment confirmation flow  */
+async function markBookingComplete(bookingId) {
+    const res  = await fetch((window.BASE_URL||'') + '/api/ground-owner/bookings/' + bookingId + '/status', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'completed' })
+    });
+    return res.json();
+}
+
+async function cleanupPayModal() {
+    pendingPaymentBookingId  = null;
+    pendingPaymentFacilityId = null;
+    pendingStatusId  = null;
+    pendingStatusVal = null;
+    await loadStats();
+    await loadBookings();
+}
+
+document.getElementById('confirmPayBtn').addEventListener('click', async () => {
+    const id     = pendingPaymentBookingId;
+    const amount = parseFloat(document.getElementById('payConfirmAmount').value);
+    const method = document.getElementById('payConfirmMethod').value;
+
+    if (!id || isNaN(amount) || amount <= 0) {
+        document.getElementById('payConfirmAmount').style.borderColor = '#dc2626';
+        document.getElementById('payConfirmAmount').focus();
+        return;
+    }
+    document.getElementById('payConfirmAmount').style.borderColor = '';
+
+    const btn = document.getElementById('confirmPayBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recording…';
+
+    try {
+        const res  = await fetch((window.BASE_URL||'') + '/api/ground-owner/bookings/' + id + '/confirm-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: amount, payment_method: method })
+        });
+        const data = await res.json();
+
+        closeModal('payConfirmModal', 'payConfirmBackdrop');
+
+        if (data.success) {
+            toast('Booking #' + id + ' completed — Rs. ' + parseFloat(amount).toLocaleString() + ' recorded to earnings.', 'success');
+        } else {
+            toast(data.message || 'Failed to record payment', 'error');
+        }
+    } catch (e) {
+        closeModal('payConfirmModal', 'payConfirmBackdrop');
+        toast('Network error. Please try again.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-money-bill-wave"></i> Complete &amp; Record Payment';
+        await cleanupPayModal();
+    }
+});
+
+document.getElementById('completeNoPayBtn').addEventListener('click', async () => {
+    const id = pendingPaymentBookingId;
+    closeModal('payConfirmModal', 'payConfirmBackdrop');
+
+    try {
+        const data = await markBookingComplete(id);
+        if (data.success) {
+            toast('Booking #' + id + ' marked as completed.', 'success');
+        } else {
+            toast(data.message || 'Failed to complete booking', 'error');
+        }
+    } catch (e) {
+        toast('Network error. Please try again.', 'error');
+    } finally {
+        await cleanupPayModal();
+    }
+});
+
+document.getElementById('closePayConfirmModal').addEventListener('click', () => {
+    closeModal('payConfirmModal', 'payConfirmBackdrop');
+    pendingPaymentBookingId  = null;
+    pendingPaymentFacilityId = null;
+    pendingStatusId  = null;
+    pendingStatusVal = null;
 });
 
 /*  cancel flow  */
@@ -384,6 +483,13 @@ document.getElementById('cancelBackdrop').addEventListener('click',    () => clo
 document.getElementById('closeStatusModal').addEventListener('click',  () => closeModal('statusModal',  'statusBackdrop'));
 document.getElementById('closeStatusBtn').addEventListener('click',    () => closeModal('statusModal',  'statusBackdrop'));
 document.getElementById('statusBackdrop').addEventListener('click',    () => closeModal('statusModal',  'statusBackdrop'));
+document.getElementById('payConfirmBackdrop').addEventListener('click', () => {
+    closeModal('payConfirmModal', 'payConfirmBackdrop');
+    pendingPaymentBookingId  = null;
+    pendingPaymentFacilityId = null;
+    pendingStatusId  = null;
+    pendingStatusVal = null;
+});
 
 /*  filter / pagination events  */
 document.getElementById('applyFilters').addEventListener('click', loadBookings);

@@ -223,4 +223,42 @@ include __DIR__ . '/layout-head.php';
     </div>
 </div>
 
+<!--  Complete Booking + Payment Confirmation Modal  -->
+<div id="payConfirmBackdrop" class="bk-backdrop"></div>
+<div id="payConfirmModal" class="bk-modal">
+    <div class="bk-modal-box" style="width:min(360px,95vw)">
+        <div class="bk-modal-head" style="background:linear-gradient(135deg,#16a34a,#15803d);padding:14px 18px">
+            <h3 style="font-size:14px"><i class="fas fa-check-circle"></i> Complete Booking <span id="payConfirmBookingId"></span></h3>
+            <button id="closePayConfirmModal"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="bk-modal-body" style="padding:16px 18px">
+            <p style="font-size:13px;color:#374151;margin:0 0 12px">How was payment received?</p>
+            <div style="margin-bottom:10px">
+                <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:5px">Payment Method</label>
+                <select id="payConfirmMethod" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;color:#1e293b">
+                    <option value="cash">Walk-in — Cash</option>
+                    <option value="card">Walk-in — Card (POS)</option>
+                    <option value="bank_transfer">Walk-in — Bank Transfer</option>
+                    <option value="online">Online Payment</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:5px">Amount Received (Rs.)</label>
+                <input type="number" id="payConfirmAmount" min="0" step="0.01"
+                       style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;color:#1e293b;box-sizing:border-box">
+            </div>
+        </div>
+        <div class="bk-modal-footer" style="flex-direction:column;gap:7px;align-items:stretch;padding:12px 18px">
+            <button class="bk-btn bk-btn-success" id="confirmPayBtn"
+                    style="width:100%;justify-content:center;padding:10px 14px;font-size:13px">
+                <i class="fas fa-money-bill-wave"></i> Complete &amp; Record Payment
+            </button>
+            <button class="bk-btn bk-btn-ghost" id="completeNoPayBtn"
+                    style="width:100%;justify-content:center;font-size:12px;padding:8px 14px">
+                <i class="fas fa-check"></i> Complete Without Recording Payment
+            </button>
+        </div>
+    </div>
+</div>
+
 <?php include __DIR__ . '/layout-foot.php'; ?>

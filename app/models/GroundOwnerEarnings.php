@@ -273,4 +273,27 @@ class GroundOwnerEarnings {
             'payment_analytics' => $this->getPaymentAnalytics($ownerId)
         ];
     }
+
+    public function recordEarning(int $ownerId, int $facilityId, ?int $bookingId, float $amount, string $paymentMethod, string $paymentStatus = 'paid', ?string $notes = null): bool
+    {
+        try {
+            // Idempotency: don't double-record the same booking
+            if ($bookingId) {
+                $stmt = $this->conn->prepare("SELECT id FROM {$this->table} WHERE booking_id = ? LIMIT 1");
+                $stmt->execute([$bookingId]);
+                if ($stmt->fetch()) {
+                    return true;
+                }
+            }
+
+            $stmt = $this->conn->prepare(
+                "INSERT INTO {$this->table} (owner_id, booking_id, facility_id, amount, earning_date, earning_type, payment_status, payment_method, notes)
+                 VALUES (?, ?, ?, ?, CURDATE(), 'booking', ?, ?, ?)"
+            );
+            return $stmt->execute([$ownerId, $bookingId, $facilityId, $amount, $paymentStatus, $paymentMethod, $notes]);
+        } catch (PDOException $e) {
+            error_log("recordEarning error: " . $e->getMessage());
+            return false;
+        }
+    }
 }

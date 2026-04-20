@@ -100,6 +100,20 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js'];
                             </div>
                         </div>
                     </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15);">
+                            <i class="fas fa-hand-holding-usd" style="color: #10b981;"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>COD Earnings</h3>
+                            <p class="stat-number" id="codEarnings">Rs 0.00</p>
+                            <div class="stat-change neutral">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Cash collected — not withdrawable</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Platform Info Banner -->
@@ -150,6 +164,30 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js'];
                         <div id="transactionsPagination" style="display: flex; justify-content: center; gap: 8px; margin-top: 1rem;"></div>
                     </div>
 
+                    <!-- COD Transactions -->
+                    <div class="dashboard-card" style="grid-column: 1 / -1;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-truck" style="margin-right: 8px; color: #f59e0b;"></i>COD Transactions</h3>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="data-table" id="codTransactionsTable" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <th style="padding: 12px; text-align: left; color: #aaa; font-size: 0.8rem; text-transform: uppercase;">Date</th>
+                                        <th style="padding: 12px; text-align: left; color: #aaa; font-size: 0.8rem; text-transform: uppercase;">Order</th>
+                                        <th style="padding: 12px; text-align: left; color: #aaa; font-size: 0.8rem; text-transform: uppercase;">Customer</th>
+                                        <th style="padding: 12px; text-align: right; color: #aaa; font-size: 0.8rem; text-transform: uppercase;">Amount</th>
+                                        <th style="padding: 12px; text-align: center; color: #aaa; font-size: 0.8rem; text-transform: uppercase;">Delivery</th>
+                                        <th style="padding: 12px; text-align: center; color: #aaa; font-size: 0.8rem; text-transform: uppercase;">Payment Proof</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="codTransactionsBody">
+                                    <tr><td colspan="6" style="padding: 40px; text-align: center; color: #888;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <!-- Payout History -->
                     <div class="dashboard-card" style="grid-column: 1 / -1;">
                         <div class="card-header">
@@ -173,62 +211,6 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js'];
                         </div>
                     </div>
 
-                    <!-- Bank Details Card -->
-                    <div class="dashboard-card" style="grid-column: 1 / -1;">
-                        <div class="card-header">
-                            <h3><i class="fas fa-university" style="margin-right: 8px; color: #00d2ff;"></i>Payout Bank Details</h3>
-                        </div>
-                        <form id="payoutDetailsForm" onsubmit="savePayoutDetails(event)" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 0.5rem 0;">
-                            <div class="form-group">
-                                <label style="display: block; margin-bottom: 6px; color: #ccc; font-size: 0.85rem;">Bank Name *</label>
-                                <select id="bankName" name="bank_name" required
-                                    style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem;">
-                                    <option value="">Select Bank</option>
-                                    <option value="Bank of Ceylon">Bank of Ceylon</option>
-                                    <option value="People's Bank">People's Bank</option>
-                                    <option value="Commercial Bank">Commercial Bank</option>
-                                    <option value="Hatton National Bank">Hatton National Bank</option>
-                                    <option value="Sampath Bank">Sampath Bank</option>
-                                    <option value="Nations Trust Bank">Nations Trust Bank</option>
-                                    <option value="DFCC Bank">DFCC Bank</option>
-                                    <option value="National Development Bank">National Development Bank</option>
-                                    <option value="Seylan Bank">Seylan Bank</option>
-                                    <option value="Pan Asia Banking Corporation">Pan Asia Banking Corporation</option>
-                                    <option value="Union Bank">Union Bank</option>
-                                    <option value="Amana Bank">Amana Bank</option>
-                                    <option value="National Savings Bank">National Savings Bank</option>
-                                    <option value="Regional Development Bank">Regional Development Bank</option>
-                                    <option value="Sanasa Development Bank">Sanasa Development Bank</option>
-                                    <option value="HSBC Sri Lanka">HSBC Sri Lanka</option>
-                                    <option value="Standard Chartered Bank">Standard Chartered Bank</option>
-                                    <option value="Citi Bank">Citi Bank</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label style="display: block; margin-bottom: 6px; color: #ccc; font-size: 0.85rem;">Account Number *</label>
-                                <input type="text" id="accountNumber" name="account_number" required
-                                    style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem;"
-                                    placeholder="e.g. 1234567890">
-                            </div>
-                            <div class="form-group">
-                                <label style="display: block; margin-bottom: 6px; color: #ccc; font-size: 0.85rem;">Account Holder Name *</label>
-                                <input type="text" id="accountHolder" name="account_holder" required
-                                    style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem;"
-                                    placeholder="e.g. John Doe">
-                            </div>
-                            <div class="form-group">
-                                <label style="display: block; margin-bottom: 6px; color: #ccc; font-size: 0.85rem;">Branch Name</label>
-                                <input type="text" id="branchName" name="branch_name"
-                                    style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem;"
-                                    placeholder="e.g. Colombo Main">
-                            </div>
-                            <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
-                                <button type="submit" style="padding: 10px 28px; background: linear-gradient(135deg, #00d2ff, #7b2ff7); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s;">
-                                    <i class="fas fa-save"></i> Save Bank Details
-                                </button>
-                            </div>
-                        </form>
-                    </div>
                 </div>
             </div>
         </div>
@@ -261,9 +243,7 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js'];
                 placeholder="Enter amount">
         </div>
 
-        <div id="payoutBankSummary" style="margin-bottom: 1.5rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.85rem; color: #aaa;"></div>
-
-        <div style="display: flex; gap: 0.75rem;">
+<div style="display: flex; gap: 0.75rem;">
             <button onclick="closePayoutModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #ccc; cursor: pointer;">Cancel</button>
             <button onclick="submitPayoutRequest()" id="submitPayoutBtn" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #00d2ff, #7b2ff7); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
                 <i class="fas fa-check"></i> Submit Request
@@ -277,7 +257,10 @@ const BASE_URL = '<?= $_base ?>';
 let earningsData = null;
 
 // Load earnings data on page load
-document.addEventListener('DOMContentLoaded', loadEarningsData);
+document.addEventListener('DOMContentLoaded', () => {
+    loadEarningsData();
+    loadCODTransactions();
+});
 
 async function loadEarningsData(page = 1) {
     try {
@@ -307,6 +290,7 @@ function renderEarnings(data) {
     document.getElementById('monthlyEarnings').textContent = 'Rs ' + formatNumber(s.this_month_earnings);
     document.getElementById('totalWithdrawn').textContent = 'Rs ' + formatNumber(s.total_withdrawn);
     document.getElementById('pendingBalance').textContent = 'Rs ' + formatNumber(s.pending_balance || 0);
+    document.getElementById('codEarnings').textContent = 'Rs ' + formatNumber(s.cod_earnings || 0);
     document.getElementById('feePercentage').textContent = s.service_fee_percentage;
     document.getElementById('minPayoutAmount').textContent = formatNumber(s.min_payout_amount);
     
@@ -333,13 +317,6 @@ function renderEarnings(data) {
     // Render payouts
     renderPayouts(data.payouts);
     
-    // Fill bank details form
-    if (data.payout_details) {
-        document.getElementById('bankName').value = data.payout_details.bank_name || '';
-        document.getElementById('accountNumber').value = data.payout_details.account_number || '';
-        document.getElementById('accountHolder').value = data.payout_details.account_holder || '';
-        document.getElementById('branchName').value = data.payout_details.branch_name || '';
-    }
 }
 
 function renderTransactions(txData) {
@@ -414,18 +391,6 @@ function openPayoutModal() {
     document.getElementById('payoutAmount').value = available;
     document.getElementById('payoutAmount').max = available;
     
-    // Show bank summary
-    const bankName = document.getElementById('bankName').value;
-    const accNo = document.getElementById('accountNumber').value;
-    const accHolder = document.getElementById('accountHolder').value;
-    
-    if (bankName && accNo) {
-        document.getElementById('payoutBankSummary').innerHTML = 
-            '<i class="fas fa-university" style="margin-right: 6px;"></i> Payout to: ' + bankName + ' (**' + accNo.slice(-4) + ') - ' + accHolder;
-    } else {
-        document.getElementById('payoutBankSummary').innerHTML = 
-            '<i class="fas fa-exclamation-triangle" style="color: #ffd32a; margin-right: 6px;"></i> Please save your bank details first before requesting a payout.';
-    }
 }
 
 function closePayoutModal() {
@@ -448,13 +413,7 @@ async function submitPayoutRequest() {
         const response = await fetch(`${BASE_URL}/api/shop-owner/request-payout`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount: amount,
-                bank_name: document.getElementById('bankName').value,
-                account_number: document.getElementById('accountNumber').value,
-                account_holder: document.getElementById('accountHolder').value,
-                branch_name: document.getElementById('branchName').value
-            })
+            body: JSON.stringify({ amount: amount })
         });
         
         const data = await response.json();
@@ -474,25 +433,56 @@ async function submitPayoutRequest() {
     }
 }
 
-async function savePayoutDetails(event) {
-    event.preventDefault();
-    
+
+async function loadCODTransactions() {
+    const tbody = document.getElementById('codTransactionsBody');
     try {
-        const response = await fetch(`${BASE_URL}/api/shop-owner/payout-details`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                bank_name: document.getElementById('bankName').value,
-                account_number: document.getElementById('accountNumber').value,
-                account_holder: document.getElementById('accountHolder').value,
-                branch_name: document.getElementById('branchName').value
-            })
+        const res = await fetch(BASE_URL + '/api/shop-owner/cod-transactions');
+        const data = await res.json();
+
+        if (!data.success || !data.transactions || data.transactions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:40px;text-align:center;color:#888;"><i class="fas fa-truck" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>No COD orders yet</td></tr>';
+            return;
+        }
+
+        const statusColors = {
+            pending:    { color: '#ffd32a', bg: 'rgba(255,211,42,0.15)' },
+            processing: { color: '#00d2ff', bg: 'rgba(0,210,255,0.15)' },
+            shipped:    { color: '#a78bfa', bg: 'rgba(167,139,250,0.15)' },
+            delivered:  { color: '#2ed573', bg: 'rgba(46,213,115,0.15)' },
+            cancelled:  { color: '#ff6348', bg: 'rgba(255,99,72,0.15)' }
+        };
+
+        let rows = '';
+        data.transactions.forEach(function(t) {
+            const sc = statusColors[t.status] || { color: '#ccc', bg: 'rgba(255,255,255,0.1)' };
+            const statusLabel = t.status ? t.status.charAt(0).toUpperCase() + t.status.slice(1) : '-';
+            const badge = '<span style="padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;color:' + sc.color + ';background:' + sc.bg + ';">' + statusLabel + '</span>';
+
+            const subtotal = parseFloat(t.shop_owner_subtotal) || 0;
+            const amount = 'Rs ' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const proofCell = t.cod_payment_proof
+                ? '<a href="' + BASE_URL + t.cod_payment_proof + '" target="_blank" style="color:#2ed573;font-size:0.8rem;"><i class="fas fa-check-circle"></i> View Proof</a>'
+                : '<span style="color:#888;font-size:0.8rem;"><i class="fas fa-clock"></i> Not uploaded</span>';
+
+            const date = t.created_at ? new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+
+            rows += '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">'
+                + '<td style="padding:12px;color:#ccc;font-size:0.85rem;">' + date + '</td>'
+                + '<td style="padding:12px;color:#00d2ff;font-size:0.85rem;">#' + (t.order_number || '') + '</td>'
+                + '<td style="padding:12px;color:#ccc;font-size:0.85rem;">' + (t.customer_name || '-') + '</td>'
+                + '<td style="padding:12px;text-align:right;color:#fff;font-weight:600;">' + amount + '</td>'
+                + '<td style="padding:12px;text-align:center;">' + badge + '</td>'
+                + '<td style="padding:12px;text-align:center;">' + proofCell + '</td>'
+                + '</tr>';
         });
-        
-        const data = await response.json();
-        showToast(data.message, data.success ? 'success' : 'error');
-    } catch (err) {
-        showToast('Failed to save bank details', 'error');
+
+        tbody.innerHTML = rows;
+
+    } catch (e) {
+        console.error('COD transactions error:', e);
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#ff6348;">Failed to load COD transactions</td></tr>';
     }
 }
 

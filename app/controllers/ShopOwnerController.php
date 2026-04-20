@@ -1794,6 +1794,92 @@ class ShopOwnerController extends BaseController
     }
 
     /**
+     * API: Get COD transactions for the earnings page
+     */
+    public function getCODTransactions(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $orders = $this->getOrderModel()->getCODOrdersByShopOwner($shopOwnerId);
+            return $this->json(['success' => true, 'transactions' => $orders]);
+        } catch (\Exception $e) {
+            error_log('getCODTransactions error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to load COD transactions'], 500);
+        }
+    }
+
+    /**
+     * API: Upload COD payment proof for an order
+     */
+    public function uploadCODProof(Request $request): Response
+    {
+        if (!$this->checkShopOwnerAuth()) {
+            return $this->getShopOwnerResponse();
+        }
+        try {
+            $shopOwnerId = $_SESSION['user_id'];
+            $orderId = (int)($request->getParam('id') ?? 0);
+
+            if ($orderId <= 0) {
+                return $this->json(['success' => false, 'message' => 'Invalid order ID'], 400);
+            }
+
+            // Verify this order belongs to the shop owner and is a COD order
+            $order = $this->getOrderModel()->getOrderDetailsForShopOwner($orderId, $shopOwnerId);
+            if (!$order || $order['payment_method'] !== 'cash') {
+                return $this->json(['success' => false, 'message' => 'Order not found or not a COD order'], 404);
+            }
+
+            if (empty($_FILES['proof']) || $_FILES['proof']['error'] !== UPLOAD_ERR_OK) {
+                return $this->json(['success' => false, 'message' => 'No file uploaded'], 400);
+            }
+
+            $file = $_FILES['proof'];
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+            $allowedExt  = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+            if (!in_array($file['type'], $allowedTypes) || !in_array($ext, $allowedExt)) {
+                return $this->json(['success' => false, 'message' => 'Invalid file type. Allowed: JPG, PNG, GIF, PDF'], 400);
+            }
+
+            if ($file['size'] > 5 * 1024 * 1024) {
+                return $this->json(['success' => false, 'message' => 'File too large. Maximum 5MB'], 400);
+            }
+
+            $uploadDir = __DIR__ . '/../../public/uploads/cod-proofs/';
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $filename = 'cod_' . $orderId . '_' . time() . '.' . $ext;
+            $destination = $uploadDir . $filename;
+
+            if (!move_uploaded_file($file['tmp_name'], $destination)) {
+                return $this->json(['success' => false, 'message' => 'Failed to save file'], 500);
+            }
+
+            $relativePath = '/public/uploads/cod-proofs/' . $filename;
+            $this->getOrderModel()->update($orderId, ['cod_payment_proof' => $relativePath]);
+
+            error_log("COD proof uploaded for order {$orderId} by shop owner {$shopOwnerId}: {$relativePath}");
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Payment proof uploaded successfully',
+                'proof_url' => $relativePath
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('uploadCODProof error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Upload failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * API: Submit payout withdrawal request
      */
     public function requestPayout(Request $request): Response

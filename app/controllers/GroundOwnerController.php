@@ -168,6 +168,15 @@ class GroundOwnerController extends BaseController
         return $this->viewWithoutLayout('ground-owner/coaches');
     }
 
+    public function commissionPage(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->redirect('/login');
+        }
+
+        return $this->viewWithoutLayout('ground-owner/commission');
+    }
+
     // Coach Enrollment Management API
     public function getOwnerCoaches(Request $request): Response
     {
@@ -501,9 +510,9 @@ class GroundOwnerController extends BaseController
                 return $this->json(['success' => false, 'message' => 'Invalid longitude value'], 400);
             }
 
-            // Add owner ID and force status — owners cannot self-approve their facility
+            // New grounds go into pending_review — admin must approve before going live
             $data['owner_id'] = $ownerId;
-            $data['status']   = 'active';
+            $data['status']   = 'pending_review';
             $data['country']  = 'Sri Lanka';
             
             // Handle amenities array
@@ -524,7 +533,7 @@ class GroundOwnerController extends BaseController
             
             return $this->json([
                 'success' => true,
-                'message' => 'Ground created successfully',
+                'message' => 'Ground submitted for admin review. It will go live once approved.',
                 'ground' => $ground
             ], 201);
             
@@ -1102,14 +1111,9 @@ class GroundOwnerController extends BaseController
                 ], 403);
             }
 
-            $success = $this->getBookingModel()->update($bookingId, ['status' => $newStatus]);
-
-            if (!$success) {
-                return $this->json([
-                    'success' => false,
-                    'message' => 'Failed to update booking status'
-                ], 500);
-            }
+            $db = \Core\Database::getInstance()->getConnection();
+            $db->prepare("UPDATE facility_bookings SET status = ? WHERE id = ?")
+               ->execute([$newStatus, $bookingId]);
 
             // Send notification to the user who made the booking
             try {
@@ -1163,6 +1167,20 @@ class GroundOwnerController extends BaseController
                 // Don't fail the status update if notification fails
             }
 
+            // Auto-record earnings for pre-paid online bookings on completion
+            if ($newStatus === 'completed' && ($booking['payment_status'] ?? '') === 'paid') {
+                $db = \Core\Database::getInstance()->getConnection();
+                $earningsModel = new \App\Models\GroundOwnerEarnings($db);
+                $amount = floatval($booking['total_amount'] ?? 0);
+                $earningsModel->recordEarning($ownerId, (int)$booking['facility_id'], $bookingId, $amount, 'online', 'paid', 'Auto-recorded on completion');
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Booking completed and earnings recorded',
+                    'earnings_recorded' => true,
+                    'amount' => $amount
+                ]);
+            }
+
             return $this->json([
                 'success' => true,
                 'message' => 'Booking status updated successfully'
@@ -1174,6 +1192,72 @@ class GroundOwnerController extends BaseController
                 'message' => 'Failed to update booking status',
                 'error' => 'An error occurred. Please try again.'
             ], 500);
+        }
+    }
+
+    /**
+     * Confirm cash payment for a completed booking and record earnings
+     */
+    public function confirmBookingPayment(Request $request): Response
+    {
+        if (!$this->checkGroundOwnerAuth()) {
+            return $this->getGroundOwnerResponse();
+        }
+        try {
+            $ownerId   = $_SESSION['user_id'];
+            $bookingId = (int)($request->getParam('id') ?? 0);
+            $data      = $request->getJsonBody();
+
+            $amount        = floatval($data['amount'] ?? 0);
+            $paymentMethod = $data['payment_method'] ?? 'cash';
+
+            if (!$bookingId) {
+                return $this->json(['success' => false, 'message' => 'Invalid booking ID'], 400);
+            }
+            if ($amount <= 0) {
+                return $this->json(['success' => false, 'message' => 'Amount must be greater than zero'], 400);
+            }
+
+            // Always look up facility_id from the booking — never trust the frontend value
+            $booking = $this->getBookingModel()->find($bookingId);
+            if (!$booking) {
+                return $this->json(['success' => false, 'message' => 'Booking not found'], 404);
+            }
+
+            $facilityId = (int)$booking['facility_id'];
+
+            // Verify the booking belongs to this owner's facility
+            $facility = $this->getFacilityModel()->find($facilityId);
+            if (!$facility || (int)$facility['owner_id'] !== (int)$ownerId) {
+                return $this->json(['success' => false, 'message' => 'Unauthorised'], 403);
+            }
+
+            $db           = \Core\Database::getInstance()->getConnection();
+            $earningsModel = new \App\Models\GroundOwnerEarnings($db);
+
+            $recorded = $earningsModel->recordEarning(
+                $ownerId, $facilityId, $bookingId,
+                $amount, $paymentMethod, 'paid',
+                'Cash collected on completion'
+            );
+
+            if (!$recorded) {
+                return $this->json(['success' => false, 'message' => 'Failed to record earnings — it may already exist'], 500);
+            }
+
+            // Mark booking as paid
+            $db->prepare("UPDATE facility_bookings SET payment_status = 'paid', status = 'completed' WHERE id = ?")
+               ->execute([$bookingId]);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Payment confirmed and earnings recorded',
+                'amount'  => $amount
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('confirmBookingPayment error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
         }
     }
 

@@ -319,9 +319,10 @@
     z-index: 2;
 }
 
-.gr-status-badge.active      { background: rgba(16,185,129,.88); color: #fff; }
-.gr-status-badge.maintenance { background: rgba(245,158,11,.9);  color: #fff; }
-.gr-status-badge.inactive    { background: rgba(100,116,139,.85); color: #fff; }
+.gr-status-badge.active          { background: rgba(16,185,129,.88); color: #fff; }
+.gr-status-badge.maintenance     { background: rgba(245,158,11,.9);  color: #fff; }
+.gr-status-badge.inactive        { background: rgba(100,116,139,.85); color: #fff; }
+.gr-status-badge.pending_review  { background: rgba(234,179,8,.92);   color: #1a1a1a; }
 
 /* Category pill overlay */
 .gr-cat-pill {

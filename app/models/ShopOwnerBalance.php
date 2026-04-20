@@ -18,6 +18,7 @@ class ShopOwnerBalance extends BaseModel
         'shop_owner_id',
         'available_balance',
         'pending_balance',
+        'cod_earnings',
         'total_earned',
         'total_withdrawn',
         'currency'
@@ -26,6 +27,7 @@ class ShopOwnerBalance extends BaseModel
     protected array $casts = [
         'available_balance' => 'float',
         'pending_balance' => 'float',
+        'cod_earnings' => 'float',
         'total_earned' => 'float',
         'total_withdrawn' => 'float'
     ];
@@ -88,6 +90,7 @@ class ShopOwnerBalance extends BaseModel
                 'shop_owner_id' => $shopOwnerId,
                 'available_balance' => 0.00,
                 'pending_balance' => 0.00,
+                'cod_earnings' => 0.00,
                 'total_earned' => 0.00,
                 'total_withdrawn' => 0.00,
                 'currency' => 'LKR'
@@ -240,23 +243,22 @@ class ShopOwnerBalance extends BaseModel
                 $shopOwnerId = (int)$tx['shop_owner_id'];
                 $netAmount   = (float)$tx['net_amount'];
 
-                // Move pending → available, update total_earned
+                // Move pending → cod_earnings (cash in hand, not withdrawable)
                 $sql = "UPDATE {$this->table}
-                        SET available_balance = available_balance + ?,
-                            pending_balance   = GREATEST(0, pending_balance - ?),
-                            total_earned      = total_earned + ?
+                        SET cod_earnings   = cod_earnings + ?,
+                            pending_balance = GREATEST(0, pending_balance - ?)
                         WHERE shop_owner_id = ?";
-                $this->query($sql, [$netAmount, $netAmount, $netAmount, $shopOwnerId]);
+                $this->query($sql, [$netAmount, $netAmount, $shopOwnerId]);
 
                 $balance = $this->getOrCreateBalance($shopOwnerId);
 
-                // Mark transaction completed and update balance_after
+                // Mark transaction completed
                 $this->query(
                     "UPDATE shop_owner_transactions SET status = 'completed', balance_after = ?, description = REPLACE(description, 'COD pending', 'COD confirmed') WHERE id = ?",
                     [$balance['available_balance'], $tx['id']]
                 );
 
-                error_log("COD credit confirmed: LKR {$netAmount} released to shop owner {$shopOwnerId} for order {$orderId}");
+                error_log("COD credit confirmed: LKR {$netAmount} added to cod_earnings for shop owner {$shopOwnerId}, order {$orderId}");
             }
 
             return true;
@@ -505,6 +507,7 @@ class ShopOwnerBalance extends BaseModel
         return [
             'available_balance' => (float)$balance['available_balance'],
             'pending_balance'   => (float)$balance['pending_balance'],
+            'cod_earnings'      => (float)($balance['cod_earnings'] ?? 0),
             'total_earned' => (float)$balance['total_earned'],
             'total_withdrawn' => (float)$balance['total_withdrawn'],
             'pending_payouts' => (float)($pendingResult['total'] ?? 0),

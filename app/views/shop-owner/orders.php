@@ -307,6 +307,13 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
                                         <button class="btn-action btn-edit" onclick="editOrderStatus(<?= $order['id'] ?>)" title="Update Status">
                                             <i class="fas fa-edit"></i>
                                         </button>
+                                        <?php if ($order['payment_method'] === 'cash'): ?>
+                                        <button class="btn-action <?= $order['cod_payment_proof'] ? 'btn-success' : 'btn-warning' ?>"
+                                            onclick="openCODUpload(<?= $order['id'] ?>, '<?= htmlspecialchars($order['cod_payment_proof'] ?? '') ?>')"
+                                            title="<?= $order['cod_payment_proof'] ? 'Update Payment Proof' : 'Upload Payment Proof' ?>">
+                                            <i class="fas fa-<?= $order['cod_payment_proof'] ? 'check-circle' : 'upload' ?>"></i>
+                                        </button>
+                                        <?php endif; ?>
                                         <?php if (in_array($order['status'], ['pending', 'cancelled'])): ?>
                                         <button class="btn-action btn-delete" onclick="deleteOrder(<?= $order['id'] ?>)" title="Delete Order">
                                             <i class="fas fa-trash"></i>
@@ -417,7 +424,94 @@ $additionalJS = ['/public/js/shop-owner-sidebar.js', '/public/js/pages/shop-owne
     </div>
 </div>
 
+<!-- COD Payment Proof Upload Modal -->
+<div id="codUploadModal" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2><i class="fas fa-upload" style="margin-right:8px;color:#f59e0b;"></i>Upload COD Payment Proof</h2>
+            <button class="modal-close" onclick="closeModal('codUploadModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="codUploadOrderId">
+
+            <div id="existingProof" style="display:none;margin-bottom:1rem;padding:0.75rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+                <p style="margin:0 0 0.5rem;font-size:0.85rem;color:#166534;font-weight:600;"><i class="fas fa-check-circle"></i> Proof already uploaded</p>
+                <a id="existingProofLink" href="#" target="_blank" style="font-size:0.85rem;color:#059669;">View current proof</a>
+            </div>
+
+            <div class="form-group">
+                <label style="display:block;margin-bottom:6px;font-size:0.875rem;font-weight:500;">Payment Receipt / Proof (JPG, PNG, PDF — max 5MB)</label>
+                <input type="file" id="codProofFile" accept="image/jpeg,image/png,image/gif,application/pdf"
+                    style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;">
+            </div>
+
+            <div class="form-actions" style="margin-top:1.5rem;">
+                <button type="button" class="btn-secondary" onclick="closeModal('codUploadModal')">Cancel</button>
+                <button type="button" class="btn-primary" onclick="submitCODProof()" id="codUploadBtn">
+                    <i class="fas fa-upload"></i> Upload Proof
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Toast Notification -->
 <div id="toast" class="toast"></div>
 
 <script src="<?= $_base ?>/public/js/pages/shop-owner-orders.js"></script>
+<script>
+const BASE_URL = '<?= $_base ?>';
+
+function openCODUpload(orderId, existingProof) {
+    document.getElementById('codUploadOrderId').value = orderId;
+    const existingDiv = document.getElementById('existingProof');
+    if (existingProof) {
+        existingDiv.style.display = 'block';
+        document.getElementById('existingProofLink').href = BASE_URL + existingProof;
+    } else {
+        existingDiv.style.display = 'none';
+    }
+    document.getElementById('codProofFile').value = '';
+    openModal('codUploadModal');
+}
+
+async function submitCODProof() {
+    const orderId = document.getElementById('codUploadOrderId').value;
+    const file = document.getElementById('codProofFile').files[0];
+    if (!file) { showToast('Please select a file', 'error'); return; }
+
+    const btn = document.getElementById('codUploadBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+    const formData = new FormData();
+    formData.append('proof', file);
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/shop-owner/orders/${orderId}/cod-proof`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message, 'success');
+            closeModal('codUploadModal');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch (e) {
+        showToast('Upload failed', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-upload"></i> Upload Proof';
+    }
+}
+</script>
+<style>
+.btn-warning { background: #f59e0b; color: #fff; }
+.btn-warning:hover { background: #d97706; }
+.btn-success { background: #059669; color: #fff; }
+.btn-success:hover { background: #047857; }
+</style>

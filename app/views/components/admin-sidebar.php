@@ -44,6 +44,13 @@ $menuItems = [
         'badge' => null
     ],
     [
+        'id' => 'grounds',
+        'url' => $_base . '/admin/grounds',
+        'icon' => 'fas fa-map-marker-alt',
+        'label' => 'Ground Management',
+        'badge' => null
+    ],
+    [
         'id' => 'payments',
         'url' => $_base . '/admin/payments',
         'icon' => 'fas fa-money-bill-wave',
@@ -55,6 +62,13 @@ $menuItems = [
         'url' => $_base . '/admin/payouts',
         'icon' => 'fas fa-hand-holding-usd',
         'label' => 'Payouts',
+        'badge' => null
+    ],
+    [
+        'id' => 'commission',
+        'url' => $_base . '/admin/commission',
+        'icon' => 'fas fa-file-invoice-dollar',
+        'label' => 'Commission Invoices',
         'badge' => null
     ],
     [
@@ -102,9 +116,13 @@ $menuItems = [
         <button class="sidebar-collapse-btn desktop-only" onclick="toggleSidebarCollapse()" title="Toggle Sidebar">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <div class="logo">
-            <span class="logo-text">GoPlay</span>
-        </div>
+        <a href="<?= $_base ?>/" class="logo">
+            <img src="<?= $_base ?>/public/assets/images/logo.jpeg" alt="GoPlay" class="logo-img">
+            <div class="logo-text-wrap">
+                <span class="logo-text">GoPlay</span>
+                <span class="logo-badge">Admin</span>
+            </div>
+        </a>
     </div>
     
     <nav class="sidebar-nav">
@@ -177,17 +195,68 @@ $menuItems = [
 .sidebar-header .logo {
     display: flex;
     align-items: center;
-    gap: 12px;
-    transition: all 0.3s ease;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.sidebar-header .logo:hover,
+.sidebar-header .logo:focus {
+    background: none;
+    opacity: 1;
+    text-decoration: none;
+    outline: none;
+}
+
+.sidebar-header .logo:hover .logo-img {
+    transform: none;
+    opacity: 1;
+}
+
+.sidebar-header .logo:hover .logo-text,
+.sidebar-header .logo:hover .logo-badge {
+    color: inherit;
+}
+
+.logo-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: contain;
+    flex-shrink: 0;
+    background: #fff;
+    padding: 2px;
+}
+
+.logo-text-wrap {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    overflow: hidden;
+}
+
+.admin-sidebar.collapsed .logo-text-wrap {
+    opacity: 0;
+    width: 0;
 }
 
 .logo-text {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 800;
     color: #fff;
     white-space: nowrap;
-    opacity: 1;
-    transition: opacity 0.2s ease;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+}
+
+.logo-badge {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: 1px;
 }
 
 .admin-sidebar.collapsed .logo-text {

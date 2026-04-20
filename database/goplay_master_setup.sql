@@ -974,6 +974,7 @@ CREATE TABLE IF NOT EXISTS shop_owner_balances (
     shop_owner_id INT NOT NULL UNIQUE,
     available_balance DECIMAL(12,2) DEFAULT 0.00,
     pending_balance DECIMAL(12,2) DEFAULT 0.00,
+    cod_earnings DECIMAL(12,2) DEFAULT 0.00,
     total_earned DECIMAL(12,2) DEFAULT 0.00,
     total_withdrawn DECIMAL(12,2) DEFAULT 0.00,
     currency VARCHAR(3) DEFAULT 'LKR',

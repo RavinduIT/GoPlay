@@ -1099,4 +1099,208 @@ class AdminController extends BaseController
             return $this->json(['success' => false, 'message' => 'Failed to update notifications'], 500);
         }
     }
+
+    // =========================================================
+    // COMMISSION INVOICES
+    // =========================================================
+
+    private function commissionModel(): \App\Models\CommissionInvoice
+    {
+        return new \App\Models\CommissionInvoice();
+    }
+
+    private function checkAdmin(): bool
+    {
+        $this->startSession();
+        return isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'admin';
+    }
+
+    public function commissionPage(Request $request): Response
+    {
+        if (!$this->checkAdmin()) {
+            return new \Core\Response('', 302, ['Location' => (defined('BASE_URL') ? BASE_URL : '') . '/login']);
+        }
+        return $this->viewWithoutLayout('admin/commission', []);
+    }
+
+    public function getCommissionStats(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        $m = $this->commissionModel();
+        $m->updateOverdue();
+        return $this->json(['success' => true, 'stats' => $m->getStats()]);
+    }
+
+    public function getCommissionOwners(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        return $this->json(['success' => true, 'owners' => $this->commissionModel()->getOwnerSummary()]);
+    }
+
+    public function getCommissionInvoices(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        return $this->json(['success' => true, 'invoices' => $this->commissionModel()->getAllInvoices()]);
+    }
+
+    public function getCommissionInvoiceDetail(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        $id = (int)$request->getParam('id');
+        $invoice = $this->commissionModel()->getInvoiceWithItems($id);
+        if (!$invoice) return $this->json(['success' => false, 'message' => 'Invoice not found'], 404);
+        return $this->json(['success' => true, 'invoice' => $invoice]);
+    }
+
+    public function generateCommissionInvoice(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        $data    = $request->getJsonBody();
+        $ownerId = (int)($data['owner_id'] ?? 0);
+        $notes   = $data['notes'] ?? null;
+        if (!$ownerId) return $this->json(['success' => false, 'message' => 'owner_id required'], 400);
+
+        $invoice = $this->commissionModel()->generateInvoice($ownerId, (int)$_SESSION['user_id'], $notes);
+        if (!$invoice) return $this->json(['success' => false, 'message' => 'No uninvoiced earnings found for this owner'], 400);
+
+        // Notify the ground owner
+        try {
+            $notif = new \App\Models\Notification();
+            $notif->createNotification(
+                $ownerId, 'commission_invoice',
+                'Commission Invoice Sent',
+                'A commission invoice ' . $invoice['invoice_number'] . ' for Rs. ' .
+                number_format($invoice['commission_amount'], 2) . ' has been issued. Due: ' . $invoice['due_date'],
+                ['invoice_id' => $invoice['id']]
+            );
+        } catch (\Exception $e) {
+            error_log('Commission invoice notification error: ' . $e->getMessage());
+        }
+
+        return $this->json(['success' => true, 'invoice' => $invoice]);
+    }
+
+    public function markCommissionPaid(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        $id = (int)$request->getParam('id');
+        $ok = $this->commissionModel()->markPaid($id);
+        return $this->json(['success' => $ok, 'message' => $ok ? 'Marked as paid' : 'Failed']);
+    }
+
+    // Ground owner: view their own invoices
+    public function getMyCommissionInvoices(Request $request): Response
+    {
+        $this->startSession();
+        if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ground_owner') {
+            return $this->json(['success' => false], 403);
+        }
+        $invoices = $this->commissionModel()->getInvoicesByOwner((int)$_SESSION['user_id']);
+        return $this->json(['success' => true, 'invoices' => $invoices]);
+    }
+
+    // =========================================================
+    // GROUND MANAGEMENT
+    // =========================================================
+
+    private function facilityModel(): \App\Models\SportsFacility
+    {
+        return new \App\Models\SportsFacility();
+    }
+
+    public function groundsPage(Request $request): Response
+    {
+        if (!$this->checkAdmin()) {
+            return new \Core\Response('', 302, ['Location' => (defined('BASE_URL') ? BASE_URL : '') . '/login']);
+        }
+        return $this->viewWithoutLayout('admin/grounds', []);
+    }
+
+    public function getAdminGrounds(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        $status = $request->query('status') ?? '';
+        $search = $request->query('search') ?? '';
+        $grounds = $this->facilityModel()->getAllForAdmin($status, $search);
+        $stats   = $this->facilityModel()->getAdminStats();
+        return $this->json(['success' => true, 'grounds' => $grounds, 'stats' => $stats]);
+    }
+
+    public function approveGround(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        $id = (int)$request->getParam('id');
+        $ok = $this->facilityModel()->setStatus($id, 'active');
+        if ($ok) {
+            // Notify the ground owner
+            try {
+                $ground = $this->facilityModel()->find($id);
+                if ($ground) {
+                    $notif = new \App\Models\Notification();
+                    $notif->createNotification(
+                        $ground['owner_id'], 'system',
+                        'Ground Approved',
+                        "Your ground \"{$ground['name']}\" has been approved and is now live.",
+                        ['facility_id' => $id]
+                    );
+                }
+            } catch (\Exception $e) { error_log('Ground approve notif: ' . $e->getMessage()); }
+        }
+        return $this->json(['success' => $ok, 'message' => $ok ? 'Ground approved' : 'Failed']);
+    }
+
+    public function deactivateGround(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        $id = (int)$request->getParam('id');
+        $ok = $this->facilityModel()->setStatus($id, 'inactive');
+        if ($ok) {
+            try {
+                $ground = $this->facilityModel()->find($id);
+                if ($ground) {
+                    $notif = new \App\Models\Notification();
+                    $notif->createNotification(
+                        $ground['owner_id'], 'system',
+                        'Ground Deactivated',
+                        "Your ground \"{$ground['name']}\" has been deactivated by admin.",
+                        ['facility_id' => $id]
+                    );
+                }
+            } catch (\Exception $e) { error_log('Ground deactivate notif: ' . $e->getMessage()); }
+        }
+        return $this->json(['success' => $ok, 'message' => $ok ? 'Ground deactivated' : 'Failed']);
+    }
+
+    public function rejectGround(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        $id = (int)$request->getParam('id');
+        $data = $request->getJsonBody();
+        $reason = trim($data['reason'] ?? '');
+        $ok = $this->facilityModel()->setStatus($id, 'inactive');
+        if ($ok) {
+            try {
+                $ground = $this->facilityModel()->find($id);
+                if ($ground) {
+                    $notif = new \App\Models\Notification();
+                    $notif->createNotification(
+                        $ground['owner_id'], 'system',
+                        'Ground Submission Rejected',
+                        "Your ground \"{$ground['name']}\" was not approved." . ($reason ? " Reason: {$reason}" : ''),
+                        ['facility_id' => $id]
+                    );
+                }
+            } catch (\Exception $e) { error_log('Ground reject notif: ' . $e->getMessage()); }
+        }
+        return $this->json(['success' => $ok, 'message' => $ok ? 'Ground rejected' : 'Failed']);
+    }
+
+    public function getAdminGroundDetail(Request $request): Response
+    {
+        if (!$this->checkAdmin()) return $this->json(['success' => false], 403);
+        $id = (int)$request->getParam('id');
+        $ground = $this->facilityModel()->find($id);
+        if (!$ground) return $this->json(['success' => false, 'message' => 'Not found'], 404);
+        return $this->json(['success' => true, 'ground' => $ground]);
+    }
 }

@@ -13,6 +13,7 @@ elseif (strpos($currentPath, '/ground-owner/schedule') !== false) $activePage = 
 elseif (strpos($currentPath, '/ground-owner/availability') !== false) $activePage = 'availability';
 elseif (strpos($currentPath, '/ground-owner/maintenance') !== false) $activePage = 'maintenance';
 elseif (strpos($currentPath, '/ground-owner/coaches') !== false) $activePage = 'coaches';
+elseif (strpos($currentPath, '/ground-owner/commission') !== false) $activePage = 'commission';
 elseif (strpos($currentPath, '/ground-owner/profile') !== false) $activePage = 'profile';
 elseif (strpos($currentPath, '/ground-owner/dashboard') !== false) $activePage = 'dashboard';
 
@@ -26,6 +27,7 @@ $menuItems = [
     ['id'=>'availability','url'=>$_base.'/ground-owner/availability','icon'=>'fas fa-calendar-check','label'=>'Availability','badge'=>null],
     ['id'=>'maintenance','url'=>$_base.'/ground-owner/maintenance','icon'=>'fas fa-tools','label'=>'Maintenance','badge'=>null],
     ['id'=>'coaches','url'=>$_base.'/ground-owner/coaches','icon'=>'fas fa-user-tie','label'=>'Coaches','badge'=>null],
+    ['id'=>'commission','url'=>$_base.'/ground-owner/commission','icon'=>'fas fa-file-invoice-dollar','label'=>'Commission Invoices','badge'=>null],
     'divider',
     ['id'=>'profile','url'=>$_base.'/ground-owner/profile','icon'=>'fas fa-user','label'=>'Profile','badge'=>null],
     ['id'=>'logout','url'=>$_base.'/logout','icon'=>'fas fa-sign-out-alt','label'=>'Logout','badge'=>null,'class'=>'logout-link']
@@ -37,7 +39,13 @@ $menuItems = [
         <button class="sidebar-collapse-btn desktop-only" onclick="toggleSidebarCollapse()" title="Toggle Sidebar">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <div class="logo"><span class="logo-text">Ground Manager</span></div>
+        <a href="<?= $_base ?>/" class="logo">
+            <img src="<?= $_base ?>/public/assets/images/logo.jpeg" alt="GoPlay" class="logo-img">
+            <div class="logo-text-wrap">
+                <span class="logo-text">GoPlay</span>
+                <span class="logo-badge">Ground Owner</span>
+            </div>
+        </a>
     </div>
     <nav class="sidebar-nav">
         <ul>
@@ -75,8 +83,12 @@ $menuItems = [
 .admin-sidebar{position:fixed;left:0;top:0;height:100vh;width:260px;background:linear-gradient(180deg,#1e293b 0%,#0f172a 100%);color:#e2e8f0;display:flex;flex-direction:column;transition:width .3s cubic-bezier(.4,0,.2,1);z-index:1000;box-shadow:4px 0 24px rgba(0,0,0,.12);overflow:hidden}
 .admin-sidebar.collapsed{width:80px}
 .sidebar-header{padding:24px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1);min-height:80px}
-.sidebar-header .logo{display:flex;align-items:center;gap:12px;transition:all .3s ease}
-.logo-text{font-size:24px;font-weight:700;color:#fff;white-space:nowrap;opacity:1;transition:opacity .2s ease}
+.sidebar-header .logo{display:flex;align-items:center;gap:10px;transition:all .3s ease;text-decoration:none}
+.logo-img{width:40px;height:40px;border-radius:8px;object-fit:contain;flex-shrink:0;background:#fff;padding:2px}
+.logo-text-wrap{display:flex;flex-direction:column;opacity:1;transition:opacity .2s ease;overflow:hidden}
+.admin-sidebar.collapsed .logo-text-wrap{opacity:0;width:0}
+.logo-text{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;line-height:1.1;letter-spacing:.5px}
+.logo-badge{font-size:10px;font-weight:600;color:#94a3b8;white-space:nowrap;text-transform:uppercase;letter-spacing:.8px;margin-top:1px}
 .admin-sidebar.collapsed .logo-text{opacity:0;width:0}
 .sidebar-collapse-btn{background:rgba(255,255,255,.1);border:none;width:32px;height:32px;border-radius:8px;color:#e2e8f0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s ease;flex-shrink:0}
 .sidebar-collapse-btn:hover{background:rgba(255,255,255,.2);color:#fff;transform:scale(1.05)}

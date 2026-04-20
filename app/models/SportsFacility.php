@@ -557,4 +557,42 @@ class SportsFacility extends BaseModel
 
         return $this->query($sql, [$facilityId])->fetchAll(\PDO::FETCH_ASSOC) ?: [];
     }
+
+    // Admin: all grounds with owner info, optional status filter
+    public function getAllForAdmin(string $status = '', string $search = ''): array
+    {
+        $sql = "SELECT sf.*, sc.name AS category_name,
+                       CONCAT(u.first_name,' ',u.last_name) AS owner_name,
+                       u.email AS owner_email, u.phone AS owner_phone
+                FROM {$this->table} sf
+                LEFT JOIN sports_categories sc ON sf.sport_category_id = sc.id
+                LEFT JOIN users u ON sf.owner_id = u.id
+                WHERE 1=1";
+        $params = [];
+        if ($status) { $sql .= " AND sf.status = ?"; $params[] = $status; }
+        if ($search) { $sql .= " AND (sf.name LIKE ? OR sf.city LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)"; $s = "%{$search}%"; $params = array_merge($params, [$s,$s,$s,$s]); }
+        $sql .= " ORDER BY sf.created_at DESC";
+        return $this->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
+
+    // Admin: set status
+    public function setStatus(int $id, string $status): bool
+    {
+        return (bool)$this->query("UPDATE {$this->table} SET status=? WHERE id=?", [$status, $id])->rowCount();
+    }
+
+    // Admin: stats
+    public function getAdminStats(): array
+    {
+        $row = $this->queryFirst(
+            "SELECT
+                COUNT(*) AS total,
+                SUM(status='active') AS active,
+                SUM(status='pending_review') AS pending,
+                SUM(status='inactive') AS inactive,
+                SUM(status='maintenance') AS maintenance
+             FROM {$this->table}", []
+        );
+        return $row ?? [];
+    }
 }

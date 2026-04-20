@@ -23,7 +23,8 @@ class Order extends BaseModel
         'payment_method',
         'shipping_address',
         'billing_address',
-        'notes'
+        'notes',
+        'cod_payment_proof'
     ];
 
     protected array $casts = [
@@ -263,6 +264,32 @@ class Order extends BaseModel
         
         $statement = $this->query($sql, $params);
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get all COD orders for a shop owner with proof status.
+     */
+    public function getCODOrdersByShopOwner(int $shopOwnerId): array
+    {
+        $sql = "SELECT
+                    o.id, o.order_number, o.created_at, o.status, o.payment_status,
+                    o.total_amount, o.cod_payment_proof,
+                    u.username as customer_name, u.phone as customer_phone,
+                    COALESCE(SUM(oi.total_price), 0) as shop_owner_subtotal
+                FROM {$this->table} o
+                INNER JOIN order_items oi ON o.id = oi.order_id
+                INNER JOIN products p ON oi.product_id = p.id
+                LEFT JOIN users u ON o.user_id = u.id
+                WHERE p.shop_owner_id = ? AND o.payment_method = 'cash'
+                GROUP BY o.id, o.order_number, o.created_at, o.status, o.payment_status,
+                         o.total_amount, o.cod_payment_proof, u.username, u.phone
+                ORDER BY o.created_at DESC";
+        $rows = $this->query($sql, [$shopOwnerId])->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map(function($row) {
+            $row['shop_owner_subtotal'] = (float)$row['shop_owner_subtotal'];
+            $row['total_amount'] = (float)$row['total_amount'];
+            return $row;
+        }, $rows);
     }
 
     /**

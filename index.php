@@ -222,6 +222,7 @@ try {
     $router->get('/ground-owner/availability', 'GroundOwnerController@availabilityPage');
     $router->get('/ground-owner/maintenance', 'GroundOwnerController@maintenancePage');
     $router->get('/ground-owner/coaches', 'GroundOwnerController@coachesPage');
+    $router->get('/ground-owner/commission', 'GroundOwnerController@commissionPage');
     $router->get('/ground-owner/profile', 'GroundOwnerController@profilePage');
     $router->get('/ground-owner/settings', 'GroundOwnerController@settingsPage');
 
@@ -266,6 +267,7 @@ try {
     $router->delete('/api/ground-owner/blocked-dates/{id}', 'GroundOwnerController@removeBlockedDate');
     $router->get('/api/ground-owner/facilities/{id}/bookings', 'GroundOwnerController@getFacilityBookings');
     $router->put('/api/ground-owner/bookings/{id}/status', 'GroundOwnerController@updateBookingStatus');
+    $router->post('/api/ground-owner/bookings/{id}/confirm-payment', 'GroundOwnerController@confirmBookingPayment');
 
     // Ground Owner Maintenance API routes
     $router->get('/api/ground-owner/maintenance/stats', 'GroundOwnerController@getMaintenanceStats');
@@ -414,6 +416,8 @@ try {
     $router->delete('/api/shop-owner/products/{id}', 'ShopOwnerController@deleteProduct');
     $router->post('/api/shop-owner/products/{id}/upload-images', 'ShopOwnerController@uploadProductImages');
     $router->get('/api/shop-owner/orders', 'ShopOwnerController@getOrders');
+    $router->get('/api/shop-owner/cod-transactions', 'ShopOwnerController@getCODTransactions');
+    $router->post('/api/shop-owner/orders/{id}/cod-proof', 'ShopOwnerController@uploadCODProof');
     $router->get('/api/shop-owner/orders/{id}', 'ShopOwnerController@getOrder');
     $router->put('/api/shop-owner/orders/{id}/status', 'ShopOwnerController@updateOrderStatus');
     $router->get('/shop-owner/get-order', 'ShopOwnerController@getOrder');
@@ -457,6 +461,24 @@ try {
     $router->get('/api/admin/payouts', 'AdminController@getPayouts');
     $router->post('/api/admin/payouts/approve', 'AdminController@approvePayout');
     $router->post('/api/admin/payouts/reject', 'AdminController@rejectPayout');
+
+    // Admin Ground Management
+    $router->get('/admin/grounds',                             'AdminController@groundsPage');
+    $router->get('/api/admin/grounds',                         'AdminController@getAdminGrounds');
+    $router->get('/api/admin/grounds/{id}',                    'AdminController@getAdminGroundDetail');
+    $router->put('/api/admin/grounds/{id}/approve',            'AdminController@approveGround');
+    $router->put('/api/admin/grounds/{id}/deactivate',         'AdminController@deactivateGround');
+    $router->put('/api/admin/grounds/{id}/reject',             'AdminController@rejectGround');
+
+    // Admin Commission Invoices
+    $router->get('/admin/commission',                          'AdminController@commissionPage');
+    $router->get('/api/admin/commission/stats',                'AdminController@getCommissionStats');
+    $router->get('/api/admin/commission/owners',               'AdminController@getCommissionOwners');
+    $router->get('/api/admin/commission/invoices',             'AdminController@getCommissionInvoices');
+    $router->get('/api/admin/commission/invoices/{id}',        'AdminController@getCommissionInvoiceDetail');
+    $router->post('/api/admin/commission/invoices',            'AdminController@generateCommissionInvoice');
+    $router->put('/api/admin/commission/invoices/{id}/paid',   'AdminController@markCommissionPaid');
+    $router->get('/api/ground-owner/commission/invoices',      'AdminController@getMyCommissionInvoices');
 
     // News Routes - Updated
     $router->get('/news', 'NewsController@index');

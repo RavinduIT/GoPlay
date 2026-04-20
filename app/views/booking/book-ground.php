@@ -827,6 +827,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                 width: 100%;
             }
         }
+
     </style>
 <div class="book-ground-container">
 
@@ -840,12 +841,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                         
                     </div>
                 </div>
-                <div class="header-actions">
-                    <button class="btn-secondary" onclick="toggleMapView()">
-                        <i class="fas fa-map"></i>
-                        <span id="map-toggle-text">Show Map</span>
-                    </button>
-                </div>
+                
             </div>
         </div>
 
@@ -1070,8 +1066,8 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
 
         
 
-<script async 
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3qKhJG9ulG0vgu9KxaG0NPXADLGxMr7k&callback=initMap&libraries=&v=weekly"
+<script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3qKhJG9ulG0vgu9KxaG0NPXADLGxMr7k&callback=initMap&loading=async&libraries=&v=weekly"
     onerror="handleMapLoadError()">
 </script>
 
@@ -1098,4 +1094,3 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
     };
 </script>
 
-<script src="<?= $_base ?>/public/js/pages/book-ground.js"></script>

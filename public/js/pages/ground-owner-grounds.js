@@ -190,7 +190,8 @@ function renderGrid(list) {
             : '';
 
         const status   = g.status || 'active';
-        const statusLbl= status.charAt(0).toUpperCase() + status.slice(1);
+        const statusLblMap = {active:'Active',inactive:'Inactive',maintenance:'Maintenance',pending_review:'Pending Review'};
+        const statusLbl= statusLblMap[status] || (status.charAt(0).toUpperCase()+status.slice(1));
         const rating   = parseFloat(g.rating) || 0;
         const ratingHtml = rating > 0
             ? `<span><i class="fas fa-star" style="color:#f59e0b;font-size:11px"></i> ${rating.toFixed(1)}</span>`

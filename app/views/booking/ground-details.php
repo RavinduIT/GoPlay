@@ -369,6 +369,16 @@ $groundId = $_GET['id'] ?? 1;
             background: #e0eaff;
         }
 
+        .coaches-note {
+            font-size: 12px;
+            color: #0891b2;
+            background: #e0f7fa;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 0 0 12px;
+            line-height: 1.5;
+        }
+
         .map-container {
             height: 300px;
             background: var(--background-light);
@@ -1111,6 +1121,7 @@ $groundId = $_GET['id'] ?? 1;
                         <i class="fas fa-user-tie"></i>
                         Coaches Here
                     </h3>
+                    <p class="coaches-note">These coaches are enrolled at this facility. Click a coach's profile to view their availability and book a session.</p>
                     <div id="facility-coaches-list"></div>
                 </div>
             </div>

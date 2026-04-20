@@ -1,21 +1,26 @@
-// Load components
+// Load components (only needed for standalone pages without the main layout)
 function loadComponents() {
-    // Load navbar
-    fetch((window.BASE_URL||'')+'/app/views/components/navbar.php')
-        .then(res => res.text())
-        .then(data => {
-            document.getElementById('navbar-container').innerHTML = data;
-            if (typeof Navbar !== 'undefined') {
-                new Navbar();
-            }
-        });
+    const navbarContainer = document.getElementById('navbar-container');
+    const footerContainer = document.getElementById('footer-container');
 
-    // Load footer
-    fetch((window.BASE_URL||'')+'/app/views/components/footer.php')
-        .then(res => res.text())
-        .then(data => {
-            document.getElementById('footer-container').innerHTML = data;
-        });
+    if (navbarContainer) {
+        fetch((window.BASE_URL||'')+'/app/views/components/navbar.php')
+            .then(res => res.text())
+            .then(data => {
+                navbarContainer.innerHTML = data;
+                if (typeof Navbar !== 'undefined') {
+                    new Navbar();
+                }
+            });
+    }
+
+    if (footerContainer) {
+        fetch((window.BASE_URL||'')+'/app/views/components/footer.php')
+            .then(res => res.text())
+            .then(data => {
+                footerContainer.innerHTML = data;
+            });
+    }
 }
 // Book Ground JavaScript - Connects to database API
 class GroundBookingApp {
