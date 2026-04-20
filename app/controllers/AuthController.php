@@ -135,9 +135,10 @@ class AuthController extends BaseController
             ]);
 
         } catch (\Exception $e) {
+            error_log("Login error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'message' => 'Login failed: ' . $e->getMessage()
+                'message' => 'Login failed. Please try again.'
             ], 500);
         }
     }
@@ -326,7 +327,7 @@ class AuthController extends BaseController
             error_log("Registration Error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'message' => 'Registration failed: ' . $e->getMessage()
+                'message' => 'Registration failed. Please try again.'
             ], 500);
         }
     }
