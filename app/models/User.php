@@ -81,16 +81,16 @@ class User extends BaseModel
     /**
      * Record user login
      */
-    public function recordLogin(int $userId,): bool
+    public function recordLogin(int $userId, string $ipAddress = '', string $userAgent = ''): bool
     {
         try {
-            $sql = "INSERT INTO user_logins (user_id, last_login_at, last_login_ip, user_agent) 
+            $sql = "INSERT INTO user_logins (user_id, last_login_at, last_login_ip, user_agent)
                     VALUES (?, NOW(), ?, ?)";
-            
+
             $this->query($sql, [
                 $userId,
-                $ipAddress ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                $userAgent ?? $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+                $ipAddress ?: ($_SERVER['REMOTE_ADDR'] ?? 'unknown'),
+                $userAgent ?: ($_SERVER['HTTP_USER_AGENT'] ?? 'unknown'),
             ]);
 
             return true;
@@ -103,17 +103,17 @@ class User extends BaseModel
     /**
      * Log user activity
      */
-    public function logActivity(int $userId, string $activityType, string $description = ''): bool
+    public function logActivity(int $userId, string $activityType, string $description = '', string $ipAddress = ''): bool
     {
         try {
-            $sql = "INSERT INTO user_activity_log (user_id, activity_type, activity_description, ip_address, created_at) 
+            $sql = "INSERT INTO user_activity_log (user_id, activity_type, activity_description, ip_address, created_at)
                     VALUES (?, ?, ?, ?, NOW())";
-            
+
             $this->query($sql, [
                 $userId,
                 $activityType,
                 $description,
-                $ipAddress ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                $ipAddress ?: ($_SERVER['REMOTE_ADDR'] ?? 'unknown'),
             ]);
 
             return true;

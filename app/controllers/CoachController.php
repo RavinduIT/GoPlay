@@ -991,7 +991,8 @@ class CoachController extends BaseController
                 'stats'   => $stats,
             ]);
         } catch (\Exception $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1019,7 +1020,8 @@ class CoachController extends BaseController
 
             return $this->json(['success' => true, 'history' => $history]);
         } catch (\Exception $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1317,12 +1319,9 @@ class CoachController extends BaseController
                 'total' => count($formattedCoaches)
             ]);
             
-        } catch (Exception $e) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Failed to fetch coaches',
-                'message' => $e->getMessage()
-            ], 500);
+        } catch (Exception ) {
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'Failed to fetch coaches'], 500);
         }
     }
     
@@ -1381,12 +1380,9 @@ class CoachController extends BaseController
                 'coach' => $formattedCoach
             ]);
 
-        } catch (Exception $e) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Failed to fetch coach details',
-                'message' => $e->getMessage()
-            ], 500);
+        } catch (Exception ) {
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'Failed to fetch coach details'], 500);
         }
     }
 
@@ -1426,8 +1422,8 @@ class CoachController extends BaseController
                 error_log("JsonBody Data: " . json_encode($data));
             }
 
-            // Validate required fields
-            $required = ['coach_id', 'booking_date', 'start_time', 'session_type', 'total_amount'];
+            // Validate required fields (total_amount is no longer client-trusted)
+            $required = ['coach_id', 'booking_date', 'start_time', 'session_type'];
             $missing = [];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
@@ -1436,24 +1432,38 @@ class CoachController extends BaseController
             }
 
             if (!empty($missing)) {
-                error_log("Missing fields: " . implode(', ', $missing));
-                error_log("Available fields: " . implode(', ', array_keys($data)));
                 return $this->json([
                     'success' => false,
                     'error' => "Missing required fields: " . implode(', ', $missing),
-                    'received_data' => array_keys($data),
-                    'debug' => [
-                        'content_type' => $request->getHeader('content-type'),
-                        'method' => $request->getMethod(),
-                        'body_count' => count($data)
-                    ]
                 ], 400);
             }
 
-            // Calculate end time (default 1 hour)
-            $duration = isset($data['duration']) ? (int)$data['duration'] : 60;
+            // Validate session_type
+            $allowedSessionTypes = ['individual', 'group', 'assessment'];
+            if (!in_array($data['session_type'], $allowedSessionTypes, true)) {
+                return $this->json(['success' => false, 'error' => 'Invalid session type'], 400);
+            }
+
+            // Reject past booking dates
+            if ($data['booking_date'] < date('Y-m-d')) {
+                return $this->json(['success' => false, 'error' => 'Booking date must be today or in the future'], 400);
+            }
+
+            // Verify coach exists and is approved
+            $coachModel = new Coach();
+            $coachRows  = $coachModel->where(['id' => (int)$data['coach_id']]);
+            if (empty($coachRows) || ($coachRows[0]['status'] ?? '') !== 'approved') {
+                return $this->json(['success' => false, 'error' => 'Coach not found or not available'], 404);
+            }
+            $coach = $coachRows[0];
+
+            // Calculate end time from duration (default 1 hour)
+            $duration  = max(30, (int)($data['duration'] ?? 60));
             $startTime = $data['start_time'];
-            $endTime = date('H:i', strtotime($startTime) + ($duration * 60));
+            $endTime   = date('H:i', strtotime($startTime) + ($duration * 60));
+
+            // Compute total_amount server-side from coach's authoritative hourly_rate
+            $totalAmount = round((float)$coach['hourly_rate'] * ($duration / 60), 2);
 
             // Check if time slot is available
             $coachBookingModel = new CoachBooking();
@@ -1473,14 +1483,15 @@ class CoachController extends BaseController
 
             // Create booking
             $bookingData = [
-                'user_id' => $userId,
-                'coach_id' => (int)$data['coach_id'],
-                'booking_date' => $data['booking_date'],
-                'start_time' => $startTime,
-                'end_time' => $endTime,
-                'session_type' => $data['session_type'],
-                'total_amount' => (float)$data['total_amount'],
-                'special_requests' => $data['special_requests'] ?? ''
+                'user_id'          => $userId,
+                'coach_id'         => (int)$data['coach_id'],
+                'booking_date'     => $data['booking_date'],
+                'start_time'       => $startTime,
+                'end_time'         => $endTime,
+                'duration'         => $duration,
+                'session_type'     => $data['session_type'],
+                'total_amount'     => $totalAmount,
+                'special_requests' => substr(trim($data['special_requests'] ?? ''), 0, 1000),
             ];
 
             $bookingId = $coachBookingModel->createBooking($bookingData);
@@ -1499,10 +1510,10 @@ class CoachController extends BaseController
             }
 
         } catch (\Exception $e) {
+            error_log("createCoachBooking error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'error' => 'An error occurred',
-                'message' => $e->getMessage()
+                'error' => 'An error occurred while creating the booking'
             ], 500);
         }
     }
@@ -1532,11 +1543,8 @@ class CoachController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Failed to fetch bookings',
-                'message' => $e->getMessage()
-            ], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'Failed to fetch bookings'], 500);
         }
     }
 
@@ -1591,11 +1599,8 @@ class CoachController extends BaseController
             }
 
         } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'error' => 'An error occurred',
-                'message' => $e->getMessage()
-            ], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred'], 500);
         }
     }
 
@@ -1644,11 +1649,8 @@ class CoachController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Failed to fetch bookings',
-                'message' => $e->getMessage()
-            ], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'Failed to fetch bookings'], 500);
         }
     }
 
@@ -1689,7 +1691,8 @@ class CoachController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1728,7 +1731,8 @@ class CoachController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1786,7 +1790,8 @@ class CoachController extends BaseController
                 'currentPage' => $result['page'],
             ]);
         } catch (\Exception $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1809,7 +1814,8 @@ class CoachController extends BaseController
 
             return $this->json(['success' => true] + $data);
         } catch (\Exception $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1830,7 +1836,8 @@ class CoachController extends BaseController
             $data = (new CoachBooking())->getSessionBreakdown($coachId);
             return $this->json(['success' => true] + $data);
         } catch (\Exception $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1854,7 +1861,8 @@ class CoachController extends BaseController
 
             return $this->json(['success' => true, 'session' => $session]);
         } catch (\Exception $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1904,7 +1912,8 @@ class CoachController extends BaseController
             $response->setHeader('Content-Disposition', 'attachment; filename="coach-earnings-' . date('Y-m-d') . '.csv"');
             return $response;
         } catch (\Exception $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1958,7 +1967,8 @@ class CoachController extends BaseController
             return $this->json(['success' => true, 'slots' => $slots]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2010,7 +2020,8 @@ class CoachController extends BaseController
             return $this->json(['success' => true, 'message' => 'Session rescheduled successfully']);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2048,7 +2059,8 @@ class CoachController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2070,7 +2082,8 @@ class CoachController extends BaseController
             return $this->json(['success' => true, 'bookings' => $bookings]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2107,7 +2120,8 @@ class CoachController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2163,7 +2177,8 @@ class CoachController extends BaseController
             return $this->json(['success' => true, 'id' => $newId, 'status' => 'pending']);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2193,7 +2208,8 @@ class CoachController extends BaseController
             return $this->json(['success' => $ok]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2223,7 +2239,8 @@ class CoachController extends BaseController
             return $this->json(['success' => $ok]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2249,7 +2266,8 @@ class CoachController extends BaseController
             return $this->json(['success' => true, 'facilities' => $facilities]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2275,7 +2293,8 @@ class CoachController extends BaseController
             return $this->json(['success' => true, 'facilities' => $facilities]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2316,6 +2335,42 @@ class CoachController extends BaseController
             $endTime    = $data['end_time'];
             $facilityId = !empty($data['facility_id']) ? (int)$data['facility_id'] : null;
 
+            // Validate session_type
+            $allowedSessionTypes = ['individual', 'group', 'assessment'];
+            if (!in_array($data['session_type'], $allowedSessionTypes, true)) {
+                return $this->json(['success' => false, 'error' => 'Invalid session type'], 400);
+            }
+
+            // Reject past booking dates
+            if ($date < date('Y-m-d')) {
+                return $this->json(['success' => false, 'error' => 'Booking date must be today or in the future'], 400);
+            }
+
+            // Verify coach exists and is approved; compute price server-side
+            $coachModel = new Coach();
+            $coachRows  = $coachModel->where(['id' => $coachId]);
+            if (empty($coachRows) || ($coachRows[0]['status'] ?? '') !== 'approved') {
+                return $this->json(['success' => false, 'error' => 'Coach not found or not available'], 404);
+            }
+            $coach    = $coachRows[0];
+            $duration = max(30, (int)($data['duration'] ?? 60));
+
+            // Derive duration from times if both provided, otherwise use duration field
+            $computedDuration = (strtotime($endTime) - strtotime($startTime)) / 60;
+            if ($computedDuration > 0) {
+                $duration = (int)$computedDuration;
+            }
+            $totalAmount = round((float)$coach['hourly_rate'] * ($duration / 60), 2);
+
+            // If a facility was requested, verify the coach is actually linked to it
+            if ($facilityId) {
+                $linkedFacilities = $coachModel->getFacilities($coachId);
+                $linkedIds = array_column($linkedFacilities, 'facility_id');
+                if (!in_array($facilityId, $linkedIds)) {
+                    return $this->json(['success' => false, 'error' => 'Coach is not linked to the selected facility'], 400);
+                }
+            }
+
             // Pre-flight: check coach slot
             $bookingModel = new CoachBooking();
             if (!$bookingModel->isTimeSlotAvailable($coachId, $date, $startTime, $endTime)) {
@@ -2341,11 +2396,11 @@ class CoachController extends BaseController
                     'booking_date'     => $date,
                     'start_time'       => $startTime,
                     'end_time'         => $endTime,
-                    'duration'         => (int)($data['duration'] ?? 60),
+                    'duration'         => $duration,
                     'session_type'     => $data['session_type'],
                     'session_title'    => $data['session_title'] ?? null,
-                    'total_amount'     => (float)$data['total_amount'],
-                    'special_requests' => $data['special_requests'] ?? null,
+                    'total_amount'     => $totalAmount,
+                    'special_requests' => substr(trim($data['special_requests'] ?? ''), 0, 1000),
                 ]);
 
                 $facilityBookingId = null;
@@ -2375,7 +2430,8 @@ class CoachController extends BaseController
             }
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log("createBundledBooking error: " . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred while creating the booking'], 500);
         }
     }
 
@@ -2418,7 +2474,8 @@ class CoachController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage());
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 } 

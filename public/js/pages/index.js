@@ -40,6 +40,7 @@
         d.textContent = str;
         return d.innerHTML;
     }
+    
 
     async function renderVenues() {
         const grid = document.getElementById('venuesGrid');

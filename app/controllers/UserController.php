@@ -152,8 +152,22 @@ class UserController extends BaseController
             $updateData = [];
             foreach ($allowedFields as $field) {
                 if (isset($data[$field])) {
-                    $updateData[$field] = htmlspecialchars(trim($data[$field]));
+                    $updateData[$field] = trim($data[$field]);
                 }
+            }
+
+            // Validate lengths
+            if (isset($updateData['first_name']) && strlen($updateData['first_name']) < 2) {
+                return $this->json(['error' => 'First name must be at least 2 characters'], 400);
+            }
+            if (isset($updateData['last_name']) && strlen($updateData['last_name']) < 2) {
+                return $this->json(['error' => 'Last name must be at least 2 characters'], 400);
+            }
+            if (isset($updateData['first_name']) && strlen($updateData['first_name']) > 100) {
+                return $this->json(['error' => 'First name must not exceed 100 characters'], 400);
+            }
+            if (isset($updateData['last_name']) && strlen($updateData['last_name']) > 100) {
+                return $this->json(['error' => 'Last name must not exceed 100 characters'], 400);
             }
 
             if (empty($updateData)) {
@@ -180,7 +194,8 @@ class UserController extends BaseController
             }
 
         } catch (\Exception $e) {
-            return $this->json(['error' => 'Update failed: ' . $e->getMessage()], 500);
+            error_log("updateProfile error: " . $e->getMessage());
+            return $this->json(['error' => 'Update failed. Please try again.'], 500);
         }
     }
 
@@ -202,18 +217,22 @@ class UserController extends BaseController
             }
 
             $file = $_FILES['avatar'];
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             $maxSize = 5 * 1024 * 1024; // 5MB
 
-            // Validate file type
-            if (!in_array($file['type'], $allowedTypes)) {
-                return $this->json(['error' => 'Invalid file type. Only JPEG, PNG, and GIF are allowed'], 400);
-            }
-
-            // Validate file size
+            // Validate file size first (cheap check before reading file)
             if ($file['size'] > $maxSize) {
                 return $this->json(['error' => 'File too large. Maximum size is 5MB'], 400);
             }
+
+            // Validate actual MIME type from file content, not browser-supplied header
+            $mime = mime_content_type($file['tmp_name']);
+            if (!in_array($mime, $allowedTypes, true)) {
+                return $this->json(['error' => 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed'], 400);
+            }
+
+            // Derive extension from verified MIME type (not original filename)
+            $mimeExtMap = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
 
             // Create upload directory if it doesn't exist
             $uploadDir = ROOT_PATH . '/public/uploads/avatars/';
@@ -221,8 +240,8 @@ class UserController extends BaseController
                 mkdir($uploadDir, 0755, true);
             }
 
-            // Generate unique filename
-            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            // Generate unique filename with extension derived from real MIME type
+            $extension = $mimeExtMap[$mime];
             $filename = 'avatar_' . $_SESSION['user_id'] . '_' . time() . '.' . $extension;
             $filePath = $uploadDir . $filename;
 
@@ -253,7 +272,8 @@ class UserController extends BaseController
             }
 
         } catch (\Exception $e) {
-            return $this->json(['error' => 'Upload failed: ' . $e->getMessage()], 500);
+            error_log("uploadAvatar error: " . $e->getMessage());
+            return $this->json(['error' => 'Upload failed. Please try again.'], 500);
         }
     }
 
@@ -303,7 +323,7 @@ class UserController extends BaseController
             }
 
         } catch (\Exception $e) {
-            return $this->json(['error' => 'Password change failed: ' . $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage()); return $this->json(['error' => 'Password change failed. Please try again.'], 500);
         }
     }
 
@@ -327,7 +347,7 @@ class UserController extends BaseController
                 'bookings' => $bookings
             ]);
         } catch (\Exception $e) {
-            return $this->json(['error' => 'Failed to fetch bookings: ' . $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage()); return $this->json(['error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -391,7 +411,7 @@ class UserController extends BaseController
                 'orders' => array_values($orders)
             ]);
         } catch (\Exception $e) {
-            return $this->json(['error' => 'Failed to fetch orders: ' . $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage()); return $this->json(['error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -437,7 +457,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load order details',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -462,7 +482,7 @@ class UserController extends BaseController
                 'stats' => $stats
             ]);
         } catch (\Exception $e) {
-            return $this->json(['error' => 'Failed to fetch stats: ' . $e->getMessage()], 500);
+            error_log(__METHOD__ . ' error: ' . $e->getMessage()); return $this->json(['error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -502,7 +522,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to cancel order',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -582,7 +602,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to fetch ground bookings',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -630,6 +650,21 @@ class UserController extends BaseController
                 return $this->json([
                     'success' => false,
                     'message' => 'This time slot is not available'
+                ], 409);
+            }
+
+            // Check owner-set blocked dates and operating hours
+            $availModel = new \App\Models\FacilityAvailability();
+            if ($availModel->isDateBlocked($facilityId, $bookingDate, $startTime, $endTime)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'This ground is not available on the selected date'
+                ], 409);
+            }
+            if (!$availModel->isWithinOperatingHours($facilityId, $bookingDate, $startTime, $endTime)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Selected time is outside of the ground\'s operating hours'
                 ], 409);
             }
 
@@ -691,10 +726,10 @@ class UserController extends BaseController
             ], 201);
 
         } catch (\Exception $e) {
+            error_log("createGroundBooking error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'message' => 'Failed to create booking',
-                'error' => $e->getMessage()
+                'message' => 'Failed to create booking. Please try again.'
             ], 500);
         }
     }
@@ -723,7 +758,7 @@ class UserController extends BaseController
 
             // Verify booking belongs to user
             $booking = $this->groundBookingModel->find($bookingId);
-            if (!$booking || $booking['user_id'] != $userId) {
+            if (!$booking || (int)$booking['user_id'] !== (int)$userId) {
                 return $this->json([
                     'success' => false,
                     'message' => 'Booking not found or unauthorized'
@@ -779,10 +814,10 @@ class UserController extends BaseController
             ]);
 
         } catch (\Exception $e) {
+            error_log("cancelGroundBooking error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'message' => 'Failed to cancel booking',
-                'error' => $e->getMessage()
+                'message' => 'Failed to cancel booking. Please try again.'
             ], 500);
         }
     }
@@ -830,7 +865,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to fetch booking details',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -931,7 +966,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to update booking',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -992,9 +1027,9 @@ class UserController extends BaseController
             }
 
             $facilityId = (int)$data['facility_id'];
-            $rating = (int)$data['rating'];
-            $reviewText = $data['review_text'] ?? '';
-            $bookingId = !empty($data['booking_id']) ? (int)$data['booking_id'] : null;
+            $rating     = (int)$data['rating'];
+            $reviewText = substr(trim($data['review_text'] ?? ''), 0, 2000);
+            $bookingId  = !empty($data['booking_id']) ? (int)$data['booking_id'] : null;
 
             // Validate rating
             if ($rating < 1 || $rating > 5) {
@@ -1045,10 +1080,10 @@ class UserController extends BaseController
             ], 201);
 
         } catch (\Exception $e) {
+            error_log("submitReview error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'message' => 'Error submitting review',
-                'error' => $e->getMessage()
+                'message' => 'Error submitting review. Please try again.'
             ], 500);
         }
     }
@@ -1081,7 +1116,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error loading reviews',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1130,7 +1165,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error updating review',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1178,7 +1213,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error deleting review',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1246,7 +1281,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error loading notifications',
-                'error'   => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1281,7 +1316,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error updating notification',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1316,7 +1351,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error updating notifications',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1351,7 +1386,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error deleting notification',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1386,7 +1421,7 @@ class UserController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error clearing notifications',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1442,7 +1477,7 @@ class UserController extends BaseController
             $bookings = $model->getBookingsByUser((int)$_SESSION['user_id']);
             return $this->json(['success' => true, 'bookings' => $bookings]);
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1481,7 +1516,7 @@ class UserController extends BaseController
             return $this->json(['success' => true, 'message' => 'Session rescheduled successfully']);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -1550,7 +1585,7 @@ class UserController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 }

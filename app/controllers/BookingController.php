@@ -119,7 +119,7 @@ class BookingController extends BaseController
      */
     public function createGroundBooking(Request $request): Response
     {
-        session_start();
+        $this->startSession();
         if (!isset($_SESSION['user_id'])) {
             return $this->json([
                 'success' => false,
@@ -155,6 +155,15 @@ class BookingController extends BaseController
             $facilityId = (int)$data['facility_id'];
             $startTime = $data['start_time'];
             $endTime = $data['end_time'];
+
+            // Reject bookings on inactive/deleted grounds
+            $facilityCheck = $this->getFacilityModel()->find($facilityId);
+            if (!$facilityCheck || ($facilityCheck['status'] ?? '') !== 'active') {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'This ground is not available for booking'
+                ], 403);
+            }
 
             if (!$this->getGroundBookingModel()->isTimeSlotAvailable($facilityId, $bookingDate, $startTime, $endTime)) {
                 return $this->json([
@@ -269,7 +278,7 @@ class BookingController extends BaseController
             error_log("Ground booking error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'message' => 'Failed to create booking: ' . $e->getMessage()
+                'message' => 'Failed to create booking. Please try again.'
             ], 500);
         }
     }
@@ -349,7 +358,7 @@ class BookingController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Unable to load facilities',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -388,7 +397,7 @@ class BookingController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Unable to load ground details',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -444,7 +453,7 @@ class BookingController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error loading reviews',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -465,7 +474,7 @@ class BookingController extends BaseController
             return $this->json(['success' => true, 'coaches' => $coaches]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -502,7 +511,7 @@ class BookingController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 }

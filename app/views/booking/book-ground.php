@@ -1107,7 +1107,6 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
     window.initMap = window.initMap || function() {
         console.log('initMap fallback called');
     };
-
-    
+</script>
 
 <script src="<?= $_base ?>/public/js/pages/book-ground.js"></script>

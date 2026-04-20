@@ -25,7 +25,7 @@ class SportsFacility extends BaseModel
         'amenities',
         'images',
         'rules',
-        'status'
+        'status',
     ];
     
     protected array $casts = [
@@ -58,31 +58,37 @@ class SportsFacility extends BaseModel
     }
     
     /**
-     * Create a new facility
+     * Create a new facility — only fillable fields are written.
      */
     public function create(array $data): int
     {
+        $data   = array_intersect_key($data, array_flip($this->fillable));
         $fields = array_keys($data);
         $placeholders = array_fill(0, count($fields), '?');
-        
-        $sql = "INSERT INTO {$this->table} (" . implode(', ', $fields) . ") 
+
+        $sql = "INSERT INTO {$this->table} (" . implode(', ', $fields) . ")
                 VALUES (" . implode(', ', $placeholders) . ")";
-        
+
         $this->query($sql, array_values($data));
-        return $this->db->lastInsertId();
+        return (int)$this->db->lastInsertId();
     }
-    
+
     /**
-     * Update a facility
+     * Update a facility — only fillable fields are written.
      */
     public function update(int $id, array $data): bool
     {
+        $data   = array_intersect_key($data, array_flip($this->fillable));
         $fields = array_keys($data);
+
+        if (empty($fields)) {
+            return false;
+        }
+
         $setClause = implode(' = ?, ', $fields) . ' = ?';
-        
-        $sql = "UPDATE {$this->table} SET {$setClause} WHERE id = ?";
-        $params = array_merge(array_values($data), [$id]);
-        
+        $sql       = "UPDATE {$this->table} SET {$setClause} WHERE id = ?";
+        $params    = array_merge(array_values($data), [$id]);
+
         $statement = $this->query($sql, $params);
         return $statement && $statement->rowCount() > 0;
     }

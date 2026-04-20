@@ -191,7 +191,7 @@ class GroundOwnerController extends BaseController
                 'pending_count' => count($pending),
             ]);
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => 'Failed to load coaches', 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'message' => 'Failed to load coaches', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -246,7 +246,7 @@ class GroundOwnerController extends BaseController
             return $this->json(['success' => true, 'coach' => $detail]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => 'Failed to load coach details', 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'message' => 'Failed to load coach details', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -292,7 +292,7 @@ class GroundOwnerController extends BaseController
 
             return $this->json(['success' => true, 'message' => 'Coach approved']);
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => 'Error approving coach', 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'message' => 'Error approving coach', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -338,7 +338,7 @@ class GroundOwnerController extends BaseController
 
             return $this->json(['success' => true, 'message' => 'Coach rejected']);
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => 'Error rejecting coach', 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'message' => 'Error rejecting coach', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -366,7 +366,7 @@ class GroundOwnerController extends BaseController
             $coachModel->deleteLink($linkId);
             return $this->json(['success' => true, 'message' => 'Coach removed']);
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => 'Error removing coach', 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'message' => 'Error removing coach', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -390,7 +390,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load grounds',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -417,7 +417,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load facilities',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -457,7 +457,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load ground',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -482,11 +482,29 @@ class GroundOwnerController extends BaseController
                     ], 400);
                 }
             }
-            
-            // Add owner ID and defaults
+
+            // Validate hourly_rate is a positive number
+            $hourlyRate = (float)$data['hourly_rate'];
+            if (!is_numeric($data['hourly_rate']) || $hourlyRate <= 0) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Hourly rate must be a positive number'
+                ], 400);
+            }
+            $data['hourly_rate'] = $hourlyRate;
+
+            // Validate lat/lng ranges if provided
+            if (isset($data['latitude']) && ($data['latitude'] < -90 || $data['latitude'] > 90)) {
+                return $this->json(['success' => false, 'message' => 'Invalid latitude value'], 400);
+            }
+            if (isset($data['longitude']) && ($data['longitude'] < -180 || $data['longitude'] > 180)) {
+                return $this->json(['success' => false, 'message' => 'Invalid longitude value'], 400);
+            }
+
+            // Add owner ID and force status — owners cannot self-approve their facility
             $data['owner_id'] = $ownerId;
-            $data['status'] = $data['status'] ?? 'active';
-            $data['country'] = 'Sri Lanka';
+            $data['status']   = 'active';
+            $data['country']  = 'Sri Lanka';
             
             // Handle amenities array
             if (isset($data['amenities']) && is_array($data['amenities'])) {
@@ -511,10 +529,10 @@ class GroundOwnerController extends BaseController
             ], 201);
             
         } catch (\Exception $e) {
+            error_log("createGround error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'message' => 'Failed to create ground',
-                'error' => $e->getMessage()
+                'message' => 'Failed to create ground. Please try again.'
             ], 500);
         }
     }
@@ -538,16 +556,40 @@ class GroundOwnerController extends BaseController
             }
             
             $ground = $this->getFacilityModel()->find($groundId);
-            
-            if (!$ground || $ground['owner_id'] != $ownerId) {
+
+            if (!$ground || (int)$ground['owner_id'] !== (int)$ownerId) {
                 return $this->json([
                     'success' => false,
                     'message' => 'Ground not found'
                 ], 404);
             }
-            
-            // Remove fields that shouldn't be updated
+
+            // Remove fields owners must not change directly
             unset($data['id'], $data['owner_id'], $data['created_at']);
+
+            // Validate status if supplied
+            if (isset($data['status'])) {
+                if (!in_array($data['status'], ['active', 'maintenance', 'inactive'], true)) {
+                    return $this->json(['success' => false, 'message' => 'Invalid status value'], 400);
+                }
+            }
+
+            // Validate hourly_rate if supplied
+            if (isset($data['hourly_rate'])) {
+                $hourlyRate = (float)$data['hourly_rate'];
+                if (!is_numeric($data['hourly_rate']) || $hourlyRate <= 0) {
+                    return $this->json(['success' => false, 'message' => 'Hourly rate must be a positive number'], 400);
+                }
+                $data['hourly_rate'] = $hourlyRate;
+            }
+
+            // Validate lat/lng if supplied
+            if (isset($data['latitude']) && ($data['latitude'] < -90 || $data['latitude'] > 90)) {
+                return $this->json(['success' => false, 'message' => 'Invalid latitude value'], 400);
+            }
+            if (isset($data['longitude']) && ($data['longitude'] < -180 || $data['longitude'] > 180)) {
+                return $this->json(['success' => false, 'message' => 'Invalid longitude value'], 400);
+            }
             
             // Handle amenities array
             if (isset($data['amenities']) && is_array($data['amenities'])) {
@@ -572,14 +614,14 @@ class GroundOwnerController extends BaseController
             ]);
             
         } catch (\Exception $e) {
+            error_log("updateGround error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'message' => 'Failed to update ground',
-                'error' => $e->getMessage()
+                'message' => 'Failed to update ground. Please try again.'
             ], 500);
         }
     }
-    
+
     public function deleteGround(Request $request): Response
     {
         if (!$this->checkGroundOwnerAuth()) {
@@ -625,7 +667,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to delete ground',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -648,7 +690,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load categories',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -676,7 +718,7 @@ class GroundOwnerController extends BaseController
             $grounds = $this->getFacilityModel()->getByOwnerId($ownerId);
             $groundStats = [
                 'total_grounds' => count($grounds),
-                'active_grounds' => count(array_filter($grounds, fn($g) => $g['status'] === 'active'))
+                'active_grounds' => count(array_filter($grounds, fn($g) => ($g['status'] ?? 'active') === 'active'))
             ];
 
             // Get recent bookings
@@ -745,7 +787,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load dashboard stats',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -789,7 +831,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load bookings',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -876,7 +918,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to cancel booking',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -923,7 +965,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load facility bookings',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1007,7 +1049,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load schedule',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1130,7 +1172,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to update booking status',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1201,7 +1243,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load profile',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1244,7 +1286,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to update profile',
-                'error'   => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1327,7 +1369,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load reviews',
-                'error'   => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1355,7 +1397,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load review statistics',
-                'error'   => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1410,7 +1452,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to save reply',
-                'error'   => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1448,7 +1490,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to report review',
-                'error'   => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1481,7 +1523,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load maintenance statistics',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1522,7 +1564,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load maintenance tasks',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1551,7 +1593,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load active tasks',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1580,7 +1622,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load overdue tasks',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1616,7 +1658,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load calendar data',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1645,9 +1687,31 @@ class GroundOwnerController extends BaseController
                 }
             }
 
+            // Whitelist priority values
+            $allowedPriorities = ['low', 'medium', 'high', 'urgent'];
+            if (!in_array($data['priority'], $allowedPriorities, true)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Priority must be one of: ' . implode(', ', $allowedPriorities)
+                ], 400);
+            }
+
+            // Validate scheduled_date format
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['scheduled_date'])) {
+                return $this->json(['success' => false, 'message' => 'scheduled_date must be in YYYY-MM-DD format'], 400);
+            }
+
+            // Validate cost if provided
+            if (isset($data['cost']) && $data['cost'] !== '' && $data['cost'] !== null) {
+                if (!is_numeric($data['cost']) || (float)$data['cost'] < 0) {
+                    return $this->json(['success' => false, 'message' => 'Cost must be a non-negative number'], 400);
+                }
+                $data['cost'] = (float)$data['cost'];
+            }
+
             // Verify facility belongs to owner
             $facility = $this->getFacilityModel()->find((int)$data['facility_id']);
-            if (!$facility || $facility['owner_id'] != $ownerId) {
+            if (!$facility || (int)$facility['owner_id'] !== (int)$ownerId) {
                 return $this->json([
                     'success' => false,
                     'message' => 'Facility not found'
@@ -1677,10 +1741,10 @@ class GroundOwnerController extends BaseController
             ], 201);
 
         } catch (\Exception $e) {
+            error_log("createMaintenanceTask error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'message' => 'Failed to create maintenance task',
-                'error' => $e->getMessage()
+                'message' => 'Failed to create maintenance task. Please try again.'
             ], 500);
         }
     }
@@ -1740,7 +1804,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to update task',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1793,7 +1857,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to delete task',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1837,7 +1901,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load task details',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1902,7 +1966,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to add progress update',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1962,7 +2026,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to complete task',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -1992,7 +2056,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load cost trends',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2035,7 +2099,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load inspections',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2065,7 +2129,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load upcoming inspections',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2129,7 +2193,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to create inspection',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2158,7 +2222,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load health scores',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2303,7 +2367,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load earnings data',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2334,7 +2398,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load earnings overview',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2381,7 +2445,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load earnings trends',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2413,7 +2477,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load earnings breakdown',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2444,7 +2508,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load ground performance',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2476,7 +2540,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load transactions',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2507,7 +2571,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to load payment analytics',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2581,7 +2645,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Failed to record walk-in transaction',
-                'error'   => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2622,7 +2686,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error loading notifications',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2651,7 +2715,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error loading notification stats',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2680,7 +2744,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error updating notification',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2709,7 +2773,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error updating notifications',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2738,7 +2802,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error deleting notification',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2767,7 +2831,7 @@ class GroundOwnerController extends BaseController
             return $this->json([
                 'success' => false,
                 'message' => 'Error clearing notifications',
-                'error' => $e->getMessage()
+                'error' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -2801,7 +2865,7 @@ class GroundOwnerController extends BaseController
             return $this->json(['success' => true, 'schedule' => $schedule]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => 'Failed to get availability', 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'message' => 'Failed to get availability', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2838,7 +2902,7 @@ class GroundOwnerController extends BaseController
             return $this->json(['success' => true, 'message' => 'Schedule saved successfully']);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => 'Failed to save schedule', 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'message' => 'Failed to save schedule', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2868,7 +2932,7 @@ class GroundOwnerController extends BaseController
             return $this->json(['success' => true, 'blocked_dates' => $blockedDates]);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => 'Failed to get blocked dates', 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'message' => 'Failed to get blocked dates', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -2899,12 +2963,23 @@ class GroundOwnerController extends BaseController
                 return $this->json(['success' => false, 'message' => 'start_date and end_date required'], 400);
             }
 
+            // Validate date format
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['start_date']) ||
+                !preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['end_date'])) {
+                return $this->json(['success' => false, 'message' => 'Dates must be in YYYY-MM-DD format'], 400);
+            }
+
+            if ($data['end_date'] < $data['start_date']) {
+                return $this->json(['success' => false, 'message' => 'end_date must not be before start_date'], 400);
+            }
+
             $blockId = $this->getAvailModel()->addBlockedDate($facilityId, $ownerId, $data);
 
             return $this->json(['success' => true, 'message' => 'Dates blocked successfully', 'id' => $blockId], 201);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => 'Failed to block dates', 'error' => $e->getMessage()], 500);
+            error_log("addBlockedDate error: " . $e->getMessage());
+            return $this->json(['success' => false, 'message' => 'Failed to block dates. Please try again.'], 500);
         }
     }
 
@@ -2933,7 +3008,7 @@ class GroundOwnerController extends BaseController
             return $this->json(['success' => true, 'message' => 'Blocked date removed']);
 
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => 'Failed to remove blocked date', 'error' => $e->getMessage()], 500);
+            return $this->json(['success' => false, 'message' => 'Failed to remove blocked date', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 }

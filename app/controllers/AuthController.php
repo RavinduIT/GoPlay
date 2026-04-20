@@ -5,15 +5,18 @@ namespace App\Controllers;
 use Core\Request;
 use Core\Response;
 use App\Models\User;
+use App\Models\LoginAttempt;
 use App\Services\EmailService;
 
 class AuthController extends BaseController
 {
     protected $userModel;
+    private LoginAttempt $loginAttemptModel;
 
     public function __construct()
     {
-        $this->userModel = new User();
+        $this->userModel         = new User();
+        $this->loginAttemptModel = new LoginAttempt();
     }
 
     /**
@@ -51,34 +54,44 @@ class AuthController extends BaseController
                 ], 400);
             }
 
+            $ip    = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            $email = strtolower(trim($data['email']));
+
+            // Rate limit: block after 5 failures per email or 10 per IP within 15 minutes
+            if ($this->loginAttemptModel->isLockedByEmail($email) || $this->loginAttemptModel->isLockedByIp($ip)) {
+                $retryAfter = $this->loginAttemptModel->getRetryAfterSeconds($email, $ip);
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Too many failed login attempts. Please try again in ' . ceil($retryAfter / 60) . ' minute(s).'
+                ], 429);
+            }
+
             // Get user by email
             $user = $this->userModel->getByEmail($data['email']);
 
-            if (!$user) {
+            // Merge not-found and inactive into one generic response to prevent email enumeration
+            if (!$user || $user['status'] !== 'active') {
+                $this->loginAttemptModel->record($email, $ip, false);
                 return $this->json([
                     'success' => false,
                     'message' => 'Invalid credentials'
                 ], 401);
-            }
-
-            // Check if account is active
-            if ($user['status'] !== 'active') {
-                return $this->json([
-                    'success' => false,
-                    'message' => 'Account is ' . $user['status'] . '. Please contact support.'
-                ], 403);
             }
 
             // Verify password
             if (!$this->userModel->verifyPassword($data['password'], $user['password_hash'])) {
+                $this->loginAttemptModel->record($email, $ip, false);
                 return $this->json([
                     'success' => false,
                     'message' => 'Invalid credentials'
                 ], 401);
             }
 
+            // Successful — record and continue
+            $this->loginAttemptModel->record($email, $ip, true);
+
             // Record login
-            $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            $ipAddress = $ip;
             $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
             $this->userModel->recordLogin($user['id'], $ipAddress, $userAgent);
 

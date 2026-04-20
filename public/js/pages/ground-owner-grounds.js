@@ -136,10 +136,15 @@ async function loadGrounds() {
 
 /*  update stat cards  */
 function updateStats() {
+    const counts = { active: 0, maintenance: 0, inactive: 0 };
+    allGrounds.forEach(g => {
+        const s = g.status || 'active'; // treat null/undefined as active (matches card rendering)
+        if (s in counts) counts[s]++;
+    });
     document.getElementById('statTotal').textContent       = allGrounds.length;
-    document.getElementById('statActive').textContent      = allGrounds.filter(g => g.status === 'active').length;
-    document.getElementById('statMaintenance').textContent = allGrounds.filter(g => g.status === 'maintenance').length;
-    document.getElementById('statInactive').textContent    = allGrounds.filter(g => g.status === 'inactive').length;
+    document.getElementById('statActive').textContent      = counts.active;
+    document.getElementById('statMaintenance').textContent = counts.maintenance;
+    document.getElementById('statInactive').textContent    = counts.inactive;
 }
 
 /*  filter & render  */
@@ -152,7 +157,7 @@ function applyFilters() {
         if (search && !(g.name || '').toLowerCase().includes(search) &&
             !(g.city || '').toLowerCase().includes(search)) return false;
         if (sport  && String(g.sport_category_id) !== String(sport))  return false;
-        if (status && g.status !== status) return false;
+        if (status && (g.status || 'active') !== status) return false;
         return true;
     });
 
@@ -385,7 +390,15 @@ document.getElementById('grDelConfirm').addEventListener('click', async () => {
 
 /*  amenity click toggle  */
 document.querySelectorAll('.gr-amenity-item').forEach(el => {
-    el.addEventListener('click', () => el.classList.toggle('checked'));
+    el.addEventListener('click', (e) => {
+        // The label contains a hidden checkbox; clicking the label fires a synthetic
+        // click on the checkbox which then bubbles back here — toggling twice = no change.
+        // e.preventDefault() blocks the synthetic checkbox click; the INPUT guard
+        // catches any direct bubbled events before preventDefault takes effect.
+        if (e.target.tagName === 'INPUT') return;
+        e.preventDefault();
+        el.classList.toggle('checked');
+    });
 });
 
 /*  sidebar toggle  */

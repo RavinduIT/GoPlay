@@ -308,11 +308,11 @@ class AnalyticsController extends BaseController
 
             // Products by category
             $productsByCategory = $this->db->query(
-                "SELECT pc.name as category, COUNT(*) as count
+                "SELECT c.name as category, COUNT(*) as count
                 FROM products p
-                JOIN product_categories pc ON p.category_id = pc.id
+                JOIN categories c ON p.category_id = c.id
                 WHERE p.status = 'active'
-                GROUP BY pc.name"
+                GROUP BY c.name"
             )->fetchAll();
 
             // Low stock products
