@@ -583,27 +583,10 @@ $additionalJS = [];
                     <h1>Book Professional Coaches</h1>
                     <p>Train with certified coaches and improve your sports skills</p>
                     <div class="header-stats">
-                        <div class="stat-item">
-                            <span class="stat-number">100+</span>
-                            <span class="stat-label">Coaches</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number">15+</span>
-                            <span class="stat-label">Sports</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number">4.9</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
+                        
                     </div>
                 </div>
-                <div class="header-actions">
-                    <button class="btn-primary">
-                        <i class="fas fa-calendar"></i>
-                        Schedule Session
-                    </button>
-                   
-                </div>
+                
             </div>
         </div>
 

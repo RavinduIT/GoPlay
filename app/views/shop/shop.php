@@ -1113,18 +1113,7 @@ $additionalJS = ['/public/js/cart-api.js'];
                     <h1>Sports Equipment Shop</h1>
                     <p>Premium sports gear and equipment for all your athletic needs</p>
                     <div class="header-stats">
-                        <div class="stat-item">
-                            <span class="stat-number">500+</span>
-                            <span class="stat-label">Products</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number">24h</span>
-                            <span class="stat-label">Delivery</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number">5 <i class="fas fa-star" style="color:#fbbf24;font-size:0.8em"></i></span>
-                            <span class="stat-label">Rating</span>
-                        </div>
+                       
                     </div>
                 </div>
                 <div class="header-actions">

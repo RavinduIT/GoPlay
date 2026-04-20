@@ -837,18 +837,7 @@ $additionalJS = ['/public/js/pages/book-ground.js'];
                     <h1>Book Sports Facilities</h1>
                     <p>Find and reserve premium sports facilities across Sri Lanka</p>
                     <div class="header-stats">
-                        <div class="stat-item">
-                            <span class="stat-number">50+</span>
-                            <span class="stat-label">Facilities</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number">24/7</span>
-                            <span class="stat-label">Booking</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number">5</span>
-                            <span class="stat-label">Rated</span>
-                        </div>
+                        
                     </div>
                 </div>
                 <div class="header-actions">
